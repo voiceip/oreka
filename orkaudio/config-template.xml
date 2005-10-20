@@ -1,0 +1,24 @@
+<!-- This is an example configuration file for the Oreka orkaudio capture service -->
+<!-- Copy this to config.xml and modify according to taste -->
+<config>
+	<TrackerHostname>hostname</TrackerHostname>
+	<EnableReporting>true</EnableReporting>
+	<ClientTimeout>1000</ClientTimeout>
+	<CapturePluginPath>audiocaptureplugins/</CapturePluginPath>
+	<CapturePlugin>Generator.dll</CapturePlugin>
+	<StorageAudioFormat>gsm</StorageAudioFormat>
+	<NumBatchThreads></NumBatchThreads>
+	<DeleteNativeFile>no</DeleteNativeFile>
+	<AudioSegmentation>false</AudioSegmentation>
+	<AudioSegmentDuration>10</AudioSegmentDuration>
+	<VoIpPlugin>
+		<Device>\Device\NPF_{2FEDB9F0-F584-48A8-B164-117965F80986}</Device>
+		<!--<LanMasks>10.4.3.4, 1.2.3.4</LanMasks>-->
+		<MediaGateways>10.0.0.102</MediaGateways>
+	</VoIpPlugin>
+	<Generator>
+		<NumConcurrentPorts>1</NumConcurrentPorts>
+		<AudioDuration>5</AudioDuration>
+		<AudioFilename>sine.8KHz.pcm.wav</AudioFileName>
+	</Generator>
+</config>

@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<project name="ServletDeploy" default="do_everything">
+   <!--
+      This ANT script does NOT compile the application,
+      we are relying on Eclipse to do all Java compilation.
+      This script merely deploys the application to Tomcat.
+
+      You will need Tomcat manager running and working
+      login for Tomcat manager. To create a user for
+      Tomcat manager, edit the file
+      
+         <tomcat>\conf\tomcat-users.xml
+         
+      and add a line for the desired user, such as
+      
+        <user 
+           username="username" 
+           password="password" 
+           fullName="Your Fullname" 
+           roles="manager"/>
+
+      If it is not already there, you may want a to add 
+      the manager role above the user line... such as
+      
+         <role rolename="manager"/>
+      	
+     Using the manager to install/remove applications keeps
+     you from having to stop and restart Tomcat every time
+     you need to update your application.
+   -->
+	
+	<!-- Change these properties to suit your needs (Begin)-->
+   <property name="application" value="orktrack" />
+   <property name="tomcatHome" value="C:\Program Files\Apache Software Foundation\Tomcat 5.5" />
+   <property name="tomcatHomeEsc" value="C:/Program%20Files/Apache%20Software%20Foundation/Tomcat%205.5" />
+   <property name="workspaceHome" value="c:/devOrk/" />
+   <property name="mgrUsername" value="admin" />
+   <property name="mgrPassword" value="" />
+	<!-- Change these properties to suit your needs (End)-->
+
+	
+   <property name="webappsHome" value="${tomcatHome}/webapps" />
+   <property name="webappsHomeEsc" value="${tomcatHomeEsc}/webapps" />	
+   <property name="appHome" value="${webappsHome}/${application}" />
+   <property name="contextHome" value="${workspaceHome}/${application}/context" />
+   <property name="srcHome" value="${workspaceHome}/${application}/src" /> 
+   <property name="deployWarDir" value="${workspaceHome}/${application}/DeployWar" />
+   <property name="mgrUrl" value="http://localhost:8080/manager" />
+   <property name="mgrRemoveUrl" value="${mgrUrl}/remove" />
+   <property name="mgrDeployUrl" value="${mgrUrl}/install" />
+   <property name="orkbasejHome" value="${workspaceHome}/orkbasej" />
+	
+	<target name="create_war">
+	      <mkdir dir="${deployWarDir}" /> 
+	      <delete file="${deployWarDir}/${application}.war" />
+	      <war
+	        duplicate="preserve"
+	      	destfile="${deployWarDir}/${application}.war"
+	      	webxml="${contextHome}/WEB-INF/web.xml">
+	      	<classes dir="${contextHome}/WEB-INF/classes" />
+	      	<classes dir="${orkbasejHome}/bin" />
+	      	<fileset dir="${contextHome}">
+	      	   <include name="*" />
+	      	   <include name="images/*" />
+	      	   <include name="WEB-INF/*.page" />
+	      	   <include name="WEB-INF/*.application" />
+	      	   <include name="WEB-INF/*.jwc" />
+	      	   <include name="WEB-INF/*.html" />
+	      	   <include name="WEB-INF/*.properties" />      	   
+	      	   <include name="css/*.css" />
+	      	</fileset>
+	      </war>
+	</target>
+
+	<target name="remove_context">
+	      <delete file="temp.txt" />
+	      <get
+	         src="${mgrRemoveUrl}?path=/${application}"
+	         dest="temp.txt"
+	         username="${mgrUsername}" 
+	         password="${mgrPassword}" />
+	      <loadfile property="remove.result"
+	         srcFile="temp.txt" />
+	      <echo>${remove.result}</echo>
+	      <delete file="temp.txt" />	
+		
+	      <!-- Remove the directory containing the old version of the application -->
+	      <delete dir="${webappsHome}/${application}" />
+	</target>
+	
+   <target name="deploy">        
+      <!-- Deploy to Tomcat -->
+      <unzip 
+         src="${deployWarDir}/${application}.war"
+         dest="${webappsHome}/${application}" />
+   </target> 
+
+	<target name="install_context">
+	      <!-- Install the application -->
+	      <delete file="temp.txt" />
+	      <property name="mgrDeployParams"
+	         value="path=/${application}&amp;war=file://${webappsHomeEsc}/${application}/" />
+	      <get
+	         src="${mgrDeployUrl}?${mgrDeployParams}"
+	         dest="temp.txt"
+	         ignoreerrors="true"
+	         verbose="true"
+	         username="${mgrUsername}" 
+	         password="${mgrPassword}" />
+	      <loadfile property="install.result"
+	         srcFile="temp.txt" />
+	      <echo>${install.result}</echo>
+	      <delete file="temp.txt" />	
+	</target>
+	
+   <target name="do_everything" depends="create_war,remove_context,deploy,install_context" />
+
+</project>

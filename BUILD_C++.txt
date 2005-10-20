@@ -1,0 +1,58 @@
+
+This file describes how to build the C++ part of the oreka capture system
+
+=====================================
+Build on Linux 
+
+Prerequisites:
+
+install these packages first using your linux distribution packaging system 
+or download sources tarballs from the listed websites.
+
+* log4cxx 0.9.7 - It is important to use this precise version for now
+	http://logging.apache.org/log4cxx/
+* ACE 5.4.2
+	http://www.cs.wustl.edu/~schmidt/ACE.html
+* libpcap 0.7.2
+	http://www.tcpdump.org/
+* boost 1.31.0
+	http://www.boost.org
+* xerces-c 2.6
+	http://xml.apache.org/xerces-c/
+* libsndfile 1.0.10
+	http://www.mega-nerd.com/libsndfile/
+
+Build orkbasecxx on the command line:
+
+* Go to the root directory of the orkbasecxx
+* libtoolize --force
+* make -f Makefile.cvs
+* ./configure
+* make
+* make install
+
+Build orkaudio on the command line:
+
+* Go to the root directory of the orkaudio
+* libtoolize --force
+* make -f Makefile.cvs
+* ./configure
+* make
+
+For debug binary: modify above as follows
+* ./configure --enable-debug=full
+* CXXFLAGS="-O0 -g3"
+* make -e
+
+Build using Kdevelop
+
+* Project/import existing project (libtool based c++ project)
+
+=====================================
+Build on Windows/MSVC6 (SP6)
+
+* Download the c++ win32 external library pack and unpack into c:\devExt
+	(if you change this  location, you need to change all references in the dsp files)
+* Load orkaudio\OrkAudio.dsw into MSVC
+* Select orkbase as active project, build
+* Select orkaudio as active project, build

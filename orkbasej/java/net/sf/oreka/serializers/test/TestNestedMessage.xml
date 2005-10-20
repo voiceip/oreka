@@ -1,0 +1,6 @@
+<testnested>
+  <intParm>546</intParm>
+  <testsub>
+  	<stringsubparm>hello</stringsubparm>
+  </testsub>
+</testnested>

@@ -1,0 +1,115 @@
+body {	
+	margin: 0; padding: 0;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 11px;}
+img {border: 0;}
+
+#masthead {padding: 2px;}
+
+.menuContainer {
+	font-weight: bold;
+	border-bottom: 1px solid #000000;
+	border-top: 1px solid #000000;
+	background-color: #E6E6E6;
+	background-image: url(../images/menuback1.gif);
+	background-repeat: repeat-x;
+	padding: 0px;
+	margin: 0px;
+}
+.menubuttons {
+}
+.menubuttons td {
+	background-color: #E9E9E9;
+	text-align: center;
+	padding: 2px 8px;
+	border: 1px solid #000000;
+}
+.menubuttons td.on  {
+	color: #FFFFFF;
+	background-color: #003366;
+	text-align: center;
+}
+
+.menubuttons td.on a {color: #FFF;}
+
+.menubuttons a {display: block;}
+.menubuttons a:link {color: #003366;}
+.menubuttons a:visited {color: #003366;}
+.menubuttons a:hover {color:#FFCC00;}
+
+.inputform {
+	padding: 0px; width: 350px;
+	/*border: 1px solid #000000;*/
+}
+.inputform th {
+	text-align: right; 
+} 
+
+.inputform td {
+	padding: 4px; font-weight: bold; 
+} 
+
+.inputform input {font-weight: normal;}
+.error {
+	font-size: 10px;
+	font-style: italic;
+	color: #FF0000;
+}
+.cursor {
+    background-color: white;
+    text-align: right;
+    padding-right: 0;
+}
+  
+.cursor div { 
+    border-top: solid 2px #930512;
+    background-color: #FD0D24;
+    border-bottom: solid 2px #930512;
+    text-align: right;
+    color: white;
+    float: left;
+    padding-top: 0;
+    height: 1em;
+}
+
+.bar {
+    background-color: white;
+    text-align: right;
+    padding-right: 0;
+}
+  
+.bar div { 
+    border-top: solid 2px #03144B;
+    background-color: #0930AC;
+    border-bottom: solid 2px #03144B;
+    text-align: right;
+    color: white;
+    float: left;
+    padding-top: 0;
+    height: 1em;
+}
+
+table#container {
+	border: 1px solid #000000;
+	padding: 0px;
+	margin: 0px;
+	width: 100%;
+	background-image:url(../images/bg_container.jpg); background-repeat: repeat-x;
+}
+table#container td {vertical-align: top;}
+td.criteria {border: 1px solid #000; width: 350px; background-color: #FFF;}
+td.results {border: 1px solid #000; background-color: #FFF;}
+td.results table {width: 100%;}
+
+tr.header {font-weight: bold; background-color:#333333; color: #fff;}
+tr.header td {padding: 4px;}
+tr.header a:link {color: #FFF; text-decoration: none;}
+tr.header a:visited {color: #FFF; text-decoration: none;}
+tr.header a:hover {text-decoration: underline;}
+
+tr.even {background-color: #EAEAEA;}
+tr.odd {background-color:#E0E0E0;}
+
+td.results table.paging {width: auto;}
+.paging tr.odd {background-color:#FFFFFF;}
+.paging tr.even {background-color:#FFFFFF;}

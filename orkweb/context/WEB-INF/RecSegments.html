@@ -1,0 +1,154 @@
+<html jwcid="@Shell" stylesheet="ognl:assets.mystyle" title="Browse segments" >
+<link jwcid="@If" condition="false" href="orekastyle.css" rel="stylesheet" type="text/css"/>
+<body jwcid="@Body">
+<table id="container">
+	<tr>
+		<td colspan="2"><span jwcid="@my:MainMenu" pageName="RecSegments">Here goes the main menu</span></td>
+	</tr>
+	<tr>
+		<td class="criteria">
+			<form jwcid="@Form" listener="ognl:listeners.formSubmit">
+				<table cellpadding="4" class="inputform">
+					<span jwcid="@If" condition="ognl:recSegmentFilter.minDurationError != null">
+						<tr>
+							<td class="error"><span jwcid="@Insert" value="ognl:recSegmentFilter.minDurationError">error in this field</span></td>
+						</tr>
+					</span>
+					<tr>
+				   		<td>Min Duration</td>
+				   		<td><input jwcid="@TextField" value="ognl:recSegmentFilter.minDuration" translator="translator:string" size="12" class="ognl:recSegmentFilter.minDurationError==null ? recSegmentFilter.okStyle : recSegmentFilter.errorStyle"/></td>
+					</tr>
+					<span jwcid="@If" condition="ognl:recSegmentFilter.maxDurationError != null">
+						<tr>
+							<td class="error"><span jwcid="@Insert" value="ognl:recSegmentFilter.maxDurationError">error in this field</span></td>
+						</tr>
+					</span>
+					<tr>
+				   		<td>Max Duration</td>
+				   		<td><input jwcid="@TextField" value="ognl:recSegmentFilter.maxDuration" translator="translator:string" size="12" class="ognl:recSegmentFilter.maxDurationError==null ? recSegmentFilter.okStyle : recSegmentFilter.errorStyle"/></td>
+					</tr>
+	  				<tr jwcid="@If" condition="ognl:recSegmentFilter.localPartyError != null">
+						<td class="error"><span jwcid="@Insert" value="ognl:recSegmentFilter.localPartyError">error in this field</span></td>
+					</tr>
+					<tr>
+			   			<td><span key="LocalParty">Local Party</span></td>
+			   			<td><input jwcid="@TextField" value="ognl:recSegmentFilter.localParty" translator="translator:string" size="12" class="ognl:recSegmentFilter.localPartyError==null ? recSegmentFilter.okStyle : recSegmentFilter.errorStyle"/></td>
+					</tr>
+	  				<tr jwcid="@If" condition="ognl:recSegmentFilter.remotePartyError != null">
+						<td class="error"><span jwcid="@Insert" value="ognl:recSegmentFilter.remotePartyError">error in this field</span></td>
+					</tr>
+					<tr>
+			   			<td><span key="RemoteParty">Remote Party</span></td>
+			   			<td><input jwcid="@TextField" value="ognl:recSegmentFilter.remoteParty" translator="translator:string" size="12" class="ognl:recSegmentFilter.remotePartyError==null ? recSegmentFilter.okStyle : recSegmentFilter.errorStyle"/></td>
+					</tr>
+				 	<tr>
+				 		<td>Start Date</td> 
+				 		<td><span jwcid="@DatePicker" value="ognl:recSegmentFilter.startDate" translator="translator:date,pattern=yyyy-MM-dd HH:mm:ss" disabled="false" icon="asset:cal"/></td>
+				 	</tr>
+				 	<tr>
+				 		<td>End Date</td> 
+				 		<td><span jwcid="@DatePicker" value="ognl:recSegmentFilter.endDate" translator="translator:date,pattern=yyyy-MM-dd HH:mm:ss" icon="asset:cal"/></td>
+				 	</tr>
+				  	<tr>
+				  		<td colspan="2">
+							<span jwcid="direction@RadioGroup" selected="ognl:recSegmentFilter.direction" displayName="Direction" validators="validators:required">
+								<!--<input type="radio" jwcid="@Radio" value="ognl:@net.sf.oreka.Direction@UNKN"> Unkn </input>-->
+								Outgoing <input type="radio" jwcid="@Radio" value="ognl:@net.sf.oreka.Direction@OUT"> Out </input>
+								Incoming<input type="radio" jwcid="@Radio" value="ognl:@net.sf.oreka.Direction@IN"> In </input>
+								Both <input type="radio" jwcid="@Radio" value="ognl:@net.sf.oreka.Direction@ALL"> Both </input>
+							</span>
+ 						</td>
+				  	</tr>
+				  	<tr align="Left">
+				   		<td colspan="2"><input type="submit" value="Search"/></td>
+				  	</tr>
+				  	<tr>
+				  		<td colspan="2">
+				  			
+				  			<script language="JavaScript">
+								function play (audioFilename)
+								{
+								    document.all.player.autoStart = true;
+								    document.all.player.fileName = audioFilename;
+								}
+							</script>
+				  			
+							<OBJECT ID="player"
+							    CLASSID="CLSID:22d6f312-b0f6-11d0-94ab-0080c74c7e95"
+							    CODEBASE="http://activex.microsoft.com/activex/controls/mplayer/en/nsmp2inf.
+							    cab#Version=5,1,52,701"
+							    STANDBY="Loading Microsoft Windows Media Player components..."
+							    TYPE="application/x-oleobject"
+							    WIDTH=200 HEIGHT=50 >
+							    <PARAM NAME="fileName" VALUE="">
+							    <PARAM NAME="animationatStart" VALUE="false">
+							    <PARAM NAME="transparentatStart" VALUE="true">
+							    <PARAM NAME="showControls" VALUE="true">
+							    <PARAM NAME="ShowStatusBar" VALUE="true">
+							    <PARAM NAME="ShowDisplay" VALUE="false">
+							    <PARAM NAME="CurrentPosition" VALUE="0">
+							    <PARAM NAME="autoStart" VALUE="true">
+							</OBJECT>		
+						</td>		  	
+				  	</tr>
+				</table>
+			</form>
+		</td>
+		<!-- *** Results table *** -->
+		<span jwcid="@If" condition="ognl:!items.isEmpty">
+			<td class="results">
+				<table>
+					<tr>
+						<td><span jwcid="mytablepaging">Paging goes here</span></td>
+					</tr>
+					<tr>
+						<td>
+							<table>
+								<tr>
+									<td>
+										<table>
+											<span jwcid="mytableheader"></span>
+											<tr jwcid="segments" class="even">
+											    <td><span jwcid="@Insert" value="ognl:item.recSegment.timestamp">timestamp</span></td>
+											    <td><span jwcid="@Insert" value="ognl:item.recSegment.duration">duration</span></td>
+											    <td><span jwcid="@Insert" value="ognl:item.recSegment.localParty">local party</span></td>
+											    <td>
+											    	<!--<span jwcid="@Insert" value="ognl:item.recSegment.direction">direction</span>-->
+											    	<span jwcid="@If" condition="ognl:item.recSegment.direction == @net.sf.oreka.Direction@IN">In</span>
+											    	<span jwcid="@If" condition="ognl:item.recSegment.direction == @net.sf.oreka.Direction@OUT">Out</span>
+											    </td>
+											    <td><span jwcid="@Insert" value="ognl:item.recSegment.remoteParty">remote party</span></td>
+											    <td>
+											    	<span jwcid="@If" condition="ognl:item.recSegment.recTape != null">
+											      		<span jwcid="@Insert" value="ognl:item.recSegment.recTape.id">tape id</span>
+											      	</span>
+											    </td>
+											    <td>
+											    	<span jwcid="@If" condition="ognl:item.recSegment.recTape != null">
+											      		<a jwcid="@Any" href="ognl:item.recSegment.recTape.playUrl"><img jwcid="@Image" image="asset:play" alt="Play"/></a>
+											      	</span>											    
+											    </td>
+											</tr>
+										</table>
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+					<tr>
+						<td><span jwcid="mytablepaging2">Paging goes here</span></td>
+					</tr>
+				</table>
+			</td>
+		</span>
+		<span jwcid="@If" condition="ognl:items.isEmpty">
+			<td valign="top">
+				<span key="NoResults">No results</span>
+			</td>
+		</span>
+	</tr>
+</table>
+<!--<img jwcid="@Image" image="ognl:assets.myimage" />-->
+
+</body>
+</html>

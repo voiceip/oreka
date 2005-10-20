@@ -1,0 +1,43 @@
+<html jwcid="@Shell" stylesheet="ognl:assets.mystyle" title="Welcome to OrkWeb" >
+<link jwcid="@If" condition="false" href="orekastyle.css" rel="stylesheet" type="text/css"/>
+
+<body>
+
+<table id="container">
+	<tr>
+		<td colspan="2"><span jwcid="@my:MainMenu" pageName="Home">Here goes the main menu</span></td>
+	</tr>
+	<tr>
+		<td class="criteria">
+			<form jwcid="@Form">
+				<table class="inputform">
+					<tr>
+						<td>
+							<big>Please login<big>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<font color="red">
+								<span jwcid="@Insert" value="ognl:errorMessage">Error Message</span>
+							</font>
+						</td>
+					</tr>				
+					<tr>
+						<td>Username</td>
+			 			<td><input jwcid="@TextField" value="ognl:username" translator="translator:string"/></td>
+			 		</tr>
+			 		<tr>
+			 			<td>Password</td>
+			 			<td><input jwcid="@TextField" value="ognl:password" translator="translator:string" hidden="true"/></td>
+					</tr>
+					<tr>
+			   			<td><input type="submit" jwcid="@Submit" action="ognl:listeners.formSubmit" value="Login"/></td>
+			   		</tr>
+			   	</table>
+			</form>
+		</td>
+	</tr>
+</table>
+</body>
+</html>

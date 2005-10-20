@@ -1,0 +1,43 @@
+/*
+ * Oreka -- A media capture and retrieval platform
+ * 
+ * Copyright (C) 2005, orecx LLC
+ *
+ * http://www.orecx.com
+ *
+ * This program is free software, distributed under the terms of
+ * the GNU General Public License.
+ * Please refer to http://www.gnu.org/copyleft/gpl.html
+ *
+ */
+
+#ifndef __ORKCLIENT_H__
+#define __ORKCLIENT_H__
+
+#include "messages/SyncMessage.h"
+#include "messages/AsyncMessage.h"
+
+/** Abstract base class for all clients. */
+class DLL_IMPORT_EXPORT OrkClient
+{
+public:
+	virtual bool Execute(SyncMessage& request, AsyncMessage& response, CStdString& hostname, int tcpPort, CStdString& serviceName, int timeout = 5) = 0;
+};
+
+/** Abstract base class for all clients based on http. */
+class DLL_IMPORT_EXPORT OrkHttpClient : public OrkClient
+{
+public:
+	virtual bool Execute(SyncMessage& request, AsyncMessage& response, CStdString& hostname, int tcpPort, CStdString& serviceName, int timeout = 5) = 0;
+	bool ExecuteUrl(CStdString& request, CStdString& response, CStdString& hostname, int tcpPort, int timeout = 5);
+protected:
+};
+
+/** Client that uses a HTTP URL request and receives the response back in the SingleLine format. */
+class DLL_IMPORT_EXPORT OrkHttpSingleLineClient : public OrkHttpClient
+{
+public:
+	bool Execute(SyncMessage& request, AsyncMessage& response, CStdString& hostname, int tcpPort, CStdString& serviceName, int timeout = 5);
+};
+
+#endif
