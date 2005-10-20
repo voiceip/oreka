@@ -21,6 +21,8 @@ or download sources tarballs from the listed websites.
 	http://xml.apache.org/xerces-c/
 * libsndfile 1.0.10
 	http://www.mega-nerd.com/libsndfile/
+* portaudio v18
+	http://www.portaudio.com
 
 Build orkbasecxx on the command line:
 
