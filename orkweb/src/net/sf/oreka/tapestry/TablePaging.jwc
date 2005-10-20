@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component-specification
+      PUBLIC "-//Apache Software Foundation//Tapestry Specification 3.0//EN"
+      "http://jakarta.apache.org/tapestry/dtd/Tapestry_3_0.dtd">
+
+<component-specification class="net.sf.oreka.tapestry.TablePaging" 
+	allow-informal-parameters="no">
+
+  <parameter name="tableState" type="net.sf.oreka.tapestry.TableState" direction="auto" required="yes"/>
+
+  <property-specification name="sliderPosition" type="java.lang.Integer"/>
+  
+	<context-asset name="first" path="/images/icon_pagefirst.gif"/>
+	<context-asset name="last" path="/images/icon_pagelast.gif"/>
+	<context-asset name="previous" path="/images/icon_pageprev.gif"/>
+	<context-asset name="next" path="/images/icon_pagenext.gif"/>
+</component-specification>

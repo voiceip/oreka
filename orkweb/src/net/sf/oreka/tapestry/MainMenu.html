@@ -1,0 +1,31 @@
+<!-- *** Main Menu *** -->
+<link jwcid="@If" condition="false" href="orekastyle.css" rel="stylesheet" type="text/css"/>
+<table width="100%" class="menuContainer">
+	<tr>
+		<td align="left">
+			<table class="menubuttons">
+				<tr>
+					<td jwcid="@Any" class="ognl:pageName=='Home'? 'on' : ''">
+						<a jwcid="@PageLink" page="Home">
+							<span key="Home">Home</span>
+						</a>
+					</td>
+					<td jwcid="@Any" class="ognl:pageName=='RecSegments'? 'on' : ''">
+						<a jwcid="@PageLink" page="RecSegments">
+							<span key="RecSegments">Calls</span>
+						</a>
+					</td>
+				</tr>
+			</table>
+		</td>
+		<td align="right">
+			<table class="menubuttons">
+				<tr>
+					<td>
+						<span jwcid="@ServiceLink" service="ognl:@org.apache.tapestry.Tapestry@RESTART_SERVICE">Logout</span>
+					</td>
+				</tr>
+			</table>	
+		</td>
+	</tr>
+</table>

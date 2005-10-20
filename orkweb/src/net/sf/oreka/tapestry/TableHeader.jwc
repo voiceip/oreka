@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE component-specification
+      PUBLIC "-//Apache Software Foundation//Tapestry Specification 3.0//EN"
+      "http://jakarta.apache.org/tapestry/dtd/Tapestry_3_0.dtd">
+
+<component-specification class="net.sf.oreka.tapestry.TableHeader" 
+	allow-informal-parameters="no">
+
+  <parameter name="tableState" type="net.sf.oreka.tapestry.TableState" direction="auto" required="yes"/>
+  <parameter name="columnsCSV" type="java.lang.String" direction="auto" required="yes"/>
+  
+  <property-specification name="column" type="net.sf.oreka.tapestry.TableColumn"/>
+</component-specification>

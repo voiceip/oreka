@@ -1,0 +1,15 @@
+<tr class="header">
+	<td jwcid="@Foreach" source="ognl:columns" value="ognl:column" element="td">
+		<span jwcid="@If" condition="ognl:column.sortable">
+			<a jwcid="@DirectLink" listener="ognl:listeners.columnClickAction" parameters="ognl:column.key">
+				<span jwcid="@Insert" value="ognl:column.message">sortableColumn</span>
+			</a>	
+		</span>
+		<span jwcid="@If" condition="ognl:!column.sortable">
+			<span jwcid="@Insert" value="ognl:column.message">nonSortableColumn</span>
+		</span>
+	</td>
+<tr>
+
+
+
