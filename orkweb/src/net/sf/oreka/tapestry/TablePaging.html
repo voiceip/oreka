@@ -1,0 +1,90 @@
+<!--<style type="text/css">
+  .cursor {
+    background-color: white;
+    text-align: right;
+    padding-right: 0;
+  }
+  
+  .cursor div { 
+    border-top: solid 2px #930512;
+    background-color: #FD0D24;
+    border-bottom: solid 2px #930512;
+    text-align: right;
+    color: white;
+    float: left;
+    padding-top: 0;
+    height: 1em;
+  }
+
+  .bar {
+    background-color: white;
+    text-align: right;
+    padding-right: 0;
+  }
+  
+  .bar div { 
+    border-top: solid 2px #03144B;
+    background-color: #0930AC;
+    border-bottom: solid 2px #03144B;
+    text-align: right;
+    color: white;
+    float: left;
+    padding-top: 0;
+    height: 1em;
+    
+
+</style>-->
+
+<table width="100%" class="paging">
+	<tr class="odd">
+		<td align="left">
+			<table>
+				<tr>
+					<td>
+						<a jwcid="@DirectLink" listener="ognl:listeners.firstPageAction">
+							<img jwcid="@Image" image="asset:first" alt="First"/>
+						</a>
+					</td>
+					<td>
+						<a jwcid="@DirectLink" listener="ognl:listeners.previousPageAction">
+							<img jwcid="@Image" image="asset:previous" alt="First"/>
+						</a>
+					</td>
+					<td>
+						<a jwcid="@DirectLink" listener="ognl:listeners.nextPageAction">
+							<img jwcid="@Image" image="asset:next" alt="First"/>
+						</a>
+					</td>
+					<td>
+						<a jwcid="@DirectLink" listener="ognl:listeners.lastPageAction">
+							<img jwcid="@Image" image="asset:last" alt="First"/>
+						</a>
+					</td>
+					<td nowrap="true">
+						Page <span jwcid="@Insert" value="ognl:tableState.currentPage"/>/<span jwcid="@Insert" value="ognl:tableState.numPages"/>
+					</td>	
+					<td nowrap="true">
+						<span jwcid="@Insert" value="ognl:tableState.numResults"/> Results
+					</td>
+				</tr>
+			</table>
+		</td>
+		<td width="100%">
+			&nbsp;
+		</td>
+	</tr>
+	<!--*** Slider ***-->
+	<tr>
+		<td colspan="2">
+			<table width="100%">
+				<tr>
+					<td jwcid="@Foreach" source="ognl:sliderPositions" value="ognl:sliderPosition" element="td" class="ognl:tableState.sliderPosition == sliderPosition ? 'cursor' : 'bar'">
+						<a jwcid="@DirectLink" listener="ognl:listeners.sliderClickAction" parameters="ognl:sliderPosition">
+							<div style="width: 100%">&nbsp;</div>
+						</a>
+					</td>
+				</tr>
+			</table>
+		</td>	
+	</tr>
+</table>
