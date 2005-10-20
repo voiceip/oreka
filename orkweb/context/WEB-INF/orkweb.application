@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE application
+      PUBLIC "-//Apache Software Foundation//Tapestry Specification 4.0//EN"
+      "http://jakarta.apache.org/tapestry/dtd/Tapestry_4_0.dtd">
+
+<application name="orkweb" engine-class="org.apache.tapestry.engine.BaseEngine" >
+
+	<description><![CDATA[   add a description   ]]></description>
+
+	<!--<page name="Home" specification-path="Home.page"/>-->    
+    
+ 	<!--<meta key="org.apache.tapestry.page-class-packages" value="net.sf.oreka.pages"/>  -->
+ 	<meta key="org.apache.tapestry.component-class-packages" value="net.sf.oreka.tcomponents"/>  
+    
+	<library id="contrib" specification-path="/org/apache/tapestry/contrib/Contrib.library"/>
+	<library id="my" specification-path="/net/sf/oreka/tapestry/my.library"/>
+	
+	<!--<extension name="Startup" class="net.sf.oreka.services.Startup" immediate="yes" />-->
+</application>

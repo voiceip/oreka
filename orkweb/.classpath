@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/hibernate-3.1beta1"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Tapestry-4.9-beta-9"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/apache-commons"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/servlet"/>
+	<classpathentry kind="src" path="/orkbasej"/>
+	<classpathentry kind="output" path="context/WEB-INF/classes"/>
+</classpath>

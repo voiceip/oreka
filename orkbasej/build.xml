@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!-- This ant build script creates the hibernate xml mapping files --> 
+<!-- NOT FOR USE IN THE GENERAL CASE -->
+<!-- use this only when java 5 compiler not available or not wanted -->
+<!-- otherwise hibernate annotations support will take care of this -->
+
+<project name="orkbasej" default="hibernate" basedir=".">
+    <property name="oreka.root.dir" value="${basedir}/.."/>
+    <property name="oreka.lib.dir" value="${oreka.root.dir}/lib"/>
+    <property name="oreka.xdoclet.lib.dir" value="${oreka.lib.dir}/xdoclet"/>
+	
+    <property name="common.java.dir" value="${basedir}/java"/>
+	
+    <!-- =================================================================== -->
+    <!-- Define the xdoclet class path                                               -->
+    <!-- =================================================================== -->
+    <path id="xdoclet.class.path">
+        <fileset dir="${oreka.xdoclet.lib.dir}">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+	
+    <!-- =================================================================== -->
+    <!-- Initialise                                                          -->
+    <!-- =================================================================== -->
+    <target name="init">
+        <taskdef
+           name="hibernatedoclet"
+           classname="xdoclet.modules.hibernate.HibernateDocletTask"
+           classpathref="xdoclet.class.path"
+           />
+    </target>
+	
+    <!-- =================================================================== -->
+    <!-- Invoke XDoclet's hibernate                                          -->
+    <!-- =================================================================== -->
+    <target name="hibernate" depends="init" description="Generate mapping documents (run jar first)">
+
+        <echo>+---------------------------------------------------+</echo>
+        <echo>|                                                   |</echo>
+        <echo>| R U N N I N G   H I B E R N A T E D O C L E T     |</echo>
+        <echo>|                                                   |</echo>
+        <echo>+---------------------------------------------------+</echo>
+
+        <hibernatedoclet
+            destdir="${common.java.dir}"
+            excludedtags="@version,@author,@todo,@see"
+            verbose="true">
+
+            <fileset dir="${common.java.dir}">
+                <include name="net/sf/oreka/persistent/*.java"/>
+            </fileset>
+
+            <hibernate version="2.1"/>
+        </hibernatedoclet>
+    </target>
+</project>

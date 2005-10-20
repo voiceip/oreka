@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/MySQL"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/hibernate-annotations-3.1beta4"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/hibernate-3.1beta1"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/hsqldb1.8.0.2"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/servlet"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

@@ -1,0 +1,394 @@
+
+td.navigation {
+  color: gray;
+}
+
+td.navigation a {
+}
+
+BODY {
+	SCROLLBAR-FACE-COLOR: #448BF5;
+	 SCROLLBAR-HIGHLIGHT-COLOR: #448BF5; 
+	 SCROLLBAR-SHADOW-COLOR: #0066CC; 
+	 SCROLLBAR-3DLIGHT-COLOR: #33CCFF; 
+	 SCROLLBAR-ARROW-COLOR: #66CCFF; 
+	 SCROLLBAR-TRACK-COLOR: #99CCFF; 
+	 SCROLLBAR-DARKSHADOW-COLOR: #0066CC; 
+	font-family :  Verdana;
+	font-size: 8pt;	
+}
+
+A {
+	color: #0071E1;
+	text-decoration: none;
+}
+
+A:hover {
+	color: #848484;
+	text-decoration: underline;
+}
+
+TD {
+	font-family :  Verdana;
+	font-size: 8pt;	
+}
+
+th, .th, th a {
+	font-family :  Arial;
+	font-size: 10pt;
+	color: #ffffff;
+	background-color: #0073E7;
+	padding-left: 3; padding-right: 3;
+	font-weight: bold;
+}
+
+th a:hover {
+    color: #ffffff;
+}
+
+th.dayname {
+  font-size: 9pt;
+  font-weight: normal;
+}
+
+td.weekend, tr.absence {
+  background-color: #FFE1E1;
+}
+
+li.error {
+  color: red;
+}
+
+td.topmenu {
+	color: #848484;
+	text-decoration: none;
+	FONT-SIZE: 9pt;
+	FONT-WEIGHT: bold;
+}
+
+
+td.topmenu a {
+	color: #0073E7;
+}
+
+td.topmenu a:hover {
+	color: #848484;
+}
+
+tr.odd td.noborder, tr.even td.noborder {
+  background-color: #ffffff;
+  padding-left: 0; padding-right: 0;
+}
+
+tr.odd td, tr.even td, tr.header td {
+  padding-left: 4; padding-right: 4;
+}
+
+tr.even {
+  background-color: #ffffff;
+}
+
+tr.odd {
+  background-color: #eeeeee;
+}
+
+tr.header {
+  background-color: #dddddd;
+}
+
+.tdFrame {
+  background-color: #ffffff;
+  padding-left: 4; padding-right: 4;
+  border: 1px solid #eeeeee;
+}
+
+.tdFrameRed {
+  background-color: #ffffff;
+  padding-left: 4; padding-right: 4;
+  border: 2px solid #ff0000;
+}
+
+.tdCalendar1 {
+	color: #848484;
+    background-color: #ffffff;
+	text-decoration: none;
+	FONT-FAMILY: verdana;
+	FONT-SIZE: 12pt;
+	FONT-WEIGHT: bold;	
+}
+.calendarEvent {
+    color: #000000;
+	font-family :  Verdana;
+	font-size: 8pt;	
+    text-decoration: none;
+}
+.calendarEvent:hover {
+    color: #000000;
+}
+
+
+td.label {
+  font-weight: bold;
+}
+
+td.input {
+
+}
+
+td.readOnly {
+  border: 1px solid #dddddd; padding-left: 4; padding-right: 4;
+}
+
+td.readOnly a {
+  font-weight: normal;
+}
+
+td.filterLabel {
+  font-weight: bold;
+}
+
+
+H2 {
+
+	font-family :  Arial;
+	font-size: 14pt;
+	color:# 094E92;
+}
+
+H3 {
+	font-family :  Arial;
+	font-size: 12pt;
+	color: #094E92;
+}
+
+H4 {
+	font-family :  Arial;
+	font-size: 10pt;
+	color: #094E92;
+}
+
+H5 {
+	font-family :  Verdana, Arial;
+	font-size: 11px;
+	color: #094E92;
+}
+
+a.menu {
+	color: white;
+	text-decoration: none;
+	FONT-FAMILY: verdana;
+	FONT-SIZE: 7pt;
+	FONT-WEIGHT: normal;	
+}
+
+a.menu:hover {
+	color: black;
+	text-decoration: underline;
+	FONT-FAMILY: verdana;
+	FONT-SIZE: 7pt;
+	FONT-WEIGHT: normal;	
+}
+
+a.g {
+	color: silver;
+	text-decoration: none;
+
+}
+
+a.g:hover {
+	color: black;
+	text-decoration: underline;
+
+}
+
+HR {
+	color: #0071E1;
+	height: 1pt;
+}
+
+HR.gray {
+	color: #eeeeee;
+	height: 1pt;
+}
+
+.male {
+	color : black;
+	font-family :  Arial;
+	font-size: 8pt;
+}
+
+
+.malevs {
+
+	color : silver;
+	font-family :  Verdana;
+	font-size: 8pt;	
+	
+}
+
+.nadpis {
+	font-family :  Arial;
+	font-size: 12pt;
+	color: #094E92;
+	font-weight : bold;
+}
+
+.tickerstyle {font-family:"Arial"; font-size:11pt; color:#000000;}
+
+UL {
+
+	font-family :  Verdana;
+	font-size: 8pt;	
+	
+}
+
+.TDMezi {background: #EEEEEE;}
+
+LI {
+
+	font-family :  Verdana;
+	font-size: 8pt;	
+	
+}
+
+#box {
+position:absolute;
+visibility:hidden;
+layer-background-color:silver }
+
+#bluebox {
+	background-color: #448BF5;
+	FONT-FAMILY: verdana;
+	FONT-SIZE: 7pt;
+	FONT-WEIGHT: normal;	
+}
+
+#mnubar {
+	FONT-FAMILY: verdana;
+	FONT-SIZE: 8pt;
+	FONT-WEIGHT: normal;
+}
+
+INPUT {
+	font-family :  Verdana;
+	font-size: 8pt;	
+	color : Black;
+	background : #FFFFFF;
+}
+
+INPUT.error {
+	background : #aaaaaa;
+}
+
+INPUT.Button01 {
+	background-color:#448BF5; 
+	border-style:1px; 
+	font-family :  Verdana;
+	font-size: 8pt;	
+	color : White;
+}
+
+SELECT.Button01 {
+	background-color:#448BF5; 
+	border-style:1px; 
+	font-family :  Verdana;
+	font-size: 8pt;	
+	color : White;
+}
+
+OPTION.Button01 {
+	background-color:#448BF5; 
+	border-style:1px; 
+	font-family :  Verdana;
+	font-size: 8pt;	
+	color : White;
+}
+
+.velke {
+	font-family :  Arial;
+	font-size: 12pt;
+	color: #094E92;
+}
+
+.barevneAtluste {
+	color: #094E92;
+	font-weight: bold;
+}
+
+.Symboly {
+
+	font-family :  Symbol, SymbolPS;
+	font-size: 8pt;	
+	
+}
+
+li.PodMenuArrow { list-style-position: outside; list-style-image: url(../images/sipecka_smala.gif); }
+
+#Roztahly {
+	text-align: justify;
+}
+
+TD.error { 
+	font-weight: bold;
+	color: red;
+}
+
+TD.TDHead { 
+	border-bottom: 1px solid #0071E1; 
+	border-top: 1px solid #0071E1; 
+	font-weight: bold;
+}
+
+TD.TDHeadFull { 
+	border-bottom: 1px solid #0071E1; 
+	border-top: 1px solid #0071E1; 
+	border-right: 1px solid #0071E1; 
+	border-left: 1px solid #0071E1; 
+	font-weight: bold;
+}
+
+TD.TDHeadFullRight { 
+	border-bottom: 1px solid #0071E1; 
+	border-top: 1px solid #0071E1; 
+	border-right: 1px solid #0071E1; 
+	font-weight: bold;
+}
+
+
+TD.TDHeadFullLeft { 
+	border-bottom: 1px solid #0071E1; 
+	border-top: 1px solid #0071E1; 
+	border-left: 1px solid #0071E1; 
+	font-weight: bold;
+}
+
+TD.TDSeznam { 
+	border-bottom: 1px solid #DBDBDB; 
+}
+
+TD.TDSeznamFull { 
+	border-bottom: 1px solid #DBDBDB; 
+	border-left: 1px solid #DBDBDB; 
+	border-right: 1px solid #DBDBDB; 
+}
+
+TD.TDSeznamFullRight { 
+	border-bottom: 1px solid #DBDBDB; 
+	border-right: 1px solid #DBDBDB; 
+}
+
+TD.TDSeznamFullLeft { 
+	border-bottom: 1px solid #DBDBDB; 
+	border-left: 1px solid #DBDBDB; 
+}
+
+
+span.Kod {
+	font-family: "Courier New", Courier, monospace;
+	font-size: 9px;
+	color: #094E92;
+}
+
+TD.TDSeznamBarevny { 
+	border-bottom: 1px solid #0071E1; 
+}

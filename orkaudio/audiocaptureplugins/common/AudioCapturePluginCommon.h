@@ -1,0 +1,36 @@
+/*
+ * Oreka -- A media capture and retrieval platform
+ * 
+ * Copyright (C) 2005, orecx LLC
+ *
+ * http://www.orecx.com
+ *
+ * This program is free software, distributed under the terms of
+ * the GNU General Public License.
+ * Please refer to http://www.gnu.org/copyleft/gpl.html
+ *
+ */
+
+#ifndef __AUDIOCAPTUREPLUGINCOMMON_H__
+#define __AUDIOCAPTUREPLUGINCOMMON_H__
+
+#include "AudioCapturePlugin.h"
+
+#ifdef WIN32
+	#define DLL_EXPORT  __declspec( dllexport )
+#else
+	#define DLL_EXPORT
+#endif
+
+// Shared library exports
+extern "C"		// to avoid function name decoration, makes them easier to lookup
+{
+DLL_EXPORT void __CDECL__  RegisterCallBacks(AudioChunkCallBackFunction, CaptureEventCallBackFunction, LogManager*);
+DLL_EXPORT void __CDECL__  Run();
+DLL_EXPORT void __CDECL__  Initialize();
+DLL_EXPORT void __CDECL__  Configure(DOMNode*);
+DLL_EXPORT void __CDECL__  StartCapture(CStdString& capturePort);
+DLL_EXPORT void __CDECL__  StopCapture(CStdString& capturePort);
+}
+
+#endif

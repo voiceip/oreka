@@ -1,0 +1,59 @@
+
+Building:
+
+* Install Eclipse 3.1 or later
+* Run Eclipse
+* /File/Switch workspace/ -> select folder containing this file
+* /File/import existing project into workspace/ -> select 1. orkbasej, 2. orktrack 3. orkweb
+* /Window/open perspective/java
+* Set the compiler compliance for the worskspace to Java 5 (Java 1.5)  /Window/preferences/ -> /java/compiler/
+* Import user libraries:
+	- Get the external java libraries pack from oreka.sourceforge.net and unzip it into {WORKSPACE}/lib
+	- Edit oreka.userlibraries, search and replace the absolute path to jar files with your own.
+	- /Window/preferences/ -> /java/buidpath/user libraries/ -> import -> select your modified oreka.userlibraries file
+* At this point, all three projects should compile automatically without an error
+
+Install required infrastructure software:
+
+* Install Java 5 JDK
+* Install Tomcat 5.5 or later, point it the the Java 5 JDK
+* Copy all jar files from the external java libraries pack to {TOMCAT_HOME}/shared/lib
+* Make note of the admin password
+* Install MySQL or any database compatible with hibernate
+* Create a database for storing oreka data
+* Create a user/password for reading/writing the newly created database
+
+Install orktrack:
+
+* Create a folder for configuration and logging such as c:\oreka\orktrack
+* Copy orkbasej/java/log4j.template.properties to this folder and change according to needs
+* Copy orkbasej/java/mysql.hbm.template.xml to this folder and change according to needs
+* Copy orktrack/orktrack.config.xml to this folder and change according to needs 
+* Modify orktrack/WEB-INF/web.xml and make it point to those newly created config files
+* Copy orktrack/deploy-template.xml to orktrack/deploy.xml and change deploy.xml according to your setup.
+* Run deploy.xml as ant script (Right click/Run as). This should result in the following message:
+	"[echo] OK - Deployed application at context path /orktrack"
+* Point your browser to your Tomcat manager (e.g. http://localhost:8080/manager/html) 
+	and check that orktrack has started, otherwise, check Tomcat logs
+
+
+Install orkweb:
+
+* Create a folder for configuration and logging such as c:\oreka\orkweb
+* Copy orkbasej/java/log4j.template.properties to this folder and change according to needs
+* Copy orkbasej/java/mysql.hbm.template.xml to this folder and change according to needs
+* Modify orkweb/WEB-INF/web.xml and make it point to those newly created config files
+* Copy orktrack/deploy-template.xml to orktrack/deploy.xml and change deploy.xml according to your setup.
+* Run deploy.xml as ant script (Right click/Run as). This should result in the following message:
+	"[echo] OK - Deployed application at context path /orktrack"
+* Point your browser to your Tomcat manager (e.g. http://localhost:8080/manager/html) 
+	and check that orkweb has started, otherwise, check Tomcat logs
+* Point your browser to the newly deployed application (e.g. http://localhost:8080/orkweb/app)
+
+
+Test orkweb:
+
+* Edit orkbasej/java/net/sf/oreka/test/FillDatabase.java and point it to your own hibernate config file created earlier
+* Run FillDatabase.java as a Java application. This will fill your oreka database with test data
+* Point your browser to orkweb as described above
+* Browse the test data
