@@ -37,8 +37,8 @@ public abstract class Home extends BasePage {
 	public void formSubmit(IRequestCycle cycle) {
 
 			if(		getUsername() != null && getPassword() != null && 
-					getUsername().equals("bruno") && 
-					getPassword().equals("bru")			)
+					getUsername().equals("admin") && 
+					getPassword().equals("admin")			)
 			{
 				cycle.activate("RecSegments");
 			}
