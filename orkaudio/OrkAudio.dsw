@@ -3,18 +3,6 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
-Project: "ACE"=..\..\devExt\ACE_wrappers\ace\ACE.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
 Project: "Generator"=.\AUDIOCAPTUREPLUGINS\Generator\Generator.dsp - Package Owner=<4>
 
 Package=<5>
