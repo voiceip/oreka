@@ -44,7 +44,7 @@ public:
 
 //========================================
 
-#define GENERATOR_CONFIG_PARAM "Generator"
+#define GENERATOR_CONFIG_PARAM "GeneratorPlugin"
 
 /** This class represents the top of the configuration hierarchy for the generator. */
 class GeneratorConfigTopObject : public Object

@@ -16,7 +16,7 @@
 		<!--<LanMasks>10.4.3.4, 1.2.3.4</LanMasks>-->
 		<MediaGateways>10.0.0.102</MediaGateways>
 	</VoIpPlugin>
-	<Generator>
+	<GeneratorPlugin>
 		<NumConcurrentPorts>1</NumConcurrentPorts>
 		<AudioDuration>5</AudioDuration>
 		<AudioFilename>sine.8KHz.pcm.wav</AudioFileName>
