@@ -429,8 +429,15 @@ void VoIp::Initialize()
 
 void VoIp::Run()
 {
-	LOG4CXX_INFO(s_log, "Running VoIp.dll");
-	pcap_loop(m_pcapHandle, 0, HandlePacket, NULL);
+	if(m_pcapHandle)
+	{
+		LOG4CXX_INFO(s_log, "Running VoIp.dll");
+		pcap_loop(m_pcapHandle, 0, HandlePacket, NULL);
+	}
+	else
+	{
+		LOG4CXX_INFO(s_log, "No network device opened - VoIp.dll not starting");
+	}
 }
 
 void VoIp::StartCapture(CStdString& port)
