@@ -367,6 +367,7 @@ void VoIp::Initialize()
 */
 
 	pcap_if_t* devices = NULL;
+	pcap_if_t* lastDevice = NULL;
 	pcap_if_t* deviceToSniff = NULL;
 	lastHooveringTime = time(NULL);
 
@@ -388,12 +389,24 @@ void VoIp::Initialize()
 				{
 					deviceToSniff = device;
 				}
+				if(device)
+				{
+					lastDevice = device;
+				}
 			}
 			if (!deviceToSniff)
 			{
-				LOG4CXX_ERROR(s_log, CStdString("pcap could not find wanted device: ") + DLLCONFIG.m_device);
+				if(!DLLCONFIG.m_device.IsEmpty())
+				{
+					LOG4CXX_ERROR(s_log, CStdString("pcap could not find wanted device: ") + DLLCONFIG.m_device + " please check your config file");
+				}
+				if(lastDevice)
+				{
+					LOG4CXX_INFO(s_log, CStdString("Defaulting to device: ") + lastDevice->name);
+					deviceToSniff = lastDevice;
+				}
 			}
-			else
+			if (deviceToSniff)
 			{
 				#define PROMISCUOUS 1
 				if ((m_pcapHandle = pcap_open_live(deviceToSniff->name, 1500, PROMISCUOUS,
@@ -404,18 +417,6 @@ void VoIp::Initialize()
 				else
 				{
 					LOG4CXX_INFO(s_log, CStdString("successfully opened device: ") + deviceToSniff->name);
-
-					//unsigned int netMask = 0xffffff;
-					//if(deviceToSniff->addresses != NULL)	
-					//{		
-					//	netMask=((struct sockaddr_in *)(device->addresses->netmask))->sin_addr.s_addr;
-					//}
-
-					//struct bpf_program	program;
-					//if (pcap_compile(m_pcapHandle, &program, "ip proto icmp", 1, 0xffffffff) < 0)
-					//{
-					//	LOG4CXX_ERROR(s_log, CStdString("unable to compile pcap filter"));
-					//}
 				}
 			}
 		}
