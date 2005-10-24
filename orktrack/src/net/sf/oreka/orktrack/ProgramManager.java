@@ -81,9 +81,15 @@ public class ProgramManager {
 		boolean result = false;
 		// Iterate over programs
 		ArrayList<RecProgram> progs = recPrograms;
-		for(int i=0; i<progs.size(); i++) {
-			if(filterSegmentAgainstProgram(seg, progs.get(i), hbnSession)) {
-				result = true;
+		if(recPrograms.size() == 0) {
+			// If there are no programs specified, keep everything
+			result = true;
+		}
+		else {
+			for(int i=0; i<progs.size(); i++) {
+				if(filterSegmentAgainstProgram(seg, progs.get(i), hbnSession)) {
+					result = true;
+				}
 			}
 		}
 		return result;

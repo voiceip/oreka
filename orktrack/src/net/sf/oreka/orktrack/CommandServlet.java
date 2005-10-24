@@ -39,7 +39,7 @@ public class CommandServlet extends HttpServlet {
     public void doGet(HttpServletRequest request, HttpServletResponse response)
     throws IOException, ServletException
     {
-		OrkObjectFactory.instance().registerOrkObject(new TestMessage());
+		//#####OrkObjectFactory.instance().registerOrkObject(new TestMessage());
 		
 		ServletRequestSerializer ser = new ServletRequestSerializer();
 		
@@ -47,20 +47,27 @@ public class CommandServlet extends HttpServlet {
 			SyncMessage obj = (SyncMessage)ser.deSerialize(request);
 			AsyncMessage rsp = obj.process();
 			SingleLineSerializer ser2 = new SingleLineSerializer();
+			String req = ser2.serialize(obj);
+			logger.debug("Request: " + req);			
 			PrintWriter out = response.getWriter();
-			out.println(ser2.serialize(rsp));
+			String resp = ser2.serialize(rsp);
+			logger.debug("Reponse: " + resp);
+			out.println(resp);
 		}
 		catch (Exception e) {
+			logger.debug("Request: " + request.getQueryString());
 			SimpleResponseMessage rsp = new SimpleResponseMessage();
 			rsp.setComment(e.getMessage());
 			rsp.setSuccess(false);
 			SingleLineSerializer ser2 = new SingleLineSerializer();
 			PrintWriter out = response.getWriter();
 			try {
-				out.println(ser2.serialize(rsp));
+				String resp = ser2.serialize(rsp);
+				logger.debug("Reponse: " + resp);
+				out.println(resp);
 			}
 			catch (OrkException ae) {
-				out.println("Error:" + ae.getMessage());
+				logger.error("Error:" + ae.getMessage());
 			}
 		}
 		

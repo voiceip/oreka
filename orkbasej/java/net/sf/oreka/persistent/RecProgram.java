@@ -49,7 +49,7 @@ public class RecProgram {
 	private int minDuration = 0;
 	private int maxDuration = 0;
 	private double randomPercent = 0.0;
-	private Cycle cycle = Cycle.permanent;
+	private Cycle cycle = Cycle.PERMANENT;
 	private int startDay = 0;
 	private int stopDay = 0;
 	private Date startTime;

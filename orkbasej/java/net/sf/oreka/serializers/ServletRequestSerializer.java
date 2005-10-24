@@ -22,7 +22,6 @@ import net.sf.oreka.OrkObjectFactory;
 public class ServletRequestSerializer extends OrkSerializer {
 
 	HttpServletRequest request = null;
-	final String classMarker = "cmd";
 	
 	public OrkObject deSerialize(HttpServletRequest request) throws OrkException
 	{
@@ -30,14 +29,17 @@ public class ServletRequestSerializer extends OrkSerializer {
 		deserialize = true;		// Set DeSerialize mode
 		
 		// Instanciate the right object
-		String classMarker2 = (String)request.getParameterNames().nextElement();
+		//String classMarker = (String)request.getParameterNames().nextElement();
 		String orkClass = null;
-		if(classMarker2 != null)
-		{	
-			orkClass = request.getParameter(classMarker2);
-		}
+		orkClass = request.getParameter("class");
 		if(orkClass == null) {
-			throw (new OrkException("ServletRequestSerializer.deSerialize: where is the command in:" + request.getQueryString()));
+			orkClass = request.getParameter("cmd");
+			if(orkClass == null) {
+				orkClass = request.getParameter("type");
+			}
+			else {
+				throw (new OrkException("ServletRequestSerializer.deSerialize: where is the command in:" + request.getQueryString()));			
+			}
 		}
 
 		OrkObject obj = OrkObjectFactory.instance().newOrkObject(orkClass.toLowerCase());

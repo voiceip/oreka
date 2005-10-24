@@ -13,4 +13,4 @@
 
 package net.sf.oreka;
 
-public enum ServiceClass {unkn, audio, cti}
+public enum ServiceClass {UNKN, AUDIO, CTI}
