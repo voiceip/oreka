@@ -207,7 +207,8 @@ public class Port {
 				
 				TapeMessage startMessage = lastTapeMessage;
 				TapeMessage stopMessage = tapeMessage;
-				long duration = (stopMessage.getTimestamp() - startMessage.getTimestamp())*1000;
+				//long duration = (stopMessage.getTimestamp() - startMessage.getTimestamp())*1000;
+				long duration = stopMessage.getDuration();
 				long date = ((long)startMessage.getTimestamp()) * 1000;
 				Date timestamp = new Date(date);
 	            
