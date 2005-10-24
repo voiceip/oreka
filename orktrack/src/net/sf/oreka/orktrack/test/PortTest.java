@@ -219,7 +219,7 @@ public class PortTest extends TestCase {
 		TapeMessage startMsg = new TapeMessage();
 		startMsg.setCapturePort("recport");
 		startMsg.setService("recservice");
-		startMsg.setStage(TapeMessage.CaptureStage.start);
+		startMsg.setStage(TapeMessage.CaptureStage.START);
 		long startTime = new Date().getTime();
 		int startTimestamp = (int)(startTime/1000);
 		startMsg.setTimestamp(startTimestamp);
@@ -234,14 +234,14 @@ public class PortTest extends TestCase {
 		stopMsg.setLocalEntryPoint("dnis1");
 		stopMsg.setLocalParty("9833");
 		stopMsg.setRemoteParty("514-425-5678");
-		stopMsg.setStage(TapeMessage.CaptureStage.stop);
+		stopMsg.setStage(TapeMessage.CaptureStage.STOP);
 		stopMsg.setTimestamp(startTimestamp + 10);
 		
 		stopMsg.process();
 		
 		// Generate metadata start and stop messages
 		MetadataMessage mdStartMsg = new MetadataMessage();
-		mdStartMsg.setStage(TapeMessage.CaptureStage.start);
+		mdStartMsg.setStage(TapeMessage.CaptureStage.START);
 		mdStartMsg.setTimestamp(startTimestamp + 3);
 		mdStartMsg.setCapturePort("ctiport");
 		mdStartMsg.setService("ctiservice");
@@ -249,7 +249,7 @@ public class PortTest extends TestCase {
 		mdStartMsg.process();
 		
 		MetadataMessage mdStopMsg = new MetadataMessage();
-		mdStopMsg.setStage(TapeMessage.CaptureStage.stop);
+		mdStopMsg.setStage(TapeMessage.CaptureStage.STOP);
 		mdStopMsg.setLocalParty("1973");
 		mdStopMsg.setTimestamp(startTimestamp + 5);
 		mdStopMsg.setCapturePort("ctiport");

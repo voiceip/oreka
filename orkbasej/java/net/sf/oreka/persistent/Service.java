@@ -42,7 +42,7 @@ public class Service {
 	 * 
 	 */
 	public Service() {
-		serviceClass = ServiceClass.unkn;
+		serviceClass = ServiceClass.UNKN;
 	}
 	
 	/**

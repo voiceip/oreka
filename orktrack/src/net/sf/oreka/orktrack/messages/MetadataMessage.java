@@ -36,7 +36,7 @@ public class MetadataMessage  extends SyncMessage {
 
 	Logger log = null;
 	
-	CaptureStage stage = CaptureStage.unkn;
+	CaptureStage stage = CaptureStage.UNKN;
 	int timestamp = 0;
 	int duration = 0;
 	String capturePort = "";

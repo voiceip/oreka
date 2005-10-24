@@ -31,11 +31,11 @@ import org.hibernate.Transaction;
 
 public class UserStateMessage extends SyncMessage {
 
-	public enum UserState {login, logout, unkn};
+	public enum UserState {LOGIN, LOGOUT, UNKN};
 	
 	private Logger log = null;
 	
-	private UserState userState = UserState.unkn;
+	private UserState userState = UserState.UNKN;
 	private String loginString = "";
 	private String recPort = "";
 	
@@ -69,12 +69,12 @@ public class UserStateMessage extends SyncMessage {
 		        	log.warn(comment);
 	        	}
 	        	else {
-	        		if(userState == UserState.login) {
+	        		if(userState == UserState.LOGIN) {
 	        			port.setUser(user);
 	        			UserManager.instance().setUserLocation(user, port);
 	        			log.info("user:" + loginString + " logging onto:" + recPort);
 	        		}
-	        		else if (userState == UserState.logout) {
+	        		else if (userState == UserState.LOGOUT) {
 	        			port.setUser(null);
 	        			UserManager.instance().setUserLocation(user, null);
 	        			log.info("user:" + loginString + " logging out of:" + recPort);

@@ -33,11 +33,11 @@ import org.hibernate.Transaction;
 
 public class TapeMessage extends SyncMessage {
 
-	public enum CaptureStage {start , stop, complete, unkn};
+	public enum CaptureStage {START , STOP, COMPLETE, UNKN};
 	
 	Logger log = null;
 	
-	CaptureStage stage = CaptureStage.unkn;
+	CaptureStage stage = CaptureStage.UNKN;
 	int timestamp = 0;
 	int duration = 0;
 	String filename = "";
@@ -101,10 +101,10 @@ public class TapeMessage extends SyncMessage {
 		timestamp = serializer.intValue("timestamp", timestamp, true);
 		duration = serializer.intValue("duration", duration, true);		
 		filename = serializer.stringValue("filename", filename, true);
-		capturePort = serializer.stringValue("capturePort", capturePort, true);
-		localParty = serializer.stringValue("localParty", localParty, false);
-		localEntryPoint = serializer.stringValue("localEntryPoint", localEntryPoint, false);
-		remoteParty = serializer.stringValue("remoteParty", remoteParty, false);
+		capturePort = serializer.stringValue("captureport", capturePort, true);
+		localParty = serializer.stringValue("localparty", localParty, false);
+		localEntryPoint = serializer.stringValue("localentrypoint", localEntryPoint, false);
+		remoteParty = serializer.stringValue("remoteparty", remoteParty, false);
 		direction = (Direction)serializer.enumValue("direction", direction, false);
 		loginString = serializer.stringValue("loginString", loginString, false);
 		service = serializer.stringValue("service", service, true);

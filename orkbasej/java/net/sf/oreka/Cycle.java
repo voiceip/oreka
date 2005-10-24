@@ -13,4 +13,4 @@
 
 package net.sf.oreka;
 
-public enum Cycle {permanent, hourly, daily, weekly, monthly, unknown}
+public enum Cycle {PERMANENT, HOURLY, DAILY, WEEKLY, MONTHLY, UNKN}

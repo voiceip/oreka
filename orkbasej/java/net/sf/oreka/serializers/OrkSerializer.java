@@ -221,7 +221,7 @@ public abstract class OrkSerializer {
 		}
 		else
 		{
-			stringValue = stringValue.toLowerCase();
+			stringValue = stringValue.toUpperCase();
 			Class valueClass = oldValue.getClass();
 			try
 			{

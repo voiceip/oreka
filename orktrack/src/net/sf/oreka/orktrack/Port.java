@@ -138,17 +138,17 @@ public class Port {
 		long duration = 0;
 		Date startDate = null;
 		
-		if (metadataMessage.getStage() == TapeMessage.CaptureStage.start) {
+		if (metadataMessage.getStage() == TapeMessage.CaptureStage.START) {
 			lastMetadataMessage = metadataMessage;
 		}
-		else if (metadataMessage.getStage() == TapeMessage.CaptureStage.stop) {
+		else if (metadataMessage.getStage() == TapeMessage.CaptureStage.STOP) {
 			
 			if (lastMetadataMessage != null) {
 				duration = ((long)metadataMessage.getTimestamp() - (long)lastMetadataMessage.getTimestamp())*1000;
 				startDate = new Date((long)lastMetadataMessage.getTimestamp()*1000);
 			}
 		}
-		else if (metadataMessage.getStage() == TapeMessage.CaptureStage.complete) {
+		else if (metadataMessage.getStage() == TapeMessage.CaptureStage.COMPLETE) {
 			duration = (long)metadataMessage.getDuration()*1000;
 			startDate = new Date(metadataMessage.getTimestamp()*1000);
 		}
@@ -188,7 +188,7 @@ public class Port {
 	
 	public void notifyTapeMessage(TapeMessage tapeMessage, Session hbnSession, Service srv) {
 		
-		if (tapeMessage.getStage() == TapeMessage.CaptureStage.start) {
+		if (tapeMessage.getStage() == TapeMessage.CaptureStage.START) {
 			lastTapeMessage = tapeMessage;
 		}
 		else {
@@ -196,10 +196,10 @@ public class Port {
 			if (lastTapeMessage == null) {
 				log.warn("Port: notifyTapeMessage: stop without a previous tape message");
 			}
-			else if (lastTapeMessage.getStage() != TapeMessage.CaptureStage.start) {
+			else if (lastTapeMessage.getStage() != TapeMessage.CaptureStage.START) {
 				log.warn("Port: notifyTapeMessage: stop without a start");	
 			}
-			else if (tapeMessage.getStage() == TapeMessage.CaptureStage.stop){
+			else if (tapeMessage.getStage() == TapeMessage.CaptureStage.STOP){
 				boolean generateSegment = false;
 				if (portFaces.size() == 1 || srv.isRecordMaster()) {
 					generateSegment = true;
