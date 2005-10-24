@@ -33,27 +33,29 @@ SipSession::SipSession()
 	m_lastUpdated = time(NULL);
 	m_log = Logger::getLogger("sipsession");
 	m_invitorIp.s_addr = 0;
+	m_invitorTcpPort = 0;
 	m_inviteeIp.s_addr = 0;
+	m_inviteeTcpPort = 0;
 	m_direction = CaptureEvent::DirUnkn;
 }
 
 void SipSession::Stop()
 {
-	LOG4CXX_DEBUG(m_log, m_ipAndPort + " SIP Session stop");
+	LOG4CXX_DEBUG(m_log, m_capturePort + " SIP Session stop");
 	CaptureEventRef stopEvent(new CaptureEvent);
 	stopEvent->m_type = CaptureEvent::EtStop;
 	stopEvent->m_timestamp = time(NULL);
-	g_captureEventCallBack(stopEvent, m_ipAndPort);
+	g_captureEventCallBack(stopEvent, m_capturePort);
 }
 
 void SipSession::Start()
 {
-	LOG4CXX_DEBUG(m_log, m_ipAndPort + " SIP Session start");
-	m_rtpRingBuffer.SetCapturePort(m_ipAndPort);
+	LOG4CXX_DEBUG(m_log, m_capturePort + " SIP Session start");
+	m_rtpRingBuffer.SetCapturePort(m_capturePort);
 	CaptureEventRef startEvent(new CaptureEvent);
 	startEvent->m_type = CaptureEvent::EtStart;
 	startEvent->m_timestamp = time(NULL);
-	g_captureEventCallBack(startEvent, m_ipAndPort);
+	g_captureEventCallBack(startEvent, m_capturePort);
 }
 
 void SipSession::ProcessMetadataIncoming()
@@ -61,6 +63,7 @@ void SipSession::ProcessMetadataIncoming()
 	m_remoteParty = m_invite->m_from;
 	m_localParty = m_invite->m_to;
 	m_direction = CaptureEvent::DirIn;
+	m_capturePort.Format("%s,%d", ACE_OS::inet_ntoa(m_inviteeIp), m_inviteeTcpPort);
 }
 
 void SipSession::ProcessMetadataOutgoing()
@@ -68,6 +71,7 @@ void SipSession::ProcessMetadataOutgoing()
 	m_remoteParty = m_invite->m_to;
 	m_localParty = m_invite->m_from;
 	m_direction = CaptureEvent::DirOut;
+	m_capturePort.Format("%s,%d", ACE_OS::inet_ntoa(m_invitorIp), m_invitorTcpPort);
 }
 
 void SipSession::ProcessMetadata(RtpPacketInfoRef& rtpPacket)
@@ -78,10 +82,14 @@ void SipSession::ProcessMetadata(RtpPacketInfoRef& rtpPacket)
 	if(rtpPacket->m_sourceIp.s_addr == m_invitorIp.s_addr)
 	{
 		m_inviteeIp = rtpPacket->m_destIp;
+		m_inviteeTcpPort = rtpPacket->m_destPort;
+		m_invitorTcpPort = rtpPacket->m_sourcePort;
 	}
 	else if(rtpPacket->m_destIp.s_addr == m_invitorIp.s_addr)
 	{
 		m_inviteeIp = rtpPacket->m_sourceIp;
+		m_inviteeTcpPort = rtpPacket->m_sourcePort;
+		m_invitorTcpPort = rtpPacket->m_destPort;
 	}
 	else
 	{
@@ -121,7 +129,6 @@ void SipSession::ProcessMetadata(RtpPacketInfoRef& rtpPacket)
 			ProcessMetadataOutgoing();
 		}
 	}
-	ReportMetadata();
 }
 
 void SipSession::ReportMetadata()
@@ -130,19 +137,19 @@ void SipSession::ReportMetadata()
 	CaptureEventRef event(new CaptureEvent());
 	event->m_type = CaptureEvent::EtLocalParty;
 	event->m_value = m_localParty;
-	g_captureEventCallBack(event, m_ipAndPort);
+	g_captureEventCallBack(event, m_capturePort);
 
 	// Report remote party
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtRemoteParty;
 	event->m_value = m_remoteParty;
-	g_captureEventCallBack(event, m_ipAndPort);
+	g_captureEventCallBack(event, m_capturePort);
 
 	// report direction
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtDirection;
 	event->m_value = CaptureEvent::DirectionToString(m_direction);
-	g_captureEventCallBack(event, m_ipAndPort);
+	g_captureEventCallBack(event, m_capturePort);
 }
 
 
@@ -151,8 +158,9 @@ void SipSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	// if first RTP packet, start session
 	if(m_lastRtpPacket.get() == NULL)
 	{
-		Start();
 		ProcessMetadata(rtpPacket);
+		Start();
+		ReportMetadata();
 	}
 	m_lastRtpPacket = rtpPacket;
 

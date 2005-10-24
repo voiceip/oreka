@@ -58,7 +58,9 @@ private:
 	RtpPacketInfoRef m_lastRtpPacket;
 	RtpRingBuffer m_rtpRingBuffer;
 	struct in_addr m_invitorIp;
+	int m_invitorTcpPort;
 	struct in_addr m_inviteeIp;
+	int m_inviteeTcpPort;
 	LoggerPtr m_log;
 	CStdString m_capturePort;
 	CStdString m_localParty;
