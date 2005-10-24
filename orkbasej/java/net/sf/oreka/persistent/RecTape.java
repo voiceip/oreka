@@ -19,7 +19,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratorType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
 import net.sf.oreka.Direction;
@@ -153,7 +152,7 @@ public class RecTape {
 	 * not-null="true"
 	 * @return Returns the port.
 	 */
-	@OneToOne
+	@ManyToOne
 	public RecPort getPort() {
 		return port;
 	}

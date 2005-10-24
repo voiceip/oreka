@@ -230,6 +230,7 @@ public class Port {
 					recSegment.setTimestamp(timestamp);
 					recSegment.setDirection(stopMessage.getDirection());
 					recSegment.setDuration(duration);
+					recSegment.setRemoteParty(stopMessage.getRemoteParty());
 					recSegment.setLocalParty(stopMessage.getLocalParty());
 					recSegment.setLocalEntryPoint(stopMessage.getLocalEntryPoint());
 					recSegment.setRecTape(recTape);

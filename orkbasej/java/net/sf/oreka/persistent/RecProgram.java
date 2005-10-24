@@ -26,7 +26,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import net.sf.oreka.Cycle;
@@ -447,7 +446,7 @@ public class RecProgram {
 	 * not-null="true"
 	 * @return Returns the targetPort.
 	 */
-	@OneToOne
+	@ManyToOne
 	public RecPort getTargetPort() {
 		return targetPort;
 	}
