@@ -29,7 +29,7 @@ The platform currently comprises of three services:
 	<section>
 		<title>License</title>
 		<para>
-This program is free software, distributed under the terms of the GNU General Public License. Please refer to <link linkend='http://www.gnu.org/copyleft/gpl.html'>http://www.gnu.org/copyleft/gpl.html</link> for more information.
+This program is free software, distributed under the terms of the GNU General Public License. Please refer to <ulink url="http://www.gnu.org/copyleft/gpl.html">http://www.gnu.org/copyleft/gpl.html</ulink> for more information.
 		</para>
 	</section>
 
@@ -39,9 +39,121 @@ This program is free software, distributed under the terms of the GNU General Pu
 	<para>If you only want to run Oreka sofware, you can safely skip this section.</para>
 	<section>
 		<title>Building OrkAudio</title>
+		<section>
+			<title>Build under Linux</title>
+			<para>
+<emphasis>Prerequisites:</emphasis>
+			</para>
+			<para id="linuxdep">
+install these packages first using your linux distribution packaging system 
+or download sources tarballs from the listed websites.
+			</para>
+<itemizedlist>
+<listitem>log4cxx 0.9.7 - It is important to use this precise version for now
+	http://logging.apache.org/log4cxx/</listitem>
+<listitem>ACE 5.4.2
+	http://www.cs.wustl.edu/~schmidt/ACE.html</listitem>
+<listitem>libpcap 0.7.2
+	http://www.tcpdump.org/</listitem>
+<listitem>boost 1.31.0
+	http://www.boost.org</listitem>
+<listitem>xerces-c 2.6
+	http://xml.apache.org/xerces-c/</listitem>
+<listitem>libsndfile 1.0.10
+	http://www.mega-nerd.com/libsndfile/</listitem>
+<listitem>portaudio v18
+	http://www.portaudio.com</listitem>
+</itemizedlist>
+			<para>
+<emphasis>Build orkbasecxx on the command line:</emphasis>
+			</para>
+			<para>
+<itemizedlist>
+<listitem>Go to the root directory of the orkbasecxx</listitem>
+<listitem>libtoolize --force</listitem>
+<listitem>make -f Makefile.cvs</listitem>
+<listitem>./configure</listitem>
+<listitem>make</listitem>
+<listitem>make install</listitem>
+</itemizedlist>
+			</para>
+			<para>
+<emphasis>Build orkaudio on the command line:</emphasis>
+			</para>
+			<para>
+<itemizedlist>
+<listitem>Go to the root directory of the orkaudio</listitem>
+<listitem>libtoolize --force</listitem>
+<listitem>make -f Makefile.cvs</listitem>
+<listitem>./configure</listitem>
+<listitem>make</listitem>
+</itemizedlist>
+			</para>
+			<para>
+<emphasis>For debug binaries: modify above as follows:</emphasis>
+			</para>
+			<para>
+<itemizedlist>
+<listitem>./configure --enable-debug=full</listitem>
+<listitem>CXXFLAGS="-O0 -g3"</listitem>
+<listitem>make -e</listitem>
+</itemizedlist>
+			</para>
+			<para>
+<emphasis>Build using Kdevelop:</emphasis>
+			</para>
+			<para>
+<itemizedlist>
+<listitem>Project/import existing project (libtool based c++ project)</listitem>
+</itemizedlist>
+			</para>
+		</section>
+		<section>
+			<title>Build under Windows</title>
+			<para>
+<emphasis>Build using MSVC6 (SP6)</emphasis>
+			</para>
+			<para>
+<itemizedlist>
+<listitem>Download the c++ win32 external library pack and unpack into c:\devExt (if you change this  location, you need to change all references in the dsp files)</listitem>
+<listitem>Load orkaudio\OrkAudio.dsw into MSVC</listitem>
+<listitem>Select orkbase as active project, build</listitem>
+<listitem>Select orkaudio as active project, build</listitem>
+</itemizedlist>
+			</para>
+		</section>
 	</section>
 	<section>
 		<title>Building OrkTrack and OrkWeb</title>
+		<para>
+<emphasis>Install required software</emphasis>
+		</para>
+		<para>
+<itemizedlist>
+<listitem>Install Java 5 JDK</listitem>
+<listitem>Install Eclipse 3.1 or later</listitem>
+</itemizedlist>
+		</para>
+		<para>
+<emphasis>Building using Eclipse</emphasis>
+		</para>
+		<para>
+<itemizedlist>
+<listitem>Run Eclipse</listitem>
+<listitem>/File/Switch workspace/ -> select folder containing this file</listitem>
+<listitem>Set the compiler compliance for the worskspace to Java 5 (Java 1.5)  /Window/preferences/ -> /java/compiler/</listitem>
+<listitem>Import user libraries:
+	<itemizedlist>
+	<listitem>Get the external java dependencies pack from http://sourceforge.net/projects/oreka and unzip it into {WORKSPACE}/lib</listitem>
+	<listitem>Edit oreka.userlibraries, search and replace the absolute path to jar files with your own.</listitem>
+	<listitem>/Window/preferences/ -> /java/buidpath/user libraries/ -> import -> select your modified oreka.userlibraries file</listitem>
+	</itemizedlist>
+</listitem>
+<listitem>/File/import existing project into workspace/ -> select 1. orkbasej, 2. orktrack 3. orkweb</listitem>
+<listitem>/Window/open perspective/java</listitem>
+<listitem>At this point, all three projects should compile automatically without an error</listitem>
+</itemizedlist>
+		</para>
 	</section>	
   </chapter>
   <chapter>
@@ -50,34 +162,155 @@ This program is free software, distributed under the terms of the GNU General Pu
 		<title>Installing Prerequisite Software for OrkAudio</title>
 		<section>
 			<title>Installing Linux Libraries</title>
+			<para>Please refer to <xref linkend="linuxdep">list of required libraries</xref></para>
 		</section>	
 		<section>
 			<title>Installing Windows Libraries</title>
-		</section>
-		<section>
-			<title>Installing Java and Tomcat</title>
-		</section>	
-		<section>
-			<title>Installing a database</title>
-		</section>			
+			<para>Download and install winpcap 3.1 (choose the windows installer version). This is a network packet capture library	<ulink url="http://www.winpcap.org">http://www.winpcap.org</ulink></para>
+		</section>		
 	</section>	
+	<section id="installorkaudiobinary">
+		<title>Installing OrkAudio from the win32 binary release</title>
+<itemizedlist>
+<listitem>Download the win32 binary realease from the <ulink url="http://sourceforge.net/projects/oreka">oreka sourceforge project page</ulink></listitem>
+<listitem>Unzip the package in a folder of your choice.</listitem>
+<listitem>If you want to run OrkAudio as a windows service:
+	<itemizedlist>
+		<listitem>Open a cmd box, navigate to the install directory</listitem>
+		<listitem>Issue the followig command: <emphasis>c:\oreka\orkaudio> OrkAudio.exe install</emphasis></listitem>
+		<listitem>For uninstalling, do: <emphasis>c:\oreka\orkaudio> OrkAudio.exe uninstall</emphasis></listitem>
+	</itemizedlist>
+</listitem>
+</itemizedlist>
+	</section>
 	<section>
-		<title>Installing OrkAudio</title>
+		<title>Installing OrkAudio from a fresh build</title>
+<itemizedlist>
+<listitem>Follow the procedure in <xref linkend="installorkaudiobinary"/></listitem>
+<listitem>Make sure you have compiled OrkAudio and OrkBase in release mode</listitem>
+<listitem>Copy OrkAudio.dll and OrkBase.dll to your install folder, replacing old files</listitem>
+</itemizedlist>
 	</section>
 	<section>
 		<title>Installing Prerequisite Software for OrkTrack and OrkWeb</title>
+		<para>
+<itemizedlist>
+<listitem>Install Java 5 JDK</listitem>
+<listitem>Install Tomcat 5.5 or later, point it the the Java 5 JDK by setting the JAVA_HOME environment variable to the root of the JDK</listitem>
+<listitem>Make note of the Tomcat admin password</listitem>
+<listitem>Get the external java dependencies pakage from <ulink url="http://www.sourceforge.net/projects/oreka">http://www.sourceforge.net/projects/oreka</ulink></listitem>
+<listitem>Copy all jar files from the external java dependencies package to {TOMCAT_HOME}/shared/lib</listitem>
+<listitem>Install MySQL or any <ulink url="http://www.hibernate.org/hib_docs/v3/reference/en/html/session-configuration.html#configuration-optional-dialects">database compatible with hibernate</ulink></listitem>
+<listitem>Create a database for storing oreka data</listitem>
+<listitem>Create a user/password for reading/writing the newly created database</listitem>
+<listitem>Install Eclipse 3.1 or later</listitem>
+</itemizedlist>
+		</para>
+	</section>	
+	<section id="installingorktrack">
+		<title>Installing OrkTrack</title>
+		<para>
+<itemizedlist>
+<listitem>Create a folder for configuration and logging such as c:\oreka\orktrack</listitem>
+<listitem>Copy orkbasej/java/log4j.template.properties to this folder and change according to needs</listitem>
+<listitem>Copy orkbasej/java/mysql.hbm.template.xml to this folder and change according to needs</listitem>
+<listitem>Copy orktrack/orktrack.config.xml to this folder and change according to needs</listitem> 
+<listitem>Modify orktrack/WEB-INF/web.xml and make it point to those newly created config files</listitem>
+<listitem>Copy orktrack/deploy-template.xml to orktrack/deploy.xml and change deploy.xml according to your setup.</listitem>
+<listitem>Run deploy.xml as ant script (Right click/Run as). This should result in the following message:
+	<para><emphasis>"[echo] OK - Deployed application at context path /orktrack"</emphasis></para></listitem>
+<listitem>Point your browser to your Tomcat manager (e.g. http://localhost:8080/manager/html) and check that orktrack has started, otherwise, check Tomcat logs</listitem>
+</itemizedlist>
+		</para>
 	</section>	
 	<section>
-		<title>Installing OrkTrack and OrkWeb</title>
-	</section>	
+		<title>Installing OrkWeb</title>
+		<para>
+<itemizedlist>
+<listitem>Create a folder for configuration and logging such as c:\oreka\orkweb</listitem>
+<listitem>Copy orkbasej/java/log4j.template.properties to this folder and change according to needs</listitem>
+<listitem>Copy orkbasej/java/mysql.hbm.template.xml to this folder and change according to needs</listitem>
+<listitem>Modify orkweb/WEB-INF/web.xml and make it point to those newly created config files</listitem>
+<listitem>Copy orktrack/deploy-template.xml to orktrack/deploy.xml and change deploy.xml according to your setup.</listitem>
+<listitem>Run deploy.xml as ant script (Right click/Run as). This should result in the following message:
+	<para><emphasis>"[echo] OK - Deployed application at context path /orktrack"</emphasis></para></listitem>
+<listitem>Point your browser to your Tomcat manager (e.g. http://localhost:8080/manager/html) and check that orkweb has started, otherwise, check Tomcat logs</listitem>
+<listitem>Point your browser to the newly deployed application (e.g. http://localhost:8080/orkweb/app)</listitem>
+</itemizedlist>
+		</para>
+	</section>
   </chapter>
   <chapter>
 	<title>Running</title>
-	<section>
+	<section  id="runorkaudio">
 		<title>Running OrkAudio</title>
+		<para>
+<itemizedlist>
+<listitem>To run on the command line, open a cmd box, navigate to the install directory and issue the following command: <para><emphasis>c:\oreka\orkaudio> OrkAudio.exe debug</emphasis></para></listitem>
+<listitem>To run as a service, issue the following command: <para><emphasis>c:\oreka\orkaudio> OrkAudio.exe install</emphasis></para></listitem>
+<listitem>To uninstall service, issue the following command: <para><emphasis>c:\oreka\orkaudio> OrkAudio.exe uninstall</emphasis></para></listitem>
+</itemizedlist>
+		</para>
+		<para id="folderscheme">
+Audio files will be written in the OrkAudio install directory in date/time based subfolders according to the following scheme: <emphasis>yyyy/MM/dd/hh</emphasis>. Audio files themselves are named after the following scheme: <emphasis>yyyyMMdd_hhmmss_capturePort.extension</emphasis>.
+		</para>
+	</section>
+	<section>
+		<title>Configuring OrkAudio</title>
+		<para>
+Configuration of OrkAudio is performed by modifying the config.xml file.  
+		</para>
+		<para>
+Audio compression can be tuned using the <emphasis>StorageAudioFormat</emphasis> config parameter. A value of <emphasis>native</emphasis> turns off compression while values of  <emphasis>gsm</emphasis> , <emphasis>ulaw</emphasis> (G.711 standard american telephony encoding)  or <emphasis>alaw</emphasis> (G.711 standard european telephony encoding) can be used to enable compression.
+		</para>
+		<para>
+The plugin to use for audio capture is selected using the <emphasis>CapturePluginPath</emphasis> and <emphasis>CapturePlugin</emphasis> configuration parameters. <emphasis>CapturePluginPath</emphasis> is relative to the install directory. <emphasis>CapturePlugin</emphasis> is the full plugin name including extension (e.g. .dll or .so)
+		</para>
+		<para>
+Reporting to OrkTrack can be enabled by setting <emphasis>EnableReporting</emphasis> to true and by specifying the right <emphasis>TrackerHostname</emphasis>
+		</para>
+	</section>		
+	<section>
+		<title>Configuring the OrkAudio VoIP plugin</title>
+		<para>
+VoIP plugin specific configuration is found in the config.xml file under the "VoIpPlugin" tag. It is possible to configure the network device to monitor (i.e. when you have one device dedicated to sniffing). Also for OrkAudio to get voice session direction, remote and local party right, it is necessary to instruct the VoIP plugin how to identify which IP addresses are local telephones (hardphones or softphones) and which are not. To do this, it is possible to give a csv list of IP addresses that are reserved as <emphasis>Media Gateways</emphasis>, i.e. IP addresses that host such services as PBX, PSTN gateway, conferencing or such. Further, it is possible to specify a csv list of local LAN masks (only necessary when LAN masks are not the standard 192.168.x.x or 10.x.x.x or 172.31.x.x). The way the VoIP plugin decides wether an IP address is a local telelephone is as follows: 1. IP Address needs to be on LAN and 2. IP Address cannot be a <emphasis>Media Gateway</emphasis>.
+		</para>
 	</section>	
 	<section>
 		<title>Running OrkTrack and OrkWeb</title>
+		<para>Deploy the war files to Tomcat as described in <xref linkend="installingorktrack"/> and run Tomcat</para>
 	</section>	
+  </chapter>
+  <chapter>
+	<title>Testing</title>
+	<section>
+		<title>Testing OrkAudio</title>
+		<section>
+			<title>Record a simple SIP session</title>
+			<para>Install OrkAudio on a windows computer that has a SIP softphone installed. Run it on the command line as described in <xref linkend="runorkaudio"/> and make a phone call to any number. The call should be logged to the screen with the right metadata. The associated GSM compressed audio file should be found in the OrkAudio install directory in date/time based subfolders as described in <xref linkend="folderscheme"/></para>
+		</section>
+		<section>
+			<title>Generate fake recordings</title>
+			<para>
+This involves using the <emphasis>Generator Plugin</emphasis> to create fake audio streams that OrkAudio will record and compress to disk.The <emphasis>CapturePlugin</emphasis> configuration parameter needs to be changed to <emphasis>generator.dll</emphasis>. An existing audio file can be used as the basis of the generated audio streams. This file is specified in the <emphasis>AudioFilename</emphasis> configuration parameter and needs to be a 16 bit samples, mono, 8KHz audio file.
+			</para>
+			<para>
+Once configured, run OrkAudio, you should see the generated audio streams logged to the console. Audio files should also start appearing in subfolders as described in <xref linkend="folderscheme"/>
+			</para>
+		</section>
+	</section>
+	<section>
+		<title>Testing OrkWeb</title>
+		<section>
+			<title>Browse test data</title>
+<itemizedlist>
+<listitem>Edit orkbasej/java/net/sf/oreka/test/FillDatabase.java and point it to your own hibernate config file created earlier</listitem>
+<listitem>Run FillDatabase.java as a Java application. This will fill your oreka database with test data</listitem>
+<listitem>Point your browser to orkweb as described above</listitem>
+<listitem>Browse the test data</listitem>
+</itemizedlist>			
+		</section>			
+	</section>
+
   </chapter>
 </book>
