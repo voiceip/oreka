@@ -6,7 +6,17 @@ Copyright (C) 2005, orecx LLC	http://www.orecx.com
 This program is free software, distributed under the terms of
 the GNU General Public License.
 
-This package is a binary distribution of the oreka audio recording service. Source code can be found at http://sourceforge.net/projects/oreka/
+This package is a binary distribution of the oreka audio recording service. Source code and documentation can be found at http://sourceforge.net/projects/oreka/
+
+===========
+Quick start
+
+--------
+Features
+
+* Bidirectional SIP sessions recording using the VoIP plugin (default configuration)
+* Audio device recording (by default, records all devices in the system) using the Sound Device plugin
+* Generates "tape" (recordings) details record
 
 --------------
 How to install
@@ -29,4 +39,17 @@ How to install
 * To uninstall service, issue the following command:
 
 	c:\oreka\orkaudio> OrkAudio.exe uninstall
+
+----------------
+How to configure
+
+* General configuration is found in config.xml
+* Logging configuration is found in logging.properties
+
+-------------------------------------------------
+Where to find "tapes" and "tapes" details records
+
+* Point the windows file explorer to the OrkAudio install directory. Files are stored in subdirectories using the following path scheme:  YYYY\MM\DD\HH\
+
+* "tapes" details records can be found in tapelist.log
 
