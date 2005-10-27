@@ -1,0 +1,132 @@
+body {
+	background:white; color:black;
+	font:87.5%/1.5 sans-serif;
+	margin:0; padding:0;
+}
+:link { color:#00d; }
+:visited { color:#116; }
+:link:hover, :visited:hover { color:black; }
+:target:before { content:"* "; color:red; }
+#content:target:before { content:""; }
+img { border:0; vertical-align: middle; }
+dt { font-weight:bold; }
+p, ul, ol { margin-top:0; margin-bottom:1em; }
+ul ul, ol ol { margin-bottom:0; }
+
+h1 { font-size:1.714em; margin:.25em; padding:0; }
+h2 { font-size:1.286em; margin:.5em 0; }
+h3 { font-size:1.143em; margin:1.25em 0 .25em 0; }
+h4 { font-size:1em; margin:1em 0 .5em 0; }
+
+.skip {
+	position:absolute;
+	left:-999px; width:990px;
+}
+.skip:focus, .skip:active {
+	background:white;
+	border:.25em solid #d82e39;
+	font-size:large;
+	left:0; top:0;
+	padding:.25em;
+	width:auto;
+}
+
+/* holly hack (ie mac fix) \*/
+#search { float:right; margin:1em; }
+/* end hide */
+.text { border:1px solid #666; width:10em; }
+
+#sitenav { white-space:nowrap; }
+#sitenav h2, #footer h2 {
+	position:absolute;
+	left:-999px; width:990px;
+}
+#sitenav ul {
+	border-bottom:1px solid black;
+	line-height:normal;
+	margin:0; padding:0;
+	width:100%;
+}
+#sitenav li {
+	background:#ddf;
+	border:1px solid black;
+	display:inline;
+	height:100%;
+	margin:.5em;
+	padding:.25em .5em 0 .5em;
+	position:relative; /* ie win fix */
+}
+#sitenav li.selected {
+	background:white;
+	border-top:3px solid blue;
+	border-bottom:1px solid white;
+}
+#sitenav :link, #sitenav :visited { text-decoration:none; }
+#sitenav :link:hover, #sitenav :visited:hover { text-decoration:underline; }
+
+#subnav {
+	background:#ddd;
+	border:2px solid #666;
+	float:left;
+	margin:2em 1em;
+	width:11em;
+}
+#subnav h3 {
+	font-size:1em;
+}
+#subnav ul {
+	font-size:.857em;
+	margin:0; padding:0;
+	list-style:none;
+}
+#subnav li, #subnav h3 {
+	display:block;
+	border:1px solid;
+	border-color:#eee #aaa #999 #eee;
+	margin:0; padding:.25em;
+}
+#subnav .selected {
+	background:#eef;
+	font-weight:bold;
+}
+#subnav :link, #subnav :visited {
+	display:block;
+	margin:-.25em; padding:.25em;
+}
+#subnav :link:hover, #subnav :visited:hover {
+	background:#ccc;
+}
+.afternav { margin-left:12em; }
+
+#content {
+	max-width:60em;
+	padding:1em 2em;
+}
+
+#footer {
+	clear:both;
+	text-align:center;
+}
+
+#download {
+	background:#ffa;
+	border:2px solid #339;
+	margin:2em; padding:0 1em;
+	width:20%;
+	text-align:center;
+}
+#download h3 { margin:.75em 0 .75em 0; }
+
+#screenshot {
+	float:right;
+	margin:0 1em 1em 2em;
+}
+.screenshot {
+	float:left;
+	margin:1em;
+	min-width:250px;
+}
+.screenshot img { display:block; }
+.downloads h3 { margin:1em; }
+.downloads img { position:relative; /* safari fix */ }
+.logo { text-align:center; }
