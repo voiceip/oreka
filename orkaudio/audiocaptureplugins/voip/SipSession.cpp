@@ -28,10 +28,10 @@ extern VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
 
 
-SipSession::SipSession()
+RtpSession::RtpSession()
 {
 	m_lastUpdated = time(NULL);
-	m_log = Logger::getLogger("sipsession");
+	m_log = Logger::getLogger("rtpsession");
 	m_invitorIp.s_addr = 0;
 	m_invitorTcpPort = 0;
 	m_inviteeIp.s_addr = 0;
@@ -42,7 +42,7 @@ SipSession::SipSession()
 	m_started = false;
 }
 
-void SipSession::Stop()
+void RtpSession::Stop()
 {
 	LOG4CXX_DEBUG(m_log, m_capturePort + " Session stop");
 	CaptureEventRef stopEvent(new CaptureEvent);
@@ -51,7 +51,7 @@ void SipSession::Stop()
 	g_captureEventCallBack(stopEvent, m_capturePort);
 }
 
-void SipSession::Start()
+void RtpSession::Start()
 {
 	m_started = true;
 	LOG4CXX_DEBUG(m_log, m_capturePort + " " + ProtocolToString(m_protocol) + " Session start");
@@ -62,7 +62,7 @@ void SipSession::Start()
 	g_captureEventCallBack(startEvent, m_capturePort);
 }
 
-void SipSession::ProcessMetadataSipIncoming()
+void RtpSession::ProcessMetadataSipIncoming()
 {
 	m_remoteParty = m_invite->m_from;
 	m_localParty = m_invite->m_to;
@@ -70,7 +70,7 @@ void SipSession::ProcessMetadataSipIncoming()
 	m_capturePort.Format("%s,%d", ACE_OS::inet_ntoa(m_inviteeIp), m_inviteeTcpPort);
 }
 
-void SipSession::ProcessMetadataSipOutgoing()
+void RtpSession::ProcessMetadataSipOutgoing()
 {
 	m_remoteParty = m_invite->m_to;
 	m_localParty = m_invite->m_from;
@@ -78,7 +78,7 @@ void SipSession::ProcessMetadataSipOutgoing()
 	m_capturePort.Format("%s,%d", ACE_OS::inet_ntoa(m_invitorIp), m_invitorTcpPort);
 }
 
-void SipSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
+void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 {
 	bool sourceIsLocal = true;
 
@@ -125,7 +125,7 @@ void SipSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 	}
 }
 
-void SipSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
+void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 {
 	bool done = false;
 
@@ -182,7 +182,7 @@ void SipSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 	}
 }
 
-void SipSession::ReportMetadata()
+void RtpSession::ReportMetadata()
 {
 	// report Local party
 	CaptureEventRef event(new CaptureEvent());
@@ -204,7 +204,7 @@ void SipSession::ReportMetadata()
 }
 
 
-void SipSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
+void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 {
 	// if first RTP packet, start session
 	if(m_lastRtpPacket.get() == NULL)
@@ -243,13 +243,13 @@ void SipSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 }
 
 
-void SipSession::ReportSipInvite(SipInviteInfoRef& invite)
+void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 {
 	m_invite = invite;
 	m_invitorIp = invite->m_fromIp;
 }
 
-int SipSession::ProtocolToEnum(CStdString& protocol)
+int RtpSession::ProtocolToEnum(CStdString& protocol)
 {
 	int protocolEnum = ProtUnkn;
 	if(protocol.CompareNoCase(PROT_RAW_RTP) == 0)
@@ -263,7 +263,7 @@ int SipSession::ProtocolToEnum(CStdString& protocol)
 	return protocolEnum;
 }
 
-CStdString SipSession::ProtocolToString(int protocolEnum)
+CStdString RtpSession::ProtocolToString(int protocolEnum)
 {
 	CStdString protocolString;
 	switch (protocolEnum)
@@ -281,48 +281,48 @@ CStdString SipSession::ProtocolToString(int protocolEnum)
 }
 
 //=====================================================================
-SipSessions::SipSessions()
+RtpSessions::RtpSessions()
 {
-	m_log = Logger::getLogger("sipsessions");
+	m_log = Logger::getLogger("rtpsessions");
 }
 
 
-void SipSessions::ReportSipInvite(SipInviteInfoRef& invite)
+void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 {
 	CStdString key = CStdString(ACE_OS::inet_ntoa(invite->m_fromIp)) + "," + invite->m_fromRtpPort;
-	std::map<CStdString, SipSessionRef>::iterator pair;
+	std::map<CStdString, RtpSessionRef>::iterator pair;
 	
 	pair = m_byIpAndPort.find(key);
 
 	if (pair != m_byIpAndPort.end())
 	{
 		// A session exists ont the same IP+port, stop old session
-		SipSessionRef session = pair->second;
+		RtpSessionRef session = pair->second;
 		Stop(session);
 	}
 	// create new session and insert into both maps
-	SipSessionRef session(new SipSession());
+	RtpSessionRef session(new RtpSession());
 	session->m_ipAndPort = key;
-	session->m_protocol = SipSession::ProtSip;
+	session->m_protocol = RtpSession::ProtSip;
 	session->ReportSipInvite(invite);
 	m_byCallId.insert(std::make_pair(invite->m_callId, session));
 	m_byIpAndPort.insert(std::make_pair(key, session));
 }
 
-void SipSessions::ReportSipBye(SipByeInfo bye)
+void RtpSessions::ReportSipBye(SipByeInfo bye)
 {
-	std::map<CStdString, SipSessionRef>::iterator pair;
+	std::map<CStdString, RtpSessionRef>::iterator pair;
 	pair = m_byCallId.find(bye.m_callId);
 
 	if (pair != m_byCallId.end())
 	{
 		// Session found: stop it
-		SipSessionRef session = pair->second;
+		RtpSessionRef session = pair->second;
 		Stop(session);
 	}
 }
 
-void SipSessions::Stop(SipSessionRef& session)
+void RtpSessions::Stop(RtpSessionRef& session)
 {
 	session->Stop();
 	m_byIpAndPort.erase(session->m_ipAndPort);
@@ -333,13 +333,13 @@ void SipSessions::Stop(SipSessionRef& session)
 }
 
 
-void SipSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
+void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 {
 	// Does a session exist with this source Ip+Port
-	SipSessionRef session;
+	RtpSessionRef session;
 	CStdString port = IntToString(rtpPacket->m_sourcePort);
 	CStdString ipAndPort = CStdString(ACE_OS::inet_ntoa(rtpPacket->m_sourceIp)) + "," + port;
-	std::map<CStdString, SipSessionRef>::iterator pair;
+	std::map<CStdString, RtpSessionRef>::iterator pair;
 
 	pair = m_byIpAndPort.find(ipAndPort);
 	if (pair != m_byIpAndPort.end())
@@ -359,8 +359,8 @@ void SipSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		else
 		{
 			// create new Raw RTP session and insert into IP+Port map
-			SipSessionRef session(new SipSession());
-			session->m_protocol = SipSession::ProtRawRtp;
+			RtpSessionRef session(new RtpSession());
+			session->m_protocol = RtpSession::ProtRawRtp;
 			session->m_ipAndPort = ipAndPort;
 			m_byIpAndPort.insert(std::make_pair(ipAndPort, session));
 		}
@@ -372,18 +372,18 @@ void SipSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 }
 
-void SipSessions::Hoover(time_t now)
+void RtpSessions::Hoover(time_t now)
 {
 	CStdString numSessions = IntToString(m_byIpAndPort.size());
 	LOG4CXX_DEBUG(m_log, "Hoover - check " + numSessions + " sessions time:" + IntToString(now));
 
 	// Go round the sessions and find inactive ones
-	std::map<CStdString, SipSessionRef>::iterator pair;
-	std::list<SipSessionRef> toDismiss;
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::list<RtpSessionRef> toDismiss;
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end(); pair++)
 	{
-		SipSessionRef session = pair->second;
+		RtpSessionRef session = pair->second;
 		if((now - session->m_lastUpdated) > 10)
 		{
 			toDismiss.push_back(session);
@@ -391,9 +391,9 @@ void SipSessions::Hoover(time_t now)
 	}
 
 	// discard inactive sessions
-	for (std::list<SipSessionRef>::iterator it = toDismiss.begin(); it != toDismiss.end() ; it++)
+	for (std::list<RtpSessionRef>::iterator it = toDismiss.begin(); it != toDismiss.end() ; it++)
 	{
-		SipSessionRef session = *it;
+		RtpSessionRef session = *it;
 		LOG4CXX_DEBUG(m_log, session->m_ipAndPort + " Expired");
 		Stop(session);
 	}
