@@ -37,11 +37,14 @@ SipSession::SipSession()
 	m_inviteeIp.s_addr = 0;
 	m_inviteeTcpPort = 0;
 	m_direction = CaptureEvent::DirUnkn;
+	m_protocol = ProtocolEnum::ProtUnkn;
+	m_numRtpPackets = 0;
+	m_started = false;
 }
 
 void SipSession::Stop()
 {
-	LOG4CXX_DEBUG(m_log, m_capturePort + " SIP Session stop");
+	LOG4CXX_DEBUG(m_log, m_capturePort + " Session stop");
 	CaptureEventRef stopEvent(new CaptureEvent);
 	stopEvent->m_type = CaptureEvent::EtStop;
 	stopEvent->m_timestamp = time(NULL);
@@ -50,7 +53,8 @@ void SipSession::Stop()
 
 void SipSession::Start()
 {
-	LOG4CXX_DEBUG(m_log, m_capturePort + " SIP Session start");
+	m_started = true;
+	LOG4CXX_DEBUG(m_log, m_capturePort + " Session start");
 	m_rtpRingBuffer.SetCapturePort(m_capturePort);
 	CaptureEventRef startEvent(new CaptureEvent);
 	startEvent->m_type = CaptureEvent::EtStart;
@@ -58,7 +62,7 @@ void SipSession::Start()
 	g_captureEventCallBack(startEvent, m_capturePort);
 }
 
-void SipSession::ProcessMetadataIncoming()
+void SipSession::ProcessMetadataSipIncoming()
 {
 	m_remoteParty = m_invite->m_from;
 	m_localParty = m_invite->m_to;
@@ -66,7 +70,7 @@ void SipSession::ProcessMetadataIncoming()
 	m_capturePort.Format("%s,%d", ACE_OS::inet_ntoa(m_inviteeIp), m_inviteeTcpPort);
 }
 
-void SipSession::ProcessMetadataOutgoing()
+void SipSession::ProcessMetadataSipOutgoing()
 {
 	m_remoteParty = m_invite->m_to;
 	m_localParty = m_invite->m_from;
@@ -74,7 +78,54 @@ void SipSession::ProcessMetadataOutgoing()
 	m_capturePort.Format("%s,%d", ACE_OS::inet_ntoa(m_invitorIp), m_invitorTcpPort);
 }
 
-void SipSession::ProcessMetadata(RtpPacketInfoRef& rtpPacket)
+void SipSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
+{
+	bool sourceIsLocal = true;
+
+	if(DLLCONFIG.IsMediaGateway(rtpPacket->m_sourceIp))
+	{
+		if(DLLCONFIG.IsMediaGateway(rtpPacket->m_destIp))
+		{
+			// media gateway to media gateway
+			sourceIsLocal = false;
+		}
+		else if (DLLCONFIG.IsPartOfLan(rtpPacket->m_destIp))
+		{
+			// Media gateway to internal
+			sourceIsLocal = false;
+		}
+		else
+		{
+			// Media gateway to external
+			sourceIsLocal = true;
+		}
+	}
+	else if (DLLCONFIG.IsPartOfLan(rtpPacket->m_sourceIp))
+	{
+		// source address is internal
+		sourceIsLocal = true;
+	}
+	else
+	{
+		// source address is external
+		sourceIsLocal = false;
+	}
+
+	if(sourceIsLocal)
+	{
+		m_localParty.Format("%s", ACE_OS::inet_ntoa(rtpPacket->m_sourceIp));
+		m_remoteParty.Format("%s", ACE_OS::inet_ntoa(rtpPacket->m_destIp));
+		m_capturePort.Format("%s,%d", ACE_OS::inet_ntoa(rtpPacket->m_sourceIp), rtpPacket->m_sourcePort);
+	}
+	else
+	{
+		m_localParty.Format("%s", ACE_OS::inet_ntoa(rtpPacket->m_destIp));
+		m_remoteParty.Format("%s", ACE_OS::inet_ntoa(rtpPacket->m_sourceIp));
+		m_capturePort.Format("%s,%d", ACE_OS::inet_ntoa(rtpPacket->m_destIp), rtpPacket->m_destPort);
+	}
+}
+
+void SipSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 {
 	bool done = false;
 
@@ -105,12 +156,12 @@ void SipSession::ProcessMetadata(RtpPacketInfoRef& rtpPacket)
 		}
 		if(DLLCONFIG.IsPartOfLan(m_inviteeIp))
 		{
-			ProcessMetadataIncoming();
+			ProcessMetadataSipIncoming();
 		}	
 	}
 	else if (DLLCONFIG.IsPartOfLan(m_invitorIp))
 	{
-		ProcessMetadataOutgoing();
+		ProcessMetadataSipOutgoing();
 	}
 	else
 	{
@@ -121,12 +172,12 @@ void SipSession::ProcessMetadata(RtpPacketInfoRef& rtpPacket)
 		}
 		else if(DLLCONFIG.IsPartOfLan(m_inviteeIp))
 		{
-			ProcessMetadataIncoming();
+			ProcessMetadataSipIncoming();
 		}
 		else
 		{
 			// SIP invitee IP address is an outside IP address
-			ProcessMetadataOutgoing();
+			ProcessMetadataSipOutgoing();
 		}
 	}
 }
@@ -158,20 +209,37 @@ void SipSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	// if first RTP packet, start session
 	if(m_lastRtpPacket.get() == NULL)
 	{
-		ProcessMetadata(rtpPacket);
+		if(m_protocol == ProtRawRtp)
+		{
+			ProcessMetadataRawRtp(rtpPacket);
+		}
+		else if(m_protocol == ProtSip)
+		{
+			ProcessMetadataSip(rtpPacket);
+			Start();
+			ReportMetadata();
+		}
+	}
+	m_lastRtpPacket = rtpPacket;
+	m_numRtpPackets++;
+
+	if(m_protocol == ProtRawRtp && m_numRtpPackets == 50)
+	{
+		// We've got 50 RTP packets, this should be a "real" raw RTP session, not a leftover from a SIP session
 		Start();
 		ReportMetadata();
 	}
-	m_lastRtpPacket = rtpPacket;
 
 	// send audio buffer
 	//AudioChunkRef chunkRef(new AudioChunk);
 	//chunkRef->SetBuffer(rtpPacket->m_payload, rtpPacket->m_payloadSize, AudioChunk::AlawAudio);
 	//g_audioChunkCallBack(chunkRef, m_ipAndPort);
-
-	m_rtpRingBuffer.AddRtpPacket(rtpPacket);
-
-	m_lastUpdated = time(NULL);
+	
+	if(m_started)
+	{
+		m_rtpRingBuffer.AddRtpPacket(rtpPacket);
+		m_lastUpdated = time(NULL);
+	}
 }
 
 
@@ -204,6 +272,7 @@ void SipSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	// create new session and insert into both maps
 	SipSessionRef session(new SipSession());
 	session->m_ipAndPort = key;
+	session->m_protocol = SipSession::ProtSip;
 	session->ReportSipInvite(invite);
 	m_byCallId.insert(std::make_pair(invite->m_callId, session));
 	m_byIpAndPort.insert(std::make_pair(key, session));
@@ -226,7 +295,10 @@ void SipSessions::Stop(SipSessionRef& session)
 {
 	session->Stop();
 	m_byIpAndPort.erase(session->m_ipAndPort);
-	m_byCallId.erase(session->m_invite->m_callId);
+	if(session->m_invite.get() != NULL)
+	{
+		m_byCallId.erase(session->m_invite->m_callId);
+	}
 }
 
 
@@ -252,6 +324,14 @@ void SipSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		if (pair != m_byIpAndPort.end())
 		{
 			session = pair->second;
+		}
+		else
+		{
+			// create new Raw RTP session and insert into IP+Port map
+			SipSessionRef session(new SipSession());
+			session->m_protocol = SipSession::ProtRawRtp;
+			session->m_ipAndPort = ipAndPort;
+			m_byIpAndPort.insert(std::make_pair(ipAndPort, session));
 		}
 	}
 	if (!session.get() == NULL)
