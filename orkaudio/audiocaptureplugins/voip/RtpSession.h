@@ -11,10 +11,10 @@
  *
  */
 
-#ifndef __SIPSESSION_H__
-#define __SIPSESSION_H__
+#ifndef __RTPSESSION_H__
+#define __RTPSESSION_H__
 
-#include "SipSession.h"
+#include "RtpSession.h"
 #include "Rtp.h"
 #include <map>
 #include "ace/Singleton.h"

@@ -14,7 +14,7 @@
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
 #include "Utils.h"
-#include "SipSession.h"
+#include "RtpSession.h"
 #include "AudioCapturePlugin.h"
 #include "AudioCapturePluginCommon.h"
 #include <list>
