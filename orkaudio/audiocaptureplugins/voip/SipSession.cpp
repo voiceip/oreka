@@ -54,7 +54,7 @@ void SipSession::Stop()
 void SipSession::Start()
 {
 	m_started = true;
-	LOG4CXX_DEBUG(m_log, m_capturePort + " Session start");
+	LOG4CXX_DEBUG(m_log, m_capturePort + " " + ProtocolToString(m_protocol) + " Session start");
 	m_rtpRingBuffer.SetCapturePort(m_capturePort);
 	CaptureEventRef startEvent(new CaptureEvent);
 	startEvent->m_type = CaptureEvent::EtStart;
@@ -247,6 +247,37 @@ void SipSession::ReportSipInvite(SipInviteInfoRef& invite)
 {
 	m_invite = invite;
 	m_invitorIp = invite->m_fromIp;
+}
+
+int SipSession::ProtocolToEnum(CStdString& protocol)
+{
+	int protocolEnum = ProtUnkn;
+	if(protocol.CompareNoCase(PROT_RAW_RTP) == 0)
+	{
+		protocolEnum = ProtRawRtp;
+	}
+	else if (protocol.CompareNoCase(PROT_SIP) == 0)
+	{
+		protocolEnum = ProtSip;
+	}
+	return protocolEnum;
+}
+
+CStdString SipSession::ProtocolToString(int protocolEnum)
+{
+	CStdString protocolString;
+	switch (protocolEnum)
+	{
+	case ProtRawRtp:
+		protocolString = PROT_RAW_RTP;
+		break;
+	case ProtSip:
+		protocolString = PROT_SIP;
+		break;
+	default:
+		protocolString = PROT_UNKN;
+	}
+	return protocolString;
 }
 
 //=====================================================================
