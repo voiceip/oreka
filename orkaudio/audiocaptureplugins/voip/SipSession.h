@@ -40,6 +40,8 @@ public:
 class SipSession
 {
 public:
+	typedef enum{ProtRawRtp, ProtSip, ProtUnkn} ProtocolEnum;
+
 	SipSession();
 	void Stop();
 	void Start();
@@ -49,13 +51,16 @@ public:
 	CStdString m_ipAndPort;
 	SipInviteInfoRef m_invite;
 	time_t m_lastUpdated;
+	ProtocolEnum m_protocol;
 private:
-	void ProcessMetadata(RtpPacketInfoRef&);
-	void ProcessMetadataIncoming();
-	void ProcessMetadataOutgoing();
+	void ProcessMetadataSip(RtpPacketInfoRef&);
+	void ProcessMetadataSipIncoming();
+	void ProcessMetadataSipOutgoing();
+	void ProcessMetadataRawRtp(RtpPacketInfoRef&);
 	void ReportMetadata();
 
 	RtpPacketInfoRef m_lastRtpPacket;
+	int m_numRtpPackets;
 	RtpRingBuffer m_rtpRingBuffer;
 	struct in_addr m_invitorIp;
 	int m_invitorTcpPort;
@@ -66,6 +71,7 @@ private:
 	CStdString m_localParty;
 	CStdString m_remoteParty;
 	CaptureEvent::DirectionEnum m_direction;
+	bool m_started;
 };
 typedef boost::shared_ptr<SipSession> SipSessionRef;
 
@@ -73,6 +79,7 @@ class SipSessions
 {
 public:
 	SipSessions();
+	void Create(CStdString& ipAndPort);
 	void Stop(SipSessionRef& session);
 	void ReportSipInvite(SipInviteInfoRef& invite);
 	void ReportSipBye(SipByeInfo bye);
