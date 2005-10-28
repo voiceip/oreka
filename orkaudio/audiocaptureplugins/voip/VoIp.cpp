@@ -148,7 +148,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 				debug.Format("%s,%d seq:%u ts:%u len:%d", ACE_OS::inet_ntoa(rtpInfo->m_sourceIp), rtpInfo->m_sourcePort, ntohs(rtpHeader->seq), ntohl(rtpHeader->ts), payloadLength);
 				LOG4CXX_DEBUG(s_log, debug);
 
-				SipSessionsSingleton::instance()->ReportRtpPacket(rtpInfo);
+				RtpSessionsSingleton::instance()->ReportRtpPacket(rtpInfo);
 			}
 		}
 	}
@@ -169,7 +169,7 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 		if(callIdField)
 		{
 			GrabToken(callIdField, info.m_callId);
-			SipSessionsSingleton::instance()->ReportSipBye(info);
+			RtpSessionsSingleton::instance()->ReportSipBye(info);
 		}
 		LOG4CXX_DEBUG(s_log, "SIP BYE");
 	}
@@ -245,7 +245,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		{
 			GrabToken(audioField, info->m_fromRtpPort);
 			info->m_fromIp = ipHeader->ip_src;
-			SipSessionsSingleton::instance()->ReportSipInvite(info);
+			RtpSessionsSingleton::instance()->ReportSipInvite(info);
 		}
 		LOG4CXX_DEBUG(s_log, "SIP INVITE");
 	}
@@ -292,7 +292,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	if((now - lastHooveringTime) > 5)
 	{
 		lastHooveringTime = now;
-		SipSessionsSingleton::instance()->Hoover(now);
+		RtpSessionsSingleton::instance()->Hoover(now);
 	}
 }
 

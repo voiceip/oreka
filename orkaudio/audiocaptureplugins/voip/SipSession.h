@@ -37,7 +37,7 @@ public:
 };
 
 
-class SipSession
+class RtpSession
 {
 public:
 #define PROT_RAW_RTP "RawRtp"
@@ -47,7 +47,7 @@ public:
 	static int ProtocolToEnum(CStdString& protocol);
 	static CStdString ProtocolToString(int protocolEnum);
 
-	SipSession();
+	RtpSession();
 	void Stop();
 	void Start();
 	void AddRtpPacket(RtpPacketInfoRef& rtpPacket);
@@ -78,24 +78,24 @@ private:
 	CaptureEvent::DirectionEnum m_direction;
 	bool m_started;
 };
-typedef boost::shared_ptr<SipSession> SipSessionRef;
+typedef boost::shared_ptr<RtpSession> RtpSessionRef;
 
-class SipSessions
+class RtpSessions
 {
 public:
-	SipSessions();
+	RtpSessions();
 	void Create(CStdString& ipAndPort);
-	void Stop(SipSessionRef& session);
+	void Stop(RtpSessionRef& session);
 	void ReportSipInvite(SipInviteInfoRef& invite);
 	void ReportSipBye(SipByeInfo bye);
 	void ReportRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void Hoover(time_t now);
 private:
-	std::map<CStdString, SipSessionRef> m_byIpAndPort;
-	std::map<CStdString, SipSessionRef> m_byCallId;
+	std::map<CStdString, RtpSessionRef> m_byIpAndPort;
+	std::map<CStdString, RtpSessionRef> m_byCallId;
 	LoggerPtr m_log;
 };
-typedef ACE_Singleton<SipSessions, ACE_Thread_Mutex> SipSessionsSingleton;
+typedef ACE_Singleton<RtpSessions, ACE_Thread_Mutex> RtpSessionsSingleton;
 
 #endif
 
