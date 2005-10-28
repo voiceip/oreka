@@ -1,6 +1,6 @@
 METASOURCES = AUTO
 lib_LTLIBRARIES = libvoip.la
-libvoip_la_SOURCES = VoIpConfig.cpp VoIp.cpp g711.c Rtp.cpp SipSession.cpp \
+libvoip_la_SOURCES = VoIpConfig.cpp VoIp.cpp g711.c Rtp.cpp RtpSession.cpp \
 	AudioCapturePluginCommon.cpp
 libvoip_la_LDFLAGS = -module
 AM_CPPFLAGS = -D_REENTRANT

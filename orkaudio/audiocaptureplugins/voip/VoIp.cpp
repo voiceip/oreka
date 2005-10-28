@@ -26,7 +26,7 @@
 #include "pcap.h"
 #include "PacketHeaderDefs.h"
 #include "Rtp.h"
-#include "SipSession.h"
+#include "RtpSession.h"
 
 extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;

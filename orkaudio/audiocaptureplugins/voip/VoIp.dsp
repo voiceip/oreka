@@ -127,11 +127,11 @@ SOURCE=.\Rtp.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\SipSession.cpp
+SOURCE=.\RtpSession.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\SipSession.h
+SOURCE=.\RtpSession.h
 # End Source File
 # Begin Source File
 
