@@ -40,7 +40,12 @@ public:
 class SipSession
 {
 public:
+#define PROT_RAW_RTP "RawRtp"
+#define PROT_SIP "Sip"
+#define PROT_UNKN "Unkn"
 	typedef enum{ProtRawRtp, ProtSip, ProtUnkn} ProtocolEnum;
+	static int ProtocolToEnum(CStdString& protocol);
+	static CStdString ProtocolToString(int protocolEnum);
 
 	SipSession();
 	void Stop();
