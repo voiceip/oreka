@@ -14,7 +14,7 @@
     | <a href="<?=$sitePath?>/site-map"><?=_("Site Map")?></a>
   </p>
   <p><a title="<?=_("Creative Commons Attribution license")?>" href="http://creativecommons.org/licenses/by/2.0/"><img alt="<?=_("Creative Commons: Some rights reserved.")?>" src="<?=$sitePath?>/images/creative-commons.gif"></a>
-  <a title="<?=_("Development hosted by SourceForge")?>" href="http://sourceforge.net/projects/audacity/"><img alt="SourceForge.net" src="http://sflogo.sourceforge.net/sflogo.php?group_id=6235&amp;type=1"></a></p>
+  <a title="<?=_("Development hosted by SourceForge")?>" href="http://sourceforge.net/projects/oreka/"><img alt="SourceForge.net" src="http://sflogo.sourceforge.net/sflogo.php?group_id=150919&amp;type=1"></a></p>
 </div>
 <!-- License metadata -->
 <!--
