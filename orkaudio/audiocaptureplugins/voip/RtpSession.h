@@ -37,6 +37,31 @@ public:
 };
 
 
+class SccpCallInfoMessageInfo
+{
+	CStdString m_callingParty;
+	CStdString m_calledParty;
+	CStdString m_callId;
+};
+typedef boost::shared_ptr<SccpCallInfoMessageInfo> SccpCallInfoMessageInfoRef;
+
+
+class SccpStartMediaTransmissionInfo
+{
+	struct in_addr m_remoteIp;
+	int m_remoteTcpPort;
+	CStdString m_callId;
+};
+typedef boost::shared_ptr<SccpStartMediaTransmissionInfo> SccpStartMediaTransmissionInfoRef;
+
+
+class SccpStopMediaTransmissionInfo
+{
+	CStdString m_callId;
+};
+typedef boost::shared_ptr<SccpStopMediaTransmissionInfo> SccpStopMediaTransmissionInfoRef;
+
+
 class RtpSession
 {
 public:
@@ -54,6 +79,7 @@ public:
 	void ReportSipInvite(SipInviteInfoRef& invite);
 
 	CStdString m_ipAndPort;
+	CStdString m_callId;
 	SipInviteInfoRef m_invite;
 	time_t m_lastUpdated;
 	ProtocolEnum m_protocol;

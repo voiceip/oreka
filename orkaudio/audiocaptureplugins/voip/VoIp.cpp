@@ -36,10 +36,22 @@ extern LogManager* g_logManager;
 
 static LoggerPtr s_log;
 static LoggerPtr s_sipExtractionLog;
+static LoggerPtr s_skinnyLog;
 time_t lastHooveringTime;
 
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
+
+// Convert a piece of memnory to hex string
+void memToHex(unsigned char* input, size_t len, CStdString&output)
+{
+	char byteAsHex[10];
+	for(int i=0; i<len; i++)
+	{
+		sprintf(byteAsHex, "%.2x", input[i]);
+		output += byteAsHex;
+	}
+}
 
 // find the address that follows the given search string between start and stop pointers
 char* memFindAfter(char* toFind, char* start, char* stop)
@@ -252,11 +264,54 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 	return result;
 }
 
+void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader)
+{
+	bool useful = true;
+	CStdString debug;
+	SkStartMediaTransmissionStruct* start;
+	SkStopMediaTransmissionStruct* stop;
+	SkCallInfoStruct* callInfo;
+
+	switch(skinnyHeader->messageType)
+	{
+	case SkStartMediaTransmission:
+		start = (SkStartMediaTransmissionStruct*)skinnyHeader;
+		if(s_skinnyLog->isDebugEnabled())
+		{
+			debug.Format(" CallId:%u %s,%u", start->conferenceId, ACE_OS::inet_ntoa(start->remoteIpAddr), start->remoteTcpPort);
+		}
+		break;
+	case SkStopMediaTransmission:
+		stop = (SkStopMediaTransmissionStruct*)skinnyHeader;
+		if(s_skinnyLog->isDebugEnabled())
+		{
+			debug.Format(" CallId:%u", stop->conferenceId);
+		}
+		break;
+	case SkCallInfoMessage:
+		callInfo = (SkCallInfoStruct*)skinnyHeader;
+		if(s_skinnyLog->isDebugEnabled())
+		{
+			debug.Format(" CallId:%u calling:%s called:%s", callInfo->callId, callInfo->callingParty, callInfo->calledParty);
+		}
+		break;
+	default:
+		useful = false;
+	}
+	if(useful && s_skinnyLog->isDebugEnabled())
+	{
+		CStdString msg = SkinnyMessageToString(skinnyHeader->messageType);
+		debug = msg + debug;
+		LOG4CXX_DEBUG(s_skinnyLog, debug);
+	}
+}
+
 void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data)
 {
 	EthernetHeaderStruct* ethernetHeader = (EthernetHeaderStruct *)pkt_data;
 	IpHeaderStruct* ipHeader = (IpHeaderStruct*)((char*)ethernetHeader + sizeof(EthernetHeaderStruct));
 	int ipHeaderLength = ipHeader->ip_hl*4;
+	u_char* ipPacketEnd = (u_char*)ipHeader + ipHeader->ip_len;
 
 	//CStdString source = ACE_OS::inet_ntoa(ipHeader->ip_src);
 	//CStdString dest = ACE_OS::inet_ntoa(ipHeader->ip_dest);
@@ -284,6 +339,29 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 			if(!detectedUsefulPacket)
 			{
 				detectedUsefulPacket = TrySipBye(ethernetHeader, ipHeader, udpHeader, udpPayload);
+			}
+		}
+	}
+	else if(ipHeader->ip_p == IPPROTO_TCP)
+	{
+		TcpHeaderStruct* tcpHeader = (TcpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
+		
+		if(ntohs(tcpHeader->source) == SKINNY_CTRL_PORT || ntohs(tcpHeader->dest) == SKINNY_CTRL_PORT)
+		{
+			SkinnyHeaderStruct* skinnyHeader = (SkinnyHeaderStruct*)((u_char*)tcpHeader + TCP_HEADER_LENGTH);
+
+			// Scan all skinny message in this TCP packet
+			while(	ipPacketEnd > (u_char*)skinnyHeader && 
+					(u_char*)skinnyHeader>=((u_char*)tcpHeader + TCP_HEADER_LENGTH) &&
+					(ipPacketEnd - (u_char*)skinnyHeader) > SKINNY_MIN_MESSAGE_SIZE			)
+			{
+				//CStdString dbg;
+				//dbg.Format("Len:%u, Type:%x, %s", skinnyHeader->len, skinnyHeader->messageType, SkinnyMessageToString(skinnyHeader->messageType));
+				//LOG4CXX_INFO(s_log, dbg);
+				HandleSkinnyMessage(skinnyHeader);
+
+				// Point to next skinny message within this TCP packet
+				skinnyHeader = (SkinnyHeaderStruct*)((u_char*)skinnyHeader + SKINNY_HEADER_LENGTH + skinnyHeader->len);
 			}
 		}
 	}
@@ -342,6 +420,7 @@ void VoIp::Initialize()
 {
 	s_log = Logger::getLogger("voip");
 	s_sipExtractionLog = Logger::getLogger("sipextraction");
+	s_skinnyLog = Logger::getLogger("skinny");
 	LOG4CXX_INFO(s_log, "Initializing VoIP plugin");
 
 	// create a default config object in case it was not properly initialized by Configure
