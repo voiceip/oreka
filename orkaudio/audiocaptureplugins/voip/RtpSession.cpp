@@ -289,10 +289,10 @@ RtpSessions::RtpSessions()
 
 void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 {
-	CStdString key = CStdString(ACE_OS::inet_ntoa(invite->m_fromIp)) + "," + invite->m_fromRtpPort;
+	CStdString ipAndPort = CStdString(ACE_OS::inet_ntoa(invite->m_fromIp)) + "," + invite->m_fromRtpPort;
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	
-	pair = m_byIpAndPort.find(key);
+	pair = m_byIpAndPort.find(ipAndPort);
 
 	if (pair != m_byIpAndPort.end())
 	{
@@ -302,11 +302,12 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	}
 	// create new session and insert into both maps
 	RtpSessionRef session(new RtpSession());
-	session->m_ipAndPort = key;
+	session->m_ipAndPort = ipAndPort;
+	session->m_callId = invite->m_callId;
 	session->m_protocol = RtpSession::ProtSip;
 	session->ReportSipInvite(invite);
-	m_byCallId.insert(std::make_pair(invite->m_callId, session));
-	m_byIpAndPort.insert(std::make_pair(key, session));
+	m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
+	m_byCallId.insert(std::make_pair(session->m_callId, session));
 }
 
 void RtpSessions::ReportSipBye(SipByeInfo bye)
@@ -325,10 +326,13 @@ void RtpSessions::ReportSipBye(SipByeInfo bye)
 void RtpSessions::Stop(RtpSessionRef& session)
 {
 	session->Stop();
-	m_byIpAndPort.erase(session->m_ipAndPort);
-	if(session->m_invite.get() != NULL)
+	if(session->m_ipAndPort.size() > 0)
 	{
-		m_byCallId.erase(session->m_invite->m_callId);
+		m_byIpAndPort.erase(session->m_ipAndPort);
+	}
+	if(session->m_callId.size() > 0)
+	{
+		m_byCallId.erase(session->m_callId);
 	}
 }
 

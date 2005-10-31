@@ -15,6 +15,9 @@
 #ifndef __PACKETHEADERDEFS_H__
 #define __PACKETHEADERDEFS_H__
 
+#include "ace/OS_NS_arpa_inet.h"
+#include "StdString.h"
+
 
 // Structure of Ethernet header
 typedef struct
@@ -25,7 +28,7 @@ typedef struct
 
 } EthernetHeaderStruct;
 
-// Structure of an internet header, naked of options, only valid for little endian
+// Structure of an internet header, naked of options, only valid for LITTLE ENDIAN
 typedef struct
 {
 	unsigned char	ip_hl:4;		// Header length
@@ -41,6 +44,25 @@ typedef struct
 	struct in_addr	ip_dest;		// Destination address
 } IpHeaderStruct;
 
+
+// Strucutre of a TCP header, only valid for LITTLE ENDIAN
+typedef struct
+{
+    unsigned short source;		// source port
+    unsigned short dest;		// destination port
+    unsigned long seq;			// sequence number
+    unsigned long ack;			// acknowledgement id
+    unsigned int x2:4;			// unused
+    unsigned int off:4;			// data offset
+    unsigned char flags;		// flags field
+    unsigned short win;			// window size
+    unsigned short sum;			// tcp checksum
+    unsigned short urp;			// urgent pointer
+
+} TcpHeaderStruct;
+#define TCP_HEADER_LENGTH 20
+
+
 // Structure of UDP header
 typedef struct
 {
@@ -54,7 +76,8 @@ typedef struct
 #define RTP_PT_PCMA 8
 
 // Structure of RTP header, only valid for little endian
-typedef struct {
+typedef struct 
+{
 	unsigned short cc:4;		// CSRC count
 	unsigned short x:1;			// header extension flag
 	unsigned short p:1;			// padding flag
@@ -66,6 +89,61 @@ typedef struct {
 	unsigned int ssrc;			// synchronization source
 	//unsigned int csrc[1];		// optional CSRC list
 } RtpHeaderStruct;
+
+typedef struct
+{
+	unsigned long len;
+	unsigned long reserved;
+	unsigned long messageType;
+} SkinnyHeaderStruct;
+
+typedef struct
+{
+	SkinnyHeaderStruct header;
+	unsigned long conferenceId;
+	unsigned long passThruParty;
+	struct in_addr remoteIpAddr;
+	unsigned long remoteTcpPort;
+	// and some more fields
+} SkStartMediaTransmissionStruct;
+
+typedef struct
+{
+	SkinnyHeaderStruct header;
+	unsigned long conferenceId;
+	unsigned long passThruParty;
+} SkStopMediaTransmissionStruct;
+
+typedef struct
+{
+	SkinnyHeaderStruct header;
+	char callingPartyName[40];
+	char callingParty[24];
+	char calledPartyName[40];
+	char calledParty[24];
+	unsigned long lineInstance;
+	unsigned long callId;
+	unsigned long callType;
+} SkCallInfoStruct;
+
+#define SKINNY_CTRL_PORT 2000
+#define SKINNY_MIN_MESSAGE_SIZE 12
+#define SKINNY_HEADER_LENGTH 8
+
+#define SKINNY_MSG_UNKN "Unkn"
+#define SKINNY_MSG_START_MEDIA_TRANSMISSION "StartMediaTransmission"
+#define SKINNY_MSG_STOP_MEDIA_TRANSMISSION "StopMediaTransmission"
+#define SKINNY_MSG_CALL_INFO_MESSAGE "CallInfoMessage"
+
+typedef enum
+{
+	SkStartMediaTransmission = 0x008A,
+	SkStopMediaTransmission = 0x008B,
+	SkCallInfoMessage = 0x008F,
+	SkUnkn = 0x0
+} SkinnyMessageEnum;
+int SkinnyMessageToEnum(CStdString& msg);
+CStdString SkinnyMessageToString(int msgEnum);
 
 #endif
 
