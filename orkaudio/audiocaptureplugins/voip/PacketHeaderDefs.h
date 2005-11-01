@@ -135,6 +135,9 @@ typedef struct
 #define SKINNY_MSG_STOP_MEDIA_TRANSMISSION "StopMediaTransmission"
 #define SKINNY_MSG_CALL_INFO_MESSAGE "CallInfoMessage"
 
+#define SKINNY_CALL_TYPE_INBOUND 1
+#define SKINNY_CALL_TYPE_OUTBOUND 2
+
 typedef enum
 {
 	SkStartMediaTransmission = 0x008A,

@@ -44,11 +44,14 @@ RtpSession::RtpSession()
 
 void RtpSession::Stop()
 {
-	LOG4CXX_DEBUG(m_log, m_capturePort + " Session stop");
-	CaptureEventRef stopEvent(new CaptureEvent);
-	stopEvent->m_type = CaptureEvent::EtStop;
-	stopEvent->m_timestamp = time(NULL);
-	g_captureEventCallBack(stopEvent, m_capturePort);
+	if(m_started)
+	{
+		LOG4CXX_DEBUG(m_log, m_capturePort + " Session stop");
+		CaptureEventRef stopEvent(new CaptureEvent);
+		stopEvent->m_type = CaptureEvent::EtStop;
+		stopEvent->m_timestamp = time(NULL);
+		g_captureEventCallBack(stopEvent, m_capturePort);
+	}
 }
 
 void RtpSession::Start()
@@ -182,6 +185,18 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 	}
 }
 
+void RtpSession::ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket)
+{
+	// In skinny, we know that ipAndPort are those from the CallManager.
+	// However, what we want as a capture port are IP+Port of the phone
+	m_capturePort.Format("%s,%u", ACE_OS::inet_ntoa(rtpPacket->m_sourceIp), rtpPacket->m_sourcePort);
+	if(m_capturePort.Equals(m_ipAndPort))
+	{
+		m_capturePort.Format("%s,%u", ACE_OS::inet_ntoa(rtpPacket->m_destIp), rtpPacket->m_destPort);
+	}
+}
+
+
 void RtpSession::ReportMetadata()
 {
 	// report Local party
@@ -216,6 +231,12 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		else if(m_protocol == ProtSip)
 		{
 			ProcessMetadataSip(rtpPacket);
+			Start();
+			ReportMetadata();
+		}
+		else if(m_protocol == ProtSkinny)
+		{
+			ProcessMetadataSkinny(rtpPacket);
 			Start();
 			ReportMetadata();
 		}
@@ -260,6 +281,10 @@ int RtpSession::ProtocolToEnum(CStdString& protocol)
 	{
 		protocolEnum = ProtSip;
 	}
+	else if (protocol.CompareNoCase(PROT_SKINNY) == 0)
+	{
+		protocolEnum = ProtSkinny;
+	}
 	return protocolEnum;
 }
 
@@ -273,6 +298,9 @@ CStdString RtpSession::ProtocolToString(int protocolEnum)
 		break;
 	case ProtSip:
 		protocolString = PROT_SIP;
+		break;
+	case ProtSkinny:
+		protocolString = PROT_SKINNY;
 		break;
 	default:
 		protocolString = PROT_UNKN;
@@ -293,13 +321,20 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	
 	pair = m_byIpAndPort.find(ipAndPort);
-
 	if (pair != m_byIpAndPort.end())
 	{
 		// A session exists ont the same IP+port, stop old session
 		RtpSessionRef session = pair->second;
 		Stop(session);
 	}
+	pair = m_byCallId.find(invite->m_callId);
+	if (pair != m_byCallId.end())
+	{
+		// A session exists ont the same CallId, stop old session
+		RtpSessionRef session = pair->second;
+		Stop(session);
+	}
+
 	// create new session and insert into both maps
 	RtpSessionRef session(new RtpSession());
 	session->m_ipAndPort = ipAndPort;
@@ -314,6 +349,87 @@ void RtpSessions::ReportSipBye(SipByeInfo bye)
 {
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	pair = m_byCallId.find(bye.m_callId);
+
+	if (pair != m_byCallId.end())
+	{
+		// Session found: stop it
+		RtpSessionRef session = pair->second;
+		Stop(session);
+	}
+}
+
+void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo)
+{
+	CStdString callId = IntToString(callInfo->callId);
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	pair = m_byCallId.find(callId);
+	if (pair != m_byCallId.end())
+	{
+		// A session exists ont the same CallId, stop old session
+		RtpSessionRef session = pair->second;
+		Stop(session);
+	}
+
+	// create new session and insert into both maps
+	RtpSessionRef session(new RtpSession());
+	session->m_callId = callId;
+	session->m_protocol = RtpSession::ProtSkinny;
+	switch(callInfo->callType)
+	{
+	case SKINNY_CALL_TYPE_INBOUND:
+		session->m_localParty = callInfo->calledParty;
+		session->m_remoteParty = callInfo->callingParty;
+		session->m_direction = CaptureEvent::DirIn;
+		break;
+	case SKINNY_CALL_TYPE_OUTBOUND:
+		session->m_localParty = callInfo->callingParty;
+		session->m_remoteParty = callInfo->calledParty;
+		session->m_direction = CaptureEvent::DirOut;
+		break;
+	}
+	m_byCallId.insert(std::make_pair(session->m_callId, session));
+}
+
+void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct* startMedia)
+{
+	// Lookup by callId
+	CStdString callId = IntToString(startMedia->conferenceId);
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	pair = m_byCallId.find(callId);
+
+	if (pair != m_byCallId.end())
+	{
+		// Session found
+		RtpSessionRef session = pair->second;
+
+		if(session->m_ipAndPort.size() == 0)
+		{
+			CStdString ipAndPort;
+			ipAndPort.Format("%s,%u", ACE_OS::inet_ntoa(startMedia->remoteIpAddr), startMedia->remoteTcpPort);
+			
+			pair = m_byIpAndPort.find(ipAndPort);
+			if (pair != m_byIpAndPort.end())
+			{
+				// A session exists ont the same IP+port, stop old session
+				RtpSessionRef session = pair->second;
+				Stop(session);
+			}
+			session->m_ipAndPort = ipAndPort;
+			m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
+		}
+		else
+		{
+			// The session has already had a StartMediaTransmission message.
+		}
+	}
+}
+
+void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct* stopMedia)
+{
+	CStdString callId = IntToString(stopMedia->conferenceId);
+
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	pair = m_byCallId.find(callId);
 
 	if (pair != m_byCallId.end())
 	{
@@ -381,7 +497,7 @@ void RtpSessions::Hoover(time_t now)
 	CStdString numSessions = IntToString(m_byIpAndPort.size());
 	LOG4CXX_DEBUG(m_log, "Hoover - check " + numSessions + " sessions time:" + IntToString(now));
 
-	// Go round the sessions and find inactive ones
+	// Go round the ipAndPort session index and find inactive sessions
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	std::list<RtpSessionRef> toDismiss;
 
@@ -396,6 +512,25 @@ void RtpSessions::Hoover(time_t now)
 
 	// discard inactive sessions
 	for (std::list<RtpSessionRef>::iterator it = toDismiss.begin(); it != toDismiss.end() ; it++)
+	{
+		RtpSessionRef session = *it;
+		LOG4CXX_DEBUG(m_log, session->m_ipAndPort + " Expired");
+		Stop(session);
+	}
+
+	// Go round the callId session index and find inactive sessions
+	toDismiss.clear();
+	for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
+	{
+		RtpSessionRef session = pair->second;
+		if((now - session->m_lastUpdated) > 10)
+		{
+			toDismiss.push_back(session);
+		}
+	}
+
+	// discard inactive sessions
+	for (it = toDismiss.begin(); it != toDismiss.end() ; it++)
 	{
 		RtpSessionRef session = *it;
 		LOG4CXX_DEBUG(m_log, session->m_ipAndPort + " Expired");

@@ -18,6 +18,7 @@
 #include "Rtp.h"
 #include <map>
 #include "ace/Singleton.h"
+#include "PacketHeaderDefs.h"
 
 class SipInviteInfo
 {
@@ -67,8 +68,9 @@ class RtpSession
 public:
 #define PROT_RAW_RTP "RawRtp"
 #define PROT_SIP "Sip"
+#define PROT_SKINNY "Skinny"
 #define PROT_UNKN "Unkn"
-	typedef enum{ProtRawRtp, ProtSip, ProtUnkn} ProtocolEnum;
+	typedef enum{ProtRawRtp, ProtSip, ProtSkinny, ProtUnkn} ProtocolEnum;
 	static int ProtocolToEnum(CStdString& protocol);
 	static CStdString ProtocolToString(int protocolEnum);
 
@@ -78,16 +80,21 @@ public:
 	void AddRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void ReportSipInvite(SipInviteInfoRef& invite);
 
-	CStdString m_ipAndPort;
+	CStdString m_ipAndPort;	// IP address and TCP port of one side of the session, serves as a key for session storage and retrieval. Not necessarily the same as the capturePort (capturePort is usually the client (phone) IP+port)
 	CStdString m_callId;
 	SipInviteInfoRef m_invite;
 	time_t m_lastUpdated;
 	ProtocolEnum m_protocol;
+	CStdString m_localParty;
+	CStdString m_remoteParty;
+	CaptureEvent::DirectionEnum m_direction;
+
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
 	void ProcessMetadataSipIncoming();
 	void ProcessMetadataSipOutgoing();
 	void ProcessMetadataRawRtp(RtpPacketInfoRef&);
+	void ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket);
 	void ReportMetadata();
 
 	RtpPacketInfoRef m_lastRtpPacket;
@@ -99,9 +106,6 @@ private:
 	int m_inviteeTcpPort;
 	LoggerPtr m_log;
 	CStdString m_capturePort;
-	CStdString m_localParty;
-	CStdString m_remoteParty;
-	CaptureEvent::DirectionEnum m_direction;
 	bool m_started;
 };
 typedef boost::shared_ptr<RtpSession> RtpSessionRef;
@@ -114,6 +118,9 @@ public:
 	void Stop(RtpSessionRef& session);
 	void ReportSipInvite(SipInviteInfoRef& invite);
 	void ReportSipBye(SipByeInfo bye);
+	void ReportSkinnyCallInfo(SkCallInfoStruct*);
+	void ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct*);
+	void ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct*);
 	void ReportRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void Hoover(time_t now);
 private:
