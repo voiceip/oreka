@@ -268,25 +268,27 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader)
 {
 	bool useful = true;
 	CStdString debug;
-	SkStartMediaTransmissionStruct* start;
-	SkStopMediaTransmissionStruct* stop;
+	SkStartMediaTransmissionStruct* startMedia;
+	SkStopMediaTransmissionStruct* stopMedia;
 	SkCallInfoStruct* callInfo;
 
 	switch(skinnyHeader->messageType)
 	{
 	case SkStartMediaTransmission:
-		start = (SkStartMediaTransmissionStruct*)skinnyHeader;
+		startMedia = (SkStartMediaTransmissionStruct*)skinnyHeader;
 		if(s_skinnyLog->isDebugEnabled())
 		{
-			debug.Format(" CallId:%u %s,%u", start->conferenceId, ACE_OS::inet_ntoa(start->remoteIpAddr), start->remoteTcpPort);
+			debug.Format(" CallId:%u %s,%u", startMedia->conferenceId, ACE_OS::inet_ntoa(startMedia->remoteIpAddr), startMedia->remoteTcpPort);
 		}
+		RtpSessionsSingleton::instance()->ReportSkinnyStartMediaTransmission(startMedia);
 		break;
 	case SkStopMediaTransmission:
-		stop = (SkStopMediaTransmissionStruct*)skinnyHeader;
+		stopMedia = (SkStopMediaTransmissionStruct*)skinnyHeader;
 		if(s_skinnyLog->isDebugEnabled())
 		{
-			debug.Format(" CallId:%u", stop->conferenceId);
+			debug.Format(" CallId:%u", stopMedia->conferenceId);
 		}
+		RtpSessionsSingleton::instance()->ReportSkinnyStopMediaTransmission(stopMedia);
 		break;
 	case SkCallInfoMessage:
 		callInfo = (SkCallInfoStruct*)skinnyHeader;
@@ -294,6 +296,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader)
 		{
 			debug.Format(" CallId:%u calling:%s called:%s", callInfo->callId, callInfo->callingParty, callInfo->calledParty);
 		}
+		RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(callInfo);
 		break;
 	default:
 		useful = false;
