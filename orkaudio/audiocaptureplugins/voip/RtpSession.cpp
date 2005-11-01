@@ -37,7 +37,7 @@ RtpSession::RtpSession()
 	m_inviteeIp.s_addr = 0;
 	m_inviteeTcpPort = 0;
 	m_direction = CaptureEvent::DirUnkn;
-	m_protocol = ProtocolEnum::ProtUnkn;
+	m_protocol = ProtUnkn;
 	m_numRtpPackets = 0;
 	m_started = false;
 }
@@ -530,9 +530,9 @@ void RtpSessions::Hoover(time_t now)
 	}
 
 	// discard inactive sessions
-	for (it = toDismiss.begin(); it != toDismiss.end() ; it++)
+	for (std::list<RtpSessionRef>::iterator it2 = toDismiss.begin(); it2 != toDismiss.end() ; it2++)
 	{
-		RtpSessionRef session = *it;
+		RtpSessionRef session = *it2;
 		LOG4CXX_DEBUG(m_log, session->m_ipAndPort + " Expired");
 		Stop(session);
 	}
