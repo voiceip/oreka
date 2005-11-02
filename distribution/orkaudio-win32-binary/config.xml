@@ -1,24 +1,38 @@
 <config>
-	<TrackerHostname>hostname</TrackerHostname>
+	<!-- Uncomment the plugin you want to use -->
+	<CapturePlugin>VoIP.dll</CapturePlugin>
+	<!--<CapturePlugin>Generator.dll</CapturePlugin>-->
+	<!--<CapturePlugin>SoundDevice.dll</CapturePlugin>-->
+	<CapturePluginPath>audiocaptureplugins/</CapturePluginPath>	
+	
+	<!-- Audio file storage format: choose from: native, gsm, ulaw, alaw -->
+	<StorageAudioFormat>gsm</StorageAudioFormat>
+	
+	<!-- If you want to keep native audio files as well as compressed, change this to "no" -->
+	<DeleteNativeFile>yes</DeleteNativeFile>
+	
+	<TrackerHostname>localhost</TrackerHostname>
 	<EnableReporting>false</EnableReporting>
 	<ClientTimeout>1000</ClientTimeout>
-	<CapturePluginPath>audiocaptureplugins/</CapturePluginPath>
-	<!--<CapturePlugin>Generator.dll</CapturePlugin>-->
-	<CapturePlugin>VoIP.dll</CapturePlugin>
-	<!--<CapturePlugin>SoundDevice.dll</CapturePlugin>-->
-	<StorageAudioFormat>gsm</StorageAudioFormat>
+	
 	<NumBatchThreads></NumBatchThreads>
-	<DeleteNativeFile>yes</DeleteNativeFile>
+	
 	<AudioSegmentation>false</AudioSegmentation>
 	<AudioSegmentDuration>10</AudioSegmentDuration>
+	
 	<VoIpPlugin>
-		<Device>\Device\NPF_{2FEDB9F0-F584-48A8-B164-117965F80986}</Device>
+		<!-- Microsoft Windows style network device: -->
+		<!--<Device>\Device\NPF_{2FEDB9F0-F584-48A8-B164-117965F80986}</Device>-->
+		<!-- Unix style network device: -->
+		<!--<Device>eth0</Device>-->
+		<!-- LanMasks can be ignored if you have standard LAN addresses (192.168.x.x or 10.x.x.x) -->
 		<!--<LanMasks>10.4.3.4, 1.2.3.4</LanMasks>-->
-		<MediaGateways>10.0.0.102</MediaGateways>
+		<!-- The following is a csv list of your PBX, PSTN gateway or such "gateway" devices -->
+		<!--<MediaGateways>10.0.0.102</MediaGateways>-->
 	</VoIpPlugin>
-	<Generator>
+	<GeneratorPlugin>
 		<NumConcurrentPorts>1</NumConcurrentPorts>
 		<AudioDuration>5</AudioDuration>
 		<AudioFilename>sine.8KHz.pcm.wav</AudioFileName>
-	</Generator>
+	</GeneratorPlugin>
 </config>
