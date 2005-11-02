@@ -1,6 +1,6 @@
+<config>
 <!-- This is an example configuration file for the Oreka orkaudio capture service -->
 <!-- Copy this to config.xml and modify according to taste -->
-<config>
 	<TrackerHostname>localhost</TrackerHostname>
 	<EnableReporting>true</EnableReporting>
 	<ClientTimeout>1000</ClientTimeout>
