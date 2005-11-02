@@ -1,0 +1,19 @@
+
+
+===========================================================================
+2005-11-02 Oreka 0.2
+
+	* VoIp plugin now supports Cisco skinny (aka SCCP) protocol (including metadata extraction)
+	* VoIp plugin now supports Raw RTP sessions recording.
+	* VoIP plugin now tries to associate a SIP call to a capture port that is made of the 
+	actual local SIP agent (phone) IP address and TCP port. Before that, a capture port 
+	could be made of a gateway or external IP address and TCP port.
+	* Default to the last OS returned network device when config file does not specify or
+	  specifies invalid network device
+	* Visual studio project now opens without errors
+	* Fixed win32 crash when network device identifier in config file was invalid
+	  
+	  
+===========================================================================
+2005-10-20 Oreka 0.1 - Initial release
+
