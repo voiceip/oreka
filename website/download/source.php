@@ -18,14 +18,14 @@
 <h3><?=_("Recommended Download")?></h3>
 
 <ul>
-  <li><p>Windows zip file: <a href="http://sourceforge.net/project/showfiles.php?group_id=150919&package_id=166774">oreka-0.1.zip</a></p></li>
-  <li><p>Unix tarball: <a href="http://sourceforge.net/project/showfiles.php?group_id=150919&package_id=166774">oreka-0.1.tar.gz</a></p></li>
+  <li><p>Windows zip file: <a href="http://sourceforge.net/project/showfiles.php?group_id=150919&package_id=166774">oreka-0.2zip</a></p></li>
+  <li><p>Unix tarball: <a href="http://sourceforge.net/project/showfiles.php?group_id=150919&package_id=166774">oreka-0.2.tar.gz</a></p></li>
 </ul>
 
 <h3>Optional download</h3>
 <ul>
-	<li>Windows C++ dependencies package: <a href="http://sourceforge.net/project/showfiles.php?group_id=150919&package_id=166774">oreka-0.1-cxx-win32-dependencies.zip</a></li>
-	<li>Java dependencies package: <a href="http://sourceforge.net/project/showfiles.php?group_id=150919&package_id=166774">oreka-0.1-java-dependencies.zip</a></li>
+	<li>Windows C++ dependencies package: <a href="http://sourceforge.net/project/showfiles.php?group_id=150919&package_id=166774">oreka-0.2-cxx-win32-dependencies.zip</a></li>
+	<li>Java dependencies package: <a href="http://sourceforge.net/project/showfiles.php?group_id=150919&package_id=166774">oreka-0.2-java-dependencies.zip</a></li>
 </ul>
 
 <?php

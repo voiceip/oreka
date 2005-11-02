@@ -34,6 +34,13 @@ function add_news_item($dateStr, $id, $title, $body) {
 }
 function most_recent_news_item() {
 }
+add_news_item(
+  "November 02, 2005",
+	"0.2-release",
+  _("Oreka 0.2 Released"),
+  _('<p>OrkAudio now supports Cisco Skinny (aka SCCP) recording. This allows Cisco Call Manager sessions to be captured. Also, Support for raw RTP recording has been added. OrkAudio defaults to this for RTP based protocols other than SIP and Skinny.</p>')
+);
+
 
 add_news_item(
   "October 26, 2005",

@@ -17,7 +17,7 @@
 
 <h3><?=_("Recommended Download")?></h3>
 <ul>
-  <li><p><a href="http://sourceforge.net/project/showfiles.php?group_id=150919&package_id=166774">orkaudio-0.1-win32-binary.zip</a></p></li>
+  <li><p><a href="http://sourceforge.net/project/showfiles.php?group_id=150919&package_id=166774">orkaudio-0.2-win32-binary.zip</a></p></li>
 </ul>
 
 <h3><?=_("System Requirements")?></h3>
