@@ -14,9 +14,14 @@ Quick start
 --------
 Features
 
-* Bidirectional SIP sessions recording using the VoIP plugin (default configuration)
+* VoIP recording capability by sniffing on a network device (default configuration)
 * Audio device recording (by default, records all devices in the system) using the Sound Device plugin
-* Generates "tape" (recordings) details record
+* Generates "tape" (recordings) details records
+
+The VoIP plugin supports the following protocols:
+	- Bidirectional SIP sessions recording with SIP metadata extraction
+	- Bidirectional Cisco skinny (aka SCCP) session recording with Skinny metadata extraction
+	- Bidirectional Raw RTP session recording with limited metadata extraction (when SIP and Skinny both fail)
 
 --------------
 How to install
@@ -40,16 +45,25 @@ How to install
 
 	c:\oreka\orkaudio> OrkAudio.exe uninstall
 
+* For VoIP recording on an entire LAN, you need to tap an ethernet link carrying all 
+the voice traffic you want to monitor. There are three methods:
+1. Ehternet tap
+2. Ethernet Hub
+3. Switch SPAN port
+For more info on those options, see:
+http://www.snort.org/docs and more specifically:
+http://www.snort.org/docs/iss-placement.pdf
+
 ----------------
 How to configure
 
 * General configuration is found in config.xml
-* Logging configuration is found in logging.properties
+* Logging configuration is found in logging.properties 
 
 -------------------------------------------------
-Where to find "tapes" and "tapes" details records
+Where to find generated "tapes" and "tape detail records"
 
 * Point the windows file explorer to the OrkAudio install directory. Files are stored in subdirectories using the following path scheme:  YYYY\MM\DD\HH\
 
-* "tapes" details records can be found in tapelist.log
+* "tape details records" can be found in tapelist.log
 
