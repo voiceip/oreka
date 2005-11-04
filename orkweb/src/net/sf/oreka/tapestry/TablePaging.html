@@ -1,43 +1,6 @@
-<!--<style type="text/css">
-  .cursor {
-    background-color: white;
-    text-align: right;
-    padding-right: 0;
-  }
-  
-  .cursor div { 
-    border-top: solid 2px #930512;
-    background-color: #FD0D24;
-    border-bottom: solid 2px #930512;
-    text-align: right;
-    color: white;
-    float: left;
-    padding-top: 0;
-    height: 1em;
-  }
-
-  .bar {
-    background-color: white;
-    text-align: right;
-    padding-right: 0;
-  }
-  
-  .bar div { 
-    border-top: solid 2px #03144B;
-    background-color: #0930AC;
-    border-bottom: solid 2px #03144B;
-    text-align: right;
-    color: white;
-    float: left;
-    padding-top: 0;
-    height: 1em;
-    
-
-</style>-->
-
 <table width="100%" class="paging">
-	<tr class="odd">
-		<td align="left">
+	<tr>
+		<td align="center">
 			<table>
 				<tr>
 					<td>
@@ -69,13 +32,10 @@
 				</tr>
 			</table>
 		</td>
-		<td width="100%">
-			&nbsp;
-		</td>
 	</tr>
 	<!--*** Slider ***-->
 	<tr>
-		<td colspan="2">
+		<td>
 			<table width="100%">
 				<tr>
 					<td jwcid="@Foreach" source="ognl:sliderPositions" value="ognl:sliderPosition" element="td" class="ognl:tableState.sliderPosition == sliderPosition ? 'cursor' : 'bar'">

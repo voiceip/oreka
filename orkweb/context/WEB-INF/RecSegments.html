@@ -1,7 +1,7 @@
 <html jwcid="@Shell" stylesheet="ognl:assets.mystyle" title="Browse segments" >
 <link jwcid="@If" condition="false" href="orekastyle.css" rel="stylesheet" type="text/css"/>
 <body jwcid="@Body">
-<table id="container">
+<table width="99%" border="0" align="center" cellpadding="0" cellspacing="0">
 	<tr>
 		<td colspan="2"><span jwcid="@my:MainMenu" pageName="RecSegments">Here goes the main menu</span></td>
 	</tr>
@@ -9,6 +9,9 @@
 		<td class="criteria">
 			<form jwcid="@Form" listener="ognl:listeners.formSubmit">
 				<table cellpadding="4" class="inputform">
+					<tr>
+						<td>&nbsp;</td>
+					</tr>
 					<span jwcid="@If" condition="ognl:recSegmentFilter.minDurationError != null">
 						<tr>
 							<td class="error"><span jwcid="@Insert" value="ognl:recSegmentFilter.minDurationError">error in this field</span></td>
@@ -59,8 +62,11 @@
 							</span>
  						</td>
 				  	</tr>
+				  	<tr>
+				  		<td>&nbsp;</td>
+				  	<tr>
 				  	<tr align="Left">
-				   		<td colspan="2"><input type="submit" value="Search"/></td>
+				   		<td colspan="2"><input id="submitbutton" type="submit" value="Search"/></td>
 				  	</tr>
 				  	<tr>
 				  		<td colspan="2">
@@ -112,10 +118,10 @@
 											    <td><span jwcid="@Insert" value="ognl:item.recSegment.timestamp">timestamp</span></td>
 											    <td><span jwcid="@Insert" value="ognl:item.recSegment.duration">duration</span></td>
 											    <td><span jwcid="@Insert" value="ognl:item.recSegment.localParty">local party</span></td>
-											    <td>
+											    <td align="center">
 											    	<!--<span jwcid="@Insert" value="ognl:item.recSegment.direction">direction</span>-->
-											    	<span jwcid="@If" condition="ognl:item.recSegment.direction == @net.sf.oreka.Direction@IN">In</span>
-											    	<span jwcid="@If" condition="ognl:item.recSegment.direction == @net.sf.oreka.Direction@OUT">Out</span>
+											    	<span jwcid="@If" condition="ognl:item.recSegment.direction == @net.sf.oreka.Direction@IN"><img src="images/common/icon_incomingcall.gif" alt="In"></span>
+											    	<span jwcid="@If" condition="ognl:item.recSegment.direction == @net.sf.oreka.Direction@OUT"><img src="images/common/icon_outgoingcall.gif" alt="Out"></span>
 											    </td>
 											    <td><span jwcid="@Insert" value="ognl:item.recSegment.remoteParty">remote party</span></td>
 											    <td>
@@ -138,6 +144,21 @@
 					<tr>
 						<td><span jwcid="mytablepaging2">Paging goes here</span></td>
 					</tr>
+					
+					
+					<!--<tr>	### Not sure where to put this
+						<td valign="top">
+							<table width="100%" border="0" cellspacing="0" cellpadding="0">
+					  			<tr>
+					    			<td width="7"><img src="images/common/bdr1_results.gif" width="7" height="24"></td>
+					    			<td class="brd4result">&nbsp;</td>
+					    			<td width="31"><img src="images/common/bdr4_results.gif" width="23" height="24"></td>
+					  			</tr>
+							</table>
+						</td>
+					</tr>-->
+					
+					
 				</table>
 			</td>
 		</span>
@@ -146,9 +167,8 @@
 				<span key="NoResults">No results</span>
 			</td>
 		</span>
+		<td width="15" valign="top" class="brdr6results"><img src="images/common/bdr2_results.gif" width="8" height="8"></td>		
 	</tr>
 </table>
-<!--<img jwcid="@Image" image="ognl:assets.myimage" />-->
-
 </body>
 </html>
