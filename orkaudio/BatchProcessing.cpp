@@ -77,7 +77,7 @@ void BatchProcessing::ThreadHandler(void *args)
 			default:
 				outFileRef.reset(new LibSndFileFile(SF_FORMAT_GSM610 | SF_FORMAT_WAV));
 			}
-			CStdString file = audioTapeRef->GetPath() + audioTapeRef->GetIdentifier();
+			CStdString file = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath() + audioTapeRef->GetIdentifier();
 			outFileRef->Open(file, AudioFile::WRITE);
 
 			while(fileRef->ReadChunkMono(chunkRef))

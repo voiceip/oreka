@@ -37,6 +37,7 @@ Config::Config()
 	m_trackerHostname = TRACKER_HOSTNAME_DEFAULT;
 	m_trackerTcpPort = TRACKER_TCP_PORT_DEFAULT;
 	m_trackerServicename = TRACKER_SERVICENAME_DEFAULT;
+	m_audioOutputPath = AUDIO_OUTPUT_PATH_DEFAULT;
 
 	char hostname[40];
 	ACE_OS::hostname(hostname, 40);
@@ -70,6 +71,7 @@ void Config::Define(Serializer* s)
 	s->StringValue(SERVICE_NAME_PARAM, m_serviceName);
 	s->IntValue(REPORTING_RETRY_DELAY_PARAM, m_reportingRetryDelay);
 	s->IntValue(CLIENT_TIMEOUT_PARAM, m_clientTimeout);
+	s->StringValue(AUDIO_OUTPUT_PATH_PARAM, m_audioOutputPath);
 }
 
 void Config::Validate()

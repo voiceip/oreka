@@ -137,7 +137,7 @@ void AudioTape::Write()
 					if (m_state == StateActive)
 					{
 						// A file format was successfully added to the tape, open it
-						CStdString file = m_filePath + m_fileIdentifier;
+						CStdString file = CONFIG.m_audioOutputPath + "/" + m_filePath + m_fileIdentifier;
 						m_audioFileRef->Open(file, AudioFile::WRITE);
 
 						// determine what final extension the file will have after optional compression

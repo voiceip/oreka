@@ -57,6 +57,8 @@
 #define SERVICE_NAME_PARAM "ServiceName"
 #define REPORTING_RETRY_DELAY_PARAM "ReportingRetryDelay"
 #define CLIENT_TIMEOUT_PARAM "ClientTimeout"
+#define AUDIO_OUTPUT_PATH_PARAM "AudioOutputPath"
+#define AUDIO_OUTPUT_PATH_DEFAULT "."
 
 
 class Config : public Object
@@ -91,6 +93,7 @@ public:
 	CStdString m_serviceName;
 	int m_reportingRetryDelay;
 	int m_clientTimeout;
+	CStdString m_audioOutputPath;
 };
 
 
