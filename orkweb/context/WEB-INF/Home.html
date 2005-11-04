@@ -3,7 +3,7 @@
 
 <body>
 
-<table id="container">
+<table width="99%" border="0" align="center" cellpadding="0" cellspacing="0">
 	<tr>
 		<td colspan="2"><span jwcid="@my:MainMenu" pageName="Home">Here goes the main menu</span></td>
 	</tr>
@@ -11,6 +11,9 @@
 		<td class="criteria">
 			<form jwcid="@Form">
 				<table class="inputform">
+					<tr>
+						<td>&nbsp;</td>
+					</tr>
 					<tr>
 						<td>
 							<big>Please login<big>
@@ -32,7 +35,7 @@
 			 			<td><input jwcid="@TextField" value="ognl:password" translator="translator:string" hidden="true"/></td>
 					</tr>
 					<tr>
-			   			<td><input type="submit" jwcid="@Submit" action="ognl:listeners.formSubmit" value="Login"/></td>
+			   			<td><input type="submit" id="submitbutton" jwcid="@Submit" action="ognl:listeners.formSubmit" value="Login"/></td>
 			   		</tr>
 			   	</table>
 			</form>

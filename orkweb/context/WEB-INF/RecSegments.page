@@ -20,8 +20,8 @@
        	
     <!--<context-asset name="myimage" path="/images/Czech.gif"/>-->
     <external-asset name="mystyle" URL="./css/orekastyle.css" />
-    <context-asset name="play" path="/images/icon_play.gif"/>
-    <context-asset name="cal" path="/images/icon_calendar.gif"/>
+    <context-asset name="play" path="/images/common/icon_play.gif"/>
+    <context-asset name="cal" path="/images/common/icon_calendar.gif"/>
     
   	<bean name="rowStyle" class="org.apache.tapestry.bean.EvenOdd"/>
 
