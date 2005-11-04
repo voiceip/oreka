@@ -115,6 +115,10 @@ SOURCE=.\g711.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\PacketHeaderDefs.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\PacketHeaderDefs.h
 # End Source File
 # Begin Source File
