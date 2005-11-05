@@ -34,6 +34,9 @@ public class ServiceManager {
 			log.info("Creating service:" + name);
 			service = new Service();
 			service.setName(name);
+			service.setHostname("localhost");
+			service.setFileServeProtocol("http");
+			service.setFileServeTcpPort(8080);
 			hbnSession.save(service);
 		}
 		return service;
