@@ -11,7 +11,7 @@
 
   echo "<h2>$pageTitle</h2>";
 
-  echo _('<p>Oreka is a modular and cross-platform system for recording and retrieval of audio streams. The project currently supports VoIP SIP and sound device based capture. Recordings metadata can be stored in any mainstream database. Retrieval of captured sessions is web based. For more details, please refer to the <a href="features">features</a> page</p>
+  echo _('<p>Oreka is a modular and cross-platform system for recording and retrieval of audio streams. The project currently supports VoIP and sound device based capture. Recordings metadata can be stored in any mainstream database. Retrieval of captured sessions is web based. For more details, please refer to the <a href="features">features</a> page</p>
 
 ');
 

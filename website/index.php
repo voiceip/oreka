@@ -18,7 +18,7 @@
   <div id="screenshot">
     <!-- TODO: Auto-select or randomly rotate screenshot? -->
   </div>
-  <p><?=_('Oreka is a modular and cross-platform system for recording and retrieval of audio streams. The project currently supports VoIP SIP and sound device based capture. Recordings metadata can be stored in any mainstream database. Retrieval of captured sessions is web based.')?></p>
+  <p><?=_('Oreka is a modular and cross-platform system for recording and retrieval of audio streams. The project currently supports VoIP and sound device based capture. Recordings metadata can be stored in any mainstream database. Retrieval of captured sessions is web based.')?></p>
 </div>
 
 <div id="download">
