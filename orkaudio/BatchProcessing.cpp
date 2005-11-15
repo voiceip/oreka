@@ -16,6 +16,7 @@
 #include "LogManager.h"
 #include "ace/OS_NS_unistd.h"
 #include "audiofile/LibSndFileFile.h"
+#include "Daemon.h"
 
 BatchProcessing BatchProcessing::m_batchProcessingSingleton;
 
@@ -50,47 +51,59 @@ void BatchProcessing::ThreadHandler(void *args)
 	CStdString threadIdString = IntToString(threadId);
 	LOG4CXX_DEBUG(LOG.batchProcessingLog, CStdString("Created thread #") + threadIdString);
 
-	for(;;)
+	bool stop = false;
+
+	for(;stop == false;)
 	{
 		try
 		{
 			AudioTapeRef audioTapeRef = pBatchProcessing->m_audioTapeQueue.pop();
-			CStdString threadIdString = IntToString(threadId);
-			LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " processing: " + audioTapeRef->GetIdentifier());
-
-			AudioFileRef fileRef = audioTapeRef->GetAudioFileRef();
-			fileRef->MoveOrig();
-			fileRef->Open(AudioFile::READ);
-
-			AudioChunkRef chunkRef;
-			AudioFileRef outFileRef;
-
-			switch(CONFIG.m_storageAudioFormat)
+			if(audioTapeRef.get() == NULL)
 			{
-			case AudioTape::FfUlaw:
-				outFileRef.reset(new LibSndFileFile(SF_FORMAT_ULAW | SF_FORMAT_WAV));
-				break;
-			case AudioTape::FfAlaw:
-				outFileRef.reset(new LibSndFileFile(SF_FORMAT_ALAW | SF_FORMAT_WAV));
-				break;
-			case AudioTape::FfGsm:
-			default:
-				outFileRef.reset(new LibSndFileFile(SF_FORMAT_GSM610 | SF_FORMAT_WAV));
+				if(DaemonSingleton::instance()->IsStopping())
+				{
+					stop = true;
+				}
 			}
-			CStdString file = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath() + audioTapeRef->GetIdentifier();
-			outFileRef->Open(file, AudioFile::WRITE);
-
-			while(fileRef->ReadChunkMono(chunkRef))
+			else
 			{
-				outFileRef->WriteChunk(chunkRef);
-			}
-
-			if(CONFIG.m_deleteNativeFile)
-			{
-				fileRef->Close();
-				fileRef->Delete();
 				CStdString threadIdString = IntToString(threadId);
-				LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " deleting native: " + audioTapeRef->GetIdentifier());
+				LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " processing: " + audioTapeRef->GetIdentifier());
+
+				AudioFileRef fileRef = audioTapeRef->GetAudioFileRef();
+				fileRef->MoveOrig();
+				fileRef->Open(AudioFile::READ);
+
+				AudioChunkRef chunkRef;
+				AudioFileRef outFileRef;
+
+				switch(CONFIG.m_storageAudioFormat)
+				{
+				case AudioTape::FfUlaw:
+					outFileRef.reset(new LibSndFileFile(SF_FORMAT_ULAW | SF_FORMAT_WAV));
+					break;
+				case AudioTape::FfAlaw:
+					outFileRef.reset(new LibSndFileFile(SF_FORMAT_ALAW | SF_FORMAT_WAV));
+					break;
+				case AudioTape::FfGsm:
+				default:
+					outFileRef.reset(new LibSndFileFile(SF_FORMAT_GSM610 | SF_FORMAT_WAV));
+				}
+				CStdString file = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath() + audioTapeRef->GetIdentifier();
+				outFileRef->Open(file, AudioFile::WRITE);
+
+				while(fileRef->ReadChunkMono(chunkRef))
+				{
+					outFileRef->WriteChunk(chunkRef);
+				}
+
+				if(CONFIG.m_deleteNativeFile)
+				{
+					fileRef->Close();
+					fileRef->Delete();
+					CStdString threadIdString = IntToString(threadId);
+					LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " deleting native: " + audioTapeRef->GetIdentifier());
+				}
 			}
 		}
 		catch (CStdString& e)
@@ -100,8 +113,8 @@ void BatchProcessing::ThreadHandler(void *args)
 		catch(...)
 		{
 		}
-
 	}
+	LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Exiting thread #" + threadIdString));
 }
 
 

@@ -61,13 +61,17 @@ template <class T> bool ThreadSafeQueue<T>::push(T &element)
 /** Pop and element from the queue, or blocks until one available */
 template <class T> T ThreadSafeQueue<T>::pop()
 {
-	m_semaphore.acquire();
-
+	ACE_Time_Value timeout(time(NULL)+2);
+	m_semaphore.acquire(&timeout);
 	MutexSentinel mutexSentinel(m_mutex);
 
-	T element = m_queue.front();
-	m_queue.pop();
+	T element;
 
+	if(m_queue.size() > 0)
+	{
+		element = m_queue.front();
+		m_queue.pop();
+	}
 	return element;
 }
 

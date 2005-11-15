@@ -15,6 +15,7 @@
 #include "LogManager.h"
 #include "ace/OS_NS_unistd.h"
 #include "BatchProcessing.h"
+#include "Daemon.h"
 
 ImmediateProcessing ImmediateProcessing::m_immediateProcessingSingleton;
 
@@ -36,19 +37,32 @@ void ImmediateProcessing::ThreadHandler(void *args)
 {
 	ImmediateProcessing* pImmediateProcessing = ImmediateProcessing::GetInstance();
 
-	for(;;)
+	bool stop = false;
+
+	for(;stop == false;)
 	{
 		try
 		{
 			AudioTapeRef audioTapeRef = pImmediateProcessing->m_audioTapeQueue.pop();
-			//LOG4CXX_DEBUG(LOG.immediateProcessingLog, CStdString("Got chunk"));
-		
-			audioTapeRef->Write();
 
-			if (audioTapeRef->IsStoppedAndValid())
+			if(audioTapeRef.get() == NULL)
 			{
-				// Forward to batch processing thread
-				BatchProcessing::GetInstance()->AddAudioTape(audioTapeRef);
+				if(DaemonSingleton::instance()->IsStopping())
+				{
+					stop = true;
+				}
+			}
+			else
+			{
+				//LOG4CXX_DEBUG(LOG.immediateProcessingLog, CStdString("Got chunk"));
+			
+				audioTapeRef->Write();
+
+				if (audioTapeRef->IsStoppedAndValid())
+				{
+					// Forward to batch processing thread
+					BatchProcessing::GetInstance()->AddAudioTape(audioTapeRef);
+				}
 			}
 		}
 		catch (CStdString& e)
@@ -56,6 +70,7 @@ void ImmediateProcessing::ThreadHandler(void *args)
 			LOG4CXX_ERROR(LOG.immediateProcessingLog, CStdString("ImmediateProcessing: ") + e);
 		}
 	}
+	LOG4CXX_INFO(LOG.immediateProcessingLog, CStdString("Exiting thread"));
 }
 
 

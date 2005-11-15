@@ -20,10 +20,11 @@
 using namespace log4cxx;
 
 
-class LogManager
+class OrkLogManager
 {
 public:
 	void Initialize();
+	void Shutdown();
 
 	LoggerPtr rootLog;
 	LoggerPtr topLog;
@@ -36,9 +37,9 @@ public:
 	LoggerPtr tapelistLog;
 };
 
-typedef ACE_Singleton<LogManager, ACE_Thread_Mutex> LogManagerSingleton;
+typedef ACE_Singleton<OrkLogManager, ACE_Thread_Mutex> OrkLogManagerSingleton;
 
-#define LOG (*LogManagerSingleton::instance())
+#define LOG (*OrkLogManagerSingleton::instance())
 
 #endif
 

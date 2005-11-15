@@ -14,6 +14,7 @@
 #include "CapturePluginProxy.h"
 #include "ace/OS_NS_dirent.h"
 #include "ace/OS_NS_string.h"
+#include "ace/Thread_Manager.h"
 #include "ConfigManager.h"
 #include "CapturePort.h"
 
@@ -83,9 +84,11 @@ bool CapturePluginProxy::Initialize()
 		else
 		{
 			// Ok, the dll has been successfully loaded
+			LOG4CXX_INFO(LOG.rootLog, CStdString("Loaded plugin: ") + pluginPath);
+
 			RegisterCallBacksFunction registerCallBacks;
 			registerCallBacks = (RegisterCallBacksFunction)m_dll.symbol("RegisterCallBacks");
-			registerCallBacks(AudioChunkCallBack, CaptureEventCallBack, LogManagerSingleton::instance());
+			registerCallBacks(AudioChunkCallBack, CaptureEventCallBack, OrkLogManagerSingleton::instance());
 
 			m_configureFunction = (ConfigureFunction)m_dll.symbol("Configure");
 			if (m_configureFunction)
@@ -144,7 +147,24 @@ bool CapturePluginProxy::Initialize()
 
 void CapturePluginProxy::Run()
 {
-	m_runFunction();
+	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(m_runFunction)))
+	{
+		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create capture thread"));
+	}
+}
+
+void CapturePluginProxy::Shutdown()
+{
+	ShutdownFunction shutdownFunction = (ShutdownFunction)m_dll.symbol("Shutdown");
+	if (shutdownFunction)
+	{
+		LOG4CXX_INFO(LOG.rootLog, CStdString("Shutting down"));
+		shutdownFunction();
+	}
+	else
+	{
+		LOG4CXX_INFO(LOG.rootLog, CStdString("Could not find DLL Shutdown function"));
+	}
 }
 
 void CapturePluginProxy::StartCapture(CStdString& capturePort)

@@ -30,7 +30,7 @@
 
 extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;
-extern LogManager* g_logManager;
+extern OrkLogManager* g_logManager;
 
 #include "LogManager.h"
 
@@ -384,6 +384,7 @@ public:
 	VoIp();
 	void Initialize();
 	void Run();
+	void Shutdown();
 	void StartCapture(CStdString& port);
 	void StopCapture(CStdString& port);
 private:
@@ -523,6 +524,12 @@ void VoIp::Run()
 	}
 }
 
+void VoIp::Shutdown()
+{
+	LOG4CXX_INFO(s_log, "Shutting down VoIp.dll");
+	pcap_breakloop(m_pcapHandle);
+}
+
 void VoIp::StartCapture(CStdString& port)
 {
 	;
@@ -541,6 +548,11 @@ void __CDECL__ Initialize()
 void __CDECL__ Run()
 {
 	VoIpSingleton::instance()->Run();
+}
+
+void __CDECL__ Shutdown()
+{
+	VoIpSingleton::instance()->Shutdown();
 }
 
 void __CDECL__ StartCapture(CStdString& capturePort)

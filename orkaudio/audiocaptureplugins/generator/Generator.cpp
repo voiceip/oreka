@@ -21,7 +21,7 @@
 
 extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;
-extern LogManager* g_logManager;
+extern OrkLogManager* g_logManager;
 
 GeneratorConfigTopObjectRef g_generatorConfigTopObjectRef;
 #define GCONFIG g_generatorConfigTopObjectRef.get()->m_config

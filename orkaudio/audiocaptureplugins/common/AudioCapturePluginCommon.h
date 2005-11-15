@@ -25,9 +25,10 @@
 // Shared library exports
 extern "C"		// to avoid function name decoration, makes them easier to lookup
 {
-DLL_EXPORT void __CDECL__  RegisterCallBacks(AudioChunkCallBackFunction, CaptureEventCallBackFunction, LogManager*);
+DLL_EXPORT void __CDECL__  RegisterCallBacks(AudioChunkCallBackFunction, CaptureEventCallBackFunction, OrkLogManager*);
 DLL_EXPORT void __CDECL__  Run();
 DLL_EXPORT void __CDECL__  Initialize();
+DLL_EXPORT void __CDECL__  Shutdown();
 DLL_EXPORT void __CDECL__  Configure(DOMNode*);
 DLL_EXPORT void __CDECL__  StartCapture(CStdString& capturePort);
 DLL_EXPORT void __CDECL__  StopCapture(CStdString& capturePort);
