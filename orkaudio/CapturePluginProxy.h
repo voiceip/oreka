@@ -26,6 +26,7 @@ public:
 	CapturePluginProxy();
 	bool Initialize();
 	void Run();
+	void Shutdown();
 	void StartCapture(CStdString& capturePort);
 	void StopCapture(CStdString& capturePort);
 

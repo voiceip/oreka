@@ -42,9 +42,16 @@ void StopHandler()
 	serviceStop = true;
 }
 
+#ifdef WIN32
+long ExceptionFilter(struct _EXCEPTION_POINTERS *ptr)
+{
+	return EXCEPTION_CONTINUE_SEARCH;
+}
+#endif
+
 void MainThread()
 {
-	LogManagerSingleton::instance()->Initialize();
+	OrkLogManagerSingleton::instance()->Initialize();
 	LOG4CXX_INFO(LOG.rootLog, CStdString("\n\nOrkAudio service starting\n"));
 
 	// Initialize object factory and register existing objects
@@ -100,11 +107,27 @@ void MainThread()
 	}
 
 	//ACE_Thread_Manager::instance ()->wait ();
-	while(serviceStop == false)
+	while(!DaemonSingleton::instance()->IsStopping())
 	{
 		ACE_OS::sleep(1);
 	}
-	LOG4CXX_INFO(LOG.rootLog, CStdString("Stopping service"));
+
+	CapturePluginProxySingleton::instance()->Shutdown();
+
+	// Wait that all ACE threads have returned
+	//ACE_Thread_Manager::instance ()->wait ();
+	ACE_OS::sleep(2);
+	
+	//***** This is to avoid an exception when NT service exiting
+	//***** Need to find out the real problem and fix
+#ifdef WIN32
+	SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
+	SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)ExceptionFilter);
+#endif
+	//*****
+
+	LOG4CXX_INFO(LOG.rootLog, CStdString("Service stopped"));
+	OrkLogManagerSingleton::instance()->Shutdown();
 }
 
 

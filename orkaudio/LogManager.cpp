@@ -16,8 +16,9 @@
 #include "LogManager.h"
 #include <log4cxx/propertyconfigurator.h>
 #include <log4cxx/basicconfigurator.h>
+#include <log4cxx/logmanager.h>
 
-void LogManager::Initialize()
+void OrkLogManager::Initialize()
 {
 	BasicConfigurator::configure();
 
@@ -33,5 +34,10 @@ void LogManager::Initialize()
 	reportingLog = Logger::getLogger("reporting");
 	configLog = Logger::getLogger("config");
 	tapelistLog = Logger::getLogger("tapelist");
+}
+
+void OrkLogManager::Shutdown()
+{
+	log4cxx::LogManager::shutdown();
 }
 

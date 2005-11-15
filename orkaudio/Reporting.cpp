@@ -16,6 +16,8 @@
 #include "LogManager.h"
 #include "messages/Message.h"
 #include "OrkClient.h"
+#include "Daemon.h"
+
 
 Reporting Reporting::m_reportingSingleton;
 
@@ -35,31 +37,51 @@ void Reporting::AddAudioTape(AudioTapeRef audioTapeRef)
 void Reporting::ThreadHandler(void *args)
 {
 	Reporting* pReporting = Reporting::GetInstance();
+	bool stop = false;
 
-	for(;;)
+	for(;stop == false;)
 	{
-		AudioTapeRef audioTapeRef = pReporting->m_audioTapeQueue.pop();
-
-		MessageRef msgRef;
-		audioTapeRef->GetMessage(msgRef);
-		if(msgRef.get() && CONFIG.m_enableReporting)
+		try
 		{
-			CStdString msgAsSingleLineString = msgRef->SerializeSingleLine();
-			LOG4CXX_INFO(LOG.reportingLog, msgAsSingleLineString);
+			AudioTapeRef audioTapeRef = pReporting->m_audioTapeQueue.pop();
 
-			OrkHttpSingleLineClient c;
-			SimpleResponseMsg srm;
-			while (!c.Execute((SyncMessage&)(*msgRef.get()), srm, CONFIG.m_trackerHostname, CONFIG.m_trackerTcpPort, CONFIG.m_trackerServicename, CONFIG.m_clientTimeout))
+			if(audioTapeRef.get() == NULL)
 			{
-				ACE_OS::sleep(5);
+				if(DaemonSingleton::instance()->IsStopping())
+				{
+					stop = true;
+				}
 			}
-			//CStdString host("foo");
-			//while (!msgRef->InvokeXmlRpc(host, 10000))
-			//{
-			//	ACE_OS::sleep(5);
-			//}
+			else
+			{
+
+				MessageRef msgRef;
+				audioTapeRef->GetMessage(msgRef);
+				if(msgRef.get() && CONFIG.m_enableReporting)
+				{
+					CStdString msgAsSingleLineString = msgRef->SerializeSingleLine();
+					LOG4CXX_INFO(LOG.reportingLog, msgAsSingleLineString);
+
+					OrkHttpSingleLineClient c;
+					SimpleResponseMsg srm;
+					while (!c.Execute((SyncMessage&)(*msgRef.get()), srm, CONFIG.m_trackerHostname, CONFIG.m_trackerTcpPort, CONFIG.m_trackerServicename, CONFIG.m_clientTimeout))
+					{
+						ACE_OS::sleep(5);
+					}
+					//CStdString host("foo");
+					//while (!msgRef->InvokeXmlRpc(host, 10000))
+					//{
+					//	ACE_OS::sleep(5);
+					//}
+				}
+			}
+		}
+		catch (CStdString& e)
+		{
+			LOG4CXX_ERROR(LOG.reportingLog, CStdString("Exception: ") + e);
 		}
 	}
+	LOG4CXX_INFO(LOG.reportingLog, CStdString("Exiting thread"));
 }
 
 

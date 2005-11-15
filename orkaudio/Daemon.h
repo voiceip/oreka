@@ -29,6 +29,7 @@ public:
 	void Stop();
 	void Install();
 	void Uninstall();
+	bool IsStopping();
 private:
 #ifdef WIN32
 	static void WINAPI Run( DWORD /*argc*/, TCHAR* /*argv*/[] );
@@ -39,6 +40,8 @@ private:
 	DaemonHandler m_runHandler;
 	DaemonHandler m_stopHandler;
 	CStdString m_serviceName;
+
+	bool m_stopping;
 };
 
 typedef ACE_Singleton<Daemon, ACE_Thread_Mutex> DaemonSingleton;

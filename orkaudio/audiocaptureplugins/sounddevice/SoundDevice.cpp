@@ -24,7 +24,7 @@
 
 extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;
-extern LogManager* g_logManager;
+extern OrkLogManager* g_logManager;
 
 SoundDeviceConfigTopObjectRef g_soundDeviceConfigTopObjectRef;
 #define DLLCONFIG g_soundDeviceConfigTopObjectRef.get()->m_config

@@ -57,6 +57,8 @@ void Daemon::Initialize(CStdString serviceName, DaemonHandler runHandler, Daemon
 	m_runHandler = runHandler;
 	m_stopHandler = stopHandler;
 	m_serviceName = serviceName;
+
+	m_stopping = false;
 }
 
 void Daemon::Start()
@@ -139,6 +141,7 @@ void Daemon::Run()
 
 void Daemon::Stop()
 {
+	m_stopping = true;
 	m_stopHandler();
 }
 
@@ -190,5 +193,10 @@ void Daemon::Uninstall()
 		CloseServiceHandle( serviceControlManager );
 	}
 #endif
+}
+
+bool Daemon::IsStopping()
+{
+	return m_stopping;
 }
 
