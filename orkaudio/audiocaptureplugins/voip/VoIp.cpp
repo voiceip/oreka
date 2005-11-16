@@ -527,7 +527,9 @@ void VoIp::Run()
 void VoIp::Shutdown()
 {
 	LOG4CXX_INFO(s_log, "Shutting down VoIp.dll");
+#ifdef WIN32
 	pcap_breakloop(m_pcapHandle);
+#endif
 }
 
 void VoIp::StartCapture(CStdString& port)
