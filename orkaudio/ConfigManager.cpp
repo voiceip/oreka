@@ -23,6 +23,7 @@
 #include "LogManager.h"
 
 #define CONFIG_FILE_NAME "config.xml"
+#define ETC_CONFIG_FILE_NAME "/etc/oreka/config.xml"
 
 
 void ConfigManager::Initialize()
@@ -32,9 +33,23 @@ void ConfigManager::Initialize()
 
     try
     {
+		char* cfgFilename = ""; 
+		FILE* file = ACE_OS::fopen(CONFIG_FILE_NAME, "r");
+		if(file)
+		{
+			// config.xml exists in the current directory
+			cfgFilename = CONFIG_FILE_NAME;
+			fclose(file);
+		}
+		else
+		{
+			// config.xml could not be found in the current directory, try to find it in /etc/oreka
+			cfgFilename = ETC_CONFIG_FILE_NAME;
+		}
+
         XMLPlatformUtils::Initialize();
 		XercesDOMParser *parser = new XercesDOMParser;
-		parser->parse(CONFIG_FILE_NAME);
+		parser->parse(cfgFilename);
 		DOMNode	*doc = NULL;
 		doc = parser->getDocument();
 
