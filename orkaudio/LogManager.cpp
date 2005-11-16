@@ -23,6 +23,9 @@ void OrkLogManager::Initialize()
 	BasicConfigurator::configure();
 
 	// If this one fails, the above default configuration stays valid
+	PropertyConfigurator::configure("/etc/oreka/logging.properties");
+
+	// If this one fails, the above default configuration stays valid
 	PropertyConfigurator::configure("logging.properties");
 
 	rootLog  = Logger::getLogger("root");
