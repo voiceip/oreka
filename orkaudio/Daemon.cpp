@@ -132,12 +132,20 @@ void Daemon::Run()
 	i=open("/dev/null",O_RDWR); dup(i); dup(i); /* handle standart I/O */
 	umask(027); /* set newly created file permissions */
 	//chdir(RUNNING_DIR); /* change running directory */
-	//lfp=open(LOCK_FILE,O_RDWR|O_CREAT,0640);
-	//if (lfp<0) exit(1); /* can not open */
-	//if (lockf(lfp,F_TLOCK,0)<0) exit(0); /* can not lock */
+	lfp=open("/var/log/orkaudio/orkaudio.lock",O_RDWR|O_CREAT,0640);
+	if (lfp<0)
+	{
+		lfp=open("orkaudio.lock",O_RDWR|O_CREAT,0640);
+	}	
+	if (lfp<0)
+	{
+		exit(1); /* can not open */
+	}	
+	if (lockf(lfp,F_TLOCK,0)<0) exit(0); /* can not lock */
 	/* first instance continues */
-	//sprintf(str,"%d\n",getpid());
-	//write(lfp,str,strlen(str)); /* record pid to lockfile */
+	sprintf(str,"%d\n",getpid());
+	write(lfp,str,strlen(str)); /* record pid to lockfile */
+
 	//signal(SIGCHLD,SIG_IGN); /* ignore child */
 	//signal(SIGTSTP,SIG_IGN); /* ignore tty signals */
 	//signal(SIGTTOU,SIG_IGN);
