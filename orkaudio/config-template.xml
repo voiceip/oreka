@@ -20,5 +20,5 @@
 		<NumConcurrentPorts>1</NumConcurrentPorts>
 		<AudioDuration>5</AudioDuration>
 		<AudioFilename>sine.8KHz.pcm.wav</AudioFileName>
-	</Generator>
+	</GeneratorPlugin>
 </config>
