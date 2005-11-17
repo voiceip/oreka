@@ -23,7 +23,7 @@
 #include "LogManager.h"
 
 #define CONFIG_FILE_NAME "config.xml"
-#define ETC_CONFIG_FILE_NAME "/etc/oreka/config.xml"
+#define ETC_CONFIG_FILE_NAME "/etc/orkaudio/config.xml"
 
 
 void ConfigManager::Initialize()
@@ -43,7 +43,7 @@ void ConfigManager::Initialize()
 		}
 		else
 		{
-			// config.xml could not be found in the current directory, try to find it in /etc/oreka
+			// config.xml could not be found in the current directory, try to find it in system configuration directory
 			cfgFilename = ETC_CONFIG_FILE_NAME;
 		}
 

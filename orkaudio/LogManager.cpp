@@ -22,11 +22,22 @@ void OrkLogManager::Initialize()
 {
 	BasicConfigurator::configure();
 
-	// If this one fails, the above default configuration stays valid
-	PropertyConfigurator::configure("/etc/oreka/logging.properties");
+	char* logCfgFilename = ""; 
+	FILE* file = ACE_OS::fopen("logging.properties", "r");
+	if(file)
+	{
+		// logging.properties exists in the current directory
+		logCfgFilename = "logging.properties";
+		fclose(file);
+	}
+	else
+	{
+		// logging.properties could not be found in the current directory, try to find it in system configuration directory
+		logCfgFilename = "/etc/orkaudio/logging.properties";
+	}
 
 	// If this one fails, the above default configuration stays valid
-	PropertyConfigurator::configure("logging.properties");
+	PropertyConfigurator::configure(logCfgFilename);
 
 	rootLog  = Logger::getLogger("root");
 	topLog = Logger::getLogger("top");
