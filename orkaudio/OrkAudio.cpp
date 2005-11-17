@@ -139,6 +139,7 @@ int main(int argc, char* argv[])
 	CStdString serviceName = StripFileExtension(serviceNameWithExtension);
 	if (serviceName.IsEmpty())
 	{
+		printf("Error: Could not determine service name.\n");
 		return -1;
 	}
 

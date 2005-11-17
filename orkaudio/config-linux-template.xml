@@ -1,0 +1,33 @@
+<config>
+<!-- This is an example configuration file for the Oreka orkaudio capture service on Linux -->
+<!-- Copy this to config.xml and modify according to taste -->
+
+	<AudioOutputPath>/var/log/orkaudio</AudioOutputPath>
+
+	<TrackerHostname>localhost</TrackerHostname>
+	<EnableReporting>true</EnableReporting>
+	<ClientTimeout>1000</ClientTimeout>
+
+	<!-- Use the following if oreka has been installed (having run "make install") -->
+	<CapturePluginPath>/usr/local/lib</CapturePluginPath>
+	<CapturePlugin>libvoip.so</CapturePlugin>
+	<!-- Use the following if you run oreka uninstalled (without having run "make install") -->
+	<!--<CapturePluginPath>audiocaptureplugins/voip/.libs</CapturePluginPath>-->
+	<!--<CapturePlugin>libvoip.so</CapturePlugin>-->
+
+	<StorageAudioFormat>gsm</StorageAudioFormat>
+	<NumBatchThreads></NumBatchThreads>
+	<DeleteNativeFile>no</DeleteNativeFile>
+	<AudioSegmentation>false</AudioSegmentation>
+	<AudioSegmentDuration>10</AudioSegmentDuration>
+	<VoIpPlugin>
+		<Device>eth0</Device>
+		<!--<LanMasks>10.4.3.4, 1.2.3.4</LanMasks>-->
+		<!--<MediaGateways>10.0.0.102</MediaGateways>-->
+	</VoIpPlugin>
+	<GeneratorPlugin>
+		<NumConcurrentPorts>1</NumConcurrentPorts>
+		<AudioDuration>5</AudioDuration>
+		<AudioFilename>sine.8KHz.pcm.wav</AudioFileName>
+	</GeneratorPlugin>
+</config>
