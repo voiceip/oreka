@@ -69,6 +69,10 @@ inline CStdString BaseName(CStdString& path)
 	{
 		result = path.Right(path.GetLength() - lastSeparatorPosition - 1);
 	}
+	else
+	{
+		result = path;
+	}
 	return result;
 }
 
