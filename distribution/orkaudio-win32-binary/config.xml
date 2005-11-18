@@ -1,4 +1,6 @@
 <config>
+	<AudioOutputPath>./AudioRecordings</AudioOutputPath>
+
 	<!-- Uncomment the plugin you want to use -->
 	<CapturePlugin>VoIP.dll</CapturePlugin>
 	<!--<CapturePlugin>Generator.dll</CapturePlugin>-->
@@ -21,13 +23,14 @@
 	<AudioSegmentDuration>10</AudioSegmentDuration>
 	
 	<VoIpPlugin>
-		<!-- Microsoft Windows style network device: -->
-		<!--<Device>\Device\NPF_{2FEDB9F0-F584-48A8-B164-117965F80986}</Device>-->
-		<!-- Unix style network device: -->
-		<!--<Device>eth0</Device>-->
+		<!-- Microsoft Windows style network device. Use this if you want to force capture from a given device. -->
+		<!-- All available devices are listed in orkaudio.log when the service is starting -->
+		<!--<Device>\Device\NPF_{E0E496FA-DABF-47C1-97C2-DD914DFD3354}</Device>-->
 		<!-- LanMasks can be ignored if you have standard LAN addresses (192.168.x.x or 10.x.x.x) -->
+		<!-- LanMasks might be used to determine the direction of a call (incoming or outgoing into or from the LAN) -->
 		<!--<LanMasks>10.4.3.4, 1.2.3.4</LanMasks>-->
-		<!-- The following is a csv list of your PBX, PSTN gateway or such "gateway" devices -->
+		<!-- The following is a csv list of your PBX, PSTN gateway, conferencing server or such "gateway" devices -->
+		<!-- It is needed to properly detect call direction -->
 		<!--<MediaGateways>10.0.0.102</MediaGateways>-->
 	</VoIpPlugin>
 	<GeneratorPlugin>
