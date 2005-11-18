@@ -28,7 +28,6 @@ UninstPage uninstConfirm
 UninstPage instfiles
 
 ;--------------------------------
-
 ; The stuff to install
 Section "Orkaudio (required)"
 
@@ -36,35 +35,38 @@ Section "Orkaudio (required)"
   
   ; Stop orkaudio service if earlier version is running
   nsSCM::Stop orkaudio
+    ; wait for the service to stop
+  sleep 4000
   
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
   
   ; Files
+
+file "OrkAudio.exe"
+file "config.xml"
+file "logging.properties"
+file "OrkBase.dll"
+file "orkaudio.log"
+file "tapelist.log"
+file "WinPcap_3_1.exe"
+file "LICENSE.txt"
+file "README.txt"
+file "VERSION.txt"
 file "ACE-AUTHORS"
 file "ACE-COPYING"
 file "ACE-README"
 file "ACE-THANKS"
 file "ACE-VERSION"
 file "ACE.dll"
-file "LICENSE.txt"
-file "OrkAudio.exe"
-file "OrkBase.dll"
-file "README.txt"
-file "VERSION.txt"
 file "boost-LICENSE_1_0.txt"
 file "boost-README"
-file "config.xml"
 file "log4cxx-AUTHORS"
 file "log4cxx-COPYING"
 file "log4cxx-ChangeLog"
 file "log4cxx-README"
 file "log4cxx-license.apl"
 file "log4cxx.dll"
-file "logging.properties"
-file "messages.log"
-file "orkaudio.log"
-file "orkaudio.nsi"
 file "portaudio-LICENSE.txt"
 file "portaudio-README.txt"
 file "xerces-c-LICENSE"
@@ -77,6 +79,8 @@ file "xerces-c_2_6.dll"
 file "audiocaptureplugins\Generator.dll"
 file "audiocaptureplugins\SoundDevice.dll"
 file "audiocaptureplugins\VoIp.dll"  
+  
+  SetOutPath $INSTDIR\AudioRecordings
   
   nsSCM::Install orkaudio orkaudio 16 2 "$INSTDIR\orkaudio.exe" "" "" "" ""
   Pop $0
@@ -100,10 +104,16 @@ SectionEnd
 Section "Start Menu Shortcuts"
 
   CreateDirectory "$SMPROGRAMS\Orkaudio"
+  CreateShortCut "$SMPROGRAMS\Orkaudio\Orkaudio Recordings.lnk" "$INSTDIR\AudioRecordings" "" "$INSTDIR\AudioRecordings" 0
+  CreateShortCut "$SMPROGRAMS\Orkaudio\Orkaudio Recordings List.lnk" "$INSTDIR\tapelist.log" "" "$INSTDIR\tapelist.log" 0  
+  CreateShortCut "$SMPROGRAMS\Orkaudio\Orkaudio Logfile.lnk" "$INSTDIR\orkaudio.log" "" "$INSTDIR\orkaudio.log" 0  
+  CreateShortCut "$SMPROGRAMS\Orkaudio\Orkaudio Install Directory.lnk" "$INSTDIR\" "" "$INSTDIR\" 0
   CreateShortCut "$SMPROGRAMS\Orkaudio\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  CreateShortCut "$SMPROGRAMS\Orkaudio\Orkaudio.lnk" "$INSTDIR\" "" "$INSTDIR\" 0
-  ;CreateShortCut "$SMPROGRAMS\Orkaudio\Orkaudio (MakeNSISW).lnk" "$INSTDIR\orkaudio.nsi" "" "$INSTDIR\orkaudio.nsi" 0
   
+SectionEnd
+
+Section "Install WinPcap 3.1"
+	ExecWait "WinPcap_3_1.exe"
 SectionEnd
 
 Section "Run orkaudio NT service"
