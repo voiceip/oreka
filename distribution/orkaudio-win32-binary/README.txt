@@ -8,43 +8,40 @@ the GNU General Public License.
 
 This package is a binary distribution of the oreka audio recording service. Source code and documentation can be found at http://sourceforge.net/projects/oreka/
 
-===========
-Quick start
-
 --------
 Features
 
 * VoIP recording capability by sniffing on a network device (default configuration)
+* Works as well on a dedicated server for LAN-wide recording as on an individual PC for personal VoIP recording
 * Audio device recording (by default, records all devices in the system) using the Sound Device plugin
-* Generates "tape" (recordings) details records
+* Generates calls details records with local party, remote party and call direction.
 
 The VoIP plugin supports the following protocols:
 	- Bidirectional SIP sessions recording with SIP metadata extraction
 	- Bidirectional Cisco skinny (aka SCCP) session recording with Skinny metadata extraction
-	- Bidirectional Raw RTP session recording with limited metadata extraction (when SIP and Skinny both fail)
+	- Bidirectional Raw RTP session recording with limited metadata extraction (when SIP and Skinny both fail - e.g for H.323)
 
 --------------
-How to install
+Capturing from the right network device
 
-* Download and install winpcap 3.1 (choose the windows installer version). This is a network packet capture library. 
-	http://www.winpcap.org
+If the software does not seem to produce any audio output, you might be monitoring from the wrong network device. Go to Start/Programs/Orkaudio/Orkaudio Logfile and try to locate lines similar to the following:
 
-* Unzip this package in a folder of your choice.
+....
+2005-11-19 11:13:04,638  INFO packet:479 - Available pcap devices:
+2005-11-19 11:13:04,638  INFO packet:483 - 	* Realtek RTL8139/810x Family Fast Ethernet NIC                                    (Microsoft's Packet Scheduler)  \Device\NPF_{E0E496FA-DABF-47C1-97C2-DD914DFD3354}
+2005-11-19 11:13:04,638  INFO packet:483 - 	* Intel(R) PRO/Wireless 2200BG Network Connection (Microsoft's Packet Scheduler)  \Device\NPF_{2FEDB9F0-F584-48A8-B164-117965F80986}
+....
 
-* Open a cmd box, navigate to the install directory
+Pick the device you want to monitor, e.g. in this case the wireless connection, copy the Windows device name in the clipboard and paste this into the orkaudio configuration file (config.xml) so that it looks like the following:
 
-* To run on the command line, open a cmd box, navigate to the install directory and issue the following command:   
+....
+<Device>\Device\NPF_{2FEDB9F0-F584-48A8-B164-117965F80986}</Device>
+....
 
-	c:\oreka\orkaudio> OrkAudio.exe debug
+--------------
+Where to tap ?
 
-* To run as a service, issue the following command:
-
-	c:\oreka\orkaudio> OrkAudio.exe install
-
-* To uninstall service, issue the following command:
-
-	c:\oreka\orkaudio> OrkAudio.exe uninstall
-
+* If you record from a single PC, no need to worry, just install the software
 * For VoIP recording on an entire LAN, you need to tap an ethernet link carrying all 
 the voice traffic you want to monitor. There are three methods:
 1. Ehternet tap
