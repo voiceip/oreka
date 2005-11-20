@@ -34,9 +34,11 @@ extern OrkLogManager* g_logManager;
 
 #include "LogManager.h"
 
-static LoggerPtr s_log;
+static LoggerPtr s_packetLog;
+static LoggerPtr s_rtpPacketLog;
+static LoggerPtr s_sipPacketLog;
+static LoggerPtr s_skinnyPacketLog;
 static LoggerPtr s_sipExtractionLog;
-static LoggerPtr s_skinnyLog;
 time_t lastHooveringTime;
 
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
@@ -156,9 +158,16 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 				rtpInfo->m_timestamp = ntohl(rtpHeader->ts);
 				rtpInfo->m_payload = payload;
 
-				CStdString debug;
-				debug.Format("%s,%d seq:%u ts:%u len:%d", ACE_OS::inet_ntoa(rtpInfo->m_sourceIp), rtpInfo->m_sourcePort, ntohs(rtpHeader->seq), ntohl(rtpHeader->ts), payloadLength);
-				LOG4CXX_DEBUG(s_log, debug);
+				if(s_rtpPacketLog->isDebugEnabled())
+				{
+					CStdString debug;
+					char sourceIp[16];
+					ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, sourceIp, sizeof(sourceIp));
+					char destIp[16];
+					ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_dest, destIp, sizeof(destIp));
+					debug.Format("%s,%d %s,%d seq:%u ts:%u len:%d", sourceIp, rtpInfo->m_sourcePort, destIp, rtpInfo->m_destPort, ntohs(rtpHeader->seq), ntohl(rtpHeader->ts), payloadLength);
+					LOG4CXX_DEBUG(s_rtpPacketLog, debug);
+				}
 
 				RtpSessionsSingleton::instance()->ReportRtpPacket(rtpInfo);
 			}
@@ -183,7 +192,7 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 			GrabToken(callIdField, info.m_callId);
 			RtpSessionsSingleton::instance()->ReportSipBye(info);
 		}
-		LOG4CXX_DEBUG(s_log, "SIP BYE");
+		LOG4CXX_DEBUG(s_sipPacketLog, "SIP BYE");
 	}
 	return result;
 }
@@ -259,7 +268,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			info->m_fromIp = ipHeader->ip_src;
 			RtpSessionsSingleton::instance()->ReportSipInvite(info);
 		}
-		LOG4CXX_DEBUG(s_log, "SIP INVITE");
+		LOG4CXX_DEBUG(s_sipPacketLog, "SIP INVITE");
 	}
 	return result;
 }
@@ -276,15 +285,17 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader)
 	{
 	case SkStartMediaTransmission:
 		startMedia = (SkStartMediaTransmissionStruct*)skinnyHeader;
-		if(s_skinnyLog->isDebugEnabled())
+		if(s_skinnyPacketLog->isDebugEnabled())
 		{
-			debug.Format(" CallId:%u %s,%u", startMedia->conferenceId, ACE_OS::inet_ntoa(startMedia->remoteIpAddr), startMedia->remoteTcpPort);
+			char szRemoteIp[16];
+			ACE_OS::inet_ntop(AF_INET, (void*)&startMedia->remoteIpAddr, szRemoteIp, sizeof(szRemoteIp));
+			debug.Format(" CallId:%u %s,%u", startMedia->conferenceId, szRemoteIp, startMedia->remoteTcpPort);
 		}
 		RtpSessionsSingleton::instance()->ReportSkinnyStartMediaTransmission(startMedia);
 		break;
 	case SkStopMediaTransmission:
 		stopMedia = (SkStopMediaTransmissionStruct*)skinnyHeader;
-		if(s_skinnyLog->isDebugEnabled())
+		if(s_skinnyPacketLog->isDebugEnabled())
 		{
 			debug.Format(" CallId:%u", stopMedia->conferenceId);
 		}
@@ -292,7 +303,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader)
 		break;
 	case SkCallInfoMessage:
 		callInfo = (SkCallInfoStruct*)skinnyHeader;
-		if(s_skinnyLog->isDebugEnabled())
+		if(s_skinnyPacketLog->isDebugEnabled())
 		{
 			debug.Format(" CallId:%u calling:%s called:%s", callInfo->callId, callInfo->callingParty, callInfo->calledParty);
 		}
@@ -301,11 +312,11 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader)
 	default:
 		useful = false;
 	}
-	if(useful && s_skinnyLog->isDebugEnabled())
+	if(useful && s_skinnyPacketLog->isDebugEnabled())
 	{
 		CStdString msg = SkinnyMessageToString(skinnyHeader->messageType);
 		debug = msg + debug;
-		LOG4CXX_DEBUG(s_skinnyLog, debug);
+		LOG4CXX_INFO(s_skinnyPacketLog, debug);
 	}
 }
 
@@ -315,14 +326,6 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	IpHeaderStruct* ipHeader = (IpHeaderStruct*)((char*)ethernetHeader + sizeof(EthernetHeaderStruct));
 	int ipHeaderLength = ipHeader->ip_hl*4;
 	u_char* ipPacketEnd = (u_char*)ipHeader + ipHeader->ip_len;
-
-	//CStdString source = ACE_OS::inet_ntoa(ipHeader->ip_src);
-	//CStdString dest = ACE_OS::inet_ntoa(ipHeader->ip_dest);
-	//CStdString debug;
-	//debug.Format("%x, %x", ethernetHeader, ipHeader);
-	//LOG4CXX_INFO(s_log, source + "-" + dest);
-
-	//LOG4CXX_DEBUG(s_log, "*");
 
 	if(ipHeader->ip_p == IPPROTO_UDP)
 	{
@@ -351,16 +354,23 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 		
 		if(ntohs(tcpHeader->source) == SKINNY_CTRL_PORT || ntohs(tcpHeader->dest) == SKINNY_CTRL_PORT)
 		{
-			SkinnyHeaderStruct* skinnyHeader = (SkinnyHeaderStruct*)((u_char*)tcpHeader + TCP_HEADER_LENGTH);
+			u_char* startTcpPayload = (u_char*)tcpHeader + TCP_HEADER_LENGTH;
+			SkinnyHeaderStruct* skinnyHeader = (SkinnyHeaderStruct*)(startTcpPayload);
 
-			// Scan all skinny message in this TCP packet
+			// Scan all skinny messages in this TCP packet
 			while(	ipPacketEnd > (u_char*)skinnyHeader && 
 					(u_char*)skinnyHeader>=((u_char*)tcpHeader + TCP_HEADER_LENGTH) &&
-					(ipPacketEnd - (u_char*)skinnyHeader) > SKINNY_MIN_MESSAGE_SIZE			)
+					(ipPacketEnd - (u_char*)skinnyHeader) > SKINNY_MIN_MESSAGE_SIZE	&&
+					skinnyHeader->len > 1 && skinnyHeader->len < 2048 &&
+					skinnyHeader->messageType >= 0x0 && skinnyHeader->messageType <= 0x13F )
 			{
-				//CStdString dbg;
-				//dbg.Format("Len:%u, Type:%x, %s", skinnyHeader->len, skinnyHeader->messageType, SkinnyMessageToString(skinnyHeader->messageType));
-				//LOG4CXX_INFO(s_log, dbg);
+				if(s_skinnyPacketLog->isDebugEnabled())
+				{
+					CStdString dbg;
+					unsigned int offset = (u_char*)skinnyHeader - startTcpPayload;
+					dbg.Format("Offset:%x Len:%u Type:%x %s", offset, skinnyHeader->len, skinnyHeader->messageType, SkinnyMessageToString(skinnyHeader->messageType));
+					LOG4CXX_DEBUG(s_skinnyPacketLog, dbg);
+				}
 				HandleSkinnyMessage(skinnyHeader);
 
 				// Point to next skinny message within this TCP packet
@@ -422,10 +432,13 @@ void Configure(DOMNode* node)
 
 void VoIp::Initialize()
 {
-	s_log = Logger::getLogger("voip");
+	s_packetLog = Logger::getLogger("packet");
+	s_rtpPacketLog = Logger::getLogger("packet.rtp");
+	s_sipPacketLog = Logger::getLogger("packet.sip");
+	s_skinnyPacketLog = Logger::getLogger("packet.skinny");
+
 	s_sipExtractionLog = Logger::getLogger("sipextraction");
-	s_skinnyLog = Logger::getLogger("skinny");
-	LOG4CXX_INFO(s_log, "Initializing VoIP plugin");
+	LOG4CXX_INFO(s_packetLog, "Initializing VoIP plugin");
 
 	// create a default config object in case it was not properly initialized by Configure
 	if(!g_VoIpConfigTopObjectRef.get())
@@ -457,17 +470,17 @@ void VoIp::Initialize()
 	char * error = NULL;
 	if (pcap_findalldevs(&devices, error) == -1)
 	{
-		LOG4CXX_ERROR(s_log, CStdString("pcap error when discovering devices: ") + error);
+		LOG4CXX_ERROR(s_packetLog, CStdString("pcap error when discovering devices: ") + error);
 	}
 	else
 	{
 		if(devices)
 		{
-			LOG4CXX_INFO(s_log, CStdString("Available pcap devices:"));
+			LOG4CXX_INFO(s_packetLog, CStdString("Available pcap devices:"));
 
 			for (pcap_if_t* device = devices; device != NULL; device = device->next)
 			{
-				LOG4CXX_INFO(s_log, CStdString("\t* ") + device->description + " " + device->name );
+				LOG4CXX_INFO(s_packetLog, CStdString("\t* ") + device->description + " " + device->name );
 				if(DLLCONFIG.m_device.Equals(device->name))
 				{
 					deviceToSniff = device;
@@ -481,11 +494,11 @@ void VoIp::Initialize()
 			{
 				if(!DLLCONFIG.m_device.IsEmpty())
 				{
-					LOG4CXX_ERROR(s_log, CStdString("pcap could not find wanted device: ") + DLLCONFIG.m_device + " please check your config file");
+					LOG4CXX_ERROR(s_packetLog, CStdString("pcap could not find wanted device: ") + DLLCONFIG.m_device + " please check your config file");
 				}
 				if(lastDevice)
 				{
-					LOG4CXX_INFO(s_log, CStdString("Defaulting to device: ") + lastDevice->name);
+					LOG4CXX_INFO(s_packetLog, CStdString("Defaulting to device: ") + lastDevice->name);
 					deviceToSniff = lastDevice;
 				}
 			}
@@ -495,17 +508,17 @@ void VoIp::Initialize()
 				if ((m_pcapHandle = pcap_open_live(deviceToSniff->name, 1500, PROMISCUOUS,
 					 500, error)) == NULL)
 				{
-					LOG4CXX_ERROR(s_log, CStdString("pcap error when opening device: ") + deviceToSniff->name);
+					LOG4CXX_ERROR(s_packetLog, CStdString("pcap error when opening device: ") + deviceToSniff->name);
 				}
 				else
 				{
-					LOG4CXX_INFO(s_log, CStdString("successfully opened device: ") + deviceToSniff->name);
+					LOG4CXX_INFO(s_packetLog, CStdString("successfully opened device: ") + deviceToSniff->name);
 				}
 			}
 		}
 		else
 		{
-			LOG4CXX_ERROR(s_log, CStdString("pcap could not find any device"));
+			LOG4CXX_ERROR(s_packetLog, CStdString("pcap could not find any device"));
 		}
 	}
 
@@ -515,18 +528,18 @@ void VoIp::Run()
 {
 	if(m_pcapHandle)
 	{
-		LOG4CXX_INFO(s_log, "Running VoIp.dll");
+		LOG4CXX_INFO(s_packetLog, "Running VoIp.dll");
 		pcap_loop(m_pcapHandle, 0, HandlePacket, NULL);
 	}
 	else
 	{
-		LOG4CXX_INFO(s_log, "No network device opened - VoIp.dll not starting");
+		LOG4CXX_INFO(s_packetLog, "No network device opened - VoIp.dll not starting");
 	}
 }
 
 void VoIp::Shutdown()
 {
-	LOG4CXX_INFO(s_log, "Shutting down VoIp.dll");
+	LOG4CXX_INFO(s_packetLog, "Shutting down VoIp.dll");
 #ifdef WIN32
 	pcap_breakloop(m_pcapHandle);
 #endif
