@@ -70,7 +70,9 @@ void RtpSession::ProcessMetadataSipIncoming()
 	m_remoteParty = m_invite->m_from;
 	m_localParty = m_invite->m_to;
 	m_direction = CaptureEvent::DirIn;
-	m_capturePort.Format("%s,%d", ACE_OS::inet_ntoa(m_inviteeIp), m_inviteeTcpPort);
+	char szInviteeIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_inviteeIp, szInviteeIp, sizeof(szInviteeIp));
+	m_capturePort.Format("%s,%d", szInviteeIp, m_inviteeTcpPort);
 }
 
 void RtpSession::ProcessMetadataSipOutgoing()
@@ -78,7 +80,9 @@ void RtpSession::ProcessMetadataSipOutgoing()
 	m_remoteParty = m_invite->m_to;
 	m_localParty = m_invite->m_from;
 	m_direction = CaptureEvent::DirOut;
-	m_capturePort.Format("%s,%d", ACE_OS::inet_ntoa(m_invitorIp), m_invitorTcpPort);
+	char szInvitorIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_invitorIp, szInvitorIp, sizeof(szInvitorIp));
+	m_capturePort.Format("%s,%d", szInvitorIp, m_invitorTcpPort);
 }
 
 void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
@@ -114,17 +118,22 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 		sourceIsLocal = false;
 	}
 
+	char szSourceIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szSourceIp, sizeof(szSourceIp));
+	char szDestIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szDestIp, sizeof(szDestIp));
+
 	if(sourceIsLocal)
 	{
-		m_localParty.Format("%s", ACE_OS::inet_ntoa(rtpPacket->m_sourceIp));
-		m_remoteParty.Format("%s", ACE_OS::inet_ntoa(rtpPacket->m_destIp));
-		m_capturePort.Format("%s,%d", ACE_OS::inet_ntoa(rtpPacket->m_sourceIp), rtpPacket->m_sourcePort);
+		m_localParty = szSourceIp;
+		m_remoteParty = szDestIp;
+		m_capturePort.Format("%s,%d", szSourceIp, rtpPacket->m_sourcePort);
 	}
 	else
 	{
-		m_localParty.Format("%s", ACE_OS::inet_ntoa(rtpPacket->m_destIp));
-		m_remoteParty.Format("%s", ACE_OS::inet_ntoa(rtpPacket->m_sourceIp));
-		m_capturePort.Format("%s,%d", ACE_OS::inet_ntoa(rtpPacket->m_destIp), rtpPacket->m_destPort);
+		m_localParty = szDestIp;
+		m_remoteParty = szSourceIp;
+		m_capturePort.Format("%s,%d", szDestIp, rtpPacket->m_destPort);
 	}
 }
 
@@ -189,10 +198,14 @@ void RtpSession::ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket)
 {
 	// In skinny, we know that ipAndPort are those from the CallManager.
 	// However, what we want as a capture port are IP+Port of the phone
-	m_capturePort.Format("%s,%u", ACE_OS::inet_ntoa(rtpPacket->m_sourceIp), rtpPacket->m_sourcePort);
+	char szSourceIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szSourceIp, sizeof(szSourceIp));
+	m_capturePort.Format("%s,%u", szSourceIp, rtpPacket->m_sourcePort);
 	if(m_capturePort.Equals(m_ipAndPort))
 	{
-		m_capturePort.Format("%s,%u", ACE_OS::inet_ntoa(rtpPacket->m_destIp), rtpPacket->m_destPort);
+		char szDestIp[16];
+		ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szDestIp, sizeof(szDestIp));
+		m_capturePort.Format("%s,%u", szDestIp, rtpPacket->m_destPort);
 	}
 }
 
@@ -317,7 +330,10 @@ RtpSessions::RtpSessions()
 
 void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 {
-	CStdString ipAndPort = CStdString(ACE_OS::inet_ntoa(invite->m_fromIp)) + "," + invite->m_fromRtpPort;
+	char szFromIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&invite->m_fromIp, szFromIp, sizeof(szFromIp));
+
+	CStdString ipAndPort = CStdString(szFromIp) + "," + invite->m_fromRtpPort;
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	
 	pair = m_byIpAndPort.find(ipAndPort);
@@ -405,7 +421,9 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 		if(session->m_ipAndPort.size() == 0)
 		{
 			CStdString ipAndPort;
-			ipAndPort.Format("%s,%u", ACE_OS::inet_ntoa(startMedia->remoteIpAddr), startMedia->remoteTcpPort);
+			char szRemoteIp[16];
+			ACE_OS::inet_ntop(AF_INET, (void*)&startMedia->remoteIpAddr, szRemoteIp, sizeof(szRemoteIp));
+			ipAndPort.Format("%s,%u", szRemoteIp, startMedia->remoteTcpPort);
 			
 			pair = m_byIpAndPort.find(ipAndPort);
 			if (pair != m_byIpAndPort.end())
@@ -458,7 +476,10 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	// Does a session exist with this source Ip+Port
 	RtpSessionRef session;
 	CStdString port = IntToString(rtpPacket->m_sourcePort);
-	CStdString ipAndPort = CStdString(ACE_OS::inet_ntoa(rtpPacket->m_sourceIp)) + "," + port;
+
+	char szSourceIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szSourceIp, sizeof(szSourceIp));
+	CStdString ipAndPort = CStdString(szSourceIp) + "," + port;
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 
 	pair = m_byIpAndPort.find(ipAndPort);
@@ -470,7 +491,10 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	{
 		// Does a session exist with this destination Ip+Port
 		port = IntToString(rtpPacket->m_destPort);
-		ipAndPort = CStdString(ACE_OS::inet_ntoa(rtpPacket->m_destIp)) + "," + port;
+		char szDestIp[16];
+		ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szDestIp, sizeof(szDestIp));
+		ipAndPort = CStdString(szDestIp) + "," + port;
+
 		pair = m_byIpAndPort.find(ipAndPort);
 		if (pair != m_byIpAndPort.end())
 		{
