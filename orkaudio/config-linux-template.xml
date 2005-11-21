@@ -9,7 +9,7 @@
 	<ClientTimeout>1000</ClientTimeout>
 
 	<!-- Use the following if oreka has been installed (having run "make install") -->
-	<CapturePluginPath>/usr/local/lib</CapturePluginPath>
+	<CapturePluginPath>/usr/lib</CapturePluginPath>
 	<CapturePlugin>libvoip.so</CapturePlugin>
 	<!-- Use the following if you run oreka uninstalled (without having run "make install") -->
 	<!--<CapturePluginPath>audiocaptureplugins/voip/.libs</CapturePluginPath>-->
@@ -17,7 +17,7 @@
 
 	<StorageAudioFormat>gsm</StorageAudioFormat>
 	<NumBatchThreads></NumBatchThreads>
-	<DeleteNativeFile>no</DeleteNativeFile>
+	<DeleteNativeFile>yes</DeleteNativeFile>
 	<AudioSegmentation>false</AudioSegmentation>
 	<AudioSegmentDuration>10</AudioSegmentDuration>
 	<VoIpPlugin>
