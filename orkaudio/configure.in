@@ -7,4 +7,6 @@ AC_LANG_CPLUSPLUS
 AC_PROG_CXX
 AM_PROG_LIBTOOL
 
+AC_PREFIX_DEFAULT(/usr)
+
 AC_OUTPUT(Makefile messages/Makefile audiofile/Makefile audiocaptureplugins/Makefile audiocaptureplugins/generator/Makefile audiocaptureplugins/voip/Makefile)

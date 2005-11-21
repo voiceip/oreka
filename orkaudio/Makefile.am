@@ -3,7 +3,7 @@
 AUTOMAKE_OPTIONS = foreign 1.4
 
 
-bin_PROGRAMS = orkaudio
+sbin_PROGRAMS = orkaudio
 orkaudio_LDADD =
 orkaudio_LDFLAGS = -lsndfile -lACE -lxerces-c -llog4cxx -lorkbase 
 orkaudio_SOURCES = OrkAudio.cpp AudioTape.cpp \
