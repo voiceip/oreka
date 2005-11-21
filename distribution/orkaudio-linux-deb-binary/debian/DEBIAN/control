@@ -1,0 +1,9 @@
+Package: orkaudio
+Priority: optional 
+Section: base 
+Maintainer: henri@oreka.org 
+Architecture: i386
+Version: 0.3-1
+Depends: libpcap-dev, libsndfile1-dev, libace5.4, libxerces26-dev
+Conflicts: liblog4cpp-dev, liblog4cpp1c102, liblog4cpp1-dev, liblog4cpp0
+Description: Audio streams recording daemon (VoIP and Sound Device)
