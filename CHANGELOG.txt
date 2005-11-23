@@ -1,4 +1,13 @@
+===========================================================================
+2005-11-22 Oreka 0.3
 
+	* Windows installer now available
+	* "make install" target now works under linux
+	* Debian/Ubuntu binary package now available
+	* Audio output location can now be configured (<AudioOutputPath> tag in config.xml)
+	* orkaudio now daemonizes by default under linux
+	* Fixed bug where Skinny session could go undetected 
+	* Fixed bug where NT service sometimes crashed when stopped by the user
 
 ===========================================================================
 2005-11-02 Oreka 0.2
