@@ -13,7 +13,7 @@ or download sources tarballs from the listed websites.
 	http://logging.apache.org/log4cxx/
 * ACE 5.4.2
 	http://www.cs.wustl.edu/~schmidt/ACE.html
-* libpcap 0.7.2
+* libpcap 0.7.2 (only needed if you want to do VoIP recording)
 	http://www.tcpdump.org/
 * boost 1.31.0
 	http://www.boost.org
@@ -21,7 +21,7 @@ or download sources tarballs from the listed websites.
 	http://xml.apache.org/xerces-c/
 * libsndfile 1.0.10
 	http://www.mega-nerd.com/libsndfile/
-* portaudio v18
+* portaudio v18 (only needed if you want to do sound device recording)
 	http://www.portaudio.com
 
 Build orkbasecxx on the command line:
@@ -40,6 +40,7 @@ Build orkaudio on the command line:
 * make -f Makefile.cvs
 * ./configure
 * make
+* make install
 
 For debug binary: modify above as follows
 * ./configure --enable-debug=full

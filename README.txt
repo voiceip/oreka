@@ -11,13 +11,13 @@ The platform currently comprises three services:
 * orkaudio:	the audio capture and storage daemon with pluggable capture modules
 		currently comes with modules for VoIP and sound device recording.
 
-* orktrack: 	logs all activity from one or more orkaudio services to any mainstream database.
+* orktrack: logs all activity from one or more orkaudio services to any mainstream database.
 
 * orkweb:	Web based user interface for retrieval. 
 
 To get started:
 
-* This is the source distribution package. I you want to get going fast, get binary packages from the project webpage.
+* This is the source distribution package. I you want to get going fast, get Windows or debian Linux binary packages from the project webpage.
 * Refer to BUILD_C++.txt for building orkaudio and associated capture modules
 * Refer to BUILD_JAVA.txt for building orktrack and orkweb
 
