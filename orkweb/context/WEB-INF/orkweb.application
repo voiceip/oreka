@@ -9,7 +9,7 @@
 
 	<!--<page name="Home" specification-path="Home.page"/>-->    
     
- 	<!--<meta key="org.apache.tapestry.page-class-packages" value="net.sf.oreka.pages"/>  -->
+ 	<meta key="org.apache.tapestry.page-class-packages" value="net.sf.oreka.pages"/>
  	<meta key="org.apache.tapestry.component-class-packages" value="net.sf.oreka.tcomponents"/>  
     
 	<library id="contrib" specification-path="/org/apache/tapestry/contrib/Contrib.library"/>

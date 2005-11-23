@@ -29,6 +29,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import net.sf.oreka.Cycle;
+import net.sf.oreka.Day;
 import net.sf.oreka.Direction;
 
 /**
@@ -49,10 +50,10 @@ public class RecProgram {
 	private int maxDuration = 0;
 	private double randomPercent = 0.0;
 	private Cycle cycle = Cycle.PERMANENT;
-	private int startDay = 0;
-	private int stopDay = 0;
-	private Date startTime;
-	private Date stopTime;
+	private Day startDay = Day.UNKN;
+	private Day stopDay = Day.UNKN;
+	private Date startTime = new Date(0);
+	private Date stopTime = new Date(0);
 	private int recPerCycle = 0;
 	private int recordedSoFar = 0;
 	private String localParty = "";
@@ -372,24 +373,6 @@ public class RecProgram {
 	/**
 	 * @hibernate.property
 	 * not-null="true"
-	 * @return Returns the startDay.
-	 */
-	public int getStartDay() {
-		return startDay;
-	}
-	
-
-	/**
-	 * @param startDay The startDay to set.
-	 */
-	public void setStartDay(int startDay) {
-		this.startDay = startDay;
-	}
-	
-
-	/**
-	 * @hibernate.property
-	 * not-null="true"
 	 * @return Returns the startTime.
 	 */
 	public Date getStartTime() {
@@ -405,23 +388,29 @@ public class RecProgram {
 	}
 	
 
-	/**
-	 * @hibernate.property
-	 * not-null="true"
-	 * @return Returns the stopDay.
-	 */
-	public int getStopDay() {
+	public Day getStartDay() {
+		return startDay;
+	}
+	
+
+
+	public void setStartDay(Day startDay) {
+		this.startDay = startDay;
+	}
+	
+
+
+	public Day getStopDay() {
 		return stopDay;
 	}
 	
 
-	/**
-	 * @param stopDay The stopDay to set.
-	 */
-	public void setStopDay(int stopDay) {
+
+	public void setStopDay(Day stopDay) {
 		this.stopDay = stopDay;
 	}
 	
+
 
 	/**
 	 * @hibernate.property
