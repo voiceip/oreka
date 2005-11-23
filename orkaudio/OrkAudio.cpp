@@ -163,9 +163,9 @@ int main(int argc, char* argv[])
 		else
 		{
 #ifdef WIN32
-	printf("Argument incorrect. Possibilies are:\n\tinstall:\t\tinstall NT service\n\tuninstall:\t\tuninstall NT service\n");
+	printf("Argument incorrect. Possibilies are:\n\tinstall:\t\tinstall NT service\n\tuninstall:\t\tuninstall NT service\n\n");
 #else
-	printf("Argument incorrect. Possibilies are:\n\tdebug:\trun attached to tty");
+	printf("Argument incorrect. Possibilies are:\n\tdebug:\trun attached to tty\n\n");
 #endif
 		}
 	}
