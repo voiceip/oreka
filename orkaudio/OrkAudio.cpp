@@ -162,14 +162,18 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			printf("Argument incorrect. Possibilies are:\n'\tdebug:\trun attached to tty\n\tinstall:\tinstall NT service\n\tuninstall:\tuninstall NT service\n");
+#ifdef WIN32
+	printf("Argument incorrect. Possibilies are:\n\tinstall:\t\tinstall NT service\n\tuninstall:\t\tuninstall NT service\n");
+#else
+	printf("Argument incorrect. Possibilies are:\n\tdebug:\trun attached to tty");
+#endif
 		}
 	}
 	else
 	{
 		// No arguments, launch the daemon
 		printf("Starting orkaudio daemon ... (type 'orkaudio debug' if you prefer running attached to tty)\n");
-		DaemonSingleton::instance()->Start();
+		DaemonSingleton::instance()->Start();		
 	}
 	return 0;
 }
