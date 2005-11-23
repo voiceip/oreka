@@ -1,0 +1,4 @@
+-----------------------
+To build deb package:
+
+* dpkg-deb --build debian
