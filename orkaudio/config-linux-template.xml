@@ -4,10 +4,6 @@
 
 	<AudioOutputPath>/var/log/orkaudio</AudioOutputPath>
 
-	<TrackerHostname>localhost</TrackerHostname>
-	<EnableReporting>true</EnableReporting>
-	<ClientTimeout>1000</ClientTimeout>
-
 	<!-- Use the following if oreka has been installed (having run "make install") -->
 	<CapturePluginPath>/usr/lib</CapturePluginPath>
 	<CapturePlugin>libvoip.so</CapturePlugin>
@@ -15,14 +11,31 @@
 	<!--<CapturePluginPath>audiocaptureplugins/voip/.libs</CapturePluginPath>-->
 	<!--<CapturePlugin>libvoip.so</CapturePlugin>-->
 
+	<!-- Audio file storage format: choose from: native, gsm, ulaw, alaw -->
 	<StorageAudioFormat>gsm</StorageAudioFormat>
-	<NumBatchThreads></NumBatchThreads>
+
+	<!-- If you want to keep native audio files as well as compressed, change this to "no" -->
 	<DeleteNativeFile>yes</DeleteNativeFile>
+
+	<NumBatchThreads></NumBatchThreads>
+
+	<TrackerHostname>localhost</TrackerHostname>
+	<EnableReporting>true</EnableReporting>
+	<ClientTimeout>1000</ClientTimeout>	
+	
 	<AudioSegmentation>false</AudioSegmentation>
 	<AudioSegmentDuration>10</AudioSegmentDuration>
+	
 	<VoIpPlugin>
-		<Device>eth0</Device>
+		<!-- Unix style network device. Use this if you want to force capture from a given device. -->
+		<!-- All available devices are listed in /etc/orkaudio/orkaudio.log when the service is starting -->
+		<!--<Device>eth0</Device>-->
+		
+		<!-- LanMasks can be ignored if you have standard LAN addresses (192.168.x.x or 10.x.x.x) -->
+		<!-- LanMasks might be used to determine the direction of a call (incoming or outgoing into or from the LAN) -->
 		<!--<LanMasks>10.4.3.4, 1.2.3.4</LanMasks>-->
+		
+		<!-- The following is a csv list of your PBX, PSTN gateway, conferencing server or such "gateway" devices -->
 		<!--<MediaGateways>10.0.0.102</MediaGateways>-->
 	</VoIpPlugin>
 	<GeneratorPlugin>
