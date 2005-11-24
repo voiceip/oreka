@@ -28,6 +28,7 @@ $siteNavItems = array(
   array(_("Download"), "download/",
     array(
       array(_("Windows"), "windows"),
+      array(_("Debian/Ubuntu"), "debian"),
       array(_("Source Code"), "source"),
       array(_("Release Notes"), "release-notes"),
     )

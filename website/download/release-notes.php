@@ -12,6 +12,19 @@
 ?>
 
 <h2><?=$pageTitle?></h2>
+
+<p>2005-11-24 Oreka 0.3</p>
+<ul>
+<li>Windows installer now available</li>
+<li>"make install" target now works under linux</li>
+<li>Debian/Ubuntu binary package now available</li>
+<li>Audio output location can now be configured ("AudioOutputPath" tag in config.xml)</li>
+<li>Orkaudio now daemonizes by default under linux</li>
+<li>Fixed bug where Skinny session could go undetected</li>
+<li>Fixed bug where NT service sometimes crashed when stopped by the user</li>
+</ul>
+
+
 <p>2005-11-02 Oreka 0.2</p>
 <ul>
 <li>VoIp plugin now supports Cisco skinny (aka SCCP) protocol (including metadata extraction)</li>
