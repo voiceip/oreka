@@ -34,6 +34,16 @@ function add_news_item($dateStr, $id, $title, $body) {
 }
 function most_recent_news_item() {
 }
+
+add_news_item(
+  "November 24, 2005",
+	"0.3-release",
+  _("Oreka 0.3 Released"),
+  _('<p>A windows installer and a debian/ubuntu package are now available, making it easier for users to install the orkaudio recorder. Orkaudio can now run as a daemon under Linux.</p>')
+);
+
+
+
 add_news_item(
   "November 02, 2005",
 	"0.2-release",
