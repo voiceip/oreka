@@ -49,20 +49,20 @@ install these packages first using your linux distribution packaging system
 or download sources tarballs from the listed websites.
 			</para>
 <itemizedlist>
-<listitem>log4cxx 0.9.7 - It is important to use this precise version for now
-	http://logging.apache.org/log4cxx/</listitem>
 <listitem>ACE 5.4.2
-	http://www.cs.wustl.edu/~schmidt/ACE.html</listitem>
-<listitem>libpcap 0.7.2
-	http://www.tcpdump.org/</listitem>
+	http://www.cs.wustl.edu/~schmidt/ACE.html (Debian/Ubuntu package: libace5.4)</listitem>
 <listitem>boost 1.31.0
-	http://www.boost.org</listitem>
+	http://www.boost.org (Debian/Ubuntu package: libboost-dev)</listitem>
 <listitem>xerces-c 2.6
-	http://xml.apache.org/xerces-c/</listitem>
+	http://xml.apache.org/xerces-c/ (Debian/Ubuntu package: libxerces26-dev)</listitem>
+<listitem>log4cxx 0.9.7 - It is important to use this precise version for now
+	http://logging.apache.org/log4cxx/ (Debian/Ubuntu package outdated)</listitem>
 <listitem>libsndfile 1.0.10
-	http://www.mega-nerd.com/libsndfile/</listitem>
+	http://www.mega-nerd.com/libsndfile/ (Debian/Ubuntu package: libsndfile1-dev)</listitem>
+<listitem>libpcap 0.7.2
+	http://www.tcpdump.org/ (Debian/Ubuntu package: libpcap-dev). Only needed if you want to record VoIP calls</listitem>
 <listitem>portaudio v18
-	http://www.portaudio.com</listitem>
+	http://www.portaudio.com (Debian/Ubuntu package: libportaudio-dev). Only needed if you want to record from sound devices</listitem>
 </itemizedlist>
 			<para>
 <emphasis>Build orkbasecxx on the command line:</emphasis>
@@ -87,6 +87,7 @@ or download sources tarballs from the listed websites.
 <listitem>make -f Makefile.cvs</listitem>
 <listitem>./configure</listitem>
 <listitem>make</listitem>
+<listitem>make install</listitem>
 </itemizedlist>
 			</para>
 			<para>
@@ -166,29 +167,17 @@ or download sources tarballs from the listed websites.
 		</section>	
 		<section>
 			<title>Installing Windows Libraries</title>
+			<para><emphasis>This step is not needed when using the windows installer, the installer automatically installs winpcap.</emphasis></para>
 			<para>Download and install winpcap 3.1 (choose the windows installer version). This is a network packet capture library	<ulink url="http://www.winpcap.org">http://www.winpcap.org</ulink></para>
 		</section>		
 	</section>	
 	<section id="installorkaudiobinary">
-		<title>Installing OrkAudio from the win32 binary release</title>
+		<title>Installing OrkAudio manually after a fresh win32 build</title>
 <itemizedlist>
-<listitem>Download the win32 binary realease from the <ulink url="http://sourceforge.net/projects/oreka">oreka sourceforge project page</ulink></listitem>
-<listitem>Unzip the package in a folder of your choice.</listitem>
-<listitem>If you want to run OrkAudio as a windows service:
-	<itemizedlist>
-		<listitem>Open a cmd box, navigate to the install directory</listitem>
-		<listitem>Issue the followig command: <emphasis>c:\oreka\orkaudio> OrkAudio.exe install</emphasis></listitem>
-		<listitem>For uninstalling, do: <emphasis>c:\oreka\orkaudio> OrkAudio.exe uninstall</emphasis></listitem>
-	</itemizedlist>
-</listitem>
-</itemizedlist>
-	</section>
-	<section>
-		<title>Installing OrkAudio from a fresh build</title>
-<itemizedlist>
-<listitem>Follow the procedure in <xref linkend="installorkaudiobinary"/></listitem>
-<listitem>Make sure you have compiled OrkAudio and OrkBase in release mode</listitem>
-<listitem>Copy OrkAudio.dll and OrkBase.dll to your install folder, replacing old files</listitem>
+<listitem>Download the win32 installer from the <ulink url="http://sourceforge.net/projects/oreka">oreka sourceforge project page</ulink></listitem>
+<listitem>Unzip and run the installer. This will set up the environment</listitem>
+<listitem>Build your modified version of OrkAudio, or OrkAudio plugin in release mode</listitem>
+<listitem>Copy the modified OrkAudio.dll, OrkBase.dll, VoIp.dll, SoundDevice.dll or Generator.dll to your install folder, replacing old files</listitem>
 </itemizedlist>
 	</section>
 	<section>
@@ -245,15 +234,80 @@ or download sources tarballs from the listed websites.
 	<section  id="runorkaudio">
 		<title>Running OrkAudio</title>
 		<para>
+			<emphasis role="bold">Windows:</emphasis>
+		</para>
+		<para>
 <itemizedlist>
-<listitem>To run on the command line, open a cmd box, navigate to the install directory and issue the following command: <para><emphasis>c:\oreka\orkaudio> OrkAudio.exe debug</emphasis></para></listitem>
-<listitem>To run as a service, issue the following command: <para><emphasis>c:\oreka\orkaudio> OrkAudio.exe install</emphasis></para></listitem>
-<listitem>To uninstall service, issue the following command: <para><emphasis>c:\oreka\orkaudio> OrkAudio.exe uninstall</emphasis></para></listitem>
+<listitem>To run on the windows command line, open a cmd box, navigate to the install directory and issue the following command: <para><emphasis>c:\Program Files\orkaudio> OrkAudio.exe debug</emphasis></para></listitem>
+<listitem>To install as an NT service, issue the following command (not needed if OrkAudio was deployed using the windows installer): <para><emphasis>c:\Program Files\orkaudio> OrkAudio.exe install</emphasis></para></listitem>
+<listitem>To run as an NT service, go start/run and enter <para><emphasis>services.msc</emphasis></para> pick the orkaudio service and start it</listitem>
+<listitem>To uninstall service, issue the following command: <para><emphasis>c:\Program Files\orkaudio> OrkAudio.exe uninstall</emphasis></para></listitem>
 </itemizedlist>
 		</para>
-		<para id="folderscheme">
-Audio files will be written in the OrkAudio install directory in date/time based subfolders according to the following scheme: <emphasis>yyyy/MM/dd/hh</emphasis>. Audio files themselves are named after the following scheme: <emphasis>yyyyMMdd_hhmmss_capturePort.extension</emphasis>.
+		<para>
+			<emphasis role="bold">Linux:</emphasis>
 		</para>
+		<para>
+<itemizedlist>
+<listitem>To run attached to the tty, issue the following command: <para><emphasis># orkaudio debug</emphasis></para></listitem>
+<listitem>To run as a daemon, issue the following command: <para><emphasis># orkaudio</emphasis></para></listitem>
+</itemizedlist>
+		</para>		
+	</section>
+	<section>
+		<title>File locations</title>
+		<section>
+			<title>Audio Output Files</title>
+			<para id="folderscheme">
+				Audio output files those will be written to the [install directory]/AudioRecordings under windows and in /var/log/orkaudio under Linux. They are classified according to the following scheme: 
+			</para>
+			<para>
+				<emphasis>yyyy/MM/dd/hh</emphasis>
+			</para>
+			<para>
+				Audio file themselves are named after the following scheme: 
+			</para>
+			<para>
+				<emphasis>yyyyMMdd_hhmmss_capturePort.extension</emphasis>
+			</para>
+		</section>
+		<section>
+			<title>Configuration Files</title>
+			<para>
+				Configuration files are located in the install directory under Windows and in /etc/oreka under Linux. The files are:
+			</para>
+			<para>
+				<itemizedlist>
+				<listitem><emphasis>config.xml</emphasis>: this is the main OrkAudio configuration file. Plugins also read their configration parameters from subsections of this file.</listitem>
+				<listitem><emphasis>logging.properties</emphasis>: this is the log4j logging configuration file which allows for great flexibility in logging scope and output format.</listitem>
+				</itemizedlist>
+			</para>
+		</section>
+		<section>
+			<title>Log Files</title>
+			<para>
+				Log files are located in the install directory under Windows and in /var/log/oreka under Linux. By default, Oreka produces the following output:
+			</para>
+			<para>
+				<itemizedlist>
+				<listitem><emphasis>orkaudio.log</emphasis>: this is the main OrkAudio logfile.</listitem>
+				<listitem><emphasis>tapelist.log</emphasis>: this logfile contains the details (metadata) for each recording that was performed by OrkAudio</listitem>
+				</itemizedlist>
+			</para>			
+		</section>
+		<section>
+			<title>Plugins Files</title>
+			<para>
+				Plugins exist as dll files under Windows and as DSO (Dynamic Shared Objects) with .so extensions under Linux. They are located in [install dir]/audiocaptureplugins under Windows and in /usr/lib under Linux. 
+			</para>
+			<para>
+				<itemizedlist>
+				<listitem><emphasis>VoIp.dll - libvoip.so</emphasis>: VoIP recording plugin</listitem>
+				<listitem><emphasis>SoundDevice.dll - libsounddevice.so</emphasis>: Sound Card based recording</listitem>
+				<listitem><emphasis>Generator.dll - libgenerator.so</emphasis>: Audio generator for faking audio capture (useful when testing)</listitem>
+				</itemizedlist>
+			</para>				
+		</section>
 	</section>
 	<section>
 		<title>Configuring OrkAudio</title>
