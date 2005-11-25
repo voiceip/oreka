@@ -14,17 +14,28 @@
 	<property name="hibernate.hbm2ddl.auto">update</property> <!-- update, create, create-drop -->
 	<property name="hibernate.show_sql">true</property>	
 	
+	<!-- Only use one of the three following connection pools (proxools, c3p0 or dbcp): -->
+	
+	<property name="hibernate.proxool.pool_alias">ork-pool</property>
+	<property name="hibernate.proxool.properties">proxool.properties</property>	
+	
 	<!--<property name="c3p0.acquire_increment">1</property>-->
 	<!--<property name="c3p0.idle_test_period">100</property>--> <!-- seconds --> 
 	<!--<property name="c3p0.max_size">100</property>--> 
 	<!--<property name="c3p0.max_statements">0</property>--> 
 	<!--<property name="c3p0.min_size">10</property>--> 
 	<!--<property name="c3p0.timeout">100</property>--> <!-- seconds --> 	
+
+	<!-- dbcp does not appear to work with Hibernate 3 -->
+	<!--<property name="hibernate.dbcp.ps.maxActive">100</property>-->
+	<!--<property name="hibernate.dbcp.maxActive">10</property>-->
+	<!--<property name="hibernate.dbcp.initialSize">2</property>-->
+	<!--<property name="hibernate.dbcp.maxWait">3000</property>--> 
+	<!--<property name="hibernate.dbcp.validationQuery">select CURRENT_DATE</property>-->   	
 	
 	<property name="hibernate.jdbc.batch_versioned_data">true</property>
 	<property name="hibernate.query.substitutions">true 1, false 0, yes 'Y', no 'N'</property>
 	<property name="hibernate.cache.region_prefix">hibernate.test</property>
-	<property name="hibernate.proxool.pool_alias">pool1</property>
 	<property name="hibernate.default_batch_fetch_size">8</property>
 	<property name="hibernate.jdbc.use_streams_for_binary">true</property>
 	<property name="hibernate.max_fetch_depth">1</property>
