@@ -82,16 +82,14 @@ public class HibernateManager {
 			tx.commit();
 		}
 		catch ( HibernateException he ) {
-			logger.log(Level.ERROR, he.toString());
-			he.printStackTrace();
+			logger.error("Hibernate error:" + he.getClass().getName());
 		}
 		catch (Exception e)
 		{
-			logger.error(e);
-			e.printStackTrace();
+			logger.error("Exception:", e);
 		}
 		finally {
-			hbnSession.close();
+			if(hbnSession != null) {hbnSession.close();}
 		}
 	}
 	

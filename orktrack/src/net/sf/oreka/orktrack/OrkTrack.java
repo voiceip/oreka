@@ -16,8 +16,10 @@
  */
 package net.sf.oreka.orktrack;
 
-import net.sf.oreka.OrkObjectFactory;
+import java.util.Date;
+
 import net.sf.oreka.HibernateManager;
+import net.sf.oreka.OrkObjectFactory;
 import net.sf.oreka.orktrack.messages.MetadataMessage;
 import net.sf.oreka.orktrack.messages.TapeMessage;
 import net.sf.oreka.orktrack.messages.UserStateMessage;
@@ -30,6 +32,8 @@ import org.apache.log4j.Logger;
 public class OrkTrack {
 
 	public static final String APP_NAME = "OrkTrack";
+	
+	private static Date lastInMemoryObjectsSync = new Date(0);
 	
 	public OrkTrack() {
 		
@@ -58,9 +62,28 @@ public class OrkTrack {
 			log.error("OrkTrack.initialize: Error configuring Hibernate:" + e.getMessage());				
 		}
 		
-		ServiceManager.initialize();
-		PortManager.instance().initialize();
-		ProgramManager.instance().load();
+		/*
+		boolean initOk = false;
+		//while(initOk == false) {
+			initOk  = PortManager.instance().initialize();
+			if (initOk) {
+				initOk = ProgramManager.instance().load();
+			}
+			//try{Thread.sleep(5000);} catch (Exception e) {};
+		//}
+		 */
+		refreshInMemoryObjects();
+	}
+	
+	public static void refreshInMemoryObjects() {
+		Date now = new Date();
+		if((now.getTime() - lastInMemoryObjectsSync.getTime()) > 5000) {
+			LogManager.getInstance().getRecurrentLogger().debug("Refreshing In-Memory objects");
+			// refresh every 5 seconds
+			lastInMemoryObjectsSync = now;
+			PortManager.instance().initialize();
+			ProgramManager.instance().load();
+		}
 	}
 	
 	public static void main(String[] args)

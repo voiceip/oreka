@@ -84,7 +84,6 @@ public class TapeMessage extends SyncMessage {
 			tx.commit();
 		}
 		catch (Exception e) {
-			if (tx != null) {tx.rollback();}
 			log.error("TapeMessage.process: ", e);
 			response.setSuccess(false);
 			response.setComment(e.getMessage());

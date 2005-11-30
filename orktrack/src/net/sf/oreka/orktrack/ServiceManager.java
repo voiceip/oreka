@@ -22,16 +22,12 @@ import org.hibernate.Session;
 
 public class ServiceManager {
 	
-	static Logger log = null;
-	
-	static void initialize() {
-		log = LogManager.getInstance().getPortLogger();
-	}
+	static Logger logger = Logger.getLogger(ProgramManager.class);
 	
 	public static Service retrieveOrCreate(String name, Session hbnSession) {
 		Service service = retrieveByName(name, hbnSession);
 		if (service == null) {
-			log.info("Creating service:" + name);
+			logger.info("Creating service:" + name);
 			service = new Service();
 			service.setName(name);
 			service.setHostname("localhost");

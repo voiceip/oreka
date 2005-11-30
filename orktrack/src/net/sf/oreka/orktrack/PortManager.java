@@ -115,13 +115,15 @@ public class PortManager {
 		portById.put(1, port);
 	}
 	
-	public void initialize() {
+	public boolean initialize() {
 		
+		Session hbnSession = null;
+		boolean success = false;
 		try {
-			Session session = HibernateManager.getSession();
-			Transaction tx = session.beginTransaction();
+			hbnSession = HibernateManager.getSession();
+			Transaction tx = hbnSession.beginTransaction();
 			
-			Iterator portFaces = session.createQuery(
+			Iterator portFaces = hbnSession.createQuery(
         	"from RecPortFace")
         	.list()
         	.iterator();
@@ -132,7 +134,7 @@ public class PortManager {
 			    int portId = portFace.getRecPort().getId();
 			    Port port = portById.get(portId);
 			    if(port == null) {
-			    	RecPort recPort = (RecPort)session.get(RecPort.class, portId);
+			    	RecPort recPort = (RecPort)hbnSession.get(RecPort.class, portId);
 			    	if (recPort != null) {
 				    	port = new Port(recPort);
 				    	portById.put(portId, port);
@@ -142,11 +144,15 @@ public class PortManager {
 		    	portByName.put(portFace.getName(), port);
 			}
 			tx.commit();
-			session.close();
+			success = true;
 		}
 		catch (Exception e) {
-			log.warn("HibernateManager.initialize: could not initialize", e);
+			log.error("initialize: exception:" + e.getClass().getName());
 		}
+		finally {
+			if(hbnSession != null) {hbnSession.close();}
+		}
+		return success;
 	}
 	
 	public RecPort getRecPortByFace(String face, Session hbnSession) {

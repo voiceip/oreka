@@ -82,7 +82,6 @@ public class MetadataMessage  extends SyncMessage {
 			else {tx.rollback();}
 		}
 		catch (Exception e) {
-			if (tx != null) {tx.rollback();}
 			log.error("TapeMessage.process: ", e);
 			response.setSuccess(false);
 			response.setComment(e.getMessage());

@@ -184,7 +184,6 @@ public class HbnXmlTest {
 			*/			
         }
         catch ( HibernateException he ) {
-            if ( tx != null ) tx.rollback();
             throw he;
         }
         finally {
