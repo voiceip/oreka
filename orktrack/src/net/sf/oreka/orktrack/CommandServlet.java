@@ -40,6 +40,7 @@ public class CommandServlet extends HttpServlet {
     throws IOException, ServletException
     {
 		//#####OrkObjectFactory.instance().registerOrkObject(new TestMessage());
+		OrkTrack.refreshInMemoryObjects();
 		
 		ServletRequestSerializer ser = new ServletRequestSerializer();
 		
@@ -66,7 +67,7 @@ public class CommandServlet extends HttpServlet {
 				logger.debug("Reponse: " + resp);
 				out.println(resp);
 			}
-			catch (OrkException ae) {
+			catch (Exception ae) {
 				logger.error("Error:" + ae.getMessage());
 			}
 		}

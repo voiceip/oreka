@@ -32,6 +32,7 @@ public class LogManager {
 	Logger contextLogger = null;
 	Logger portLogger = null;
 	Logger userLogger = null;
+	Logger recurrentLogger = null;	// special logger for recurrent messages (annoying to have normally)
 	
 	private LogManager() 
 	{
@@ -41,6 +42,7 @@ public class LogManager {
 		contextLogger = Logger.getLogger("context");
 		portLogger = Logger.getLogger("port");
 		userLogger = Logger.getLogger("user");
+		recurrentLogger = Logger.getLogger("net.sf.oreka.recurrent");
 		
 	    BasicConfigurator.configure();	// in case there is no properties file
 	}
@@ -120,6 +122,16 @@ public class LogManager {
 	public void setUserLogger(Logger userLogger) {
 		this.userLogger = userLogger;
 	}
+
+	public Logger getRecurrentLogger() {
+		return recurrentLogger;
+	}
+	
+
+	public void setRecurrentLogger(Logger recurrentLogger) {
+		this.recurrentLogger = recurrentLogger;
+	}
+	
 	
 	
 

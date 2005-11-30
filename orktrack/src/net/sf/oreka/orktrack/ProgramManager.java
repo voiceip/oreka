@@ -45,10 +45,11 @@ public class ProgramManager {
 		return programManager;
 	}
 	
-	public void load() {
+	public boolean load() {
 		
 		Session hbnSession = null;
 		Transaction tx = null;
+		boolean success = false;
 		
 		try {
 			hbnSession = HibernateManager.getSession();
@@ -62,13 +63,15 @@ public class ProgramManager {
 			
 			recPrograms = new ArrayList<RecProgram>(progs);
 			tx.commit();
+			success = true;
 		}
 		catch (Exception e) {
-			logger.error("Could not load programs", e);
+			logger.error("Could not load programs"+ e.getClass().getName());
 		}
 		finally {
-			hbnSession.close();
+			if(hbnSession != null) {hbnSession.close();}
 		}
+		return success;
 	}
 	
 	public void addProgram(RecProgram prog) {
@@ -208,7 +211,7 @@ public class ProgramManager {
 				int startDay = seg.getTimestamp().getDay();
 				startDay--;	// in java.util.Date, {Sunday ... Saturday} = {0 ... 6}. In net.sf.oreka.Day {monday ... sunday} = {0 ... 6}
 				if(startDay == -1) {
-					startDay = 6; // sunday is = 0 in java.util.Date but = 6 in net.sf.oreka.Day
+					startDay = 6;
 				}
 				logger.debug("Day: Seg start:" + startDay + " Prg start:" +  prog.getStartDay().ordinal() + " Prg stop:" + prog.getStopDay().ordinal());				
 				if(startDay >= prog.getStartDay().ordinal() && startDay <= prog.getStopDay().ordinal()) {
