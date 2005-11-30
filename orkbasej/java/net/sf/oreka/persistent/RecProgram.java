@@ -16,6 +16,7 @@
  */
 package net.sf.oreka.persistent;
 
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 
@@ -52,8 +53,8 @@ public class RecProgram {
 	private Cycle cycle = Cycle.PERMANENT;
 	private Day startDay = Day.UNKN;
 	private Day stopDay = Day.UNKN;
-	private Date startTime = new Date(0);
-	private Date stopTime = new Date(0);
+	private Date startTime = null;
+	private Date stopTime = null;
 	private int recPerCycle = 0;
 	private int recordedSoFar = 0;
 	private String localParty = "";
@@ -99,7 +100,12 @@ public class RecProgram {
 	
 
 	public RecProgram () {
-		direction = Direction.ALL;
+		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+		try {
+			startTime = sdf.parse("00:00:00");
+			stopTime = sdf.parse("00:00:00");
+		} 
+		catch (Exception e) {;}		
 	}
 
 	/**
