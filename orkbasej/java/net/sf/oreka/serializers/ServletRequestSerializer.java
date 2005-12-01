@@ -29,16 +29,15 @@ public class ServletRequestSerializer extends OrkSerializer {
 		deserialize = true;		// Set DeSerialize mode
 		
 		// Instanciate the right object
-		//String classMarker = (String)request.getParameterNames().nextElement();
 		String orkClass = null;
-		orkClass = request.getParameter("class");
+		orkClass = request.getParameter("cmd");
 		if(orkClass == null) {
-			orkClass = request.getParameter("cmd");
+			orkClass = request.getParameter("class");
 			if(orkClass == null) {
 				orkClass = request.getParameter("type");
-			}
-			else {
-				throw (new OrkException("ServletRequestSerializer.deSerialize: where is the command in:" + request.getQueryString()));			
+				if(orkClass == null) {
+					throw (new OrkException("ServletRequestSerializer.deSerialize: where is the command in:" + request.getQueryString()));			
+				}
 			}
 		}
 
