@@ -29,11 +29,13 @@ import org.hibernate.Transaction;
 
 public class FillDatabase {
 
+	static HibernateManager hibernateManager = new HibernateManager();
+	
 	public static void main(String args[]) throws Exception
 	{
-		HibernateManager.configure("c:/oreka/test/mysql.hbm.xml");
+		hibernateManager.configure("c:/oreka/test/mysql.hbm.xml");
 		
-		Session hbnSession = HibernateManager.getSession();
+		Session hbnSession = hibernateManager.getSession();
 		Transaction tx = hbnSession.beginTransaction();
 		
 		Service service = new Service();

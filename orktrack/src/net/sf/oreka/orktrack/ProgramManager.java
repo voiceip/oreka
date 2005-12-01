@@ -52,7 +52,7 @@ public class ProgramManager {
 		boolean success = false;
 		
 		try {
-			hbnSession = HibernateManager.getSession();
+			hbnSession = OrkTrack.hibernateManager.getSession();
 			tx = hbnSession.beginTransaction();
 			
 			List progs = hbnSession.createQuery(

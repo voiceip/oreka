@@ -49,7 +49,7 @@ public class ProgramTest extends TestCase {
 	public void test1() throws Exception {
 		
 
-		Session hbnSession = HibernateManager.getSession();
+		Session hbnSession = OrkTrack.hibernateManager.getSession();
 		Transaction tx = hbnSession.beginTransaction();
 	
 		// create a user
@@ -77,7 +77,7 @@ public class ProgramTest extends TestCase {
 		seg.setDirection(Direction.IN);
 		seg.setUser(user);
 		
-		hbnSession = HibernateManager.getSession();
+		hbnSession = OrkTrack.hibernateManager.getSession();
 		tx = hbnSession.beginTransaction();
 		if (ProgramManager.instance().filterSegmentAgainstAllPrograms(seg, hbnSession)) {
 			hbnSession.save(seg);
@@ -86,7 +86,7 @@ public class ProgramTest extends TestCase {
 		hbnSession.close();
 		// verify result
 
-		hbnSession = HibernateManager.getSession();
+		hbnSession = OrkTrack.hibernateManager.getSession();
 		tx = hbnSession.beginTransaction();
 		RecProgram prog = (RecProgram)hbnSession.load(RecProgram.class, prog1.getId());
 		assertTrue(prog.getRecordedSoFar() == 1);

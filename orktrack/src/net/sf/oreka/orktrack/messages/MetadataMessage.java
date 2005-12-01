@@ -13,17 +13,13 @@
 
 package net.sf.oreka.orktrack.messages;
 
-import org.apache.log4j.Logger;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-
-import net.sf.oreka.OrkException;
 import net.sf.oreka.Direction;
-import net.sf.oreka.HibernateManager;
+import net.sf.oreka.OrkException;
 import net.sf.oreka.messages.AsyncMessage;
 import net.sf.oreka.messages.SimpleResponseMessage;
 import net.sf.oreka.messages.SyncMessage;
 import net.sf.oreka.orktrack.LogManager;
+import net.sf.oreka.orktrack.OrkTrack;
 import net.sf.oreka.orktrack.Port;
 import net.sf.oreka.orktrack.PortManager;
 import net.sf.oreka.orktrack.ServiceManager;
@@ -31,6 +27,10 @@ import net.sf.oreka.orktrack.messages.TapeMessage.CaptureStage;
 import net.sf.oreka.persistent.Service;
 import net.sf.oreka.serializers.OrkSerializer;
 import net.sf.oreka.serializers.SingleLineSerializer;
+
+import org.apache.log4j.Logger;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 public class MetadataMessage  extends SyncMessage {
 
@@ -58,7 +58,7 @@ public class MetadataMessage  extends SyncMessage {
 		Session session = null;
 		Transaction tx = null;
 		try {
-			session = HibernateManager.getSession();
+			session = OrkTrack.hibernateManager.getSession();
 	        tx = session.beginTransaction();
 	        boolean success = false;
 	        
