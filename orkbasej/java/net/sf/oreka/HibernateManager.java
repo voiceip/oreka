@@ -53,6 +53,7 @@ public class HibernateManager {
 		AnnotationConfiguration config = new AnnotationConfiguration();
 		config.configure(configFile);
 		
+		// Configure the proxool connection pool
 		Class.forName("org.logicalcobwebs.proxool.ProxoolDriver");
 		Properties info = new Properties();
 		info.setProperty("proxool.maximum-connection-count", "10");
@@ -60,12 +61,15 @@ public class HibernateManager {
 		info.setProperty("user", config.getProperty("hibernate.connection.username"));
 		info.setProperty("password", config.getProperty("hibernate.connection.password"));
 		SimpleDateFormat sdf = new SimpleDateFormat("HHmmss");
+		// Each time a pool is configured, it will have a different alias.
+		// This is so that we don't get a "pool already registered" error.
 		String alias = "oreka" + sdf.format(new Date());
 		String driverClass = config.getProperty("hibernate.connection.driver_class");
 		String driverUrl = config.getProperty("hibernate.connection.url");
 		String url = "proxool." + alias + ":" + driverClass + ":" + driverUrl;
 		ProxoolFacade.registerConnectionPool(url, info);
 		
+		// Let hibernate know we want to use proxool
 		config.setProperty("hibernate.proxool.pool_alias", alias);
 		config.setProperty("hibernate.proxool.existing_pool", "true");
 		
