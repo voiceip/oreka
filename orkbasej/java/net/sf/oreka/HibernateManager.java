@@ -17,6 +17,9 @@
 package net.sf.oreka;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Properties;
 
 import net.sf.oreka.persistent.Domain;
 import net.sf.oreka.persistent.LoginString;
@@ -29,26 +32,42 @@ import net.sf.oreka.persistent.RecTape;
 import net.sf.oreka.persistent.Service;
 import net.sf.oreka.persistent.User;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.AnnotationConfiguration;
+import org.logicalcobwebs.proxool.ProxoolFacade;
 
 
 public class HibernateManager {
 	
-	private static SessionFactory sessionFactory = null;
+	private SessionFactory sessionFactory = null;
 	static Logger logger = Logger.getLogger(HibernateManager.class);
 	
-	public static void configure(String filename) throws Exception {
+	public void configure(String filename) throws Exception {
 		
 		File configFile = new File(filename);
 		
 		AnnotationConfiguration config = new AnnotationConfiguration();
 		config.configure(configFile);
+		
+		Class.forName("org.logicalcobwebs.proxool.ProxoolDriver");
+		Properties info = new Properties();
+		info.setProperty("proxool.maximum-connection-count", "10");
+		info.setProperty("proxool.house-keeping-test-sql", "select CURRENT_DATE");
+		info.setProperty("user", config.getProperty("hibernate.connection.username"));
+		info.setProperty("password", config.getProperty("hibernate.connection.password"));
+		SimpleDateFormat sdf = new SimpleDateFormat("HHmmss");
+		String alias = "oreka" + sdf.format(new Date());
+		String driverClass = config.getProperty("hibernate.connection.driver_class");
+		String driverUrl = config.getProperty("hibernate.connection.url");
+		String url = "proxool." + alias + ":" + driverClass + ":" + driverUrl;
+		ProxoolFacade.registerConnectionPool(url, info);
+		
+		config.setProperty("hibernate.proxool.pool_alias", alias);
+		config.setProperty("hibernate.proxool.existing_pool", "true");
 		
 		config.addAnnotatedClass(RecProgram.class);
 		config.addAnnotatedClass(RecSession.class);
@@ -93,7 +112,7 @@ public class HibernateManager {
 		}
 	}
 	
-	public static Session getSession() throws Exception {
+	public Session getSession() throws Exception {
 		if (sessionFactory == null) {
 			throw new OrkException("HibernateManager.getSession: application must configure hibernate before using it.");
 		}

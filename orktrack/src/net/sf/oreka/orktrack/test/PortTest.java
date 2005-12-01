@@ -44,7 +44,7 @@ public class PortTest extends TestCase {
 		junit.textui.TestRunner.run (suite());
 	}
 	protected void setUp() throws Exception {
-		OrkTrack.initialize("C:/oreka/log4j.properties", "C:/oreka/hsqldb.hbm.xml", "C:/oreka/orktrack.config.xml");
+		OrkTrack.initialize("C:/oreka/orktrack/log4j.properties", "C:/oreka/orktrack/hsqldb.hbm.xml", "C:/oreka/orktrack/orktrack.config.xml");
 	}
 	public static Test suite() {
 		return new TestSuite(PortTest.class);
@@ -188,7 +188,7 @@ public class PortTest extends TestCase {
 	
 	public void testTapeAndMetadataMessage() throws Exception {
 		
-		Session hbnSession = HibernateManager.getSession();
+		Session hbnSession = OrkTrack.hibernateManager.getSession();
 		Transaction tx = hbnSession.beginTransaction();
 		Service recService = ServiceManager.retrieveOrCreate("recservice", hbnSession);
 		Service ctiService = ServiceManager.retrieveOrCreate("ctiservice", hbnSession);		
@@ -258,7 +258,7 @@ public class PortTest extends TestCase {
 		mdStopMsg.process();
 		
 		// verify database entities.
-		hbnSession = HibernateManager.getSession();
+		hbnSession = OrkTrack.hibernateManager.getSession();
 		tx = hbnSession.beginTransaction();
 		long time = ((long)(startTimestamp+3))*1000;
 		GregorianCalendar cal = new GregorianCalendar();

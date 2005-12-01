@@ -19,6 +19,7 @@ import net.sf.oreka.messages.AsyncMessage;
 import net.sf.oreka.messages.SimpleResponseMessage;
 import net.sf.oreka.messages.SyncMessage;
 import net.sf.oreka.orktrack.LogManager;
+import net.sf.oreka.orktrack.OrkTrack;
 import net.sf.oreka.orktrack.Port;
 import net.sf.oreka.orktrack.PortManager;
 import net.sf.oreka.orktrack.UserManager;
@@ -53,7 +54,7 @@ public class UserStateMessage extends SyncMessage {
 		try {
 			String comment = "";
 			boolean success = false;
-			hbnSession = HibernateManager.getSession();
+			hbnSession = OrkTrack.hibernateManager.getSession();
 	        tx = hbnSession.beginTransaction();
 	        // find out user
 	        User user = UserManager.instance().getByLoginString(loginString, hbnSession);

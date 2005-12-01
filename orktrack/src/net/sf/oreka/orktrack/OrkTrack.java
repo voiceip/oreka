@@ -33,6 +33,7 @@ public class OrkTrack {
 
 	public static final String APP_NAME = "OrkTrack";
 	
+	public static HibernateManager hibernateManager = new HibernateManager();
 	private static Date lastInMemoryObjectsSync = new Date(0);
 	
 	public OrkTrack() {
@@ -56,7 +57,7 @@ public class OrkTrack {
 		ConfigManager.getInstance().load(configFile);
 		
 		try {
-			HibernateManager.configure(hibernateConfigFile);
+			hibernateManager.configure(hibernateConfigFile);
 		}
 		catch (Exception e) {
 			log.error("OrkTrack.initialize: Error configuring Hibernate:" + e.getMessage());				

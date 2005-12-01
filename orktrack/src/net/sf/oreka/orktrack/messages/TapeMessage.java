@@ -13,13 +13,13 @@
 
 package net.sf.oreka.orktrack.messages;
 
-import net.sf.oreka.OrkException;
 import net.sf.oreka.Direction;
-import net.sf.oreka.HibernateManager;
+import net.sf.oreka.OrkException;
 import net.sf.oreka.messages.AsyncMessage;
 import net.sf.oreka.messages.SimpleResponseMessage;
 import net.sf.oreka.messages.SyncMessage;
 import net.sf.oreka.orktrack.LogManager;
+import net.sf.oreka.orktrack.OrkTrack;
 import net.sf.oreka.orktrack.Port;
 import net.sf.oreka.orktrack.PortManager;
 import net.sf.oreka.orktrack.ServiceManager;
@@ -69,7 +69,7 @@ public class TapeMessage extends SyncMessage {
 		Transaction tx = null;
 		
 		try {
-			session = HibernateManager.getSession();
+			session = OrkTrack.hibernateManager.getSession();
 	        tx = session.beginTransaction();
 	        
 	        SingleLineSerializer ser = new SingleLineSerializer();

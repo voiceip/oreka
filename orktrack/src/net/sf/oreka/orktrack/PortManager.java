@@ -120,7 +120,7 @@ public class PortManager {
 		Session hbnSession = null;
 		boolean success = false;
 		try {
-			hbnSession = HibernateManager.getSession();
+			hbnSession = OrkTrack.hibernateManager.getSession();
 			Transaction tx = hbnSession.beginTransaction();
 			
 			Iterator portFaces = hbnSession.createQuery(
