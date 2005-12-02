@@ -46,7 +46,7 @@ public class ContextListener implements ServletContextListener {
 		}		
 		
 		try {
-			HibernateManager.configure(hibernateConfigFile);
+			OrkWeb.hibernateManager.configure(hibernateConfigFile);
 		}
 		catch (Exception e) {
 			log.error("orkweb.ContextListener: Error configuring Hibernate: " + e.getMessage());				

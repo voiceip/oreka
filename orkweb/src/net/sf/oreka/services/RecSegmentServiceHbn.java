@@ -20,7 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 import net.sf.oreka.Direction;
-import net.sf.oreka.HibernateManager;
+import net.sf.oreka.orkweb.OrkWeb;
 import net.sf.oreka.persistent.RecSegment;
 
 import org.apache.log4j.Level;
@@ -92,7 +92,7 @@ public class RecSegmentServiceHbn implements RecSegmentService{
 		Session session = null;
 		try
 		{
-			session = HibernateManager.getSession();
+			session = OrkWeb.hibernateManager.getSession();
 
 			StringBuffer queryString = new StringBuffer("from RecSegment as seg left join seg.recTape as tape left join tape.service as srv ");
 			//StringBuffer queryString = new StringBuffer("from RecSegment as seg ");

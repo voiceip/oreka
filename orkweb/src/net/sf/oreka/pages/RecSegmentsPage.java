@@ -31,7 +31,7 @@ import org.apache.tapestry.event.PageEvent;
 import org.apache.tapestry.event.PageRenderListener;
 import org.apache.tapestry.html.BasePage;
 
-public abstract class RecSegmentsPage extends BasePage implements PageRenderListener {
+public abstract class RecSegmentsPage extends ProtectedPage implements PageRenderListener {
 
 	static Logger logger = Logger.getLogger(RecSegmentsPage.class);
 
