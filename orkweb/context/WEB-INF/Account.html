@@ -1,0 +1,44 @@
+<html jwcid="@Shell" stylesheet="asset:globalStylesheet" title="OrkWeb" >
+<link jwcid="@If" condition="false" href="orekastyle.css" rel="stylesheet" type="text/css"/>
+
+<body>
+<table width="99%" border="0" align="center" cellpadding="0" cellspacing="0">
+	<tr>
+		<td colspan="2"><span jwcid="@my:MainMenu" pageName="Home">Here goes the main menu</span></td>
+	</tr>
+	<tr>
+		<td class="criteria">
+			<form jwcid="@Form">
+				<table class="inputform">
+					<tr>
+						<td>&nbsp;</td>
+					</tr>
+					<tr>
+						<td>
+							<font color="red">
+								<span jwcid="@Insert" value="ognl:errorMessage">Error Message</span>
+							</font>
+						</td>
+					</tr>				
+					<tr>
+						<td>password</td>
+			 			<td><input jwcid="@TextField" value="ognl:password" translator="translator:string" hidden="true"/></td>
+			 		</tr>
+			 		<tr>
+			 			<td>New Password</td>
+			 			<td><input jwcid="@TextField" value="ognl:newPassword1" translator="translator:string" hidden="true"/></td>
+					</tr>
+			 		<tr>
+			 			<td>Retype new Password</td>
+			 			<td><input jwcid="@TextField" value="ognl:newPassword2" translator="translator:string" hidden="true"/></td>
+					</tr>
+					<tr>
+			   			<td><input type="submit" id="submitbutton" jwcid="@Submit" action="ognl:listeners.formSubmit" value="Change Password"/></td>
+			   		</tr>
+			   	</table>
+			</form>
+		</td>
+	</tr>
+</table>
+</body>
+</html>
