@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import net.sf.oreka.HibernateManager;
 import net.sf.oreka.persistent.RecPort;
 import net.sf.oreka.persistent.RecPortFace;
 import net.sf.oreka.persistent.Service;
@@ -32,11 +31,11 @@ public class PortManager {
 	HashMap<Integer, Port> portById = new HashMap<Integer, Port>();
 	HashMap<String, Port> portByName = new HashMap<String, Port>();
 	
+	static Logger logger = Logger.getLogger(PortManager.class);
+	
 	static PortManager portManager = null;
-	Logger log = null;
 	
 	private PortManager () {
-		log = LogManager.getInstance().portLogger;
 	}
 	
 	public static PortManager instance() {
@@ -83,7 +82,7 @@ public class PortManager {
 		hbnSession.save(recPort);
 		hbnSession.save(portFace);
 		
-		log.info("created port:" + recPort.getId() + " with face:" + name);
+		logger.info("created port:" + recPort.getId() + " with face:" + name);
 		
     	Port port = new Port(recPort);
     	port.portFaces.add(portFace);
@@ -147,7 +146,7 @@ public class PortManager {
 			success = true;
 		}
 		catch (Exception e) {
-			log.error("initialize: exception:" + e.getClass().getName());
+			logger.error("initialize: exception:" + e.getClass().getName());
 		}
 		finally {
 			if(hbnSession != null) {hbnSession.close();}
