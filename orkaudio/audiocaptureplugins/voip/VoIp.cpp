@@ -171,6 +171,16 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 
 				RtpSessionsSingleton::instance()->ReportRtpPacket(rtpInfo);
 			}
+			else
+			{
+				// unsupported CODEC
+				if(s_rtpPacketLog->isDebugEnabled())
+				{
+					CStdString debug;
+					debug.Format("Unsupported codec:%x", rtpHeader->pt);
+					LOG4CXX_DEBUG(s_rtpPacketLog, debug);
+				}
+			}
 		}
 	}
 	return result;
