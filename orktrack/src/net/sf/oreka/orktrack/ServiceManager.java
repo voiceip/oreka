@@ -22,7 +22,7 @@ import org.hibernate.Session;
 
 public class ServiceManager {
 	
-	static Logger logger = Logger.getLogger(ProgramManager.class);
+	static Logger logger = Logger.getLogger(ServiceManager.class);
 	
 	public static Service retrieveOrCreate(String name, Session hbnSession) {
 		Service service = retrieveByName(name, hbnSession);
@@ -33,6 +33,7 @@ public class ServiceManager {
 			service.setHostname("localhost");
 			service.setFileServeProtocol("http");
 			service.setFileServeTcpPort(8080);
+			service.setRecordMaster(true);
 			hbnSession.save(service);
 		}
 		return service;
