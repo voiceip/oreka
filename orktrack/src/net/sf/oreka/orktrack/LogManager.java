@@ -15,6 +15,8 @@ package net.sf.oreka.orktrack;
 
 import java.io.File;
 
+import net.sf.oreka.OrkException;
+
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -26,6 +28,8 @@ import org.apache.log4j.PropertyConfigurator;
 public class LogManager {
 
 	static LogManager logManager = null;
+	
+	String ConfigFilename = null;
 	
 	Logger rootLogger = null;
 	Logger configLogger = null;
@@ -56,17 +60,24 @@ public class LogManager {
 		return logManager;
 	}
 
-	public void configure(String filename) {
+	public void configure(String filename) throws OrkException {
+		
+		ConfigFilename = filename;
+		configure();
+	}
+	
+	public void configure() throws OrkException {
 		
 		// Check wether filename is valid
-		File file = new File(filename);
+		File file = new File(ConfigFilename);
 		if (file.exists()) {
+
 			// Attempt to configure log4j
-			PropertyConfigurator.configure(filename);
+			PropertyConfigurator.configure(ConfigFilename);
 		}
 		else {
-			configLogger.warn("Log4j properties file does not exist:" + filename + " check your web.xml");
-		}
+			throw new OrkException("Log4j properties file does not exist:" + ConfigFilename + " check your web.xml");
+		}	
 	}
 	
 	/**
