@@ -97,6 +97,8 @@ bool OrkHttpClient::ExecuteUrl(CStdString& request, CStdString& response, CStdSt
 			}
 		}
 	}
+	peer.close();
+
 	if(numReceived < 0)
 	{
 		return false;

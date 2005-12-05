@@ -28,7 +28,11 @@ Reporting* Reporting::GetInstance()
 
 void Reporting::AddAudioTape(AudioTapeRef audioTapeRef)
 {
-	if (!m_audioTapeQueue.push(audioTapeRef))
+	if (m_audioTapeQueue.push(audioTapeRef))
+	{
+		LOG4CXX_DEBUG(LOG.reportingLog, CStdString("added audiotape to queue:") + audioTapeRef->GetIdentifier());
+	}
+	else
 	{
 		LOG4CXX_ERROR(LOG.reportingLog, CStdString("Reporting: queue full"));
 	}
@@ -64,15 +68,26 @@ void Reporting::ThreadHandler(void *args)
 
 					OrkHttpSingleLineClient c;
 					SimpleResponseMsg srm;
-					while (!c.Execute((SyncMessage&)(*msgRef.get()), srm, CONFIG.m_trackerHostname, CONFIG.m_trackerTcpPort, CONFIG.m_trackerServicename, CONFIG.m_clientTimeout))
+
+					bool success = false;
+					bool firstError = true;
+
+					while (!success)
 					{
-						ACE_OS::sleep(5);
+						if (c.Execute((SyncMessage&)(*msgRef.get()), srm, CONFIG.m_trackerHostname, CONFIG.m_trackerTcpPort, CONFIG.m_trackerServicename, CONFIG.m_clientTimeout))
+						{
+							success = true;
+						}
+						else
+						{
+							if(firstError)
+							{
+								firstError = false;
+								LOG4CXX_ERROR(LOG.reportingLog, CStdString("Could not contact orktrack"));
+							}
+							ACE_OS::sleep(5);
+						}
 					}
-					//CStdString host("foo");
-					//while (!msgRef->InvokeXmlRpc(host, 10000))
-					//{
-					//	ACE_OS::sleep(5);
-					//}
 				}
 			}
 		}
