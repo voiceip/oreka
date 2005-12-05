@@ -20,6 +20,7 @@ import java.util.Date;
 
 import net.sf.oreka.HibernateManager;
 import net.sf.oreka.OrkObjectFactory;
+import net.sf.oreka.orktrack.messages.ConfigureLogMessage;
 import net.sf.oreka.orktrack.messages.MetadataMessage;
 import net.sf.oreka.orktrack.messages.PingMessage;
 import net.sf.oreka.orktrack.messages.TapeMessage;
@@ -37,6 +38,8 @@ public class OrkTrack {
 	public static HibernateManager hibernateManager = new HibernateManager();
 	private static Date lastInMemoryObjectsSync = new Date(0);
 	
+	static Logger logger = Logger.getLogger(OrkTrack.class);
+	
 	public OrkTrack() {
 		
 		LogManager.getInstance().getConfigLogger().log(Level.INFO, "Entering OrkTrack");
@@ -44,25 +47,25 @@ public class OrkTrack {
 	
 	public static void initialize(String log4jConfigFile, String hibernateConfigFile, String configFile) {
 		
-		LogManager.getInstance().configure(log4jConfigFile);
-		Logger log = LogManager.getInstance().getRootLogger();
-		log.info("========================================");
-		log.info(OrkTrack.APP_NAME + " starting ...");
-		
-		// Register all OrkObjects
-		OrkObjectFactory.instance().registerOrkObject(new OrkTrackConfig());	
-		OrkObjectFactory.instance().registerOrkObject(new MetadataMessage());
-		OrkObjectFactory.instance().registerOrkObject(new TapeMessage());
-		OrkObjectFactory.instance().registerOrkObject(new UserStateMessage());
-		OrkObjectFactory.instance().registerOrkObject(new PingMessage());
-		
-		ConfigManager.getInstance().load(configFile);
-		
 		try {
+			LogManager.getInstance().configure(log4jConfigFile);
+
+			logger.info("========================================");
+			logger.info(OrkTrack.APP_NAME + " starting ...");
+			
+			// Register all OrkObjects
+			OrkObjectFactory.instance().registerOrkObject(new OrkTrackConfig());	
+			OrkObjectFactory.instance().registerOrkObject(new MetadataMessage());
+			OrkObjectFactory.instance().registerOrkObject(new TapeMessage());
+			OrkObjectFactory.instance().registerOrkObject(new UserStateMessage());
+			OrkObjectFactory.instance().registerOrkObject(new PingMessage());
+			OrkObjectFactory.instance().registerOrkObject(new ConfigureLogMessage());
+			ConfigManager.getInstance().load(configFile);
+
 			hibernateManager.configure(hibernateConfigFile);
 		}
 		catch (Exception e) {
-			log.error("OrkTrack.initialize: Error configuring Hibernate:" + e.getMessage());				
+			logger.error("OrkTrack.initialize: Error configuring Hibernate:" + e.getMessage());				
 		}
 		
 		/*
