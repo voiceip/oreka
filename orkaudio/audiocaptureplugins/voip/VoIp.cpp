@@ -177,7 +177,11 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 				if(s_rtpPacketLog->isDebugEnabled())
 				{
 					CStdString debug;
-					debug.Format("Unsupported codec:%x", rtpHeader->pt);
+					char sourceIp[16];
+					ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, sourceIp, sizeof(sourceIp));
+					char destIp[16];
+					ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_dest, destIp, sizeof(destIp));
+					debug.Format("Unsupported codec:%x  src:%s dst:%s", rtpHeader->pt, sourceIp, destIp);
 					LOG4CXX_DEBUG(s_rtpPacketLog, debug);
 				}
 			}
