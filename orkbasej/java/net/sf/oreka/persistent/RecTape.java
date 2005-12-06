@@ -38,7 +38,8 @@ public class RecTape {
 	private String localEntryPoint = "";
 	private String remoteParty = "";
 	private Direction direction;
-	private RecPort port;
+	private RecPort recPort;
+	private String recPortName;
 	private Date expiryTimestamp = new Date(0);
 	
 	public RecTape()
@@ -153,15 +154,15 @@ public class RecTape {
 	 * @return Returns the port.
 	 */
 	@ManyToOne
-	public RecPort getPort() {
-		return port;
+	public RecPort getRecPort() {
+		return recPort;
 	}
 	
 	/**
 	 * @param port The port to set.
 	 */
-	public void setPort(RecPort port) {
-		this.port = port;
+	public void setRecPort(RecPort port) {
+		this.recPort = port;
 	}
 	
 	/**
@@ -244,5 +245,15 @@ public class RecTape {
 		
 		return "javascript:play('" + getUrl() + "')";
 	}
+
+	public String getRecPortName() {
+		return recPortName;
+	}
+	
+
+	public void setRecPortName(String recPortName) {
+		this.recPortName = recPortName;
+	}
+	
 	
 }

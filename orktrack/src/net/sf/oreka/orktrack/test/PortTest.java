@@ -190,8 +190,8 @@ public class PortTest extends TestCase {
 		
 		Session hbnSession = OrkTrack.hibernateManager.getSession();
 		Transaction tx = hbnSession.beginTransaction();
-		Service recService = ServiceManager.retrieveOrCreate("recservice", hbnSession);
-		Service ctiService = ServiceManager.retrieveOrCreate("ctiservice", hbnSession);		
+		Service recService = ServiceManager.retrieveOrCreate("recservice", "localhost", hbnSession);
+		Service ctiService = ServiceManager.retrieveOrCreate("ctiservice", "localhost", hbnSession);		
 		ctiService.setRecordMaster(true);
 		hbnSession.save(recService);
 		
