@@ -36,7 +36,7 @@ AudioChunk::~AudioChunk()
 	}
 }
 
-void AudioChunk::SetBuffer(void* pBuffer, size_t numBytes, AudioEncodingEnum encoding, unsigned int timestamp, unsigned int sequenceNumber)
+void AudioChunk::SetBuffer(void* pBuffer, size_t numBytes, AudioEncodingEnum encoding, unsigned int timestamp, unsigned int sequenceNumber, unsigned int sampleRate)
 {
 	if(m_pBuffer)
 	{
@@ -58,6 +58,7 @@ void AudioChunk::SetBuffer(void* pBuffer, size_t numBytes, AudioEncodingEnum enc
 			m_encoding = encoding;
 			m_timestamp = timestamp;
 			m_sequenceNumber = sequenceNumber;
+			m_sampleRate = sampleRate;
 		}
 	}
 }
