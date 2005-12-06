@@ -18,6 +18,7 @@ PcmFile::PcmFile()
 	m_stream = NULL;
 	m_mode = READ;
 	m_numChunksWritten = 0;
+	m_sampleRate = 0;
 }
 
 PcmFile::~PcmFile()
@@ -61,7 +62,7 @@ int PcmFile::ReadChunkMono(AudioChunkRef& chunkRef)
 		chunkRef.reset(new AudioChunk());
 		short temp[PCM_FILE_DEFAULT_CHUNK_NUM_SAMPLES];
 		numRead = ACE_OS::fread(temp, sizeof(short), PCM_FILE_DEFAULT_CHUNK_NUM_SAMPLES, m_stream);
-		chunkRef->SetBuffer(temp, sizeof(short)*numRead, AudioChunk::PcmAudio);
+		chunkRef->SetBuffer(temp, sizeof(short)*numRead, AudioChunk::PcmAudio, 0, 0, m_sampleRate);
 	}
 	else
 	{
@@ -73,6 +74,11 @@ int PcmFile::ReadChunkMono(AudioChunkRef& chunkRef)
 
 void PcmFile::Open(CStdString& filename, fileOpenModeEnum mode, bool stereo, int sampleRate)
 {
+	if(m_sampleRate == 0)
+	{
+		m_sampleRate = sampleRate;
+	}
+
 	if(!m_filename.Equals(filename))
 	{
 		m_filename = filename + ".pcm";

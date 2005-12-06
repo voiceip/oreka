@@ -55,12 +55,14 @@ public:
 	void MoveOrig();
 	void Delete();
 	virtual CStdString GetExtension() = 0;
+	virtual int GetSampleRate();
 
 	static void RecursiveMkdir(CStdString& path);
 protected:
 	CStdString m_filename;
 	fileOpenModeEnum m_mode;
 	int m_numChunksWritten;
+	int m_sampleRate;
 };
 
 typedef boost::shared_ptr<AudioFile> AudioFileRef;

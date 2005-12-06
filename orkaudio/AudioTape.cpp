@@ -138,7 +138,7 @@ void AudioTape::Write()
 					{
 						// A file format was successfully added to the tape, open it
 						CStdString file = CONFIG.m_audioOutputPath + "/" + m_filePath + m_fileIdentifier;
-						m_audioFileRef->Open(file, AudioFile::WRITE);
+						m_audioFileRef->Open(file, AudioFile::WRITE, false, chunkRef->m_sampleRate);
 
 						// determine what final extension the file will have after optional compression
 						if(CONFIG.m_storageAudioFormat == FfNative)
@@ -262,6 +262,7 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 			pTapeMsg->m_timestamp = m_endDate;
 		}
 
+		pTapeMsg->m_recId = m_fileIdentifier;
 		pTapeMsg->m_fileName = m_filePath + m_fileIdentifier + m_fileExtension;
 		pTapeMsg-> m_stage = CaptureEvent::EventTypeToString(captureEventRef->m_type);
 		pTapeMsg->m_capturePort = m_portId;

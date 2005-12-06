@@ -27,6 +27,7 @@ LibSndFileFile::LibSndFileFile(int fileFormat)
 	m_pFile = NULL;
 	m_numChunksWritten = 0;
 	m_mode = READ;
+	m_sampleRate = 0;
 }
 
 LibSndFileFile::~LibSndFileFile()
@@ -42,7 +43,11 @@ void LibSndFileFile::Open(CStdString& filename, fileOpenModeEnum mode, bool ster
 	}
 	m_mode = mode;
 	stereo ? m_fileInfo.channels = 2 : m_fileInfo.channels = 1;
-	m_fileInfo.samplerate = sampleRate;
+	if(m_sampleRate == 0)
+	{
+		m_sampleRate = sampleRate;
+		m_fileInfo.samplerate = sampleRate;
+	}
 
 	if( (mode==WRITE) && !sf_format_check(&m_fileInfo))
 	{
@@ -98,7 +103,7 @@ int LibSndFileFile::ReadChunkMono(AudioChunkRef& chunk)
 		chunk.reset(new AudioChunk());
 		short temp[8000];
 		numRead = sf_read_short(m_pFile, temp, 8000);
-		chunk->SetBuffer(temp, sizeof(short)*numRead, AudioChunk::PcmAudio);
+		chunk->SetBuffer(temp, sizeof(short)*numRead, AudioChunk::PcmAudio, 0, 0, m_sampleRate);
 	}
 	else
 	{
