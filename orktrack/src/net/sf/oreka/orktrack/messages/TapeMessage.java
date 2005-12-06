@@ -20,9 +20,8 @@ import net.sf.oreka.messages.SimpleResponseMessage;
 import net.sf.oreka.messages.SyncMessage;
 import net.sf.oreka.orktrack.LogManager;
 import net.sf.oreka.orktrack.OrkTrack;
-import net.sf.oreka.orktrack.Port;
-import net.sf.oreka.orktrack.PortManager;
 import net.sf.oreka.orktrack.ServiceManager;
+import net.sf.oreka.orktrack.TapeManager;
 import net.sf.oreka.persistent.Service;
 import net.sf.oreka.serializers.OrkSerializer;
 import net.sf.oreka.serializers.SingleLineSerializer;
@@ -40,7 +39,9 @@ public class TapeMessage extends SyncMessage {
 	CaptureStage stage = CaptureStage.UNKN;
 	int timestamp = 0;
 	int duration = 0;
+	String recId = "";
 	String filename = "";
+	String captureId = "";
 	String capturePort = "";
 	String localParty = "";
 	String localEntryPoint = "";
@@ -48,6 +49,12 @@ public class TapeMessage extends SyncMessage {
 	Direction direction = Direction.UNKN;
 	String loginString = "";
 	String service = "";
+	String srcIp = "";
+	String dstIp = "";
+	int srcTcpPort = 0;
+	int dstTcpPort = 0;
+	String srcMac = "";
+	String dstMac = "";
 	
 	public TapeMessage() {
 		log = LogManager.getInstance().getPortLogger();
@@ -75,10 +82,11 @@ public class TapeMessage extends SyncMessage {
 	        SingleLineSerializer ser = new SingleLineSerializer();
 	        log.info("Message: " + ser.serialize(this));
 	        
-			Service service = ServiceManager.retrieveOrCreate(this.service, session);
+			Service service = ServiceManager.retrieveOrCreate(this.service, this.getHostname(), session);
 			
-			Port port = PortManager.instance().getAndCreatePort(this.getCapturePort(), session, service);
-			port.notifyTapeMessage(this, session, service);
+			//Port port = PortManager.instance().getAndCreatePort(this.getCapturePort(), session, service);
+			//port.notifyTapeMessage(this, session, service);
+			TapeManager.instance().notifyTapeMessage(this, session, service);
 			
 			response.setSuccess(true);
 			tx.commit();
@@ -96,6 +104,9 @@ public class TapeMessage extends SyncMessage {
 
 	public void define(OrkSerializer serializer) throws OrkException {
 		
+		defineMessage(serializer);
+		
+		recId = serializer.stringValue("recid", recId, false);
 		stage = (CaptureStage)serializer.enumValue("stage", stage, true);
 		timestamp = serializer.intValue("timestamp", timestamp, true);
 		duration = serializer.intValue("duration", duration, true);		
@@ -197,5 +208,85 @@ public class TapeMessage extends SyncMessage {
 	public void setDuration(int duration) {
 		this.duration = duration;
 	}
+
+	public String getCaptureId() {
+		return captureId;
+	}
+	
+
+	public void setCaptureId(String captureId) {
+		this.captureId = captureId;
+	}
+	
+
+	public String getDstIp() {
+		return dstIp;
+	}
+	
+
+	public void setDstIp(String dstIp) {
+		this.dstIp = dstIp;
+	}
+	
+
+	public String getDstMac() {
+		return dstMac;
+	}
+	
+
+	public void setDstMac(String dstMac) {
+		this.dstMac = dstMac;
+	}
+	
+
+	public int getDstTcpPort() {
+		return dstTcpPort;
+	}
+	
+
+	public void setDstTcpPort(int dstTcpPort) {
+		this.dstTcpPort = dstTcpPort;
+	}
+	
+
+	public String getSrcIp() {
+		return srcIp;
+	}
+	
+
+	public void setSrcIp(String srcIp) {
+		this.srcIp = srcIp;
+	}
+	
+
+	public String getSrcMac() {
+		return srcMac;
+	}
+	
+
+	public void setSrcMac(String srcMac) {
+		this.srcMac = srcMac;
+	}
+	
+
+	public int getSrcTcpPort() {
+		return srcTcpPort;
+	}
+	
+
+	public void setSrcTcpPort(int srcTcpPort) {
+		this.srcTcpPort = srcTcpPort;
+	}
+
+	public String getRecId() {
+		return recId;
+	}
+	
+
+	public void setRecId(String recId) {
+		this.recId = recId;
+	}
+	
+	
 
 }

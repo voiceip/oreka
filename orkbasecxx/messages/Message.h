@@ -41,12 +41,13 @@ class DLL_IMPORT_EXPORT Message : public Object
 {
 public:
 	Message();
-
+	void DefineMessage(Serializer* s);
 	bool InvokeXmlRpc(CStdString& hostname, int tcpport);
+
+	CStdString m_hostname;
 protected:
 	time_t m_creationTime;
 	bool m_sent;
-	static char m_hostname[HOSTNAME_BUF_LEN];
 };
 
 typedef boost::shared_ptr<Message> MessageRef;

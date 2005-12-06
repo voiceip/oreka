@@ -26,6 +26,8 @@ TapeMsg::TapeMsg()
 
 void TapeMsg::Define(Serializer* s)
 {
+	DefineMessage(s);
+
 	CStdString tapeMessageName(TAPE_MESSAGE_NAME);
 	s->StringValue(OBJECT_TYPE_TAG, tapeMessageName, true);
 	s->StringValue(REC_ID_PARAM, m_recId, true);

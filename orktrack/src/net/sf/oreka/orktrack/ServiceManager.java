@@ -24,18 +24,21 @@ public class ServiceManager {
 	
 	static Logger logger = Logger.getLogger(ServiceManager.class);
 	
-	public static Service retrieveOrCreate(String name, Session hbnSession) {
+	public static Service retrieveOrCreate(String name, String hostname, Session hbnSession) {
 		Service service = retrieveByName(name, hbnSession);
 		if (service == null) {
-			logger.info("Creating service:" + name);
+			logger.info("Creating service:" + name + " on host:" + hostname );
 			service = new Service();
 			service.setName(name);
-			service.setHostname("localhost");
+			service.setHostname(hostname);
 			service.setFileServeProtocol("http");
 			service.setFileServeTcpPort(8080);
 			service.setRecordMaster(true);
-			hbnSession.save(service);
 		}
+		else {
+			service.setHostname(hostname);	// update hostname in case it has changed
+		}
+		hbnSession.save(service);
 		return service;
 	}
 	
