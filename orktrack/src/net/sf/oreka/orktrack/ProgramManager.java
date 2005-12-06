@@ -151,7 +151,7 @@ public class ProgramManager {
 		
 		if (	!drop &&
 				(prog.getTargetPort() != null) &&
-				(seg.getPort().getId() != prog.getTargetPort().getId())   ) {
+				(seg.getRecPort().getId() != prog.getTargetPort().getId())   ) {
 			dropReason = "Target Port";
 			drop = true;
 		}

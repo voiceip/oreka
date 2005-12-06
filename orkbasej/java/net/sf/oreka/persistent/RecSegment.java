@@ -48,7 +48,8 @@ public class RecSegment {
 	private Direction direction;;
 	private User user;
 	private String loginString = "";
-	private RecPort port;
+	private RecPort recPort;
+	private String recPortName;
 	//private java.util.Set RecPrograms;
 	private Collection<RecProgram> recPrograms;
 	
@@ -307,13 +308,23 @@ public class RecSegment {
 	}
 
 	@ManyToOne
-	public RecPort getPort() {
-		return port;
+	public RecPort getRecPort() {
+		return recPort;
 	}
 
-	public void setPort(RecPort port) {
-		this.port = port;
+	public void setRecPort(RecPort port) {
+		this.recPort = port;
 	}
+
+	public String getRecPortName() {
+		return recPortName;
+	}
+	
+
+	public void setRecPortName(String recPortName) {
+		this.recPortName = recPortName;
+	}
+	
 	
 	
 	

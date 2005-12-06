@@ -163,7 +163,7 @@ public class Port {
 				recSegment.setLocalParty(metadataMessage.getLocalParty());
 				recSegment.setLocalEntryPoint(metadataMessage.getLocalEntryPoint());
 				recSegment.setRecSessionOffset(0);
-				recSegment.setPort(recPort);
+				recSegment.setRecPort(recPort);
 				
 				if(metadataMessage.getLocalParty() != "") {
 					User user = UserManager.instance().getByLoginString(metadataMessage.getLocalParty(), hbnSession);
@@ -218,7 +218,7 @@ public class Port {
 				recTape.setExpiryTimestamp(new Date());
 				recTape.setFilename(stopMessage.getFilename());
 				recTape.setLocalParty(stopMessage.getLocalParty());
-				recTape.setPort(recPort);
+				recTape.setRecPort(recPort);
 				recTape.setRemoteParty(stopMessage.getRemoteParty());
 				recTape.setTimestamp(timestamp);
 				recTape.setService(srv);
@@ -234,7 +234,7 @@ public class Port {
 					recSegment.setLocalParty(stopMessage.getLocalParty());
 					recSegment.setLocalEntryPoint(stopMessage.getLocalEntryPoint());
 					recSegment.setRecTape(recTape);
-					recSegment.setPort(recPort);
+					recSegment.setRecPort(recPort);
 					
 					if(stopMessage.getLocalParty() != "") {
 						User user = UserManager.instance().getByLoginString(stopMessage.getLocalParty(), hbnSession);
