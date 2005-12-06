@@ -14,6 +14,24 @@
 package net.sf.oreka.messages;
 
 import net.sf.oreka.*;
+import net.sf.oreka.serializers.OrkSerializer;
 
 public abstract class Message implements OrkObject {
+	
+	String hostname = "";
+	
+	public void defineMessage(OrkSerializer serializer) throws OrkException {
+		
+		hostname = serializer.stringValue("hostname", hostname, false);
+	}
+
+	public String getHostname() {
+		return hostname;
+	}
+	
+
+	public void setHostname(String hostname) {
+		this.hostname = hostname;
+	}
+	
 }

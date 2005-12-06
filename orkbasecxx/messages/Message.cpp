@@ -19,12 +19,12 @@
 #include "Message.h"
 
 
-char Message::m_hostname[HOSTNAME_BUF_LEN] = "";
-
 Message::Message()
 {
 	m_creationTime = time(NULL);
-	ACE_OS::hostname(m_hostname, HOSTNAME_BUF_LEN);
+	char hostname[HOSTNAME_BUF_LEN];
+	ACE_OS::hostname(hostname, HOSTNAME_BUF_LEN);
+	m_hostname = hostname;
 }
 
 
@@ -38,4 +38,10 @@ bool Message::InvokeXmlRpc(CStdString& hostname, int tcpPort)
 */
 	return true;
 }
+
+void Message::DefineMessage(Serializer* s)
+{
+	s->StringValue("hostname", m_hostname, false);
+}
+
 
