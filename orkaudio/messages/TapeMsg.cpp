@@ -28,6 +28,7 @@ void TapeMsg::Define(Serializer* s)
 {
 	CStdString tapeMessageName(TAPE_MESSAGE_NAME);
 	s->StringValue(OBJECT_TYPE_TAG, tapeMessageName, true);
+	s->StringValue(REC_ID_PARAM, m_recId, true);
 	s->StringValue(STAGE_PARAM, m_stage, true);
 	s->StringValue(CAPTURE_PORT_PARAM, m_capturePort, true);
 	s->IntValue(TIMESTAMP_PARAM, (int&)m_timestamp, true);
