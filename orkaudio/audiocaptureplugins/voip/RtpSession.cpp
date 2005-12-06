@@ -263,11 +263,6 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		Start();
 		ReportMetadata();
 	}
-
-	// send audio buffer
-	//AudioChunkRef chunkRef(new AudioChunk);
-	//chunkRef->SetBuffer(rtpPacket->m_payload, rtpPacket->m_payloadSize, AudioChunk::AlawAudio);
-	//g_audioChunkCallBack(chunkRef, m_ipAndPort);
 	
 	if(m_started)
 	{
