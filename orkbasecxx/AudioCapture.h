@@ -38,7 +38,7 @@ public:
 	~AudioChunk();
 
 	/** Copy external buffer to internal buffer. Create internal buffer if necessary */
-	void SetBuffer(void* pBuffer, size_t numBytes, AudioEncodingEnum, unsigned int timestamp = 0, unsigned int sequenceNumber = 0);
+	void SetBuffer(void* pBuffer, size_t numBytes, AudioEncodingEnum, unsigned int timestamp = 0, unsigned int sequenceNumber = 0, unsigned int sampleRate = 8000);
 
 	/** Computes the Root-Mean-Square power value of the buffer */
 	double ComputeRms();
