@@ -18,6 +18,7 @@
 #include "AudioTape.h"
 
 #define TAPE_MESSAGE_NAME "tape"
+#define REC_ID_PARAM "recid"
 #define FILENAME_PARAM "filename"
 #define STAGE_PARAM "stage"
 #define LOCALPARTY_PARAM "localparty"
@@ -39,6 +40,7 @@ public:
 	ObjectRef NewInstance();
 	inline ObjectRef Process() {return ObjectRef();};
 
+	CStdString m_recId;
 	CStdString m_stage;
 	time_t m_timestamp;
 	CStdString m_fileName;
