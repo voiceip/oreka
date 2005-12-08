@@ -61,6 +61,7 @@ public:
 #define FF_GSM "GSM"
 #define FF_ULAW "ulaw"
 #define FF_ALAW "alaw"
+#define FF_PCMWAV "pcmwav"
 #define FF_UNKNOWN "unknown"
 	typedef enum
 	{
@@ -69,7 +70,8 @@ public:
 		FfGsm = 2,
 		FfUlaw = 3,
 		FfAlaw = 4,
-		FfInvalid = 5
+		FfPcmWav = 5,
+		FfInvalid = 6
 	} FileFormatEnum;
 	static int FileFormatToEnum(CStdString& format);
 	static CStdString FileFormatToString(int formatEnum);

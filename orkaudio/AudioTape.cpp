@@ -339,6 +339,10 @@ int AudioTape::FileFormatToEnum(CStdString& format)
 	{
 		formatEnum = FfAlaw;
 	}
+	else if (format.CompareNoCase(FF_PCMWAV) == 0)
+	{
+		formatEnum = FfPcmWav;
+	}
 	return formatEnum;
 }
 
@@ -359,6 +363,9 @@ CStdString AudioTape::FileFormatToString(int formatEnum)
 	case FfAlaw:
 		formatString = FF_ALAW;
 		break;
+	case FfPcmWav:
+		formatString = FF_PCMWAV;
+		break;
 	default:
 		formatString = FF_UNKNOWN;
 	}
@@ -373,6 +380,7 @@ CStdString AudioTape::GetFileFormatExtension(FileFormatEnum formatEnum)
 	case FfGsm:
 	case FfUlaw:
 	case FfAlaw:
+	case FfPcmWav:
 		extension = ".wav";
 		break;
 	default:
