@@ -40,6 +40,7 @@ RtpSession::RtpSession()
 	m_protocol = ProtUnkn;
 	m_numRtpPackets = 0;
 	m_started = false;
+	m_rtpTimestampCorrectiveOffset = 0;
 }
 
 void RtpSession::Stop()
@@ -256,6 +257,51 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 	m_lastRtpPacket = rtpPacket;
 	m_numRtpPackets++;
+	if(m_lastRtpPacketSide1.get() == NULL)
+	{
+		m_lastRtpPacketSide1 = rtpPacket;
+	}
+	else
+	{
+		if(rtpPacket->m_sourceIp.s_addr == m_lastRtpPacketSide1->m_sourceIp.s_addr)
+		{
+			m_lastRtpPacketSide1 = rtpPacket;
+		}
+		else
+		{
+			m_lastRtpPacketSide2 = rtpPacket;
+		}
+	}
+
+	// Compute the corrective offset (only if the two streams have greatly different timestamp)
+	if(m_rtpTimestampCorrectiveOffset == 0 && m_lastRtpPacketSide2.get() != NULL)
+	{
+		if (m_lastRtpPacketSide2->m_arrivalTimestamp == m_lastRtpPacketSide1->m_arrivalTimestamp)
+		{
+			int timestampOffset = m_lastRtpPacketSide2->m_timestamp - m_lastRtpPacketSide1->m_timestamp;
+			if(timestampOffset > 8000 || timestampOffset < -8000)	// 1s @ 8KHz
+			{
+				m_rtpTimestampCorrectiveOffset = timestampOffset;
+				if(m_log->isDebugEnabled())
+				{
+					CStdString timestampOffsetString = IntToString(timestampOffset);
+					LOG4CXX_DEBUG(m_log, m_capturePort + ": " + "Applying timestamp corrective offset:" + timestampOffsetString);
+				}
+			}
+		}
+	}
+	// apply the corrective offset
+	if(m_lastRtpPacketSide2.get() != NULL)
+	{
+		m_lastRtpPacketSide2->m_timestamp = m_lastRtpPacketSide2->m_timestamp - m_rtpTimestampCorrectiveOffset;
+	}
+
+	if(m_log->isDebugEnabled())
+	{
+		CStdString debug;
+		debug.Format("%s: Add RTP packet ts:%u arrival:%u", m_capturePort, rtpPacket->m_timestamp, rtpPacket->m_arrivalTimestamp);
+		LOG4CXX_DEBUG(m_log, debug);
+	}
 
 	if(m_protocol == ProtRawRtp && m_numRtpPackets == 50)
 	{
@@ -468,10 +514,15 @@ void RtpSessions::Stop(RtpSessionRef& session)
 
 void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 {
-	// Does a session exist with this source Ip+Port
+	bool foundSession = false;
 	RtpSessionRef session;
-	CStdString port = IntToString(rtpPacket->m_sourcePort);
 
+	// Add RTP packet to session with matching source or dest IP+Port. 
+	// On CallManager there might be two sessions with two different CallIDs for one 
+	// phone call, so this RTP packet can potentially be reported to two sessions.
+
+	// Does a session exist with this source Ip+Port
+	CStdString port = IntToString(rtpPacket->m_sourcePort);
 	char szSourceIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szSourceIp, sizeof(szSourceIp));
 	CStdString ipAndPort = CStdString(szSourceIp) + "," + port;
@@ -481,33 +532,39 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	if (pair != m_byIpAndPort.end())
 	{
 		session = pair->second;
-	}	
-	else
-	{
-		// Does a session exist with this destination Ip+Port
-		port = IntToString(rtpPacket->m_destPort);
-		char szDestIp[16];
-		ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szDestIp, sizeof(szDestIp));
-		ipAndPort = CStdString(szDestIp) + "," + port;
-
-		pair = m_byIpAndPort.find(ipAndPort);
-		if (pair != m_byIpAndPort.end())
+		if (!session.get() == NULL)
 		{
-			session = pair->second;
-		}
-		else
-		{
-			// create new Raw RTP session and insert into IP+Port map
-			RtpSessionRef session(new RtpSession());
-			session->m_protocol = RtpSession::ProtRawRtp;
-			session->m_ipAndPort = ipAndPort;
-			m_byIpAndPort.insert(std::make_pair(ipAndPort, session));
+			// Found a session give it the RTP packet info
+			session->AddRtpPacket(rtpPacket);
+			foundSession = true;
 		}
 	}
-	if (!session.get() == NULL)
+
+	// Does a session exist with this destination Ip+Port
+	port = IntToString(rtpPacket->m_destPort);
+	char szDestIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szDestIp, sizeof(szDestIp));
+	ipAndPort = CStdString(szDestIp) + "," + port;
+
+	pair = m_byIpAndPort.find(ipAndPort);
+	if (pair != m_byIpAndPort.end())
 	{
-		// Found a session give it the RTP packet info
-		session->AddRtpPacket(rtpPacket);
+		session = pair->second;
+		if (!session.get() == NULL)
+		{
+			// Found a session give it the RTP packet info
+			session->AddRtpPacket(rtpPacket);
+			foundSession = true;
+		}
+	}
+
+	if(!foundSession)
+	{
+		// create new Raw RTP session and insert into IP+Port map
+		RtpSessionRef session(new RtpSession());
+		session->m_protocol = RtpSession::ProtRawRtp;
+		session->m_ipAndPort = ipAndPort;
+		m_byIpAndPort.insert(std::make_pair(ipAndPort, session));
 	}
 }
 
