@@ -7,7 +7,7 @@
   require_once "main.inc.php";
   require_once "../latest/versions.inc.php";
   $pageId = "windows";
-  $pageTitle = _("Windows");
+  $pageTitle = _("OrkAudio Windows");
   include "../include/header.inc.php";
 ?>
 
