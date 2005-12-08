@@ -7,7 +7,7 @@
   require_once "main.inc.php";
   require_once "../latest/versions.inc.php";
   $pageId = "debian";
-  $pageTitle = _("Debian/Ubuntu Package");
+  $pageTitle = _("OrkAudio Debian/Ubuntu Package");
   include "../include/header.inc.php";
 ?>
 

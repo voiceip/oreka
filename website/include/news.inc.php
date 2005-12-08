@@ -36,6 +36,13 @@ function most_recent_news_item() {
 }
 
 add_news_item(
+  "December 08, 2005",
+	"Web UI available as binary",
+  _("Web UI available as binary"),
+  _('<p>The web interface (OrkWeb) is now available as a precompiled Java war file. See the <a href="download">download</a> section for more info</p>')
+);
+
+add_news_item(
   "November 24, 2005",
 	"0.3-release",
   _("Oreka 0.3 Released"),
