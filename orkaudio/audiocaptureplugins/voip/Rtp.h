@@ -39,6 +39,7 @@ public:
 	unsigned char* m_payload;
 	unsigned short m_seqNum;
 	unsigned int m_timestamp;
+	time_t m_arrivalTimestamp;
 };
 typedef boost::shared_ptr<RtpPacketInfo> RtpPacketInfoRef;
 

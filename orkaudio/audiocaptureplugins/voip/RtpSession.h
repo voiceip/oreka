@@ -98,6 +98,8 @@ private:
 	void ReportMetadata();
 
 	RtpPacketInfoRef m_lastRtpPacket;
+	RtpPacketInfoRef m_lastRtpPacketSide1;
+	RtpPacketInfoRef m_lastRtpPacketSide2;
 	int m_numRtpPackets;
 	RtpRingBuffer m_rtpRingBuffer;
 	struct in_addr m_invitorIp;
@@ -107,6 +109,7 @@ private:
 	LoggerPtr m_log;
 	CStdString m_capturePort;
 	bool m_started;
+	int m_rtpTimestampCorrectiveOffset;
 };
 typedef boost::shared_ptr<RtpSession> RtpSessionRef;
 

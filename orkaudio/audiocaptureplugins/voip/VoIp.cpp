@@ -157,6 +157,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 				rtpInfo->m_seqNum = ntohs(rtpHeader->seq);
 				rtpInfo->m_timestamp = ntohl(rtpHeader->ts);
 				rtpInfo->m_payload = payload;
+				rtpInfo->m_arrivalTimestamp = time(NULL);
 
 				if(s_rtpPacketLog->isDebugEnabled())
 				{
