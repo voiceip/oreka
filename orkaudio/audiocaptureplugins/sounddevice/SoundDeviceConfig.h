@@ -20,6 +20,8 @@
  
 #define AUDIO_CHUNK_SIZE_PARAM "AudioChunkSize"
 #define AUDIO_CHUNK_SIZE_DEFAULT 8000
+#define SAMPLE_RATE_PARAM "SampleRate"
+#define SAMPLE_RATE_DEFAULT 8000
 
 /** This class defines various configuration parameters for the generator. */
 class SoundDeviceConfig : public Object
@@ -34,6 +36,7 @@ public:
 	inline ObjectRef Process() {return ObjectRef();};
 
 	int m_audioChunkSize;
+	int m_sampleRate;
 };
 
 //========================================

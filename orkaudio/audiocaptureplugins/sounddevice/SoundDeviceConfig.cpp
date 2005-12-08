@@ -20,11 +20,13 @@
 SoundDeviceConfig::SoundDeviceConfig()
 {
 	m_audioChunkSize = AUDIO_CHUNK_SIZE_DEFAULT;
+	m_sampleRate = SAMPLE_RATE_DEFAULT;
 }
 
 void SoundDeviceConfig::Define(Serializer* s)
 {
 	s->IntValue(AUDIO_CHUNK_SIZE_PARAM, m_audioChunkSize);
+	s->IntValue(SAMPLE_RATE_PARAM, m_sampleRate);
 }
 
 void SoundDeviceConfig::Validate()
