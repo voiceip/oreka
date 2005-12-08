@@ -29,6 +29,9 @@ extern OrkLogManager* g_logManager;
 SoundDeviceConfigTopObjectRef g_soundDeviceConfigTopObjectRef;
 #define DLLCONFIG g_soundDeviceConfigTopObjectRef.get()->m_config
 
+static LoggerPtr s_soundDeviceLog;
+static LoggerPtr s_soundDeviceBufferLog;
+
 
 typedef struct 
 {
@@ -43,6 +46,13 @@ int portAudioCallBack(void *inputBuffer, void *outputBuffer, unsigned long frame
 	short * inputSamples = (short *)inputBuffer;
 	CStdString portName;
 
+	if(s_soundDeviceBufferLog->isDebugEnabled())
+	{
+		CStdString debug;
+		debug.Format("Dev:%u NumSamples:%u Time:%f", device->deviceID, framesPerBuffer, outTime);
+		LOG4CXX_DEBUG(s_soundDeviceBufferLog, debug);
+	}
+
 	if (device->channelCount == 2)
 	{
 		// stereo -> split into two different chunks
@@ -55,12 +65,12 @@ int portAudioCallBack(void *inputBuffer, void *outputBuffer, unsigned long frame
 			leftBuffer[sampleId] = inputSamples[2*sampleId+1];
 		}
 		AudioChunkRef chunkRef(new AudioChunk);
-		chunkRef->SetBuffer(rightBuffer, sizeof(short)*framesPerBuffer, AudioChunk::PcmAudio);
+		chunkRef->SetBuffer(rightBuffer, sizeof(short)*framesPerBuffer, AudioChunk::PcmAudio, 0, 0, DLLCONFIG.m_sampleRate);
 		portName.Format("port%d-%d", device->deviceID, 1);
 		g_audioChunkCallBack(chunkRef, portName);
 
 		chunkRef.reset(new AudioChunk);
-		chunkRef->SetBuffer(leftBuffer, sizeof(short)*framesPerBuffer, AudioChunk::PcmAudio);
+		chunkRef->SetBuffer(leftBuffer, sizeof(short)*framesPerBuffer, AudioChunk::PcmAudio, 0, 0, DLLCONFIG.m_sampleRate);
 		portName.Format("port%d-%d", device->deviceID, 2);
 		g_audioChunkCallBack(chunkRef, portName);
 
@@ -71,7 +81,7 @@ int portAudioCallBack(void *inputBuffer, void *outputBuffer, unsigned long frame
 	{
 		// mono
 		AudioChunkRef chunkRef(new AudioChunk);
-		chunkRef->SetBuffer(inputSamples, sizeof(short)*framesPerBuffer, AudioChunk::PcmAudio);
+		chunkRef->SetBuffer(inputSamples, sizeof(short)*framesPerBuffer, AudioChunk::PcmAudio, 0, 0, DLLCONFIG.m_sampleRate);
 		portName.Format("port%d", device->deviceID);
 		g_audioChunkCallBack(chunkRef, portName);
 	}
@@ -128,6 +138,9 @@ void SoundDevice::Initialize()
 {
 	LOG4CXX_INFO(g_logManager->rootLog, "Initializing Sound Device plugin");
 
+	s_soundDeviceLog = Logger::getLogger("sounddevice");
+	s_soundDeviceBufferLog = Logger::getLogger("sounddevice.buffer");
+
 	// create a default config object in case it was not properly initialized by Configure
 	if(!g_soundDeviceConfigTopObjectRef.get())
 	{
@@ -178,7 +191,7 @@ void SoundDevice::Initialize()
 										0,
 										paInt16,
 										NULL,
-										8000.0,
+										(double)DLLCONFIG.m_sampleRate,
 										DLLCONFIG.m_audioChunkSize,
 										0,
 										0,
