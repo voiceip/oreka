@@ -86,8 +86,10 @@ void BatchProcessing::ThreadHandler(void *args)
 					outFileRef.reset(new LibSndFileFile(SF_FORMAT_ALAW | SF_FORMAT_WAV));
 					break;
 				case AudioTape::FfGsm:
-				default:
 					outFileRef.reset(new LibSndFileFile(SF_FORMAT_GSM610 | SF_FORMAT_WAV));
+				case AudioTape::FfPcmWav:
+				default:
+					outFileRef.reset(new LibSndFileFile(SF_FORMAT_PCM_16 | SF_FORMAT_WAV));
 				}
 				CStdString file = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath() + audioTapeRef->GetIdentifier();
 				outFileRef->Open(file, AudioFile::WRITE, false, fileRef->GetSampleRate());
