@@ -197,8 +197,8 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 
 void RtpSession::ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket)
 {
-	// In skinny, we know that ipAndPort are those from the CallManager.
-	// However, what we want as a capture port are IP+Port of the phone
+	// In skinny, we know that ipAndPort are always those of the remote party (other internal phone or gateway).
+	// However, what we want as a capture port are IP+Port of the local phone
 	char szSourceIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szSourceIp, sizeof(szSourceIp));
 	m_capturePort.Format("%s,%u", szSourceIp, rtpPacket->m_sourcePort);
@@ -235,9 +235,11 @@ void RtpSession::ReportMetadata()
 
 void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 {
-	// if first RTP packet, start session
 	if(m_lastRtpPacket.get() == NULL)
 	{
+		// Until now, we knew the remote IP and port for RTP (at best, as given by SIP invite or Skinny StartMediaTransmission)
+		// With the first RTP packet, we can extract local and remote IP and ports for RTP
+		// And from that, we can figure out a bit of metadata
 		if(m_protocol == ProtRawRtp)
 		{
 			ProcessMetadataRawRtp(rtpPacket);
@@ -245,14 +247,10 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		else if(m_protocol == ProtSip)
 		{
 			ProcessMetadataSip(rtpPacket);
-			Start();
-			ReportMetadata();
 		}
 		else if(m_protocol == ProtSkinny)
 		{
 			ProcessMetadataSkinny(rtpPacket);
-			Start();
-			ReportMetadata();
 		}
 	}
 	m_lastRtpPacket = rtpPacket;
@@ -273,7 +271,7 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		}
 	}
 
-	// Compute the corrective offset (only if the two streams have greatly different timestamp)
+	// Compute the corrective offset (only if the two streams have greatly different timestamp, eg for Cisco CallManager)
 	if(m_rtpTimestampCorrectiveOffset == 0 && m_lastRtpPacketSide2.get() != NULL)
 	{
 		if (m_lastRtpPacketSide2->m_arrivalTimestamp == m_lastRtpPacketSide1->m_arrivalTimestamp)
@@ -303,17 +301,20 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		LOG4CXX_DEBUG(m_log, debug);
 	}
 
-	if(m_protocol == ProtRawRtp && m_numRtpPackets == 50)
+	if(		(m_protocol == ProtRawRtp && m_numRtpPackets == 50)	||
+			(m_protocol == ProtSkinny && m_numRtpPackets == 2)	||
+			(m_protocol == ProtSip && m_numRtpPackets == 2)			)
 	{
-		// We've got 50 RTP packets, this should be a "real" raw RTP session, not a leftover from a SIP session
+		// We've got enough packets to start the session.
+		// For Raw RTP, the high number is to make sure we have a "real" raw RTP session, not a leftover from a SIP/Skinny session
 		Start();
 		ReportMetadata();
 	}
-	
+
 	if(m_started)
 	{
 		m_rtpRingBuffer.AddRtpPacket(rtpPacket);
-		m_lastUpdated = time(NULL);
+		m_lastUpdated = rtpPacket->m_arrivalTimestamp;
 	}
 }
 
@@ -422,12 +423,12 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo)
 	pair = m_byCallId.find(callId);
 	if (pair != m_byCallId.end())
 	{
-		// A session exists ont the same CallId, stop old session
+		// A session exists on the same CallId, stop old session
 		RtpSessionRef session = pair->second;
 		Stop(session);
 	}
 
-	// create new session and insert into both maps
+	// create new session and insert into the callid map
 	RtpSessionRef session(new RtpSession());
 	session->m_callId = callId;
 	session->m_protocol = RtpSession::ProtSkinny;
@@ -481,6 +482,10 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 			// The session has already had a StartMediaTransmission message.
 		}
 	}
+	else
+	{
+		// Discard because we have not seen any CallInfo Message before
+	}
 }
 
 void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct* stopMedia)
@@ -514,8 +519,9 @@ void RtpSessions::Stop(RtpSessionRef& session)
 
 void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 {
-	bool foundSession = false;
-	RtpSessionRef session;
+	int numSessionsFound = 0;
+	RtpSessionRef session1;
+	RtpSessionRef session2;
 
 	// Add RTP packet to session with matching source or dest IP+Port. 
 	// On CallManager there might be two sessions with two different CallIDs for one 
@@ -531,12 +537,12 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	pair = m_byIpAndPort.find(ipAndPort);
 	if (pair != m_byIpAndPort.end())
 	{
-		session = pair->second;
-		if (!session.get() == NULL)
+		session1 = pair->second;
+		if (!session1.get() == NULL)
 		{
 			// Found a session give it the RTP packet info
-			session->AddRtpPacket(rtpPacket);
-			foundSession = true;
+			session1->AddRtpPacket(rtpPacket);
+			numSessionsFound++;;
 		}
 	}
 
@@ -549,16 +555,45 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	pair = m_byIpAndPort.find(ipAndPort);
 	if (pair != m_byIpAndPort.end())
 	{
-		session = pair->second;
-		if (!session.get() == NULL)
+		session2 = pair->second;
+		if (!session2.get() == NULL)
 		{
 			// Found a session give it the RTP packet info
-			session->AddRtpPacket(rtpPacket);
-			foundSession = true;
+			session2->AddRtpPacket(rtpPacket);
+			numSessionsFound++;
 		}
 	}
 
-	if(!foundSession)
+	if(numSessionsFound == 2)
+	{
+		// Need to "merge" the two sessions (ie discard one of them)
+		// usually happens on CallManager with internal calls, so we keep the one that's outgoing
+
+		RtpSessionRef mergerSession;
+		RtpSessionRef mergeeSession;
+
+		if(session1->m_direction == CaptureEvent::DirOut)
+		{
+			mergerSession = session1;
+			mergeeSession = session2;
+		}
+		else
+		{
+			mergerSession = session2;
+			mergeeSession = session1;		
+		}
+		if(m_log->isDebugEnabled())
+		{
+			CStdString debug;
+			debug.Format("Merging session % with callid:%s into session %s with callid:%s",
+				mergeeSession->m_ipAndPort, mergeeSession->m_callId,
+				mergerSession->m_ipAndPort, mergerSession->m_callId);
+			LOG4CXX_DEBUG(m_log, debug);
+		}
+		Stop(mergeeSession);
+	}
+
+	if(numSessionsFound == 0)
 	{
 		// create new Raw RTP session and insert into IP+Port map
 		RtpSessionRef session(new RtpSession());

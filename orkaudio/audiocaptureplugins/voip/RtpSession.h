@@ -88,6 +88,7 @@ public:
 	CStdString m_localParty;
 	CStdString m_remoteParty;
 	CaptureEvent::DirectionEnum m_direction;
+	int m_numRtpPackets;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
@@ -100,7 +101,6 @@ private:
 	RtpPacketInfoRef m_lastRtpPacket;
 	RtpPacketInfoRef m_lastRtpPacketSide1;
 	RtpPacketInfoRef m_lastRtpPacketSide2;
-	int m_numRtpPackets;
 	RtpRingBuffer m_rtpRingBuffer;
 	struct in_addr m_invitorIp;
 	int m_invitorTcpPort;
