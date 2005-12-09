@@ -87,6 +87,7 @@ void BatchProcessing::ThreadHandler(void *args)
 					break;
 				case AudioTape::FfGsm:
 					outFileRef.reset(new LibSndFileFile(SF_FORMAT_GSM610 | SF_FORMAT_WAV));
+					break;
 				case AudioTape::FfPcmWav:
 				default:
 					outFileRef.reset(new LibSndFileFile(SF_FORMAT_PCM_16 | SF_FORMAT_WAV));
