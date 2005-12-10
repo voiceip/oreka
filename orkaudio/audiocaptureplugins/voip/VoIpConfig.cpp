@@ -29,6 +29,7 @@ VoIpConfig::VoIpConfig()
 void VoIpConfig::Define(Serializer* s)
 {
 	s->StringValue(DEVICE_PARAM, m_device);
+	s->CsvValue("Devices", m_devices);
 	s->CsvValue("LanMasks", m_asciiLanMasks);
 	s->CsvValue("MediaGateways", m_asciiMediaGateways);
 }
@@ -84,6 +85,23 @@ bool VoIpConfig::IsMediaGateway(struct in_addr addr)
 	for(std::list<unsigned int>::iterator it = m_mediaGateways.begin(); it != m_mediaGateways.end(); it++)
 	{
 		if((unsigned int)addr.s_addr == *it)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool VoIpConfig::IsDeviceWanted(CStdString device)
+{
+	if(device.Equals(m_device))
+	{
+		// Old style single device configuration setting.
+		return true;
+	}
+	for(std::list<CStdString>::iterator it = m_devices.begin(); it != m_devices.end(); it++)
+	{
+		if(it->Equals(device))
 		{
 			return true;
 		}

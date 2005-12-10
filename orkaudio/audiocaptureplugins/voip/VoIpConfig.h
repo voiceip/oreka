@@ -35,8 +35,10 @@ public:
 
 	bool IsPartOfLan(struct in_addr);
 	bool IsMediaGateway(struct in_addr);
+	bool IsDeviceWanted(CStdString device);
 
-	CStdString m_device;
+	CStdString m_device;				// old style but can still be used for specifying single device
+	std::list<CStdString> m_devices;	// new style devices csv
 	std::list<unsigned int> m_mediaGateways;
 	std::list<CStdString> m_asciiMediaGateways;
 	std::list<unsigned int> m_lanMasks;

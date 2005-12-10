@@ -13,12 +13,15 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
+#include <list>
 #include "ace/OS_NS_unistd.h"
 #include "ace/OS_NS_string.h"
 #include "ace/Singleton.h"
 #include "ace/Min_Max.h"
 #include "ace/OS_NS_arpa_inet.h"
 #include "ace/OS_NS_ctype.h"
+#include "ace/Thread_Manager.h"
+#include "ace/Thread_Mutex.h"
 #include "AudioCapturePlugin.h"
 #include "AudioCapturePluginCommon.h"
 #include "Utils.h"
@@ -41,8 +44,12 @@ static LoggerPtr s_skinnyPacketLog;
 static LoggerPtr s_sipExtractionLog;
 time_t lastHooveringTime;
 
+static ACE_Thread_Mutex s_mutex;
+
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
+
+#define PROMISCUOUS 1
 
 // Convert a piece of memnory to hex string
 void memToHex(unsigned char* input, size_t len, CStdString&output)
@@ -350,6 +357,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 		{
 			u_char* udpPayload = (u_char *)udpHeader + sizeof(UdpHeaderStruct);
 
+			MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
 
 			bool detectedUsefulPacket = TryRtp(ethernetHeader, ipHeader, udpHeader, udpPayload);
 			
@@ -386,6 +394,8 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 					dbg.Format("Offset:%x Len:%u Type:%x %s", offset, skinnyHeader->len, skinnyHeader->messageType, SkinnyMessageToString(skinnyHeader->messageType));
 					LOG4CXX_DEBUG(s_skinnyPacketLog, dbg);
 				}
+				MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
+
 				HandleSkinnyMessage(skinnyHeader);
 
 				// Point to next skinny message within this TCP packet
@@ -403,6 +413,23 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 }
 
 
+void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
+{
+	if(pcapHandle)
+	{
+		CStdString log;
+		log.Format("Start Capturing: pcap handle:%x", pcapHandle);
+		LOG4CXX_INFO(s_packetLog, log);
+		pcap_loop(pcapHandle, 0, HandlePacket, NULL);
+		log.Format("Stop Capturing: pcap handle:%x", pcapHandle);
+		LOG4CXX_INFO(s_packetLog, log);
+	}
+	else
+	{
+		LOG4CXX_ERROR(s_packetLog, "Cannot start capturing, pcap handle is null");
+	}
+}
+
 class VoIp
 {
 public:
@@ -414,6 +441,7 @@ public:
 	void StopCapture(CStdString& port);
 private:
 	pcap_t* m_pcapHandle;
+	std::list<pcap_t*> m_pcapHandles;
 };
 
 typedef ACE_Singleton<VoIp, ACE_Thread_Mutex> VoIpSingleton;
@@ -461,26 +489,11 @@ void VoIp::Initialize()
 		g_VoIpConfigTopObjectRef.reset(new VoIpConfigTopObject);
 	}
 
-/*
-	char addr1[] = "10.1.2.3";
-	char addr2[] = "192.168.5.6";
-	char addr3[] = "45.168.5.6";
-	struct in_addr addr;
-	ACE_OS::inet_aton(addr1, &addr);
-	bool result = DLLCONFIG.IsPartOfLan(addr);
-	result = DLLCONFIG.IsMediaGateway(addr);
-	ACE_OS::inet_aton(addr2, &addr);
-	result = DLLCONFIG.IsPartOfLan(addr);
-	result = DLLCONFIG.IsMediaGateway(addr);
-	ACE_OS::inet_aton(addr3, &addr);
-	result = DLLCONFIG.IsPartOfLan(addr);
-	result = DLLCONFIG.IsMediaGateway(addr);
-*/
-
 	pcap_if_t* devices = NULL;
-	pcap_if_t* lastDevice = NULL;
-	pcap_if_t* deviceToSniff = NULL;
+	pcap_if_t* defaultDevice = NULL;
 	lastHooveringTime = time(NULL);
+
+	CStdString logMsg;
 
 	char * error = NULL;
 	if (pcap_findalldevs(&devices, error) == -1)
@@ -495,39 +508,63 @@ void VoIp::Initialize()
 
 			for (pcap_if_t* device = devices; device != NULL; device = device->next)
 			{
-				LOG4CXX_INFO(s_packetLog, CStdString("\t* ") + device->description + " " + device->name );
-				if(DLLCONFIG.m_device.Equals(device->name))
+				if(!device){break;}
+
+				LOG4CXX_INFO(s_packetLog, CStdString("* ") + device->description + " " + device->name );
+
+				CStdString deviceName(device->name);
+				deviceName.ToLower();
+				if(	deviceName.Find("dialup") == -1		&&			// Don't want Windows dialup devices (still possible to force them using the configuration file)
+					deviceName.Find("lo") == -1			&&			// Don't want Unix loopback device
+					deviceName.Find("any") == -1			)		// Don't want Unix "any" device
 				{
-					deviceToSniff = device;
+					defaultDevice =  device;
 				}
-				if(device)
+				if(DLLCONFIG.IsDeviceWanted(device->name))
 				{
-					lastDevice = device;
+					// Open device
+					if ((m_pcapHandle = pcap_open_live(device->name, 1500, PROMISCUOUS,
+							500, error)) == NULL)
+					{
+						LOG4CXX_ERROR(s_packetLog, "pcap error when opening device");
+					}
+					else
+					{
+						CStdString logMsg;
+						logMsg.Format("Successfully opened device. pcap handle:%x", m_pcapHandle);
+						LOG4CXX_INFO(s_packetLog, "Successfully opened device");
+
+						m_pcapHandles.push_back(m_pcapHandle);
+					}
 				}
 			}
-			if (!deviceToSniff)
+			if(m_pcapHandles.size() == 0)
 			{
-				if(!DLLCONFIG.m_device.IsEmpty())
+				if(DLLCONFIG.m_devices.size() > 0)
 				{
-					LOG4CXX_ERROR(s_packetLog, CStdString("pcap could not find wanted device: ") + DLLCONFIG.m_device + " please check your config file");
+					LOG4CXX_ERROR(s_packetLog, "Could not find any of the devices listed in config file");
 				}
-				if(lastDevice)
+
+				// Let's open the default device
+				if(defaultDevice)
 				{
-					LOG4CXX_INFO(s_packetLog, CStdString("Defaulting to device: ") + lastDevice->name);
-					deviceToSniff = lastDevice;
-				}
-			}
-			if (deviceToSniff)
-			{
-				#define PROMISCUOUS 1
-				if ((m_pcapHandle = pcap_open_live(deviceToSniff->name, 1500, PROMISCUOUS,
-					 500, error)) == NULL)
-				{
-					LOG4CXX_ERROR(s_packetLog, CStdString("pcap error when opening device: ") + deviceToSniff->name);
+					if ((m_pcapHandle = pcap_open_live(defaultDevice->name, 1500, PROMISCUOUS,
+							500, error)) == NULL)
+					{
+						logMsg.Format("pcap error when opening default device:%s", defaultDevice->name);
+						LOG4CXX_ERROR(s_packetLog, logMsg);
+					}
+					else
+					{
+						logMsg.Format("Successfully opened default device:%s pcap handle:%x", defaultDevice->name, m_pcapHandle);
+						LOG4CXX_INFO(s_packetLog, logMsg);
+
+						m_pcapHandles.push_back(m_pcapHandle);
+					}
 				}
 				else
 				{
-					LOG4CXX_INFO(s_packetLog, CStdString("successfully opened device: ") + deviceToSniff->name);
+					LOG4CXX_ERROR(s_packetLog, "Could not determine the default device to monitor. If you want a specific device listed above, please specify it in your config file");
 				}
 			}
 		}
@@ -541,14 +578,12 @@ void VoIp::Initialize()
 
 void VoIp::Run()
 {
-	if(m_pcapHandle)
+	for(std::list<pcap_t*>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
 	{
-		LOG4CXX_INFO(s_packetLog, "Running VoIp.dll");
-		pcap_loop(m_pcapHandle, 0, HandlePacket, NULL);
-	}
-	else
-	{
-		LOG4CXX_INFO(s_packetLog, "No network device opened - VoIp.dll not starting");
+		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(SingleDeviceCaptureThreadHandler), *it))
+		{
+			LOG4CXX_INFO(s_packetLog, CStdString("Failed to create pcap capture thread"));
+		}
 	}
 }
 
