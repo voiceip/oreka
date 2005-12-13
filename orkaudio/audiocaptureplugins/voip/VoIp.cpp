@@ -169,11 +169,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 				if(s_rtpPacketLog->isDebugEnabled())
 				{
 					CStdString debug;
-					char sourceIp[16];
-					ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, sourceIp, sizeof(sourceIp));
-					char destIp[16];
-					ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_dest, destIp, sizeof(destIp));
-					debug.Format("%s,%d %s,%d seq:%u ts:%u len:%d", sourceIp, rtpInfo->m_sourcePort, destIp, rtpInfo->m_destPort, ntohs(rtpHeader->seq), ntohl(rtpHeader->ts), payloadLength);
+					rtpInfo->ToString(debug);
 					LOG4CXX_DEBUG(s_rtpPacketLog, debug);
 				}
 

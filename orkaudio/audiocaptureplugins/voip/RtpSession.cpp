@@ -235,6 +235,8 @@ void RtpSession::ReportMetadata()
 
 void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 {
+	CStdString logMsg;
+
 	if(m_lastRtpPacket.get() == NULL)
 	{
 		// Until now, we knew the remote IP and port for RTP (at best, as given by SIP invite or Skinny StartMediaTransmission)
@@ -257,7 +259,14 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	m_numRtpPackets++;
 	if(m_lastRtpPacketSide1.get() == NULL)
 	{
+		// First RTP packet for side 1
 		m_lastRtpPacketSide1 = rtpPacket;
+		if(m_log->isInfoEnabled())
+		{
+			rtpPacket->ToString(logMsg);
+			logMsg = "1st packet s1: " + logMsg;
+			LOG4CXX_INFO(m_log, logMsg);
+		}
 	}
 	else
 	{
@@ -267,6 +276,16 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		}
 		else
 		{
+			if(m_lastRtpPacketSide2.get() == NULL)
+			{
+				// First RTP packet for side 2
+				if(m_log->isInfoEnabled())
+				{
+					rtpPacket->ToString(logMsg);
+					logMsg = "1st packet s2: " + logMsg;
+					LOG4CXX_INFO(m_log, logMsg);
+				}
+			}
 			m_lastRtpPacketSide2 = rtpPacket;
 		}
 	}
