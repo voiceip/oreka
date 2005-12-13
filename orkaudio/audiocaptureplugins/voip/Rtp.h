@@ -28,6 +28,8 @@
 class RtpPacketInfo
 {
 public:
+	void ToString(CStdString& string);
+
 	//CStdString m_sourceMac;
 	//CStdString m_destMac;
 	struct in_addr m_sourceIp;
