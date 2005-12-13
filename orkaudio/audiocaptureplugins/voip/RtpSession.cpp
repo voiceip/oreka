@@ -47,7 +47,7 @@ void RtpSession::Stop()
 {
 	if(m_started)
 	{
-		LOG4CXX_DEBUG(m_log, m_capturePort + " Session stop");
+		LOG4CXX_INFO(m_log, m_capturePort + " Session stop");
 		CaptureEventRef stopEvent(new CaptureEvent);
 		stopEvent->m_type = CaptureEvent::EtStop;
 		stopEvent->m_timestamp = time(NULL);
@@ -58,7 +58,7 @@ void RtpSession::Stop()
 void RtpSession::Start()
 {
 	m_started = true;
-	LOG4CXX_DEBUG(m_log, m_capturePort + " " + ProtocolToString(m_protocol) + " Session start");
+	LOG4CXX_INFO(m_log, m_capturePort + " " + ProtocolToString(m_protocol) + " Session start");
 	m_rtpRingBuffer.SetCapturePort(m_capturePort);
 	CaptureEventRef startEvent(new CaptureEvent);
 	startEvent->m_type = CaptureEvent::EtStart;
@@ -601,13 +601,13 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 			mergerSession = session2;
 			mergeeSession = session1;		
 		}
-		if(m_log->isDebugEnabled())
+		if(m_log->isInfoEnabled())
 		{
 			CStdString debug;
 			debug.Format("Merging session % with callid:%s into session %s with callid:%s",
 				mergeeSession->m_ipAndPort, mergeeSession->m_callId,
 				mergerSession->m_ipAndPort, mergerSession->m_callId);
-			LOG4CXX_DEBUG(m_log, debug);
+			LOG4CXX_INFO(m_log, debug);
 		}
 		Stop(mergeeSession);
 	}
