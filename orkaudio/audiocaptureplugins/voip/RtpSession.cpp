@@ -648,7 +648,7 @@ void RtpSessions::Hoover(time_t now)
 	for (std::list<RtpSessionRef>::iterator it = toDismiss.begin(); it != toDismiss.end() ; it++)
 	{
 		RtpSessionRef session = *it;
-		LOG4CXX_DEBUG(m_log,  session->m_trackingId + ": " + session->m_ipAndPort + " Expired");
+		LOG4CXX_INFO(m_log,  session->m_trackingId + ": " + session->m_ipAndPort + " Expired");
 		Stop(session);
 	}
 
@@ -667,8 +667,18 @@ void RtpSessions::Hoover(time_t now)
 	for (std::list<RtpSessionRef>::iterator it2 = toDismiss.begin(); it2 != toDismiss.end() ; it2++)
 	{
 		RtpSessionRef session = *it2;
-		LOG4CXX_DEBUG(m_log,  session->m_trackingId + ": " + session->m_ipAndPort + " Expired");
+		LOG4CXX_INFO(m_log,  session->m_trackingId + ": " + session->m_ipAndPort + " Expired");
 		Stop(session);
 	}
 }
+
+//==========================================================
+void SipInviteInfo::ToString(CStdString& string)
+{
+	char fromIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_fromIp, fromIp, sizeof(fromIp));
+
+	string.Format("from:%s %s,%s to:%s callid:%s", m_from, fromIp, m_fromRtpPort, m_to, m_callId);
+}
+
 

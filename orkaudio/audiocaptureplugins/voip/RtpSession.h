@@ -23,6 +23,8 @@
 class SipInviteInfo
 {
 public:
+	void ToString(CStdString& string);
+
 	struct in_addr m_fromIp;
 	CStdString m_fromRtpPort;
 	CStdString m_from;
