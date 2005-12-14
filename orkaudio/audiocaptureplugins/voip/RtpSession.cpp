@@ -28,8 +28,9 @@ extern VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
 
 
-RtpSession::RtpSession()
+RtpSession::RtpSession(CStdString& trackingId)
 {
+	m_trackingId = trackingId;
 	m_lastUpdated = time(NULL);
 	m_log = Logger::getLogger("rtpsession");
 	m_invitorIp.s_addr = 0;
@@ -47,7 +48,7 @@ void RtpSession::Stop()
 {
 	if(m_started)
 	{
-		LOG4CXX_INFO(m_log, m_capturePort + " Session stop");
+		LOG4CXX_INFO(m_log, m_trackingId + ": " + m_capturePort + " Session stop");
 		CaptureEventRef stopEvent(new CaptureEvent);
 		stopEvent->m_type = CaptureEvent::EtStop;
 		stopEvent->m_timestamp = time(NULL);
@@ -58,7 +59,7 @@ void RtpSession::Stop()
 void RtpSession::Start()
 {
 	m_started = true;
-	LOG4CXX_INFO(m_log, m_capturePort + " " + ProtocolToString(m_protocol) + " Session start");
+	LOG4CXX_INFO(m_log,  m_trackingId + ": " + m_capturePort + " " + ProtocolToString(m_protocol) + " Session start");
 	m_rtpRingBuffer.SetCapturePort(m_capturePort);
 	CaptureEventRef startEvent(new CaptureEvent);
 	startEvent->m_type = CaptureEvent::EtStart;
@@ -157,7 +158,7 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 	}
 	else
 	{
-		LOG4CXX_DEBUG(m_log, m_ipAndPort + " alien RTP packet");
+		LOG4CXX_ERROR(m_log,  m_trackingId + ": " + m_ipAndPort + " alien RTP packet");
 	}
 
 	// work out capture port and direction
@@ -264,7 +265,7 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		if(m_log->isInfoEnabled())
 		{
 			rtpPacket->ToString(logMsg);
-			logMsg = "1st packet s1: " + logMsg;
+			logMsg =  m_trackingId + ": " + "1st packet s1: " + logMsg;
 			LOG4CXX_INFO(m_log, logMsg);
 		}
 	}
@@ -282,7 +283,7 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 				if(m_log->isInfoEnabled())
 				{
 					rtpPacket->ToString(logMsg);
-					logMsg = "1st packet s2: " + logMsg;
+					logMsg =  m_trackingId + ": " + "1st packet s2: " + logMsg;
 					LOG4CXX_INFO(m_log, logMsg);
 				}
 			}
@@ -302,7 +303,7 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 				if(m_log->isDebugEnabled())
 				{
 					CStdString timestampOffsetString = IntToString(timestampOffset);
-					LOG4CXX_DEBUG(m_log, m_capturePort + ": " + "Applying timestamp corrective offset:" + timestampOffsetString);
+					LOG4CXX_DEBUG(m_log,  m_trackingId + ": " + m_capturePort + ": " + "Applying timestamp corrective offset:" + timestampOffsetString);
 				}
 			}
 		}
@@ -316,7 +317,7 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	if(m_log->isDebugEnabled())
 	{
 		CStdString debug;
-		debug.Format("%s: Add RTP packet ts:%u arrival:%u", m_capturePort, rtpPacket->m_timestamp, rtpPacket->m_arrivalTimestamp);
+		debug.Format("%s: %s: Add RTP packet ts:%u arrival:%u", m_trackingId, m_capturePort, rtpPacket->m_timestamp, rtpPacket->m_arrivalTimestamp);
 		LOG4CXX_DEBUG(m_log, debug);
 	}
 
@@ -413,7 +414,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	}
 
 	// create new session and insert into both maps
-	RtpSessionRef session(new RtpSession());
+	RtpSessionRef session(new RtpSession(alphaCounter.GetNext()));
 	session->m_ipAndPort = ipAndPort;
 	session->m_callId = invite->m_callId;
 	session->m_protocol = RtpSession::ProtSip;
@@ -448,7 +449,7 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo)
 	}
 
 	// create new session and insert into the callid map
-	RtpSessionRef session(new RtpSession());
+	RtpSessionRef session(new RtpSession(alphaCounter.GetNext()));
 	session->m_callId = callId;
 	session->m_protocol = RtpSession::ProtSkinny;
 	switch(callInfo->callType)
@@ -604,9 +605,9 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		if(m_log->isInfoEnabled())
 		{
 			CStdString debug;
-			debug.Format("Merging session % with callid:%s into session %s with callid:%s",
-				mergeeSession->m_ipAndPort, mergeeSession->m_callId,
-				mergerSession->m_ipAndPort, mergerSession->m_callId);
+			debug.Format("Merging session %s %s with callid:%s into session %s %s with callid:%s",
+				mergeeSession->m_trackingId, mergeeSession->m_ipAndPort, mergeeSession->m_callId,
+				mergerSession->m_trackingId, mergerSession->m_ipAndPort, mergerSession->m_callId);
 			LOG4CXX_INFO(m_log, debug);
 		}
 		Stop(mergeeSession);
@@ -615,7 +616,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	if(numSessionsFound == 0)
 	{
 		// create new Raw RTP session and insert into IP+Port map
-		RtpSessionRef session(new RtpSession());
+		RtpSessionRef session(new RtpSession(alphaCounter.GetNext()));
 		session->m_protocol = RtpSession::ProtRawRtp;
 		session->m_ipAndPort = ipAndPort;
 		m_byIpAndPort.insert(std::make_pair(ipAndPort, session));
@@ -644,7 +645,7 @@ void RtpSessions::Hoover(time_t now)
 	for (std::list<RtpSessionRef>::iterator it = toDismiss.begin(); it != toDismiss.end() ; it++)
 	{
 		RtpSessionRef session = *it;
-		LOG4CXX_DEBUG(m_log, session->m_ipAndPort + " Expired");
+		LOG4CXX_DEBUG(m_log,  session->m_trackingId + ": " + session->m_ipAndPort + " Expired");
 		Stop(session);
 	}
 
@@ -663,7 +664,7 @@ void RtpSessions::Hoover(time_t now)
 	for (std::list<RtpSessionRef>::iterator it2 = toDismiss.begin(); it2 != toDismiss.end() ; it2++)
 	{
 		RtpSessionRef session = *it2;
-		LOG4CXX_DEBUG(m_log, session->m_ipAndPort + " Expired");
+		LOG4CXX_DEBUG(m_log,  session->m_trackingId + ": " + session->m_ipAndPort + " Expired");
 		Stop(session);
 	}
 }
