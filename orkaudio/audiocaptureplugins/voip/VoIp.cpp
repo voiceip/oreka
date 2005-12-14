@@ -210,7 +210,7 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 			GrabToken(callIdField, info.m_callId);
 			RtpSessionsSingleton::instance()->ReportSipBye(info);
 		}
-		LOG4CXX_DEBUG(s_sipPacketLog, "SIP BYE");
+		LOG4CXX_INFO(s_sipPacketLog, "BYE: callid:" + info.m_callId);
 	}
 	return result;
 }
@@ -238,7 +238,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			{
 				CStdString from;
 				GrabLine(fromField, sipEnd, from);
-				s_sipExtractionLog->forcedLog(Level::DEBUG, "from: " + from);
+				LOG4CXX_DEBUG(s_sipExtractionLog, "from: " + from);
 			}
 
 			char* fromFieldEnd = memFindEOL(fromField, sipEnd);
@@ -261,7 +261,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			{
 				CStdString to;
 				toFieldEnd = GrabLine(toField, sipEnd, to);
-				s_sipExtractionLog->forcedLog(Level::DEBUG, "to: " + to);
+				LOG4CXX_DEBUG(s_sipExtractionLog, "to: " + to);
 			}
 
 			char* sipUser = memFindAfter("sip:", toField, toFieldEnd);
@@ -286,7 +286,10 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			info->m_fromIp = ipHeader->ip_src;
 			RtpSessionsSingleton::instance()->ReportSipInvite(info);
 		}
-		LOG4CXX_DEBUG(s_sipPacketLog, "SIP INVITE");
+		CStdString logMsg;
+		info->ToString(logMsg);
+		logMsg = "INVITE: " + logMsg;
+		LOG4CXX_INFO(s_sipPacketLog, logMsg);
 	}
 	return result;
 }
