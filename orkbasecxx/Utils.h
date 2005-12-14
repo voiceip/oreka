@@ -19,6 +19,8 @@
 							//	error C2039: 'TryEnterCriticalSection' : is not a member of '`global namespace''
 							// If seeing this error somewhere, the remedy is to #include "Utils.h" first
 #include "ace/Thread_Mutex.h"
+#include "ace/OS_NS_stdlib.h"
+#include "ace/OS_NS_time.h"
 #include "StdString.h"
 
 #include "OrkBase.h"
@@ -92,6 +94,48 @@ inline CStdString StripFileExtension(CStdString& filename)
 }
 
 typedef ACE_Guard<ACE_Thread_Mutex> MutexSentinel;
+
+/** A counter that generates a "counting" 3 character strings, i.e. aaa, aab, ..., zzz 
+	that represents a number between 0 and 26^3-1 (wrapping counter)
+	and starts at a random location in this range.
+	useful for generating debugging IDs
+*/
+class AlphaCounter
+{
+public:
+	inline AlphaCounter::AlphaCounter()
+	{
+		// Generate pseudo-random number from high resolution time least significant two bytes
+		ACE_hrtime_t hrtime = ACE_OS::gethrtime();
+		unsigned short srandom = (short)hrtime;
+		double drandom = (double)srandom/65536.0; 	// 0 <= random < 1 
+
+		m_counter = (unsigned int)(drandom*(26*26*26));
+	}
+
+	inline CStdString AlphaCounter::GetNext()
+	{
+		m_counter++;
+		if(m_counter >= (26*26*26) )
+		{
+			m_counter = 0;
+		}
+		unsigned int char1val = m_counter/(26*26);
+		unsigned int remains = m_counter%(26*26);
+		unsigned int char2val = remains/26;
+		unsigned int char3val = remains%26;
+
+		char1val += 65;
+		char2val += 65;
+		char3val += 65;
+
+		CStdString string;
+		string.Format("%c%c%c", char1val, char2val, char3val);
+		return string;
+	}
+private:
+	unsigned int m_counter;
+};
 
 #endif
 

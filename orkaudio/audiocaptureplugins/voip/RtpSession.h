@@ -74,12 +74,13 @@ public:
 	static int ProtocolToEnum(CStdString& protocol);
 	static CStdString ProtocolToString(int protocolEnum);
 
-	RtpSession();
+	RtpSession(CStdString& trackingId);
 	void Stop();
 	void Start();
 	void AddRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void ReportSipInvite(SipInviteInfoRef& invite);
 
+	CStdString m_trackingId;
 	CStdString m_ipAndPort;	// IP address and TCP port of one side of the session, serves as a key for session storage and retrieval. Not necessarily the same as the capturePort (capturePort is usually the client (phone) IP+port)
 	CStdString m_callId;
 	SipInviteInfoRef m_invite;
@@ -117,7 +118,6 @@ class RtpSessions
 {
 public:
 	RtpSessions();
-	void Create(CStdString& ipAndPort);
 	void Stop(RtpSessionRef& session);
 	void ReportSipInvite(SipInviteInfoRef& invite);
 	void ReportSipBye(SipByeInfo bye);
@@ -130,6 +130,7 @@ private:
 	std::map<CStdString, RtpSessionRef> m_byIpAndPort;
 	std::map<CStdString, RtpSessionRef> m_byCallId;
 	LoggerPtr m_log;
+	AlphaCounter alphaCounter;
 };
 typedef ACE_Singleton<RtpSessions, ACE_Thread_Mutex> RtpSessionsSingleton;
 
