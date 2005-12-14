@@ -414,7 +414,8 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	}
 
 	// create new session and insert into both maps
-	RtpSessionRef session(new RtpSession(alphaCounter.GetNext()));
+	CStdString trackingId = alphaCounter.GetNext();
+	RtpSessionRef session(new RtpSession(trackingId));
 	session->m_ipAndPort = ipAndPort;
 	session->m_callId = invite->m_callId;
 	session->m_protocol = RtpSession::ProtSip;
@@ -449,7 +450,8 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo)
 	}
 
 	// create new session and insert into the callid map
-	RtpSessionRef session(new RtpSession(alphaCounter.GetNext()));
+	CStdString trackingId = alphaCounter.GetNext();
+	RtpSessionRef session(new RtpSession(trackingId));
 	session->m_callId = callId;
 	session->m_protocol = RtpSession::ProtSkinny;
 	switch(callInfo->callType)
@@ -616,7 +618,8 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	if(numSessionsFound == 0)
 	{
 		// create new Raw RTP session and insert into IP+Port map
-		RtpSessionRef session(new RtpSession(alphaCounter.GetNext()));
+		CStdString trackingId = alphaCounter.GetNext();
+		RtpSessionRef session(new RtpSession(trackingId));
 		session->m_protocol = RtpSession::ProtRawRtp;
 		session->m_ipAndPort = ipAndPort;
 		m_byIpAndPort.insert(std::make_pair(ipAndPort, session));
