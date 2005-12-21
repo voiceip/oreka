@@ -35,7 +35,7 @@ public class OrkTrack {
 
 	public static final String APP_NAME = "OrkTrack";
 	
-	public static HibernateManager hibernateManager = new HibernateManager();
+	public static HibernateManager hibernateManager = HibernateManager.instance();
 	private static Date lastInMemoryObjectsSync = new Date(0);
 	
 	static Logger logger = Logger.getLogger(OrkTrack.class);
