@@ -74,7 +74,7 @@ public class DomSerializerTest extends TestCase {
 		
 		DomSerializer ser = new DomSerializer();
 		ser.serialize(doc, docNode, tnm);
-		//System.out.println(DomSerializer.NodeToString(doc));
+		System.out.println(DomSerializer.nodeToByteArray(doc).toString());
 		OrkObject obj = ser.deSerialize(docNode);	
 		assertTrue(((TestNestedMessage)obj).getDoubleParm() == 0.666);
 		assertTrue(((TestNestedMessage)obj).getSubMsg().getStringSubParm() == "le maure");
