@@ -113,7 +113,7 @@ public class OrkTest {
 //		System.out.println(DomSerializer.NodeToString(doc));
 		
 		ser.serialize(doc, el, msg);
-		System.out.println(DomSerializer.NodeToString(doc));
+		System.out.println(DomSerializer.nodeToByteArray(doc).toString());
 		
 		TestNestedMessage tnm = new TestNestedMessage();
 		TestSubMessage tsm = tnm.getSubMsg();

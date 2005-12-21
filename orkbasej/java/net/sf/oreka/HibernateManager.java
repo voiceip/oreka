@@ -43,8 +43,19 @@ import org.logicalcobwebs.proxool.ProxoolFacade;
 
 public class HibernateManager {
 	
+	private static HibernateManager hibernateManager = null;
 	private SessionFactory sessionFactory = null;
 	static Logger logger = Logger.getLogger(HibernateManager.class);
+	
+	private HibernateManager() {
+	}
+	
+	public static HibernateManager instance() {
+		if(hibernateManager == null) {
+			hibernateManager = new HibernateManager();
+		}
+		return hibernateManager;
+	}
 	
 	public void configure(String filename) throws Exception {
 		

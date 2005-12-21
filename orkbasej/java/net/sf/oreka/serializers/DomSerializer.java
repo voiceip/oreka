@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -164,23 +165,16 @@ public class DomSerializer extends OrkSerializer {
 		return null;
 	}
 
-	public static String NodeToString(Node node) {
+	public static byte[] nodeToByteArray(Node node) throws TransformerException {
 	
-		String result = null;
 		TransformerFactory xformerFactory = TransformerFactory.newInstance();
-		try {
-			Transformer xformer = xformerFactory.newTransformer();
-			xformer.setOutputProperty("indent", "yes");
-			ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-			Result output = new StreamResult(byteArray);
-			DOMSource source = new DOMSource(node);
-			xformer.transform(source,output);
-			result = byteArray.toString();
-		}
-		catch (Exception e) {
-			;
-		}
-		return result;
+		Transformer xformer = xformerFactory.newTransformer();
+		xformer.setOutputProperty("indent", "yes");
+		ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+		Result output = new StreamResult(byteArray);
+		DOMSource source = new DOMSource(node);
+		xformer.transform(source,output);
+		return byteArray.toByteArray();
 	}
 	
 }

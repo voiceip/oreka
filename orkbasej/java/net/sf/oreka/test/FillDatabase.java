@@ -29,7 +29,7 @@ import org.hibernate.Transaction;
 
 public class FillDatabase {
 
-	static HibernateManager hibernateManager = new HibernateManager();
+	static HibernateManager hibernateManager = HibernateManager.instance();
 	
 	public static void main(String args[]) throws Exception
 	{

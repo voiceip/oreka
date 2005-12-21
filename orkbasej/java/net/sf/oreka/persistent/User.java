@@ -26,7 +26,7 @@ import javax.persistence.Id;
 @Entity
 public class User {
 	
-	private int id;
+	private int id = 0;
 	private String password = "";
 	private String firstname = "";
 	private String lastname = "";
