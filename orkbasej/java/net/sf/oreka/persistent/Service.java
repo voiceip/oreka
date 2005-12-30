@@ -16,6 +16,8 @@
  */
 package net.sf.oreka.persistent;
 
+import java.io.Serializable;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratorType;
 import javax.persistence.Id;
@@ -26,7 +28,7 @@ import net.sf.oreka.ServiceClass;
  * @hibernate.class
  */
 @Entity
-public class Service {
+public class Service implements Serializable {
 	
 	private int id;
 	private String name = "";

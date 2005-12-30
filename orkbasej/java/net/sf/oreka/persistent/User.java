@@ -16,21 +16,35 @@
  */
 package net.sf.oreka.persistent;
 
+import java.io.Serializable;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratorType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 /**
  * @hibernate.class
  */
 @Entity
-public class User {
+public class User implements Serializable {
 	
 	private int id = 0;
 	private String password = "";
 	private String firstname = "";
 	private String lastname = "";
 	private String email = "";
+	private boolean deleted = false;
+	private boolean disabled = false;
+	private Date dateCreated = new Date(0);
+	private Date dateDisabled = new Date(0);
+	private Date dateDeleted = new Date(0);
+	
+	private Set<LoginString> loginStrings;
 	  
 	/**
 	 * @hibernate.property
@@ -128,6 +142,79 @@ public class User {
 	 * 
 	 */
 	public User() {
+		loginStrings = new HashSet<LoginString>();
 	}
+
+	@OneToMany(fetch = FetchType.EAGER)
+	public Set<LoginString> getLoginStrings() {
+		return loginStrings;
+	}
+	
+
+
+	public void setLoginStrings(Set<LoginString> loginStrings) {
+		this.loginStrings = loginStrings;
+	}
+
+
+	public Date getDateCreated() {
+		return dateCreated;
+	}
+	
+
+
+	public void setDateCreated(Date dateCreated) {
+		this.dateCreated = dateCreated;
+	}
+	
+
+
+	public Date getDateDeleted() {
+		return dateDeleted;
+	}
+	
+
+
+	public void setDateDeleted(Date dateDeleted) {
+		this.dateDeleted = dateDeleted;
+	}
+	
+
+
+	public Date getDateDisabled() {
+		return dateDisabled;
+	}
+	
+
+
+	public void setDateDisabled(Date dateDisabled) {
+		this.dateDisabled = dateDisabled;
+	}
+	
+
+
+	public boolean isDeleted() {
+		return deleted;
+	}
+	
+
+
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
+	}
+	
+
+
+	public boolean isDisabled() {
+		return disabled;
+	}
+	
+
+
+	public void setDisabled(boolean disabled) {
+		this.disabled = disabled;
+	}
+	
+	
 	
 }

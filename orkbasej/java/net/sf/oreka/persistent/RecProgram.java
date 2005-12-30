@@ -16,6 +16,7 @@
  */
 package net.sf.oreka.persistent;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
@@ -37,7 +38,7 @@ import net.sf.oreka.Direction;
  * @hibernate.class
  */
 @Entity
-public class RecProgram {
+public class RecProgram implements Serializable {
 
 	private int id;
 	private String name = "";

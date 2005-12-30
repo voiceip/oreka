@@ -13,6 +13,7 @@
 
 package net.sf.oreka.persistent;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Entity;
@@ -27,7 +28,7 @@ import net.sf.oreka.Direction;
  * @hibernate.class
  */
 @Entity
-public class RecTape {
+public class RecTape implements Serializable {
 	
 	private int id;
 	private Date timestamp = new Date(0);

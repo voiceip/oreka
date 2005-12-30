@@ -16,6 +16,8 @@
  */
 package net.sf.oreka.persistent;
 
+import java.io.Serializable;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratorType;
 import javax.persistence.Id;
@@ -25,7 +27,7 @@ import javax.persistence.ManyToOne;
  * @hibernate.class
  */
 @Entity
-public class LoginString {
+public class LoginString implements Serializable {
 
 	private int id;
 	private String loginString;
@@ -104,6 +106,10 @@ public class LoginString {
 		this.user = user;
 	}
 	
+	public void bidirSetUser(User user) {
+		this.user = user;
+		user.getLoginStrings().add(this);
+	}
 
 	/**
 	 * 
