@@ -57,6 +57,7 @@ public class FillDatabase {
 		
 		// create program that does not filter anything
 		RecProgram prog1 = new RecProgram();
+		prog1.setName("Test program");
 		hbnSession.save(prog1);
 		
 		// Create a bunch of segments

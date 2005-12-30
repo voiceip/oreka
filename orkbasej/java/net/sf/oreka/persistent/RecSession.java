@@ -13,6 +13,7 @@
 
 package net.sf.oreka.persistent;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Entity;
@@ -24,7 +25,7 @@ import javax.persistence.Transient;
  * @hibernate.class
  */
 @Entity
-public class RecSession {
+public class RecSession implements Serializable {
 	private int id;
 	private Date timestamp = new Date(0);
 	private long duration;

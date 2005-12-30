@@ -107,6 +107,8 @@ public class HibernateManager {
 			if(admin == null) {
 				admin = new User();
 				admin.setPassword("admin");
+				admin.setFirstname("adminfn");
+				admin.setLastname("adminln");
 				LoginString ls = new LoginString();
 				ls.setUser(admin);
 				ls.setLoginString("admin");

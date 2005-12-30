@@ -13,12 +13,14 @@
 
 package net.sf.oreka.persistent;
 
+import java.io.Serializable;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 @Entity
-public class RecPortFace {
+public class RecPortFace implements Serializable {
 
 	private RecPort recPort;
 	private Service service;

@@ -1,14 +1,29 @@
 package net.sf.oreka.bo;
 
+import java.io.Serializable;
+import java.util.Iterator;
+
+import net.sf.oreka.persistent.LoginString;
+import net.sf.oreka.persistent.User;
+
 import org.apache.log4j.Logger;
 
-import net.sf.oreka.persistent.User;
-import net.sf.oreka.srvc.UserServiceHbn;
-
-public class UserBo {
+public class UserBo implements Serializable {
 	
 	static Logger logger = Logger.getLogger(UserBo.class);	
 	private User user = new User();
+	
+	private boolean selected = false;
+
+	public boolean isSelected() {
+		return selected;
+	}
+	
+
+	public void setSelected(boolean selected) {
+		this.selected = selected;
+	}
+	
 
 	public boolean isAdmin() {
 		
@@ -27,6 +42,19 @@ public class UserBo {
 
 	public void setUser(User user) {
 		this.user = user;
+	}
+	
+	public String getLoginStringsCsv() {
+	
+		String loginStringsCsv = "";
+		Iterator it = user.getLoginStrings().iterator();
+		if(it.hasNext()) {
+			loginStringsCsv = ((LoginString)it.next()).getLoginString();
+		}
+		while(it.hasNext()) {
+			loginStringsCsv += ", " + ((LoginString)it.next()).getLoginString();
+		}
+		return loginStringsCsv;
 	}
 	
 }

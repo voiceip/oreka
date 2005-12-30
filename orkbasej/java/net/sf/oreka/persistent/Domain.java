@@ -15,6 +15,8 @@
  * 
  */
 package net.sf.oreka.persistent;
+import java.io.Serializable;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratorType;
 import javax.persistence.Id;
@@ -23,7 +25,7 @@ import javax.persistence.Id;
  * @hibernate.class
  */
 @Entity
-public class Domain {
+public class Domain implements Serializable {
 
 	private int id;
 	private String name = "";

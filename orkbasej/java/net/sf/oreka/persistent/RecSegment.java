@@ -13,6 +13,7 @@
 
 package net.sf.oreka.persistent;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -33,7 +34,7 @@ import net.sf.oreka.Direction;
  * @hibernate.class
  */
 @Entity
-public class RecSegment {
+public class RecSegment implements Serializable {
 	
 	private int id;
 	private RecSession recSession;
