@@ -15,11 +15,13 @@ import net.sf.oreka.persistent.User;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.Expression;
 
 public class UserServiceHbn implements UserService {
 
@@ -127,7 +129,7 @@ public class UserServiceHbn implements UserService {
 			// figure out total number of users returned
 			ScrollableResults scrollRes = crit.scroll();
 			if ( scrollRes.last() ) {
-				numResults = scrollRes.getRowNumber()+1;
+				numResults = scrollRes.getRowNumber();
 			}
 			
 			// get only one page worth of users
@@ -148,7 +150,7 @@ public class UserServiceHbn implements UserService {
 			
 			ScrollableResults scrollRes = query.scroll();
 			if ( scrollRes.last() ) {
-				numResults = scrollRes.getRowNumber()+1;
+				numResults = scrollRes.getRowNumber();
 			}
 			
 			// get only one page worth of users		
@@ -388,5 +390,38 @@ public class UserServiceHbn implements UserService {
 			if(hbnSession != null) {hbnSession.close();}
 		}	
 		return loginStringsCsv;
+	}
+
+	public int getNumNonDisabledUsers() {
+		
+		Session hbnSession = null;
+		int numUsers = 0;
+		
+		try
+		{
+			hbnSession = HibernateManager.instance().getSession();
+
+			Criteria crit = hbnSession.createCriteria(User.class);
+			crit.add( Expression.eq( "disabled", false ) );
+			crit.add( Expression.eq( "deleted", false ) );			
+			
+			// figure out total number of objects returned
+			ScrollableResults scrollRes = crit.scroll();
+			if ( scrollRes.last() ) {
+				numUsers = scrollRes.getRowNumber();
+			}
+		}
+		catch ( HibernateException he ) {
+			logger.error("getNumNonDisabledUsers: exception:" + he.getClass().getName());
+		}
+		catch (Exception e)
+		{
+			logger.error("getNumNonDisabledUsers: exception:", e);
+		}
+		finally {
+			if(hbnSession != null) {hbnSession.close();}
+		}
+		
+		return numUsers;
 	}
 }
