@@ -7,5 +7,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/hibernate-3.1beta1"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/hsqldb1.8.0.2"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/servlet"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/apache-commons"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

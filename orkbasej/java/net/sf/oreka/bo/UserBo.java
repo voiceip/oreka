@@ -44,17 +44,22 @@ public class UserBo implements Serializable {
 		this.user = user;
 	}
 	
-	public String getLoginStringsCsv() {
+//	public String getLoginStringsCsv() {
+//	
+//		String loginStringsCsv = "";
+//		Iterator it = user.getLoginStrings().iterator();
+//		if(it.hasNext()) {
+//			loginStringsCsv = ((LoginString)it.next()).getLoginString();
+//		}
+//		while(it.hasNext()) {
+//			loginStringsCsv += ", " + ((LoginString)it.next()).getLoginString();
+//		}
+//		return loginStringsCsv;
+//	}
 	
-		String loginStringsCsv = "";
-		Iterator it = user.getLoginStrings().iterator();
-		if(it.hasNext()) {
-			loginStringsCsv = ((LoginString)it.next()).getLoginString();
-		}
-		while(it.hasNext()) {
-			loginStringsCsv += ", " + ((LoginString)it.next()).getLoginString();
-		}
-		return loginStringsCsv;
+	public void setLoginStringsCsv() {
+		
+		
 	}
 	
 }

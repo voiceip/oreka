@@ -44,7 +44,7 @@ public class User implements Serializable {
 	private Date dateDisabled = new Date(0);
 	private Date dateDeleted = new Date(0);
 	
-	private Set<LoginString> loginStrings;
+	//private Set<LoginString> loginStrings;
 	  
 	/**
 	 * @hibernate.property
@@ -142,19 +142,19 @@ public class User implements Serializable {
 	 * 
 	 */
 	public User() {
-		loginStrings = new HashSet<LoginString>();
+		//loginStrings = new HashSet<LoginString>();
 	}
 
-	@OneToMany(fetch = FetchType.EAGER)
-	public Set<LoginString> getLoginStrings() {
-		return loginStrings;
-	}
-	
-
-
-	public void setLoginStrings(Set<LoginString> loginStrings) {
-		this.loginStrings = loginStrings;
-	}
+//	@OneToMany(fetch = FetchType.EAGER)
+//	public Set<LoginString> getLoginStrings() {
+//		return loginStrings;
+//	}
+//	
+//
+//
+//	public void setLoginStrings(Set<LoginString> loginStrings) {
+//		this.loginStrings = loginStrings;
+//	}
 
 
 	public Date getDateCreated() {
