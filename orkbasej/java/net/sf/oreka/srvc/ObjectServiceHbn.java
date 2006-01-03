@@ -4,7 +4,9 @@ import net.sf.oreka.HibernateManager;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
+import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -63,5 +65,36 @@ public class ObjectServiceHbn implements ObjectService {
 		finally {
 			if(hbnSession != null) {hbnSession.close();}
 		}
+	}
+	
+	public int getNumObjects(java.lang.Class cl) {
+		
+		Session hbnSession = null;
+		int numObjets = 0;
+		
+		try
+		{
+			hbnSession = HibernateManager.instance().getSession();
+
+			Criteria crit = hbnSession.createCriteria(cl);
+			
+			// figure out total number of objects returned
+			ScrollableResults scrollRes = crit.scroll();
+			if ( scrollRes.last() ) {
+				numObjets = scrollRes.getRowNumber();
+			}
+		}
+		catch ( HibernateException he ) {
+			logger.error("getNumObjects: exception:" + he.getClass().getName());
+		}
+		catch (Exception e)
+		{
+			logger.error("getNumObjects: exception:", e);
+		}
+		finally {
+			if(hbnSession != null) {hbnSession.close();}
+		}
+		
+		return numObjets;
 	}
 }

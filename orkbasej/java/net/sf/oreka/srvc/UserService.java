@@ -17,4 +17,6 @@ public interface UserService {
 	
 	public String getUserLoginStrings(int userId);
 	public void setUserLoginStrings(int userId, String loginStringsCsv);
+	
+	public int getNumNonDisabledUsers();
 }
