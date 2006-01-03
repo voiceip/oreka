@@ -106,11 +106,20 @@ public class LoginString implements Serializable {
 		this.user = user;
 	}
 	
-	public void bidirSetUser(User user) {
-		this.user = user;
-		user.getLoginStrings().add(this);
-	}
-
+//	public void bidirSetUser(User user) {
+//		this.user = user;
+//		if(user != null) {
+//			user.getLoginStrings().add(this);
+//		}
+//	}
+//
+//	public void bidirRemoveUser(User user) {
+//		this.user = null;
+//		if(user != null) {
+//			user.getLoginStrings().remove(this);
+//		}
+//	}
+	
 	/**
 	 * 
 	 */

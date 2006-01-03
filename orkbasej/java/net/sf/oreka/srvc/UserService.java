@@ -14,4 +14,7 @@ public interface UserService {
 
 	public void deleteUser(int userId);
 	public void disableUser(int userId);
+	
+	public String getUserLoginStrings(int userId);
+	public void setUserLoginStrings(int userId, String loginStringsCsv);
 }

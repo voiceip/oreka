@@ -36,12 +36,14 @@ public class FillDatabaseUser {
 				
 				LoginString ls = new LoginString();
 				ls.setLoginString("ls" + i);
-				ls.bidirSetUser(user);
+				//ls.bidirSetUser(user);
+				ls.setUser(user);
 				hbnSession.save(ls);
 				
 				LoginString ls2 = new LoginString();
 				ls2.setLoginString("ls2" + i);
-				ls2.bidirSetUser(user);
+				//ls2.bidirSetUser(user);
+				ls2.setUser(user);
 				hbnSession.save(ls2);
 				
 			}
