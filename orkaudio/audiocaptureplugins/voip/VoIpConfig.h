@@ -43,6 +43,7 @@ public:
 	std::list<CStdString> m_asciiMediaGateways;
 	std::list<unsigned int> m_lanMasks;
 	std::list<CStdString> m_asciiLanMasks;
+	CStdString m_pcapFile;
 };
 
 //========================================
