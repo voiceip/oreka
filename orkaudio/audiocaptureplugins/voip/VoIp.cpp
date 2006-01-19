@@ -42,7 +42,7 @@ static LoggerPtr s_rtpPacketLog;
 static LoggerPtr s_sipPacketLog;
 static LoggerPtr s_skinnyPacketLog;
 static LoggerPtr s_sipExtractionLog;
-time_t lastHooveringTime;
+time_t s_lastHooveringTime;
 
 static ACE_Thread_Mutex s_mutex;
 
@@ -404,9 +404,9 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	}
 
 	time_t now = time(NULL);
-	if((now - lastHooveringTime) > 5)
+	if((now - s_lastHooveringTime) > 5)
 	{
-		lastHooveringTime = now;
+		s_lastHooveringTime = now;
 		RtpSessionsSingleton::instance()->Hoover(now);
 	}
 }
@@ -439,6 +439,9 @@ public:
 	void StartCapture(CStdString& port);
 	void StopCapture(CStdString& port);
 private:
+	void OpenDevices();
+	void OpenPcapFile(CStdString& filename);
+
 	pcap_t* m_pcapHandle;
 	std::list<pcap_t*> m_pcapHandles;
 };
@@ -471,26 +474,34 @@ void Configure(DOMNode* node)
 	}
 }
 
-
-void VoIp::Initialize()
+void VoIp::OpenPcapFile(CStdString& filename)
 {
-	s_packetLog = Logger::getLogger("packet");
-	s_rtpPacketLog = Logger::getLogger("packet.rtp");
-	s_sipPacketLog = Logger::getLogger("packet.sip");
-	s_skinnyPacketLog = Logger::getLogger("packet.skinny");
+	CStdString logMsg;
 
-	s_sipExtractionLog = Logger::getLogger("sipextraction");
-	LOG4CXX_INFO(s_packetLog, "Initializing VoIP plugin");
+	LOG4CXX_INFO(s_packetLog, CStdString("Replaying pcap capture file:") + filename);
 
-	// create a default config object in case it was not properly initialized by Configure
-	if(!g_VoIpConfigTopObjectRef.get())
+	// Open device
+	char * error = NULL;
+
+	if ((m_pcapHandle = pcap_open_offline((PCSTR)filename , error)) == NULL)
 	{
-		g_VoIpConfigTopObjectRef.reset(new VoIpConfigTopObject);
+		LOG4CXX_ERROR(s_packetLog, "pcap error when opening file:" + filename + "; error message:" + error);
 	}
+	else
+	{
+		logMsg.Format("Successfully opened file. pcap handle:%x", m_pcapHandle);
+		LOG4CXX_INFO(s_packetLog, logMsg);
 
+		m_pcapHandles.push_back(m_pcapHandle);
+	}
+}
+
+
+void VoIp::OpenDevices()
+{
 	pcap_if_t* devices = NULL;
 	pcap_if_t* defaultDevice = NULL;
-	lastHooveringTime = time(NULL);
+	s_lastHooveringTime = time(NULL);
 
 	CStdString logMsg;
 
@@ -525,13 +536,13 @@ void VoIp::Initialize()
 					if ((m_pcapHandle = pcap_open_live(device->name, 1500, PROMISCUOUS,
 							500, error)) == NULL)
 					{
-						LOG4CXX_ERROR(s_packetLog, "pcap error when opening device");
+						LOG4CXX_ERROR(s_packetLog, CStdString("pcap error when opening device; error message:") + error);
 					}
 					else
 					{
 						CStdString logMsg;
 						logMsg.Format("Successfully opened device. pcap handle:%x", m_pcapHandle);
-						LOG4CXX_INFO(s_packetLog, "Successfully opened device");
+						LOG4CXX_INFO(s_packetLog, logMsg);
 
 						m_pcapHandles.push_back(m_pcapHandle);
 					}
@@ -572,7 +583,33 @@ void VoIp::Initialize()
 			LOG4CXX_ERROR(s_packetLog, CStdString("pcap could not find any device"));
 		}
 	}
+}
 
+
+void VoIp::Initialize()
+{
+	s_packetLog = Logger::getLogger("packet");
+	s_rtpPacketLog = Logger::getLogger("packet.rtp");
+	s_sipPacketLog = Logger::getLogger("packet.sip");
+	s_skinnyPacketLog = Logger::getLogger("packet.skinny");
+
+	s_sipExtractionLog = Logger::getLogger("sipextraction");
+	LOG4CXX_INFO(s_packetLog, "Initializing VoIP plugin");
+
+	// create a default config object in case it was not properly initialized by Configure
+	if(!g_VoIpConfigTopObjectRef.get())
+	{
+		g_VoIpConfigTopObjectRef.reset(new VoIpConfigTopObject);
+	}
+
+	if(DLLCONFIG.m_pcapFile.size() > 0)
+	{
+		OpenPcapFile(DLLCONFIG.m_pcapFile);
+	}
+	else
+	{
+		OpenDevices();
+	}
 }
 
 void VoIp::Run()
