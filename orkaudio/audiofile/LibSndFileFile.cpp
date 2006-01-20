@@ -68,10 +68,18 @@ void LibSndFileFile::Open(CStdString& filename, fileOpenModeEnum mode, bool ster
 
 void LibSndFileFile::WriteChunk(AudioChunkRef chunkRef)
 {
+	if(chunkRef.get() == NULL)
+	{
+		return;
+	}
+	if(chunkRef->GetDetails()->m_numBytes == 0)
+	{
+		return;
+	}
+
 	if (m_pFile)
 	{
-
-		if( chunkRef->m_encoding == AudioChunk::AlawAudio ||  chunkRef->m_encoding == AudioChunk::UlawAudio)
+		if( chunkRef->GetEncoding() == AlawAudio ||  chunkRef->GetEncoding() == UlawAudio)
 		{
 			if(sf_write_raw(m_pFile, chunkRef->m_pBuffer, chunkRef->GetNumSamples()) != chunkRef->GetNumSamples())
 			{
@@ -79,7 +87,7 @@ void LibSndFileFile::WriteChunk(AudioChunkRef chunkRef)
 				throw(CStdString("sf_write_raw failed, audio file " + m_filename + " could not be written after " + numChunksWrittenString + " chunks written"));
 			}
 		}
-		else if (chunkRef->m_encoding == AudioChunk::PcmAudio)
+		else if (chunkRef->GetEncoding() == PcmAudio)
 		{
 			if(sf_write_short(m_pFile, (short*)chunkRef->m_pBuffer, chunkRef->GetNumSamples()) != chunkRef->GetNumSamples())
 			{
@@ -103,7 +111,9 @@ int LibSndFileFile::ReadChunkMono(AudioChunkRef& chunk)
 		chunk.reset(new AudioChunk());
 		short temp[8000];
 		numRead = sf_read_short(m_pFile, temp, 8000);
-		chunk->SetBuffer(temp, sizeof(short)*numRead, AudioChunk::PcmAudio, 0, 0, m_sampleRate);
+		AudioChunkDetails details;
+		details.m_encoding = PcmAudio;
+		chunk->SetBuffer(temp, sizeof(short)*numRead, details);
 	}
 	else
 	{

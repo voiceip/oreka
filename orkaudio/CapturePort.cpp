@@ -74,7 +74,7 @@ void CapturePort::AddAudioChunk(AudioChunkRef chunkRef, bool remote)
 	}
 	else if (CONFIG.m_vad)
 	{
-		if(chunkRef->m_encoding == AudioChunk::PcmAudio)
+		if(chunkRef->GetEncoding() == PcmAudio)
 		{
 			if(m_vadUp)
 			{

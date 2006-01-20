@@ -90,6 +90,7 @@ public:
 	CStdString GetIdentifier();
 	CStdString GetPath();
 	AudioFileRef GetAudioFileRef();
+	bool IsReadyForBatchProcessing();
 
 	CStdString m_portId;
 	CStdString m_localParty;
@@ -116,6 +117,7 @@ private:
 	ACE_Thread_Mutex m_mutex;
 	StateEnum m_state;
 	bool m_shouldStop;
+	bool m_readyForBatchProcessing;
 };
 
 typedef boost::shared_ptr<AudioTape> AudioTapeRef;

@@ -10,6 +10,7 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
+#pragma warning( disable: 4786 )
 
 #include "ImmediateProcessing.h"
 #include "LogManager.h"
@@ -58,7 +59,7 @@ void ImmediateProcessing::ThreadHandler(void *args)
 			
 				audioTapeRef->Write();
 
-				if (audioTapeRef->IsStoppedAndValid())
+				if (audioTapeRef->IsReadyForBatchProcessing())
 				{
 					// Forward to batch processing thread
 					BatchProcessing::GetInstance()->AddAudioTape(audioTapeRef);

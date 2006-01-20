@@ -17,6 +17,7 @@
 #include "ace/OS_NS_unistd.h"
 #include "audiofile/LibSndFileFile.h"
 #include "Daemon.h"
+#include "Filter.h"
 
 BatchProcessing BatchProcessing::m_batchProcessingSingleton;
 
@@ -42,6 +43,8 @@ void BatchProcessing::AddAudioTape(AudioTapeRef audioTapeRef)
 
 void BatchProcessing::ThreadHandler(void *args)
 {
+	CStdString debug;
+
 	BatchProcessing* pBatchProcessing = BatchProcessing::GetInstance();
 	int threadId = 0;
 	{
@@ -55,6 +58,9 @@ void BatchProcessing::ThreadHandler(void *args)
 
 	for(;stop == false;)
 	{
+		AudioFileRef fileRef;
+		AudioFileRef outFileRef;
+
 		try
 		{
 			AudioTapeRef audioTapeRef = pBatchProcessing->m_audioTapeQueue.pop();
@@ -70,12 +76,11 @@ void BatchProcessing::ThreadHandler(void *args)
 				CStdString threadIdString = IntToString(threadId);
 				LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " processing: " + audioTapeRef->GetIdentifier());
 
-				AudioFileRef fileRef = audioTapeRef->GetAudioFileRef();
+				fileRef = audioTapeRef->GetAudioFileRef();
 				fileRef->MoveOrig();
 				fileRef->Open(AudioFile::READ);
 
 				AudioChunkRef chunkRef;
-				AudioFileRef outFileRef;
 
 				switch(CONFIG.m_storageAudioFormat)
 				{
@@ -95,14 +100,54 @@ void BatchProcessing::ThreadHandler(void *args)
 				CStdString file = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath() + audioTapeRef->GetIdentifier();
 				outFileRef->Open(file, AudioFile::WRITE, false, fileRef->GetSampleRate());
 
+				FilterRef filter;
+				FilterRef decoder1;
+				FilterRef decoder2;
+
+				bool firstChunk = true;
+				bool voIpSession = false;
+
 				while(fileRef->ReadChunkMono(chunkRef))
 				{
+					AudioChunkDetails details = *chunkRef->GetDetails();
+					if(firstChunk && details.m_rtpPayloadType != -1)
+					{
+						firstChunk = false;
+						CStdString filterName("VoIpMixer");
+						filter = FilterRegistry::instance()->GetNewFilter(filterName);
+						decoder1 = FilterRegistry::instance()->GetNewFilter(details.m_rtpPayloadType);
+						decoder2 = FilterRegistry::instance()->GetNewFilter(details.m_rtpPayloadType);
+						if(decoder1.get() == NULL || decoder2.get() == NULL)
+						{
+							debug.Format("BatchProcessing - Could not find decoder for RTP payload type:%u", chunkRef->GetDetails()->m_rtpPayloadType);
+							throw(debug);
+						}
+						voIpSession = true;
+					}
+					if(voIpSession)
+					{
+						if(details.m_channel == 2)
+						{
+							decoder2->AudioChunkIn(chunkRef);
+							decoder2->AudioChunkOut(chunkRef);
+						}
+						else
+						{
+							decoder1->AudioChunkIn(chunkRef);
+							decoder1->AudioChunkOut(chunkRef);
+						}
+						
+						filter->AudioChunkIn(chunkRef);
+						filter->AudioChunkOut(chunkRef);
+					}
 					outFileRef->WriteChunk(chunkRef);
 				}
 
+				fileRef->Close();
+				outFileRef->Close();
+
 				if(CONFIG.m_deleteNativeFile)
 				{
-					fileRef->Close();
 					fileRef->Delete();
 					CStdString threadIdString = IntToString(threadId);
 					LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " deleting native: " + audioTapeRef->GetIdentifier());
@@ -113,9 +158,10 @@ void BatchProcessing::ThreadHandler(void *args)
 		{
 			LOG4CXX_ERROR(LOG.batchProcessingLog, CStdString("BatchProcessing: ") + e);
 		}
-		catch(...)
-		{
-		}
+		//catch(...)
+		//{
+		//	LOG4CXX_ERROR(LOG.batchProcessingLog, CStdString("BatchProcessing: unknown exception"));
+		//}
 	}
 	LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Exiting thread #" + threadIdString));
 }

@@ -126,7 +126,9 @@ void Run()
 			// send audio buffer
 			AudioChunkRef chunkRef(new AudioChunk);
 			int sampleOffset = (elapsed % numChunks)*NUM_SAMPLES_PER_CHUNK;
-			chunkRef->SetBuffer(audioBuffer+sampleOffset, sizeof(short)*NUM_SAMPLES_PER_CHUNK, AudioChunk::PcmAudio);
+			AudioChunkDetails details;
+			details.m_encoding = PcmAudio;
+			chunkRef->SetBuffer(audioBuffer+sampleOffset, sizeof(short)*NUM_SAMPLES_PER_CHUNK, details);
 			g_audioChunkCallBack(chunkRef, portName);
 		}
 
