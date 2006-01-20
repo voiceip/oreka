@@ -16,9 +16,10 @@
 #include "ace/OS_NS_time.h"
 #include "Utils.h"
 #include "ThreadSafeQueue.h"
-#include "audiofile/PcmFile.h"
 #include "LogManager.h"
+#include "audiofile/PcmFile.h"
 #include "audiofile/LibSndFileFile.h"
+#include "audiofile/MediaChunkFile.h"
 #include "messages/TapeMsg.h"
 
 AudioTapeDescription::AudioTapeDescription()
@@ -69,6 +70,7 @@ AudioTape::AudioTape(CStdString &portId)
 	m_duration = 0;
 	m_direction = CaptureEvent::DirUnkn;
 	m_shouldStop = false;
+	m_readyForBatchProcessing = false;
 
 	GenerateFilePathAndIdentifier();
 }
@@ -77,6 +79,7 @@ AudioTape::AudioTape(CStdString &portId)
 void AudioTape::AddAudioChunk(AudioChunkRef chunkRef, bool remote)
 {
 	// Add the chunk to the local queue
+	if(m_state == StateCreated || m_state == StateActive)
 	{
 		MutexSentinel sentinel(m_mutex);
 		if(remote)
@@ -119,26 +122,30 @@ void AudioTape::Write()
 				{
 					m_state = StateActive;
 
-					switch(chunkRef->m_encoding)
+					switch(chunkRef->GetEncoding())
 					{
-					case AudioChunk::PcmAudio:
-						m_audioFileRef.reset(new PcmFile);
-						break;
-					case AudioChunk::UlawAudio:
-						m_audioFileRef.reset(new LibSndFileFile(SF_FORMAT_ULAW | SF_FORMAT_WAV));
-						break;
-					case AudioChunk::AlawAudio:
-						m_audioFileRef.reset(new LibSndFileFile(SF_FORMAT_ALAW | SF_FORMAT_WAV));
-						break;
+					case PcmAudio:
+						//m_audioFileRef.reset(new PcmFile);
+						//break;
+					case UlawAudio:
+						//m_audioFileRef.reset(new LibSndFileFile(SF_FORMAT_ULAW | SF_FORMAT_WAV));
+						//break;
+					case AlawAudio:
+						//m_audioFileRef.reset(new LibSndFileFile(SF_FORMAT_ALAW | SF_FORMAT_WAV));
+						//break;
 					default:
-						LOG4CXX_ERROR(LOG.portLog, "#" + m_portId + ": received unsupported audio encoding from capture plugin:" + FileFormatToString(chunkRef->m_encoding));
-						m_state = StateError;
+						//LOG4CXX_ERROR(LOG.portLog, "#" + m_portId + ": received unsupported audio encoding from capture plugin:" + FileFormatToString(chunkRef->GetEncoding()));
+						//m_state = StateError;						
+
+						// ###########
+						// All other encodings: output as a media chunk file
+						m_audioFileRef.reset(new MediaChunkFile());
 					}
 					if (m_state == StateActive)
 					{
 						// A file format was successfully added to the tape, open it
 						CStdString file = CONFIG.m_audioOutputPath + "/" + m_filePath + m_fileIdentifier;
-						m_audioFileRef->Open(file, AudioFile::WRITE, false, chunkRef->m_sampleRate);
+						m_audioFileRef->Open(file, AudioFile::WRITE, false, chunkRef->GetSampleRate());
 
 						// determine what final extension the file will have after optional compression
 						if(CONFIG.m_storageAudioFormat == FfNative)
@@ -172,18 +179,17 @@ void AudioTape::Write()
 		}
 	}
 
-	if (m_shouldStop)
+	if ( (m_shouldStop && m_state != StateStopped) || m_state == StateError)
 	{
 		m_state = StateStopped;
-	}
-
-	if (m_state == StateStopped || m_state == StateError)
-	{
 		if(m_audioFileRef.get())
 		{
 			m_audioFileRef->Close();
+			m_readyForBatchProcessing = true;
 		}
 	}
+
+
 }
 
 void AudioTape::SetShouldStop()
@@ -316,6 +322,17 @@ AudioFileRef AudioTape::GetAudioFileRef()
 {
 	return m_audioFileRef;
 }
+
+bool AudioTape::IsReadyForBatchProcessing()
+{
+	if(m_readyForBatchProcessing)
+	{
+		m_readyForBatchProcessing = false;	// toggle to ensure not processed twice
+		return true;
+	}
+	return false;
+}
+
 
 //========================================
 // File format related methods

@@ -237,6 +237,7 @@ void RtpSession::ReportMetadata()
 void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 {
 	CStdString logMsg;
+	unsigned char channel = 0;
 
 	if(m_lastRtpPacket.get() == NULL)
 	{
@@ -262,6 +263,7 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	{
 		// First RTP packet for side 1
 		m_lastRtpPacketSide1 = rtpPacket;
+		channel = 1;
 		if(m_log->isInfoEnabled())
 		{
 			rtpPacket->ToString(logMsg);
@@ -274,6 +276,7 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		if(rtpPacket->m_sourceIp.s_addr == m_lastRtpPacketSide1->m_sourceIp.s_addr)
 		{
 			m_lastRtpPacketSide1 = rtpPacket;
+			channel = 1;
 		}
 		else
 		{
@@ -288,6 +291,7 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 				}
 			}
 			m_lastRtpPacketSide2 = rtpPacket;
+			channel = 2;
 		}
 	}
 
@@ -333,7 +337,19 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	if(m_started)
 	{
-		m_rtpRingBuffer.AddRtpPacket(rtpPacket);
+		AudioChunkDetails details;
+		details.m_arrivalTimestamp = rtpPacket->m_arrivalTimestamp;
+		details.m_numBytes = rtpPacket->m_payloadSize;
+		details.m_timestamp = rtpPacket->m_timestamp;
+		details.m_rtpPayloadType = rtpPacket->m_payloadType;
+		details.m_sequenceNumber = rtpPacket->m_seqNum;
+		details.m_channel = channel;
+		details.m_encoding = AlawAudio;
+		AudioChunkRef chunk(new AudioChunk());
+		chunk->SetBuffer(rtpPacket->m_payload, rtpPacket->m_payloadSize, details);
+		g_audioChunkCallBack(chunk, m_capturePort);	// ##### after
+		//m_rtpRingBuffer.AddRtpPacket(rtpPacket);	// ##### before
+
 		m_lastUpdated = rtpPacket->m_arrivalTimestamp;
 	}
 }

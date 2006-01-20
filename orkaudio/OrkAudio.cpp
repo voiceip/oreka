@@ -16,6 +16,7 @@
 
 #include "MultiThreadedServer.h"
 #include "ace/Thread_Manager.h"
+#include "ace/DLL.h"
 #include "OrkAudio.h"
 #include "Utils.h"
 #include "messages/TapeMsg.h"
@@ -33,6 +34,8 @@
 #include "ObjectFactory.h"
 #include "CapturePluginProxy.h"
 #include "ace/OS_NS_arpa_inet.h"
+#include "AudioCapturePlugin.h"
+#include "Filter.h"
 
 
 static volatile bool serviceStop = false;
@@ -72,6 +75,35 @@ void MainThread()
 	ObjectFactorySingleton::instance()->RegisterObject(objRef);
 
 	ConfigManagerSingleton::instance()->Initialize();
+
+	// Register in-built filters
+	FilterRef filter(new AlawToPcmFilter());
+	FilterRegistry::instance()->RegisterFilter(filter);
+
+	// Load filter plugins  #####################
+	//CStdString pluginPath = "./filters/VoIpMixer/Debug/VoIpMixer.dll";
+	CStdString pluginPath = "./filters/VoIpMixer.dll";
+	ACE_DLL dll;
+	dll.open((PCSTR)pluginPath);
+	ACE_TCHAR* error = dll.error();
+	if(error)
+	{
+		LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load the following plugin: ") + pluginPath);
+	}
+	else
+	{
+		// Ok, the dll has been successfully loaded
+		LOG4CXX_INFO(LOG.rootLog, CStdString("Loaded plugin: ") + pluginPath);
+
+		//void (*initfunction)(void);
+		InitializeFunction initfunction;
+		initfunction = (InitializeFunction)dll.symbol("Initialize");
+
+		if (initfunction)
+		{
+			initfunction();
+		}
+	}
 
 	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(ImmediateProcessing::ThreadHandler)))
 	{

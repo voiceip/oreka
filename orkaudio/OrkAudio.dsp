@@ -150,6 +150,14 @@ SOURCE=.\AudioFile\LibSndFileFile.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\audiofile\MediaChunkFile.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\audiofile\MediaChunkFile.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\AudioFile\PcmFile.cpp
 # End Source File
 # Begin Source File

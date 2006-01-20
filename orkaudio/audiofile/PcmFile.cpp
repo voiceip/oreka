@@ -38,6 +38,15 @@ void PcmFile::Close()
 
 void PcmFile::WriteChunk(AudioChunkRef chunkRef)
 {
+	if(chunkRef.get() == NULL)
+	{
+		return;
+	}
+	if(chunkRef->GetDetails()->m_numBytes == 0)
+	{
+		return;
+	}
+
 	unsigned int numWritten = 0;
 	if (m_stream)
 	{
@@ -62,7 +71,9 @@ int PcmFile::ReadChunkMono(AudioChunkRef& chunkRef)
 		chunkRef.reset(new AudioChunk());
 		short temp[PCM_FILE_DEFAULT_CHUNK_NUM_SAMPLES];
 		numRead = ACE_OS::fread(temp, sizeof(short), PCM_FILE_DEFAULT_CHUNK_NUM_SAMPLES, m_stream);
-		chunkRef->SetBuffer(temp, sizeof(short)*numRead, AudioChunk::PcmAudio, 0, 0, m_sampleRate);
+		AudioChunkDetails details;
+		details.m_encoding = PcmAudio;
+		chunkRef->SetBuffer(temp, sizeof(short)*numRead, details);
 	}
 	else
 	{
