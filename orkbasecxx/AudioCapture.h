@@ -20,25 +20,52 @@
 
 #include "boost/shared_ptr.hpp"
 
-/** This class represents a piece of audio. 
-*/
+
+typedef enum
+{
+	UnknownAudio = 0,
+	PcmAudio = 1,
+	AlawAudio = 2,
+	UlawAudio = 3,
+	InvalidAudio = 4
+} AudioEncodingEnum;
+
+/** 
+ * Serialization friendly details struct
+ */
+#define MEDIA_CHUNK_MARKER 0x2A2A2A2A // corresponds to "****"
+
+class DLL_IMPORT_EXPORT AudioChunkDetails
+{
+public:
+	AudioChunkDetails();
+	void Clear();
+
+	int m_marker;
+	AudioEncodingEnum m_encoding;
+	unsigned int m_numBytes;
+	unsigned int m_timestamp;			// usually relative timestamp measured in samples
+	unsigned int m_arrivalTimestamp;	// usually unix timestamp of arrival
+	unsigned int m_sequenceNumber;
+	unsigned int m_sampleRate;
+	char m_rtpPayloadType;				// -1 if none
+	unsigned char m_channel;			// 0 if mono, 1 or 2 if stereo
+};
+
+/** 
+ * This class represents a piece of audio. 
+ */
 class DLL_IMPORT_EXPORT AudioChunk
 {
 public: 
-	typedef enum
-	{
-		UnknownAudio = 0,
-		PcmAudio = 1,
-		AlawAudio = 2,
-		UlawAudio = 3,
-		InvalidAudio = 4
-	} AudioEncodingEnum;
-
 	AudioChunk();
 	~AudioChunk();
 
+	/** Allocate a new empty buffer */
+	void* CreateBuffer(size_t numBytes, AudioChunkDetails& details);
+
 	/** Copy external buffer to internal buffer. Create internal buffer if necessary */
-	void SetBuffer(void* pBuffer, size_t numBytes, AudioEncodingEnum, unsigned int timestamp = 0, unsigned int sequenceNumber = 0, unsigned int sampleRate = 8000);
+	void SetBuffer(void* pBuffer, size_t numBytes, AudioChunkDetails& details);
 
 	/** Computes the Root-Mean-Square power value of the buffer */
 	double ComputeRms();
@@ -46,14 +73,17 @@ public:
 	double ComputeRmsDb();
 
 	int GetNumSamples();
+	int GetNumBytes();
+	int GetSampleRate();
 	double GetDurationSec();
+	AudioEncodingEnum GetEncoding();
+	AudioChunkDetails* GetDetails();
+	void SetDetails(AudioChunkDetails* details);
 
-	AudioEncodingEnum m_encoding;
-	unsigned int m_numBytes;
 	void * m_pBuffer;
-	unsigned int m_timestamp;			// usually: relative timestamp measured in samples
-	unsigned int m_sequenceNumber;
-	unsigned int m_sampleRate;
+
+private:
+	AudioChunkDetails m_details;
 };
 
 typedef boost::shared_ptr<AudioChunk> AudioChunkRef;

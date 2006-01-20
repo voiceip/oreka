@@ -20,12 +20,8 @@
 
 AudioChunk::AudioChunk()
 {
-	m_encoding = UnknownAudio;
-	m_timestamp = 0;
-	m_sequenceNumber = 0;
-	m_numBytes = 0;
+	m_details.Clear();
 	m_pBuffer = NULL;
-	m_sampleRate = 8000;
 }
 
 AudioChunk::~AudioChunk()
@@ -36,12 +32,38 @@ AudioChunk::~AudioChunk()
 	}
 }
 
-void AudioChunk::SetBuffer(void* pBuffer, size_t numBytes, AudioEncodingEnum encoding, unsigned int timestamp, unsigned int sequenceNumber, unsigned int sampleRate)
+void* AudioChunk::CreateBuffer(size_t numBytes, AudioChunkDetails& details)
 {
 	if(m_pBuffer)
 	{
 		free(m_pBuffer);
-		m_numBytes = 0;
+		m_pBuffer = NULL;
+		m_details.m_numBytes = 0;
+	}
+	if(numBytes)
+	{
+		m_pBuffer = calloc(numBytes, 1);
+	}
+	if (!m_pBuffer)
+	{
+		CStdString numBytesString = IntToString(numBytes);
+		throw("AudioChunk::AudioChunk: could not calloc a buffer of size:" + numBytesString);
+	}
+	else
+	{
+		m_details = details;
+		m_details.m_numBytes = numBytes;
+	}
+	return m_pBuffer;
+}
+
+void AudioChunk::SetBuffer(void* pBuffer, size_t numBytes, AudioChunkDetails& details)
+{
+	if(m_pBuffer)
+	{
+		free(m_pBuffer);
+		m_pBuffer = NULL;
+		m_details.m_numBytes = 0;
 	}
 	if(numBytes && pBuffer)
 	{
@@ -53,24 +75,21 @@ void AudioChunk::SetBuffer(void* pBuffer, size_t numBytes, AudioEncodingEnum enc
 		}
 		else
 		{
-			m_numBytes = numBytes;
 			memcpy(m_pBuffer, pBuffer, numBytes);
-			m_encoding = encoding;
-			m_timestamp = timestamp;
-			m_sequenceNumber = sequenceNumber;
-			m_sampleRate = sampleRate;
+			m_details = details;
+			m_details.m_numBytes = numBytes;
 		}
 	}
 }
 
 int AudioChunk::GetNumSamples()
 {
-	switch(m_encoding)
+	switch(m_details.m_encoding)
 	{
 	case PcmAudio:
-		return m_numBytes/2;
+		return m_details.m_numBytes/2;
 	case AlawAudio: case UlawAudio:
-		return m_numBytes;
+		return m_details.m_numBytes;
 	default:
 		throw(CStdString("AudioChunk::GetNumSamples: unknown encoding"));
 	}
@@ -79,14 +98,14 @@ int AudioChunk::GetNumSamples()
 double AudioChunk::GetDurationSec()
 {
 	int i = 0;
-	return ((double)GetNumSamples())/((double)m_sampleRate);
+	return ((double)GetNumSamples())/((double)m_details.m_sampleRate);
 }
 
 
 double AudioChunk::ComputeRms()
 {
 	double rmsValue = 0;
-	if(m_encoding == PcmAudio)
+	if(m_details.m_encoding == PcmAudio)
 	{
 		for(int i=0; i<GetNumSamples(); i++)
 		{
@@ -100,13 +119,57 @@ double AudioChunk::ComputeRms()
 double AudioChunk::ComputeRmsDb()
 {
 	double rmsDbValue = 10 * log10(1.0/32768.0);	// default value, the lowest possible
-	if(m_encoding == PcmAudio)
+	if(m_details.m_encoding == PcmAudio)
 	{
 		rmsDbValue = 10 * log10(ComputeRms()/32768.0);
 	}
 	return rmsDbValue;
 }
 
+AudioEncodingEnum AudioChunk::GetEncoding()
+{
+	return m_details.m_encoding;
+}
+
+int AudioChunk::GetSampleRate()
+{
+	return m_details.m_sampleRate;
+}
+
+AudioChunkDetails* AudioChunk::GetDetails()
+{
+	return &m_details;
+}
+
+void AudioChunk::SetDetails(AudioChunkDetails* details)
+{
+	m_details = *details;
+}
+
+
+int AudioChunk::GetNumBytes()
+{
+	return m_details.m_numBytes;
+}
+
+//================================
+AudioChunkDetails::AudioChunkDetails()
+{
+	Clear();
+}
+
+void AudioChunkDetails::Clear()
+{
+	m_marker = MEDIA_CHUNK_MARKER;
+	m_encoding = UnknownAudio;
+	m_timestamp = 0;
+	m_arrivalTimestamp = 0;
+	m_sequenceNumber = 0;
+	m_numBytes = 0;
+	m_sampleRate = 8000;
+	m_rtpPayloadType = -1;
+	m_channel = 0;			// mono by default
+}
 
 
 //=================================
