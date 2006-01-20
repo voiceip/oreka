@@ -34,6 +34,8 @@ public:
 
 	bool push(T &);
 	T pop();
+	int numElements();
+
 private:
 	int m_size;
 	ACE_Thread_Mutex m_mutex;
@@ -73,6 +75,11 @@ template <class T> T ThreadSafeQueue<T>::pop()
 		m_queue.pop();
 	}
 	return element;
+}
+
+template <class T> int ThreadSafeQueue<T>::numElements()
+{
+	return m_queue.size();
 }
 
 
