@@ -39,6 +39,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "RtpMixer"=.\filters\rtpmixer\RtpMixer.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "SoundDevice"=.\AudioCapturePlugins\SoundDevice\SoundDevice.dsp - Package Owner=<4>
 
 Package=<5>
@@ -52,18 +64,6 @@ Package=<4>
 ###############################################################################
 
 Project: "VoIp"=.\audiocaptureplugins\voip\VoIp.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "VoIpMixer"=.\filters\VoIpMixer\VoIpMixer.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
