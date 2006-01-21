@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="VoIpMixer" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="RtpMixer" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Dynamic-Link Library" 0x0102
 
-CFG=VoIpMixer - Win32 Debug
+CFG=RtpMixer - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "VoIpMixer.mak".
+!MESSAGE NMAKE /f "RtpMixer.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "VoIpMixer.mak" CFG="VoIpMixer - Win32 Debug"
+!MESSAGE NMAKE /f "RtpMixer.mak" CFG="RtpMixer - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "VoIpMixer - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
-!MESSAGE "VoIpMixer - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "RtpMixer - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "RtpMixer - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE 
 
 # Begin Project
@@ -29,7 +29,7 @@ CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "VoIpMixer - Win32 Release"
+!IF  "$(CFG)" == "RtpMixer - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -41,8 +41,8 @@ RSC=rc.exe
 # PROP Output_Dir "Release"
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "VoIpMixer_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "C:\devExt\winpcap\WpdPack\Include" /I "../.." /I "../../../OrkBaseCxx" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "../Common" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "VoIpMixer_EXPORTS" /YX /FD /c
+# ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "RtpMixer_EXPORTS" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "C:\devExt\winpcap\WpdPack\Include" /I "../.." /I "../../../OrkBaseCxx" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "../Common" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "RtpMixer_EXPORTS" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x809 /d "NDEBUG"
@@ -54,7 +54,7 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
 # ADD LINK32 packet.lib wpcap.lib wininet.lib OrkBase.lib ace.lib log4cxx.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386 /libpath:"C:\devExt\winpcap\WpdPack\Lib" /libpath:"../../../OrkBaseCxx/Release" /libpath:"C:\devExt\log4cxx\log4cxx-0.9.7\msvc\Lib\Release" /libpath:"C:\devExt\ACE_wrappers\lib"
 
-!ELSEIF  "$(CFG)" == "VoIpMixer - Win32 Debug"
+!ELSEIF  "$(CFG)" == "RtpMixer - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -67,8 +67,8 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "VoIpMixer_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "C:\devExt\winpcap\WpdPack\Include" /I "../.." /I "../../../OrkBaseCxx" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "../Common" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "VoIpMixer_EXPORTS" /YX /FD /GZ /c
+# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "RtpMixer_EXPORTS" /YX /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "C:\devExt\winpcap\WpdPack\Include" /I "../.." /I "../../../OrkBaseCxx" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "../Common" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "RtpMixer_EXPORTS" /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
@@ -84,70 +84,14 @@ LINK32=link.exe
 
 # Begin Target
 
-# Name "VoIpMixer - Win32 Release"
-# Name "VoIpMixer - Win32 Debug"
+# Name "RtpMixer - Win32 Release"
+# Name "RtpMixer - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\..\AudioCapturePlugin.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\Common\AudioCapturePluginCommon.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\Common\AudioCapturePluginCommon.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\ConfigManager.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\g711.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\g711.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\PacketHeaderDefs.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\PacketHeaderDefs.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\Rtp.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\Rtp.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\RtpSession.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\RtpSession.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\VoIpMixer.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\VoIpMixerConfig.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\VoIpMixerConfig.h
+SOURCE=.\RtpMixer.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"

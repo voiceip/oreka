@@ -36,10 +36,10 @@ extern "C"
 #define NUM_SAMPLES_SHIPMENT_HOLDOFF 2000	// when shipping, ship everything but this number of samples 
 
 
-class VoIpMixer : public Filter
+class RtpMixer : public Filter
 {
 public:
-	VoIpMixer();
+	RtpMixer();
 
 	FilterRef __CDECL__ Instanciate();
 	void __CDECL__ AudioChunkIn(AudioChunkRef& chunk);
@@ -71,7 +71,7 @@ private:
 
 };
 
-VoIpMixer::VoIpMixer()
+RtpMixer::RtpMixer()
 {
 	m_writePtr = m_buffer;
 	m_readPtr = m_buffer;
@@ -82,18 +82,18 @@ VoIpMixer::VoIpMixer()
 	m_shippedSamples = 0;
 }
 
-FilterRef VoIpMixer::Instanciate()
+FilterRef RtpMixer::Instanciate()
 {
-	FilterRef Filter(new VoIpMixer());
+	FilterRef Filter(new RtpMixer());
 	return Filter;
 }
 
-void VoIpMixer::AudioChunkIn(AudioChunkRef& chunk)
+void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 {	
 	AudioChunkDetails* details = chunk->GetDetails();		
 	if(details->m_encoding != PcmAudio)
 	{
-		throw (CStdString("VoIpMixer input audio must be PCM !"));
+		throw (CStdString("RtpMixer input audio must be PCM !"));
 	}
 
 	unsigned int rtpEndTimestamp = details->m_timestamp + chunk->GetNumSamples();  // GetNumSamples()  #############################
@@ -145,7 +145,7 @@ void VoIpMixer::AudioChunkIn(AudioChunkRef& chunk)
 	//LOG4CXX_DEBUG(m_log, debug);
 }
 
-void VoIpMixer::AudioChunkOut(AudioChunkRef& chunk)
+void RtpMixer::AudioChunkOut(AudioChunkRef& chunk)
 {
 	if(m_outputQueue.size() > 0)
 	{
@@ -158,29 +158,29 @@ void VoIpMixer::AudioChunkOut(AudioChunkRef& chunk)
 	}
 }
 
-AudioEncodingEnum VoIpMixer::GetInputAudioEncoding()
+AudioEncodingEnum RtpMixer::GetInputAudioEncoding()
 {
 	return PcmAudio;
 }
 
-AudioEncodingEnum VoIpMixer::GetOutputAudioEncoding()
+AudioEncodingEnum RtpMixer::GetOutputAudioEncoding()
 {
 	return PcmAudio;
 }
 
-CStdString VoIpMixer::GetName()
+CStdString RtpMixer::GetName()
 {
-	return "VoIpMixer";
+	return "RtpMixer";
 }
 
 
-int VoIpMixer::GetInputRtpPayloadType(void)	// does not link if not defined here ?
+int RtpMixer::GetInputRtpPayloadType(void)	// does not link if not defined here ?
 {
 	return -1;
 }
 
 // Writes to the internal buffer without any size verification
-void VoIpMixer::StoreRtpPacket(AudioChunkRef& audioChunk)
+void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk)
 {
 	CStdString debug;
 	AudioChunkDetails* details = audioChunk->GetDetails();
@@ -223,7 +223,7 @@ void VoIpMixer::StoreRtpPacket(AudioChunkRef& audioChunk)
 	//LOG4CXX_DEBUG(m_log, debug);
 }
 
-short* VoIpMixer::CircularPointerAddOffset(short *ptr, size_t offset)
+short* RtpMixer::CircularPointerAddOffset(short *ptr, size_t offset)
 {
 	if((ptr + offset) >= m_bufferEnd)
 	{
@@ -235,7 +235,7 @@ short* VoIpMixer::CircularPointerAddOffset(short *ptr, size_t offset)
 	}
 }
 
-short* VoIpMixer::CicularPointerSubtractOffset(short *ptr, size_t offset)
+short* RtpMixer::CicularPointerSubtractOffset(short *ptr, size_t offset)
 {
 	if((ptr-offset) < m_buffer)
 	{
@@ -247,7 +247,7 @@ short* VoIpMixer::CicularPointerSubtractOffset(short *ptr, size_t offset)
 	}
 }
 
-void VoIpMixer::CreateShipment(size_t silenceSize)
+void RtpMixer::CreateShipment(size_t silenceSize)
 {
 	// 1. ship from readPtr until stop pointer or until end of buffer if wrapped
 	bool bufferWrapped = false;
@@ -324,7 +324,7 @@ void VoIpMixer::CreateShipment(size_t silenceSize)
 }
 
 
-unsigned int VoIpMixer::UsedSpace()
+unsigned int RtpMixer::UsedSpace()
 {
 	if(m_writePtr >= m_readPtr)
 	{
@@ -334,7 +334,7 @@ unsigned int VoIpMixer::UsedSpace()
 }
 
 
-unsigned int VoIpMixer::FreeSpace()
+unsigned int RtpMixer::FreeSpace()
 {
 	return NUM_SAMPLES_CIRCULAR_BUFFER - UsedSpace();
 }
@@ -347,7 +347,7 @@ extern "C"
 {
 	DLL_EXPORT void __CDECL__ Initialize()
 	{
-		FilterRef filter(new VoIpMixer());
+		FilterRef filter(new RtpMixer());
 		FilterRegistry::instance()->RegisterFilter(filter);
 	}
 }
