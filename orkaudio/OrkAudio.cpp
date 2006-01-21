@@ -81,8 +81,8 @@ void MainThread()
 	FilterRegistry::instance()->RegisterFilter(filter);
 
 	// Load filter plugins  #####################
-	//CStdString pluginPath = "./filters/VoIpMixer/Debug/VoIpMixer.dll";
-	CStdString pluginPath = "./filters/VoIpMixer.dll";
+	//CStdString pluginPath = "./filters/RtpMixer/Debug/RtpMixer.dll";
+	CStdString pluginPath = "./filters/RtpMixer.dll";
 	ACE_DLL dll;
 	dll.open((PCSTR)pluginPath);
 	ACE_TCHAR* error = dll.error();

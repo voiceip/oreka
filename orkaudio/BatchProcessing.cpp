@@ -113,8 +113,13 @@ void BatchProcessing::ThreadHandler(void *args)
 					if(firstChunk && details.m_rtpPayloadType != -1)
 					{
 						firstChunk = false;
-						CStdString filterName("VoIpMixer");
+						CStdString filterName("RtpMixer");
 						filter = FilterRegistry::instance()->GetNewFilter(filterName);
+						if(filter.get() == NULL)
+						{
+							debug = "BatchProcessing - Could not instanciate RTP mixer";
+							throw(debug);
+						}
 						decoder1 = FilterRegistry::instance()->GetNewFilter(details.m_rtpPayloadType);
 						decoder2 = FilterRegistry::instance()->GetNewFilter(details.m_rtpPayloadType);
 						if(decoder1.get() == NULL || decoder2.get() == NULL)
