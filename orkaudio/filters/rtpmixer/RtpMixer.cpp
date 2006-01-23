@@ -351,3 +351,4 @@ extern "C"
 		FilterRegistry::instance()->RegisterFilter(filter);
 	}
 }
+

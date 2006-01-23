@@ -13,7 +13,7 @@ orkaudio_SOURCES = OrkAudio.cpp AudioTape.cpp \
 			MultiThreadedServer.cpp Reporting.cpp
 AM_CPPFLAGS = -D_REENTRANT
 INCLUDES = -I@top_srcdir@ -I../orkbasecxx
-SUBDIRS = audiocaptureplugins messages audiofile
+SUBDIRS = audiocaptureplugins messages audiofile filters
 orkaudio_LDADD = $(top_builddir)/messages/libmessages.la \
 	$(top_builddir)/audiofile/libaudiofile.la 
 
