@@ -128,13 +128,6 @@ void CapturePort::AddAudioChunk(AudioChunkRef chunkRef, bool remote)
 		}
 	}
 
-	// ############ 
-	//if (!m_audioTapeRef.get())
-	//{
-	//	m_audioTapeRef.reset(new AudioTape(m_Id));
-	//	LOG4CXX_WARN(LOG.portLog, CStdString("Got impromptu audio"));
-	//}
-
 	if (m_audioTapeRef.get() && m_capturing)
 	{
 		m_audioTapeRef->AddAudioChunk(chunkRef, remote);

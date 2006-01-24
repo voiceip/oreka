@@ -81,8 +81,8 @@ void MainThread()
 	FilterRegistry::instance()->RegisterFilter(filter);
 
 	// Load filter plugins  #####################
-	//CStdString pluginPath = "./filters/RtpMixer/Debug/RtpMixer.dll";
-	CStdString pluginPath = "./filters/RtpMixer.dll";
+	CStdString pluginPath = "./filters/RtpMixer/Debug/RtpMixer.dll";
+	//CStdString pluginPath = "./filters/RtpMixer.dll";
 	ACE_DLL dll;
 	dll.open((PCSTR)pluginPath);
 	ACE_TCHAR* error = dll.error();
@@ -97,7 +97,7 @@ void MainThread()
 
 		//void (*initfunction)(void);
 		InitializeFunction initfunction;
-		initfunction = (InitializeFunction)dll.symbol("Initialize");
+		initfunction = (InitializeFunction)dll.symbol("OrkInitialize");
 
 		if (initfunction)
 		{

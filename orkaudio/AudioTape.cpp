@@ -125,19 +125,9 @@ void AudioTape::Write()
 					switch(chunkRef->GetEncoding())
 					{
 					case PcmAudio:
-						//m_audioFileRef.reset(new PcmFile);
-						//break;
-					case UlawAudio:
-						//m_audioFileRef.reset(new LibSndFileFile(SF_FORMAT_ULAW | SF_FORMAT_WAV));
-						//break;
-					case AlawAudio:
-						//m_audioFileRef.reset(new LibSndFileFile(SF_FORMAT_ALAW | SF_FORMAT_WAV));
-						//break;
-					default:
-						//LOG4CXX_ERROR(LOG.portLog, "#" + m_portId + ": received unsupported audio encoding from capture plugin:" + FileFormatToString(chunkRef->GetEncoding()));
-						//m_state = StateError;						
-
-						// ###########
+						m_audioFileRef.reset(new LibSndFileFile(SF_FORMAT_PCM_16 | SF_FORMAT_WAV));
+						break;
+					default:					
 						// All other encodings: output as a media chunk file
 						m_audioFileRef.reset(new MediaChunkFile());
 					}
