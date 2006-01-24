@@ -17,6 +17,8 @@
 #include "MultiThreadedServer.h"
 #include "ace/Thread_Manager.h"
 #include "ace/DLL.h"
+#include "ace/OS_NS_dirent.h"
+#include "ace/OS_NS_string.h"
 #include "OrkAudio.h"
 #include "Utils.h"
 #include "messages/TapeMsg.h"
@@ -33,9 +35,9 @@
 #include "Daemon.h"
 #include "ObjectFactory.h"
 #include "CapturePluginProxy.h"
-#include "ace/OS_NS_arpa_inet.h"
 #include "AudioCapturePlugin.h"
 #include "Filter.h"
+#include <list>
 
 
 static volatile bool serviceStop = false;
@@ -51,6 +53,58 @@ long ExceptionFilter(struct _EXCEPTION_POINTERS *ptr)
 	return EXCEPTION_CONTINUE_SEARCH;
 }
 #endif
+
+void LoadPlugins(std::list<ACE_DLL>& pluginDlls)
+{
+#ifdef WIN32
+	CStdString pluginDirectory = "./plugins/";
+#else
+	CStdString pluginDirectory = "/usr/lib/orkaudio/plugins/";
+#endif
+	CStdString pluginPath;
+	ACE_DLL dll;
+
+	ACE_DIR* dir = ACE_OS::opendir((PCSTR)pluginDirectory);
+	if (!dir)
+	{
+		LOG4CXX_ERROR(LOG.rootLog, CStdString("Plugin directory could not be found:" + pluginDirectory));
+	}
+	else
+	{
+		dirent* dirEntry = NULL;
+		while(dirEntry = ACE_OS::readdir(dir))
+		{	
+			if (ACE_OS::strstr(dirEntry->d_name, ".dll"))
+			{
+				pluginPath = pluginDirectory + dirEntry->d_name;
+				dll.open((PCSTR)pluginPath);
+				ACE_TCHAR* error = dll.error();
+				if(error)
+				{
+					LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load plugin: ") + pluginPath);
+				}
+				else
+				{
+					LOG4CXX_INFO(LOG.rootLog, CStdString("Loaded plugin: ") + pluginPath);
+
+					InitializeFunction initfunction;
+					initfunction = (InitializeFunction)dll.symbol("OrkInitialize");
+
+					if (initfunction)
+					{
+						initfunction();
+						pluginDlls.push_back(dll);
+					}
+					else
+					{
+						LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to initialize plugin: ") + pluginPath);
+					}
+				}
+			}
+		}
+		ACE_OS::closedir(dir);
+	}
+}
 
 void MainThread()
 {
@@ -80,30 +134,8 @@ void MainThread()
 	FilterRef filter(new AlawToPcmFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
 
-	// Load filter plugins  #####################
-	CStdString pluginPath = "./filters/RtpMixer/Debug/RtpMixer.dll";
-	//CStdString pluginPath = "./filters/RtpMixer.dll";
-	ACE_DLL dll;
-	dll.open((PCSTR)pluginPath);
-	ACE_TCHAR* error = dll.error();
-	if(error)
-	{
-		LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load the following plugin: ") + pluginPath);
-	}
-	else
-	{
-		// Ok, the dll has been successfully loaded
-		LOG4CXX_INFO(LOG.rootLog, CStdString("Loaded plugin: ") + pluginPath);
-
-		//void (*initfunction)(void);
-		InitializeFunction initfunction;
-		initfunction = (InitializeFunction)dll.symbol("OrkInitialize");
-
-		if (initfunction)
-		{
-			initfunction();
-		}
-	}
+	std::list<ACE_DLL> pluginDlls;
+	LoadPlugins(pluginDlls);
 
 	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(ImmediateProcessing::ThreadHandler)))
 	{
