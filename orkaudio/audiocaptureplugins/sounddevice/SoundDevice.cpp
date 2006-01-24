@@ -65,20 +65,16 @@ int portAudioCallBack(void *inputBuffer, void *outputBuffer, unsigned long frame
 			leftBuffer[sampleId] = inputSamples[2*sampleId+1];
 		}
 		AudioChunkRef chunkRef(new AudioChunk);
-		AudioChunkDetails rightDetails;
-		rightDetails.m_encoding = PcmAudio;
-		rightDetails.m_sampleRate = DLLCONFIG.m_sampleRate;
-		rightDetails.m_channel = 1;
-		chunkRef->SetBuffer(rightBuffer, sizeof(short)*framesPerBuffer, rightDetails);
+		AudioChunkDetails details;
+		details.m_encoding = PcmAudio;
+		details.m_sampleRate = DLLCONFIG.m_sampleRate;
+		details.m_channel = 0;
+		chunkRef->SetBuffer(rightBuffer, sizeof(short)*framesPerBuffer, details);
 		portName.Format("port%d-%d", device->deviceID, 1);
 		g_audioChunkCallBack(chunkRef, portName);
 
 		chunkRef.reset(new AudioChunk);
-		AudioChunkDetails leftDetails;
-		leftDetails.m_encoding = PcmAudio;
-		leftDetails.m_sampleRate = DLLCONFIG.m_sampleRate;
-		leftDetails.m_channel = 1;
-		chunkRef->SetBuffer(leftBuffer, sizeof(short)*framesPerBuffer, leftDetails);
+		chunkRef->SetBuffer(leftBuffer, sizeof(short)*framesPerBuffer, details);
 		portName.Format("port%d-%d", device->deviceID, 2);
 		g_audioChunkCallBack(chunkRef, portName);
 
@@ -92,7 +88,7 @@ int portAudioCallBack(void *inputBuffer, void *outputBuffer, unsigned long frame
 		AudioChunkDetails details;
 		details.m_encoding = PcmAudio;
 		details.m_sampleRate = DLLCONFIG.m_sampleRate;
-		details.m_channel = 1;
+		details.m_channel = 0;
 		chunkRef->SetBuffer(inputSamples, sizeof(short)*framesPerBuffer, details);
 		portName.Format("port%d", device->deviceID);
 		g_audioChunkCallBack(chunkRef, portName);
