@@ -96,7 +96,7 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 		throw (CStdString("RtpMixer input audio must be PCM !"));
 	}
 
-	unsigned int rtpEndTimestamp = details->m_timestamp + chunk->GetNumSamples();  // GetNumSamples()  #############################
+	unsigned int rtpEndTimestamp = details->m_timestamp + chunk->GetNumSamples();
 
 	if(m_writeTimestamp == 0)
 	{
@@ -186,7 +186,7 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk)
 	AudioChunkDetails* details = audioChunk->GetDetails();
 
 	// 1. Silence from write pointer until end of RTP packet
-	unsigned int endRtpTimestamp = details->m_timestamp + audioChunk->GetNumSamples();	  // GetNumSamples()  #############################
+	unsigned int endRtpTimestamp = details->m_timestamp + audioChunk->GetNumSamples();
 	if (endRtpTimestamp > m_writeTimestamp)
 	{
 		for(int i=0; i<(endRtpTimestamp - m_writeTimestamp); i++)
@@ -208,9 +208,9 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk)
 	unsigned int timestampDelta = m_writeTimestamp - details->m_timestamp;
 	ASSERT(timestampDelta>=0);
 	short* tempWritePtr = CicularPointerSubtractOffset(m_writePtr, timestampDelta);
-	short* payload = (short *)audioChunk->m_pBuffer;	// payload should be short* #################################################
+	short* payload = (short *)audioChunk->m_pBuffer;
 
-	for(int i=0; i<audioChunk->GetNumSamples() ; i++)	//#################################################
+	for(int i=0; i<audioChunk->GetNumSamples() ; i++)
 	{
 		*tempWritePtr += payload[i];
 		tempWritePtr++;
@@ -219,7 +219,7 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk)
 			tempWritePtr = m_buffer;
 		}
 	}
-	debug.Format("Copied %d samples, tmpwr:%x", audioChunk->GetNumSamples(), tempWritePtr);	//#################################################
+	debug.Format("Copied %d samples, tmpwr:%x", audioChunk->GetNumSamples(), tempWritePtr);
 	//LOG4CXX_DEBUG(m_log, debug);
 }
 
@@ -345,7 +345,7 @@ unsigned int RtpMixer::FreeSpace()
 
 extern "C"
 {
-	DLL_EXPORT void __CDECL__ Initialize()
+	DLL_EXPORT void __CDECL__ OrkInitialize()
 	{
 		FilterRef filter(new RtpMixer());
 		FilterRegistry::instance()->RegisterFilter(filter);
