@@ -126,6 +126,15 @@ typedef struct
 	unsigned long callType;
 } SkCallInfoStruct;
 
+typedef struct
+{
+	SkinnyHeaderStruct header;
+	unsigned long unknown1;
+	unsigned long callId;
+	char unknown2[24];
+	char parties[76];
+} SkNewCallInfoStruct;
+
 #define SKINNY_CTRL_PORT 2000
 #define SKINNY_MIN_MESSAGE_SIZE 12
 #define SKINNY_HEADER_LENGTH 8
