@@ -113,7 +113,7 @@ Section "Start Menu Shortcuts"
 SectionEnd
 
 Section "Install WinPcap 3.1"
-	ExecWait "WinPcap_3_1.exe"
+	ExecWait "$INSTDIR\WinPcap_3_1.exe"
 SectionEnd
 
 Section "Run orkaudio NT service"
