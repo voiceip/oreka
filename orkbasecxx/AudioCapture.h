@@ -61,7 +61,7 @@ public:
 	AudioChunk();
 	~AudioChunk();
 
-	/** Allocate a new empty buffer */
+	/** Allocate a new empty buffer (zeroed) */
 	void* CreateBuffer(size_t numBytes, AudioChunkDetails& details);
 
 	/** Copy external buffer to internal buffer. Create internal buffer if necessary */
