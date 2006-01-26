@@ -384,7 +384,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 					(u_char*)skinnyHeader>=((u_char*)tcpHeader + TCP_HEADER_LENGTH) &&
 					(ipPacketEnd - (u_char*)skinnyHeader) > SKINNY_MIN_MESSAGE_SIZE	&&
 					skinnyHeader->len > 1 && skinnyHeader->len < 2048 &&
-					skinnyHeader->messageType >= 0x0 && skinnyHeader->messageType <= 0x13F )
+					skinnyHeader->messageType >= 0x0 && skinnyHeader->messageType <= 0x200 )	// Last known skinny message by ethereal is 0x13F, but seen higher message ids in the field.
 			{
 				if(s_skinnyPacketLog->isDebugEnabled())
 				{
