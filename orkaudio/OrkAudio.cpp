@@ -133,6 +133,8 @@ void MainThread()
 	// Register in-built filters
 	FilterRef filter(new AlawToPcmFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
+	filter.reset(new UlawToPcmFilter());
+	FilterRegistry::instance()->RegisterFilter(filter);
 
 	std::list<ACE_DLL> pluginDlls;
 	LoadPlugins(pluginDlls);
