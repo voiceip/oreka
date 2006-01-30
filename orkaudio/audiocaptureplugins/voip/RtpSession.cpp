@@ -458,11 +458,10 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo)
 	CStdString callId = IntToString(callInfo->callId);
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	pair = m_byCallId.find(callId);
+
 	if (pair != m_byCallId.end())
 	{
-		// A session exists on the same CallId, stop old session
-		RtpSessionRef session = pair->second;
-		Stop(session);
+		return; // CM can resend the same message more than once in a session, so do nothing in this case
 	}
 
 	// create new session and insert into the callid map
