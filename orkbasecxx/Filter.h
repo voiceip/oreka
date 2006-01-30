@@ -63,6 +63,23 @@ private:
 
 //===================================================================
 
+class DLL_IMPORT_EXPORT UlawToPcmFilter : public Filter
+{
+public:
+	FilterRef __CDECL__ Instanciate();
+	void __CDECL__ AudioChunkIn(AudioChunkRef& chunk);
+	void __CDECL__ AudioChunkOut(AudioChunkRef& chunk);
+	AudioEncodingEnum __CDECL__ GetInputAudioEncoding();
+	AudioEncodingEnum __CDECL__ GetOutputAudioEncoding();
+	CStdString __CDECL__ GetName();
+	int __CDECL__ GetInputRtpPayloadType();
+
+private:
+	AudioChunkRef m_outputAudioChunk;
+};
+
+//===================================================================
+
 /** Filter Registry
 */
 class DLL_IMPORT_EXPORT FilterRegistry

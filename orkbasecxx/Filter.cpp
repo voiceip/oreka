@@ -141,3 +141,58 @@ int AlawToPcmFilter::GetInputRtpPayloadType()
 {
 	return 0x8;
 }
+
+
+//====================================================================
+
+
+FilterRef UlawToPcmFilter::Instanciate()
+{
+	FilterRef Filter(new UlawToPcmFilter());
+	return Filter;
+}
+
+void UlawToPcmFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
+{
+	// Create output buffer
+	m_outputAudioChunk.reset(new AudioChunk());
+	AudioChunkDetails outputDetails = *inputAudioChunk->GetDetails();	// pass through all details
+	outputDetails.m_rtpPayloadType = -1;								// and override the ones that this filter changes
+	outputDetails.m_encoding = PcmAudio;
+
+	int numSamples = inputAudioChunk->GetNumSamples();
+	short* outputBuffer = (short*)m_outputAudioChunk->CreateBuffer(numSamples*2, outputDetails);
+	char* inputBuffer = (char*)inputAudioChunk->m_pBuffer;
+	
+
+	for(int i=0; i<numSamples; i++)
+	{
+		outputBuffer[i] = (short)ulaw2linear(inputBuffer[i]);
+	}
+	
+}
+
+void UlawToPcmFilter::AudioChunkOut(AudioChunkRef& chunk)
+{
+	chunk = m_outputAudioChunk;
+}
+
+AudioEncodingEnum UlawToPcmFilter::GetInputAudioEncoding()
+{
+	return UlawAudio;
+}
+
+AudioEncodingEnum UlawToPcmFilter::GetOutputAudioEncoding()
+{
+	return PcmAudio;
+}
+
+CStdString UlawToPcmFilter::GetName()
+{
+	return "UlawToPcm";
+}
+
+int UlawToPcmFilter::GetInputRtpPayloadType()
+{
+	return 0x0;
+}
