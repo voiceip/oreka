@@ -58,8 +58,10 @@ void LoadPlugins(std::list<ACE_DLL>& pluginDlls)
 {
 #ifdef WIN32
 	CStdString pluginDirectory = "./plugins/";
+	CStdString pluginExtension = ".dll";
 #else
 	CStdString pluginDirectory = "/usr/lib/orkaudio/plugins/";
+	CStdString pluginExtension = ".so";
 #endif
 	CStdString pluginPath;
 	ACE_DLL dll;
@@ -74,7 +76,10 @@ void LoadPlugins(std::list<ACE_DLL>& pluginDlls)
 		dirent* dirEntry = NULL;
 		while(dirEntry = ACE_OS::readdir(dir))
 		{	
-			if (ACE_OS::strstr(dirEntry->d_name, ".dll"))
+			CStdString dirEntryFilename = dirEntry->d_name;
+			int extensionPos = dirEntryFilename.Find(pluginExtension);
+
+			if ( extensionPos != -1 && (dirEntryFilename.size() - extensionPos) == pluginExtension.size() )
 			{
 				pluginPath = pluginDirectory + dirEntry->d_name;
 				dll.open((PCSTR)pluginPath);
