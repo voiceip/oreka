@@ -30,7 +30,7 @@ public:
 	void StartCapture(CStdString& capturePort);
 	void StopCapture(CStdString& capturePort);
 
-	static void __CDECL__  AudioChunkCallBack(AudioChunkRef chunkRef, CStdString& capturePort, bool remote = false);
+	static void __CDECL__  AudioChunkCallBack(AudioChunkRef chunkRef, CStdString& capturePort);
 	static void __CDECL__ CaptureEventCallBack(CaptureEventRef eventRef, CStdString& capturePort);
 private:
 	ConfigureFunction m_configureFunction;

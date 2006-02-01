@@ -34,7 +34,7 @@ public:
 	CapturePort(CStdString& Id);
 	CStdString ToString();
 
-	void AddAudioChunk(AudioChunkRef chunkRef, bool remote = false);
+	void AddAudioChunk(AudioChunkRef chunkRef);
 	void AddCaptureEvent(CaptureEventRef eventRef);
 private:
 	CStdString m_Id;

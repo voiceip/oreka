@@ -80,7 +80,7 @@ public:
 
 	AudioTape(CStdString &portId);
 
-	void AddAudioChunk(AudioChunkRef chunkRef, bool remote = false);
+	void AddAudioChunk(AudioChunkRef chunkRef);
 	void Write();
 	void SetShouldStop();
 	bool IsStoppedAndValid();
@@ -108,7 +108,6 @@ private:
 	CStdString m_fileExtension;	//Corresponds to the extension the tape will have after compression
 
 	std::queue<AudioChunkRef> m_chunkQueue;
-	std::queue<AudioChunkRef> m_remoteChunkQueue;	// used if stereo capture
 
 	std::queue<CaptureEventRef> m_eventQueue;
 	std::queue<CaptureEventRef> m_toSendEventQueue;

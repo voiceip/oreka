@@ -141,11 +141,16 @@ void BatchProcessing::ThreadHandler(void *args)
 							decoder1->AudioChunkIn(chunkRef);
 							decoder1->AudioChunkOut(chunkRef);
 						}
-						
+						//if(details.m_channel == 1)
+						//{
 						filter->AudioChunkIn(chunkRef);
 						filter->AudioChunkOut(chunkRef);
+						//}
 					}
+					//if(details.m_channel == 1)
+					//{
 					outFileRef->WriteChunk(chunkRef);
+					//}
 				}
 
 				fileRef->Close();

@@ -191,11 +191,11 @@ void CapturePluginProxy::StopCapture(CStdString& capturePort)
 	}
 }
 
-void __CDECL__  CapturePluginProxy::AudioChunkCallBack(AudioChunkRef chunkRef, CStdString& capturePort, bool remote)
+void __CDECL__  CapturePluginProxy::AudioChunkCallBack(AudioChunkRef chunkRef, CStdString& capturePort)
 {
 	// find the right port and give it the audio chunk
 	CapturePortRef portRef = CapturePortsSingleton::instance()->AddAndReturnPort(capturePort);
-	portRef->AddAudioChunk(chunkRef, remote);
+	portRef->AddAudioChunk(chunkRef);
 }
 
 void __CDECL__ CapturePluginProxy::CaptureEventCallBack(CaptureEventRef eventRef, CStdString& capturePort)
