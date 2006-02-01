@@ -76,20 +76,13 @@ AudioTape::AudioTape(CStdString &portId)
 }
 
 
-void AudioTape::AddAudioChunk(AudioChunkRef chunkRef, bool remote)
+void AudioTape::AddAudioChunk(AudioChunkRef chunkRef)
 {
 	// Add the chunk to the local queue
 	if(m_state == StateCreated || m_state == StateActive)
 	{
 		MutexSentinel sentinel(m_mutex);
-		if(remote)
-		{
-			m_remoteChunkQueue.push(chunkRef);
-		}
-		else
-		{
-			m_chunkQueue.push(chunkRef);
-		}
+		m_chunkQueue.push(chunkRef);
 	}
 }
 

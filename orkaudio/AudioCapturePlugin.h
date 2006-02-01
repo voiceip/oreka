@@ -29,7 +29,7 @@ using namespace XERCES_CPP_NAMESPACE;
 #define AUDIO_CAPTURE_PLUGIN_INTERFACE_VERSION 1
 
 // Callback definitions
-typedef void (__CDECL__*AudioChunkCallBackFunction)(AudioChunkRef, CStdString& capturePort, bool remote = false);
+typedef void (__CDECL__*AudioChunkCallBackFunction)(AudioChunkRef, CStdString& capturePort);
 typedef void (__CDECL__*CaptureEventCallBackFunction)(CaptureEventRef, CStdString& capturePort);
 
 

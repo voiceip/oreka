@@ -34,7 +34,7 @@ CStdString CapturePort::ToString()
 	return ret;
 }
 
-void CapturePort::AddAudioChunk(AudioChunkRef chunkRef, bool remote)
+void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 {
 	time_t now = time(NULL);
 
@@ -130,7 +130,7 @@ void CapturePort::AddAudioChunk(AudioChunkRef chunkRef, bool remote)
 
 	if (m_audioTapeRef.get() && m_capturing)
 	{
-		m_audioTapeRef->AddAudioChunk(chunkRef, remote);
+		m_audioTapeRef->AddAudioChunk(chunkRef);
 
 		// Signal to immediate processing thread that tape has new stuff
 		ImmediateProcessing::GetInstance()->AddAudioTape(m_audioTapeRef);
