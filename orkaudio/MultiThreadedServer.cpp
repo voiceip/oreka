@@ -35,7 +35,7 @@ int CommandLineServer::open (void *void_acceptor)
 
 void CommandLineServer::run(void* args)
 {
-	unsigned short tcpPort = (unsigned short)args;
+	unsigned short tcpPort = (unsigned short)(unsigned int)args;
 	CommandLineAcceptor peer_acceptor;
 	ACE_INET_Addr addr (tcpPort);
 	ACE_Reactor reactor;
@@ -127,7 +127,7 @@ int HttpServer::open (void *void_acceptor)
 
 void HttpServer::run(void* args)
 {
-	unsigned short tcpPort = (unsigned short)args;
+	unsigned short tcpPort = (unsigned short)(unsigned int)args;
 	HttpAcceptor peer_acceptor;
 	ACE_INET_Addr addr (tcpPort);
 	ACE_Reactor reactor;
