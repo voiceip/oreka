@@ -16,6 +16,7 @@
 #include <list>
 #include "ace/OS_NS_unistd.h"
 #include "ace/OS_NS_string.h"
+#include "ace/OS_NS_strings.h"
 #include "ace/Singleton.h"
 #include "ace/Min_Max.h"
 #include "ace/OS_NS_arpa_inet.h"
@@ -42,16 +43,16 @@ static LoggerPtr s_rtpPacketLog;
 static LoggerPtr s_sipPacketLog;
 static LoggerPtr s_skinnyPacketLog;
 static LoggerPtr s_sipExtractionLog;
-time_t s_lastHooveringTime;
-
+static time_t s_lastHooveringTime;
 static ACE_Thread_Mutex s_mutex;
+static bool s_liveCapture;
 
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
 
 #define PROMISCUOUS 1
 
-// Convert a piece of memnory to hex string
+// Convert a piece of memory to hex string
 void memToHex(unsigned char* input, size_t len, CStdString&output)
 {
 	char byteAsHex[10];
@@ -62,12 +63,12 @@ void memToHex(unsigned char* input, size_t len, CStdString&output)
 	}
 }
 
-// find the address that follows the given search string between start and stop pointers
+// find the address that follows the given search string between start and stop pointers - case insensitive
 char* memFindAfter(char* toFind, char* start, char* stop)
 {
 	for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop - start)))
 	{
-		if(memcmp(toFind, ptr, strlen(toFind)) == 0)
+		if(ACE_OS::strncasecmp(toFind, ptr, strlen(toFind)) == 0)
 		{
 			return (ptr+strlen(toFind));
 		}
@@ -420,6 +421,11 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 		log.Format("Start Capturing: pcap handle:%x", pcapHandle);
 		LOG4CXX_INFO(s_packetLog, log);
 		pcap_loop(pcapHandle, 0, HandlePacket, NULL);
+		if(!s_liveCapture)
+		{
+			// This is a pcap file replay, stop all sessions before exiting
+			RtpSessionsSingleton::instance()->StopAll();
+		}
 		log.Format("Stop Capturing: pcap handle:%x", pcapHandle);
 		LOG4CXX_INFO(s_packetLog, log);
 	}
@@ -592,8 +598,8 @@ void VoIp::Initialize()
 	s_rtpPacketLog = Logger::getLogger("packet.rtp");
 	s_sipPacketLog = Logger::getLogger("packet.sip");
 	s_skinnyPacketLog = Logger::getLogger("packet.skinny");
-
 	s_sipExtractionLog = Logger::getLogger("sipextraction");
+
 	LOG4CXX_INFO(s_packetLog, "Initializing VoIP plugin");
 
 	// create a default config object in case it was not properly initialized by Configure
@@ -605,10 +611,12 @@ void VoIp::Initialize()
 	if(DLLCONFIG.m_pcapFile.size() > 0)
 	{
 		OpenPcapFile(DLLCONFIG.m_pcapFile);
+		s_liveCapture = false;
 	}
 	else
 	{
 		OpenDevices();
+		s_liveCapture = true;
 	}
 }
 

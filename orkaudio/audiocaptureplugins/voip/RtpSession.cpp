@@ -13,6 +13,8 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
+#define RTP_SESSION_TIMEOUT 10
+
 #include "Utils.h"
 #include "RtpSession.h"
 #include "AudioCapturePlugin.h"
@@ -417,16 +419,26 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	pair = m_byIpAndPort.find(ipAndPort);
 	if (pair != m_byIpAndPort.end())
 	{
+		// #### old behaviour
 		// A session exists ont the same IP+port, stop old session
-		RtpSessionRef session = pair->second;
-		Stop(session);
+		//RtpSessionRef session = pair->second;
+		//Stop(session);
+
+		// #### new behaviour
+		// The session already exists, do nothing
+		return;
 	}
 	pair = m_byCallId.find(invite->m_callId);
 	if (pair != m_byCallId.end())
 	{
+		// #### old behaviour
 		// A session exists ont the same CallId, stop old session
-		RtpSessionRef session = pair->second;
-		Stop(session);
+		//RtpSessionRef session = pair->second;
+		//Stop(session);
+
+		// #### new behaviour
+		// The session already exists, do nothing
+		return;
 	}
 
 	// create new session and insert into both maps
@@ -641,6 +653,12 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 }
 
+void RtpSessions::StopAll()
+{
+	time_t forceExpiryTime = time(NULL) + 2*RTP_SESSION_TIMEOUT;
+	Hoover(forceExpiryTime);
+}
+
 void RtpSessions::Hoover(time_t now)
 {
 	CStdString numSessions = IntToString(m_byIpAndPort.size());
@@ -653,7 +671,7 @@ void RtpSessions::Hoover(time_t now)
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end(); pair++)
 	{
 		RtpSessionRef session = pair->second;
-		if((now - session->m_lastUpdated) > 10)
+		if((now - session->m_lastUpdated) > RTP_SESSION_TIMEOUT)
 		{
 			toDismiss.push_back(session);
 		}
@@ -672,7 +690,7 @@ void RtpSessions::Hoover(time_t now)
 	for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
 	{
 		RtpSessionRef session = pair->second;
-		if((now - session->m_lastUpdated) > 10)
+		if((now - session->m_lastUpdated) > RTP_SESSION_TIMEOUT)
 		{
 			toDismiss.push_back(session);
 		}
