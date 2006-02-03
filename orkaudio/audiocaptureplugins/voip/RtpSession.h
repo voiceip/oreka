@@ -121,6 +121,7 @@ class RtpSessions
 public:
 	RtpSessions();
 	void Stop(RtpSessionRef& session);
+	void StopAll();
 	void ReportSipInvite(SipInviteInfoRef& invite);
 	void ReportSipBye(SipByeInfo bye);
 	void ReportSkinnyCallInfo(SkCallInfoStruct*);
