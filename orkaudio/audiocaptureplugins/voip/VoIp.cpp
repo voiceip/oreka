@@ -353,7 +353,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	{
 		UdpHeaderStruct* udpHeader = (UdpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
 
-		if(	ntohs(udpHeader->source) > 4000 && ntohs(udpHeader->dest) > 4000 )
+		if(	ntohs(udpHeader->source) > 1024 && ntohs(udpHeader->dest) > 1024 )
 		{
 			u_char* udpPayload = (u_char *)udpHeader + sizeof(UdpHeaderStruct);
 
