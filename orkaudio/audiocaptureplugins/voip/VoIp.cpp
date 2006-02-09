@@ -148,8 +148,8 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 		u_short dest = ntohs(udpHeader->dest);
 		if(!(ntohs(udpHeader->source)%2) && !(ntohs(udpHeader->dest)%2))	// udp ports must be even 
 		{
-			if(rtpHeader->pt <= 34 )		// pt=34 is H263 and is the last possible valid codec 
-			{
+			if(rtpHeader->pt <= 34 &&  rtpHeader->pt != 13)		// pt=34 is H263 and is the last possible valid codec 
+			{													// pt=13 is CN (Comfort Noise)
 				result = true;
 				u_char* payload = (u_char *)rtpHeader + sizeof(RtpHeaderStruct);
 				u_char* packetEnd = (u_char *)ipHeader + ntohs(ipHeader->ip_len);
@@ -173,8 +173,10 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 					rtpInfo->ToString(debug);
 					LOG4CXX_DEBUG(s_rtpPacketLog, debug);
 				}
-
-				RtpSessionsSingleton::instance()->ReportRtpPacket(rtpInfo);
+				if(payloadLength < 800)		// sanity check, speech RTP payload should always be smaller
+				{
+					RtpSessionsSingleton::instance()->ReportRtpPacket(rtpInfo);
+				}
 			}
 			else
 			{
