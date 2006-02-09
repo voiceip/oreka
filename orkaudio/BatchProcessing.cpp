@@ -81,6 +81,7 @@ void BatchProcessing::ThreadHandler(void *args)
 				fileRef->Open(AudioFile::READ);
 
 				AudioChunkRef chunkRef;
+				AudioChunkRef tmpChunkRef;
 
 				switch(CONFIG.m_storageAudioFormat)
 				{
@@ -130,27 +131,21 @@ void BatchProcessing::ThreadHandler(void *args)
 						voIpSession = true;
 					}
 					if(voIpSession)
-					{
+					{	
 						if(details.m_channel == 2)
 						{
 							decoder2->AudioChunkIn(chunkRef);
-							decoder2->AudioChunkOut(chunkRef);
+							decoder2->AudioChunkOut(tmpChunkRef);
 						}
 						else
 						{
 							decoder1->AudioChunkIn(chunkRef);
-							decoder1->AudioChunkOut(chunkRef);
+							decoder1->AudioChunkOut(tmpChunkRef);
 						}
-						//if(details.m_channel == 1)
-						//{
-						filter->AudioChunkIn(chunkRef);
-						filter->AudioChunkOut(chunkRef);
-						//}
+						filter->AudioChunkIn(tmpChunkRef);
+						filter->AudioChunkOut(tmpChunkRef);
 					}
-					//if(details.m_channel == 1)
-					//{
-					outFileRef->WriteChunk(chunkRef);
-					//}
+					outFileRef->WriteChunk(tmpChunkRef);
 				}
 
 				fileRef->Close();
