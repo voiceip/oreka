@@ -300,8 +300,8 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	// Compute the corrective offset (only if the two streams have greatly different timestamp, eg for Cisco CallManager)
 	if(m_rtpTimestampCorrectiveOffset == 0 && m_lastRtpPacketSide2.get() != NULL)
 	{
-		if (m_lastRtpPacketSide2->m_arrivalTimestamp == m_lastRtpPacketSide1->m_arrivalTimestamp)
-		{
+		//if (m_lastRtpPacketSide2->m_arrivalTimestamp == m_lastRtpPacketSide1->m_arrivalTimestamp)
+		//{
 			int timestampOffset = m_lastRtpPacketSide2->m_timestamp - m_lastRtpPacketSide1->m_timestamp;
 			if(timestampOffset > 8000 || timestampOffset < -8000)	// 1s @ 8KHz
 			{
@@ -312,7 +312,7 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 					LOG4CXX_DEBUG(m_log,  m_trackingId + ": " + m_capturePort + ": " + "Applying timestamp corrective offset:" + timestampOffsetString);
 				}
 			}
-		}
+		//}
 	}
 	// apply the corrective offset
 	if(m_lastRtpPacketSide2.get() != NULL)
