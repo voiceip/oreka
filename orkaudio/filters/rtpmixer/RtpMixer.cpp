@@ -124,16 +124,20 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 			// RTP packet does not fit into current buffer
 			// work out how much silence we need to add to the current buffer when shipping
 			size_t silenceSize = details->m_timestamp - m_writeTimestamp;
-			CreateShipment(silenceSize);
 
-			// reset buffer
-			m_writePtr = m_buffer;
-			m_readPtr = m_buffer;
-			m_writeTimestamp = details->m_timestamp;
-			m_readTimestamp = m_writeTimestamp;
+			if(silenceSize < (8000*60) )	// sanity check, maximum silence is 60 seconds @8KHz, otherwise, drop the chunk
+			{
+				CreateShipment(silenceSize);
 
-			// Store new packet
-			StoreRtpPacket(chunk);
+				// reset buffer
+				m_writePtr = m_buffer;
+				m_readPtr = m_buffer;
+				m_writeTimestamp = details->m_timestamp;
+				m_readTimestamp = m_writeTimestamp;
+
+				// Store new packet
+				StoreRtpPacket(chunk);
+			}
 		}
 	}
 	else
