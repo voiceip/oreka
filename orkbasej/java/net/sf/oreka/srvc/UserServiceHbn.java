@@ -424,4 +424,34 @@ public class UserServiceHbn implements UserService {
 		
 		return numUsers;
 	}
+	
+	public User getUserByLoginString(String loginString) {
+		Session hbnSession = null;
+		User user = null;
+		
+		try
+		{
+			hbnSession = HibernateManager.instance().getSession();
+			String queryString = new String("from LoginString as ls where ls.loginstring=:ls");
+			Query query = hbnSession.createQuery(queryString);
+			query.setString("ls", loginString);
+			List list = query.list();
+			Iterator it = list.iterator();
+			if (it.hasNext()) {
+				LoginString ls = (LoginString)it.next();
+				user = ls.getUser();
+			}
+		}
+		catch ( HibernateException he ) {
+			logger.error("getUserByLoginString: exception:" + he.getClass().getName());
+		}
+		catch (Exception e) {
+			logger.error("getUserByLoginString: exception:", e);
+		}
+		finally {
+			if(hbnSession != null) {hbnSession.close();}
+		}
+		return user;
+	}
+
 }
