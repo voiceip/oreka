@@ -24,10 +24,30 @@ or download sources tarballs from the listed websites.
 * portaudio v18 (only needed if you want to do sound device recording)
 	http://www.portaudio.com
 
+Redhat/Centos specific
+
+* yum install boost-devel
+* yum install libpcap
+* Download orkaudio-0.4-centos4.2-i386-rpms.tar from sourceforge
+* rpm -i xercesc-2.7.0-1.i386.rpm
+* rpm -i ACE-5.4.8-1.i386.rpm
+* rpm -i log4cxx-0.9.7-1.i386.rpm
+* rpm -i libsndfile-1.0.13-1.i386.rpm
+
+Debian/Ubuntu specific
+
+* apt-get install libace-dev
+* apt-get install libboost-dev
+* apt-get install liblog4cpp-dev
+* apt-get install libpcap0.7-dev
+* apt-get install libxerces26-dev
+* apt-get install libsndfile1-dev
+
 Build orkbasecxx on the command line:
 
 * Go to the root directory of the orkbasecxx
 * libtoolize --force
+* automake -a
 * make -f Makefile.cvs
 * ./configure
 * make
@@ -37,6 +57,7 @@ Build orkaudio on the command line:
 
 * Go to the root directory of the orkaudio
 * libtoolize --force
+* automake -a
 * make -f Makefile.cvs
 * ./configure
 * make
@@ -59,3 +80,5 @@ Build on Windows/MSVC6 (SP6)
 * Load orkaudio\OrkAudio.dsw into MSVC
 * Select orkbase as active project, build
 * Select orkaudio as active project, build
+* Select rtpmixer as active project, build
+* Select desired capture plugin, build
