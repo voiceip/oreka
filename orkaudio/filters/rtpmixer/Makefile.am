@@ -1,5 +1,6 @@
 METASOURCES = AUTO
-lib_LTLIBRARIES = librtpmixer.la
+plugindir= $(prefix)/lib/orkaudio/plugins
+plugin_LTLIBRARIES = librtpmixer.la
 librtpmixer_la_SOURCES = RtpMixer.cpp 
 librtpmixer_la_LDFLAGS = -module
 AM_CPPFLAGS = -D_REENTRANT
