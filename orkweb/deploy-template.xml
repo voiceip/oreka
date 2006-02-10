@@ -62,6 +62,7 @@
 	      	<fileset dir="${contextHome}">
 	      	   <include name="*" />
 	      	   <include name="images/*" />
+	      	   <include name="images/common/*" />	
 	      	   <include name="WEB-INF/*.page" />
 	      	   <include name="WEB-INF/*.application" />
 	      	   <include name="WEB-INF/*.jwc" />
