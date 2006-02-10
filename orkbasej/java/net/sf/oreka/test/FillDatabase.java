@@ -47,13 +47,25 @@ public class FillDatabase {
 		service.setName("orkaudio1");
 		hbnSession.save(service);
 		
+		// user 1
 		User user = new User();
 		user.setFirstname("salisse");
+		user.setPassword("salisse");
 		LoginString ls = new LoginString();
 		ls.setUser(user);
 		ls.setLoginString("1973");
 		hbnSession.save(user);
 		hbnSession.save(ls);
+		
+		// user 2
+		User user2 = new User();
+		user2.setFirstname("zapata");
+		user2.setPassword("zapata");
+		LoginString ls2 = new LoginString();
+		ls2.setUser(user2);
+		ls2.setLoginString("1974");
+		hbnSession.save(user2);
+		hbnSession.save(ls2);
 		
 		// create program that does not filter anything
 		RecProgram prog1 = new RecProgram();
@@ -77,6 +89,7 @@ public class FillDatabase {
 			String randomString = "" + generator.nextInt();
 			randomString = randomString.replace("-", "a");
 			seg.setLocalParty(randomString);
+			seg.setUser(user);
 			seg.setRemoteParty(lastParty);
 			lastParty = randomString;
 			
