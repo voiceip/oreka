@@ -19,7 +19,7 @@ Install required infrastructure software:
 * Install Tomcat 5.5 or later, point it the the Java 5 JDK
 * Copy all jar files from the external java libraries pack to {TOMCAT_HOME}/shared/lib
 * Make note of the admin password
-* Install MySQL or any database compatible with hibernate
+* Install MySQL or any database compatible with hibernate (there is a known problem with MySQL 5.0 - you need to change bit(1) to tinyint(1) for boolean columns - MySQL 4.x is OK)
 * Create a database for storing oreka data
 * Create a user/password for reading/writing the newly created database
 
