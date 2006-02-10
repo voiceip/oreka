@@ -351,6 +351,15 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	int ipHeaderLength = ipHeader->ip_hl*4;
 	u_char* ipPacketEnd = (u_char*)ipHeader + ipHeader->ip_len;
 
+	if(!s_liveCapture)
+	{
+		// This is a pcap file replay, make sure Orkaudio won't be flooded by too many
+		// packets at a time by yielding control to other threads.
+		ACE_Time_Value yield;
+		yield.set(0,1);	// 1 us
+		ACE_OS::sleep(yield);
+	}
+
 	if(ipHeader->ip_p == IPPROTO_UDP)
 	{
 		UdpHeaderStruct* udpHeader = (UdpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
