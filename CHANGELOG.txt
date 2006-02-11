@@ -1,5 +1,5 @@
 ===========================================================================
-2006-02-10 Oreka 0.4
+2006-02-12 Oreka 0.4
 
 	* Oreka can now monitor multiple Network devices in parallel
 	* Oreka can now replay tcpdump (pcap) network trace files
@@ -9,7 +9,7 @@
 	* Improved SIP signalling management (Before: Sessions could break up spuriously)
 	* Oreka can now store in "pcmwav" format, ie, pcm stored in a wav file without compression
 	* Sample rate can now be different than 8KHz across Oreka
-	* Sample rate can now be set in SoundDevice plugin
+	* Sample rate now tunable in SoundDevice plugin
 	* Codecs can now be plugins
 
 ===========================================================================
