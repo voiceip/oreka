@@ -17,7 +17,7 @@
     </context-param>
     <context-param>
     	<param-name>Debug</param-name>
-    	<param-value>true</param-value>
+    	<param-value>false</param-value>
     </context-param>
     <filter>
         <filter-name>redirect</filter-name>
