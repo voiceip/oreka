@@ -70,7 +70,8 @@ or download sources tarballs from the listed websites.
 			<para>
 <itemizedlist>
 <listitem>Go to the root directory of the orkbasecxx</listitem>
-<listitem>libtoolize --force</listitem>
+<listitem>libtoolize</listitem>
+<listitem>automake -a</listitem>
 <listitem>make -f Makefile.cvs</listitem>
 <listitem>./configure</listitem>
 <listitem>make</listitem>
@@ -83,7 +84,8 @@ or download sources tarballs from the listed websites.
 			<para>
 <itemizedlist>
 <listitem>Go to the root directory of the orkaudio</listitem>
-<listitem>libtoolize --force</listitem>
+<listitem>libtoolize</listitem>
+<listitem>automake -a</listitem>
 <listitem>make -f Makefile.cvs</listitem>
 <listitem>./configure</listitem>
 <listitem>make</listitem>
