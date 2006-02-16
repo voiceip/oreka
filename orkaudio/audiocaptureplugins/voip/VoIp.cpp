@@ -231,8 +231,8 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		SipInviteInfoRef info(new SipInviteInfo());
 
 		char* fromField = memFindAfter("From: ", (char*)udpPayload, sipEnd);
-		char* toField = NULL;
-		char* callIdField = NULL;
+		char* toField = memFindAfter("To: ", (char*)udpPayload, sipEnd);
+		char* callIdField = memFindAfter("Call-ID: ", (char*)udpPayload, sipEnd);
 		char* audioField = NULL;
 
 		if(fromField)
@@ -255,7 +255,6 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			{
 				GrabAlphaNumToken(fromField, fromFieldEnd, info->m_from);
 			}
-			toField = memFindAfter("To: ", fromField, sipEnd);
 		}
 		if(toField)
 		{
@@ -276,7 +275,6 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			{
 				GrabAlphaNumToken(toField, toFieldEnd, info->m_to);
 			}
-			callIdField = memFindAfter("Call-ID: ", toField, sipEnd);
 		}
 		if(callIdField)
 		{
