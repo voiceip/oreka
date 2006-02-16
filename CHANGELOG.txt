@@ -1,7 +1,8 @@
 ===========================================================================
-2006-02-15 Oreka 0.5
+2006-02-16 Oreka 0.5
 
 	* Fixed a critical bug that could cause Orkaudio to crash given a certain sequence of RTP packets
+	* Fixed a SIP detection issue on Siemens platform (Siemens Optipoint 400)
 
 ===========================================================================
 2006-02-12 Oreka 0.4
