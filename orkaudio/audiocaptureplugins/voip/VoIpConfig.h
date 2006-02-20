@@ -48,7 +48,7 @@ public:
 
 //========================================
 
-#define SOUND_DEVICE_CONFIG_PARAM "VoIpPlugin"
+#define VOIP_CONFIG_PARAM "VoIpPlugin"
 
 /** This class represents the top of the configuration hierarchy for the generator. */
 class VoIpConfigTopObject : public Object

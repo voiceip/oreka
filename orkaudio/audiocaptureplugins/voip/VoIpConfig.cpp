@@ -126,7 +126,7 @@ ObjectRef VoIpConfig::NewInstance()
 
 void VoIpConfigTopObject::Define(Serializer* s)
 {
-	s->ObjectValue(SOUND_DEVICE_CONFIG_PARAM, m_config, true);
+	s->ObjectValue(VOIP_CONFIG_PARAM, m_config, true);
 }
 
 void VoIpConfigTopObject::Validate()
