@@ -465,7 +465,7 @@ void RtpSessions::ReportSipBye(SipByeInfo bye)
 	}
 }
 
-void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo)
+void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader)
 {
 	CStdString callId = IntToString(callInfo->callId);
 	std::map<CStdString, RtpSessionRef>::iterator pair;
@@ -480,6 +480,7 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo)
 	CStdString trackingId = alphaCounter.GetNext();
 	RtpSessionRef session(new RtpSession(trackingId));
 	session->m_callId = callId;
+	session->m_endPointIp = ipHeader->ip_dest;	// CallInfo message always goes from CM to endpoint 
 	session->m_protocol = RtpSession::ProtSkinny;
 	switch(callInfo->callType)
 	{
@@ -494,21 +495,81 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo)
 		session->m_direction = CaptureEvent::DirOut;
 		break;
 	}
+
+	if(m_log->isInfoEnabled())
+	{
+		CStdString logMsg;
+		CStdString dir = CaptureEvent::DirectionToString(session->m_direction);
+		char szEndPointIp[16];
+		ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
+
+		logMsg.Format("%s: Skinny CallInfo callId %s local:%s remote:%s dir:%s endpoint:%s", session->m_trackingId,
+			session->m_callId, session->m_localParty, session->m_remoteParty, dir, szEndPointIp);
+		LOG4CXX_INFO(m_log, logMsg);
+	}
+
 	m_byCallId.insert(std::make_pair(session->m_callId, session));
 }
 
-void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct* startMedia)
+void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct* startMedia, IpHeaderStruct* ipHeader)
 {
 	// Lookup by callId
+	RtpSessionRef session;
 	CStdString callId = IntToString(startMedia->conferenceId);
 	std::map<CStdString, RtpSessionRef>::iterator pair;
-	pair = m_byCallId.find(callId);
 
-	if (pair != m_byCallId.end())
+	if(callId.Equals("0"))
+	{
+		// Ok this seems to be CallManager 3.3 or older, Conference ID field is not populated
+		// We need to find the CallInfo with the same endpoint IP address
+		for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
+		{
+			RtpSessionRef tmpSession = pair->second;
+
+			if(tmpSession->m_endPointIp.s_addr == ipHeader->ip_dest.s_addr)
+			{
+				if(tmpSession->m_ipAndPort.size() == 0)
+				{
+					session = tmpSession;
+					// The "Call ID" between StartMediaTransmission and StopMediaTransmission 
+					// is represented by the PassThruPartyId field.
+					// So let's move the session within the callId map.
+					// 1. remove it from the map
+					m_byCallId.erase(session->m_callId);
+					// 2. add it back with PassThruPartyId as CallId
+					CStdString passThruPartyId = IntToString(startMedia->passThruPartyId);
+					CStdString oldCallId = session->m_callId;
+					session->m_callId = passThruPartyId;
+					m_byCallId.insert(std::make_pair(passThruPartyId, session));
+
+					if(m_log->isInfoEnabled())
+					{
+						CStdString logMsg;
+						logMsg.Format("%s: Skinny StartMedia: callId %s becomes %s", session->m_trackingId, oldCallId, session->m_callId);
+						LOG4CXX_INFO(m_log, logMsg);
+					}
+					break;
+				}
+				else
+				{
+					// The session has already had a StartMediaTransmission message.
+				}
+			}
+		}
+	}
+	else
+	{
+		// CallManager 4 or newer
+		pair = m_byCallId.find(callId);
+		if (pair != m_byCallId.end())
+		{
+			session = pair->second;
+		}
+	}
+
+	if (session.get() != NULL)
 	{
 		// Session found
-		RtpSessionRef session = pair->second;
-
 		if(session->m_ipAndPort.size() == 0)
 		{
 			CStdString ipAndPort;
@@ -519,10 +580,18 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 			pair = m_byIpAndPort.find(ipAndPort);
 			if (pair != m_byIpAndPort.end())
 			{
-				// A session exists ont the same IP+port, stop old session
+				// A session exists on the same IP+port, stop old session
 				RtpSessionRef session = pair->second;
 				Stop(session);
 			}
+
+			if(m_log->isInfoEnabled())
+			{
+				CStdString logMsg;
+				logMsg.Format("%s: Skinny StartMedia: callId %s is on %s", session->m_trackingId, session->m_callId, ipAndPort);
+				LOG4CXX_INFO(m_log, logMsg);
+			}
+
 			session->m_ipAndPort = ipAndPort;
 			m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
 		}
@@ -539,8 +608,17 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 
 void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct* stopMedia)
 {
-	CStdString callId = IntToString(stopMedia->conferenceId);
-
+	CStdString callId;
+	if(stopMedia->conferenceId == 0)
+	{
+		// CallManager 3.3 or older, see explanation in ReportSkinnyStartMediaTransmission
+		callId = IntToString(stopMedia->passThruPartyId);
+	}
+	else
+	{
+		// CallManager 4 or later
+		callId = IntToString(stopMedia->conferenceId);
+	}
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	pair = m_byCallId.find(callId);
 
@@ -548,6 +626,14 @@ void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruc
 	{
 		// Session found: stop it
 		RtpSessionRef session = pair->second;
+
+		if(m_log->isInfoEnabled())
+		{
+			CStdString logMsg;
+			logMsg.Format("%s: Skinny StopMedia", session->m_trackingId);
+			LOG4CXX_INFO(m_log, logMsg);
+		}
+
 		Stop(session);
 	}
 }

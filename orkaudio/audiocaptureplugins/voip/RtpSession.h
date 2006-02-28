@@ -92,6 +92,7 @@ public:
 	CStdString m_remoteParty;
 	CaptureEvent::DirectionEnum m_direction;
 	int m_numRtpPackets;
+	struct in_addr m_endPointIp;		// only used for Skinny
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
@@ -124,8 +125,8 @@ public:
 	void StopAll();
 	void ReportSipInvite(SipInviteInfoRef& invite);
 	void ReportSipBye(SipByeInfo bye);
-	void ReportSkinnyCallInfo(SkCallInfoStruct*);
-	void ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct*);
+	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader);
+	void ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
 	void ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct*);
 	void ReportRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void Hoover(time_t now);
