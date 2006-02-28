@@ -193,7 +193,7 @@ public class ProgramManager {
 			long startPrgMillis = prog.getStartTime().getTime();
 			long stopPrgMillis = prog.getStopTime().getTime();			
 			long startSegMillis = seg.getTimestamp().getTime();
-			Date startOfDay = seg.getTimestamp();
+			Date startOfDay = new Date(seg.getTimestamp().getTime());
 			startOfDay.setHours(0);
 			startOfDay.setMinutes(0);
 			startOfDay.setSeconds(0);
