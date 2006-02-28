@@ -101,7 +101,7 @@ typedef struct
 {
 	SkinnyHeaderStruct header;
 	unsigned long conferenceId;
-	unsigned long passThruParty;
+	unsigned long passThruPartyId;
 	struct in_addr remoteIpAddr;
 	unsigned long remoteTcpPort;
 	// and some more fields
@@ -111,7 +111,7 @@ typedef struct
 {
 	SkinnyHeaderStruct header;
 	unsigned long conferenceId;
-	unsigned long passThruParty;
+	unsigned long passThruPartyId;
 } SkStopMediaTransmissionStruct;
 
 typedef struct

@@ -201,7 +201,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload)
 {
 	bool result = false;
-	if (memcmp("BYE", (void*)udpPayload, 1) == 0)
+	if (memcmp("BYE", (void*)udpPayload, 3) == 0)
 	{
 		result = true;
 		int sipLength = ntohs(udpHeader->len);
@@ -221,7 +221,7 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload)
 {
 	bool result = false;
-	if (memcmp("INVITE", (void*)udpPayload, 1) == 0)
+	if (memcmp("INVITE", (void*)udpPayload, 6) == 0)
 	{
 		result = true;
 
@@ -295,7 +295,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 	return result;
 }
 
-void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader)
+void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHeader)
 {
 	bool useful = true;
 	CStdString debug;
@@ -311,15 +311,15 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader)
 		{
 			char szRemoteIp[16];
 			ACE_OS::inet_ntop(AF_INET, (void*)&startMedia->remoteIpAddr, szRemoteIp, sizeof(szRemoteIp));
-			debug.Format(" CallId:%u %s,%u", startMedia->conferenceId, szRemoteIp, startMedia->remoteTcpPort);
+			debug.Format(" CallId:%u PassThru:%u %s,%u", startMedia->conferenceId, startMedia->passThruPartyId, szRemoteIp, startMedia->remoteTcpPort);
 		}
-		RtpSessionsSingleton::instance()->ReportSkinnyStartMediaTransmission(startMedia);
+		RtpSessionsSingleton::instance()->ReportSkinnyStartMediaTransmission(startMedia, ipHeader);
 		break;
 	case SkStopMediaTransmission:
 		stopMedia = (SkStopMediaTransmissionStruct*)skinnyHeader;
 		if(s_skinnyPacketLog->isDebugEnabled())
 		{
-			debug.Format(" CallId:%u", stopMedia->conferenceId);
+			debug.Format(" CallId:%u PassThru:%u", stopMedia->conferenceId, stopMedia->passThruPartyId);
 		}
 		RtpSessionsSingleton::instance()->ReportSkinnyStopMediaTransmission(stopMedia);
 		break;
@@ -329,7 +329,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader)
 		{
 			debug.Format(" CallId:%u calling:%s called:%s", callInfo->callId, callInfo->callingParty, callInfo->calledParty);
 		}
-		RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(callInfo);
+		RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(callInfo, ipHeader);
 		break;
 	default:
 		useful = false;
@@ -405,7 +405,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 				}
 				MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
 
-				HandleSkinnyMessage(skinnyHeader);
+				HandleSkinnyMessage(skinnyHeader, ipHeader);
 
 				// Point to next skinny message within this TCP packet
 				skinnyHeader = (SkinnyHeaderStruct*)((u_char*)skinnyHeader + SKINNY_HEADER_LENGTH + skinnyHeader->len);
