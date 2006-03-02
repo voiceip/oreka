@@ -34,7 +34,7 @@ public class TapeMessage extends SyncMessage {
 
 	public enum CaptureStage {START , STOP, COMPLETE, UNKN};
 	
-	Logger log = null;
+	static Logger logger = Logger.getLogger(TapeMessage.class);
 	
 	CaptureStage stage = CaptureStage.UNKN;
 	int timestamp = 0;
@@ -57,7 +57,6 @@ public class TapeMessage extends SyncMessage {
 	String dstMac = "";
 	
 	public TapeMessage() {
-		log = LogManager.getInstance().getPortLogger();
 	}
 	
 	public String getService() {
@@ -71,7 +70,7 @@ public class TapeMessage extends SyncMessage {
 	@Override
 	public AsyncMessage process() {
 
-		SimpleResponseMessage response = new SimpleResponseMessage();
+		TapeResponse response = new TapeResponse();
 		Session session = null;
 		Transaction tx = null;
 		
@@ -80,19 +79,22 @@ public class TapeMessage extends SyncMessage {
 	        tx = session.beginTransaction();
 	        
 	        SingleLineSerializer ser = new SingleLineSerializer();
-	        log.info("Message: " + ser.serialize(this));
+	        logger.info("Message: " + ser.serialize(this));
 	        
 			Service service = ServiceManager.retrieveOrCreate(this.service, this.getHostname(), session);
 			
 			//Port port = PortManager.instance().getAndCreatePort(this.getCapturePort(), session, service);
 			//port.notifyTapeMessage(this, session, service);
-			TapeManager.instance().notifyTapeMessage(this, session, service);
+			if (TapeManager.instance().notifyTapeMessage(this, session, service) == false) {
+				response.setDeleteTape(true);
+				logger.debug("Tape deletion requested:" + this.getFilename());
+			}
 			
 			response.setSuccess(true);
 			tx.commit();
 		}
 		catch (Exception e) {
-			log.error("TapeMessage.process: ", e);
+			logger.error("TapeMessage.process: ", e);
 			response.setSuccess(false);
 			response.setComment(e.getMessage());
 		}

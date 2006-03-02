@@ -27,8 +27,15 @@ public class TapeManager {
 		return tapeManager;
 	}
 	
-	
-	public void notifyTapeMessage(TapeMessage tapeMessage, Session hbnSession, Service srv) {
+	/**
+	 * @param tapeMessage
+	 * @param hbnSession
+	 * @param srv
+	 * @return	false if the tape is rejected and should be deleted, otherwise true
+	 */
+	public boolean notifyTapeMessage(TapeMessage tapeMessage, Session hbnSession, Service srv) {
+		
+		boolean keepTape = true;
 		
 		if (tapeMessage.getStage() == TapeMessage.CaptureStage.START) {
 			; // tape start message
@@ -71,8 +78,10 @@ public class TapeManager {
 				logger.info("Written segment:" + tapeMessage.getRecId() + " as " + recSegment.getId());
 			}
 			else {
-				logger.info("Tape:" + tapeMessage.getRecId() + " generates no segment");					
+				logger.info("Tape:" + tapeMessage.getRecId() + " not retained by any program");
+				keepTape = false;
 			}
 		}
+		return keepTape;
 	}
 }
