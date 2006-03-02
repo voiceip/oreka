@@ -15,8 +15,10 @@
 #include "Reporting.h"
 #include "LogManager.h"
 #include "messages/Message.h"
+#include "messages/TapeMsg.h"
 #include "OrkClient.h"
 #include "Daemon.h"
+#include "BatchProcessing.h"
 
 
 Reporting Reporting::m_reportingSingleton;
@@ -67,16 +69,22 @@ void Reporting::ThreadHandler(void *args)
 					LOG4CXX_INFO(LOG.reportingLog, msgAsSingleLineString);
 
 					OrkHttpSingleLineClient c;
-					SimpleResponseMsg srm;
+					TapeResponse tr;
 
 					bool success = false;
 					bool firstError = true;
 
 					while (!success)
 					{
-						if (c.Execute((SyncMessage&)(*msgRef.get()), srm, CONFIG.m_trackerHostname, CONFIG.m_trackerTcpPort, CONFIG.m_trackerServicename, CONFIG.m_clientTimeout))
+						if (c.Execute((SyncMessage&)(*msgRef.get()), tr, CONFIG.m_trackerHostname, CONFIG.m_trackerTcpPort, CONFIG.m_trackerServicename, CONFIG.m_clientTimeout))
 						{
 							success = true;
+							if(tr.m_deleteTape)
+							{
+								LOG4CXX_INFO(LOG.reportingLog, "Registered tape for removal: " + audioTapeRef->GetIdentifier());
+								CStdString tapeFilename = audioTapeRef->GetFilename();
+								BatchProcessing::GetInstance()->TapeDropRegistration(tapeFilename);
+							}
 						}
 						else
 						{

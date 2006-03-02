@@ -240,20 +240,11 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 
 	msgRef.reset(new TapeMsg);
 	TapeMsg* pTapeMsg = (TapeMsg*)msgRef.get();
-	if(captureEventRef->m_type == CaptureEvent::EtStart || captureEventRef->m_type == CaptureEvent::EtStop)
+	if(captureEventRef->m_type == CaptureEvent::EtStop)
 	{
-		if (captureEventRef->m_type == CaptureEvent::EtStart)
-		{
-			pTapeMsg->m_timestamp = m_beginDate;
-		}
-		else
-		{
-			pTapeMsg->m_timestamp = m_endDate;
-		}
-
 		pTapeMsg->m_recId = m_fileIdentifier;
 		pTapeMsg->m_fileName = m_filePath + m_fileIdentifier + m_fileExtension;
-		pTapeMsg-> m_stage = CaptureEvent::EventTypeToString(captureEventRef->m_type);
+		pTapeMsg->m_stage = CaptureEvent::EventTypeToString(captureEventRef->m_type);
 		pTapeMsg->m_capturePort = m_portId;
 		pTapeMsg->m_localParty = m_localParty;
 		pTapeMsg->m_localEntryPoint = m_localEntryPoint;
@@ -264,7 +255,7 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 	}
 	else
 	{
-		// This should be a key-value pair message
+		// This should be a key-value pair message or a start event
 	}
 }
 
@@ -283,6 +274,12 @@ CStdString AudioTape::GetIdentifier()
 {
 	return m_fileIdentifier;
 }
+
+CStdString AudioTape::GetFilename()
+{
+	return m_filePath + m_fileIdentifier + m_fileExtension;
+}
+
 
 CStdString AudioTape::GetPath()
 {

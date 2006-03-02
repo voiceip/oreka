@@ -124,6 +124,8 @@ void MainThread()
 	ObjectFactorySingleton::instance()->RegisterObject(objRef);
 	objRef.reset(new TapeMsg);
 	ObjectFactorySingleton::instance()->RegisterObject(objRef);
+	objRef.reset(new TapeResponse);
+	ObjectFactorySingleton::instance()->RegisterObject(objRef);
 	objRef.reset(new SimpleResponseMsg);
 	ObjectFactorySingleton::instance()->RegisterObject(objRef);
 	objRef.reset(new DeleteTapeMsg);
