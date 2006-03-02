@@ -57,3 +57,27 @@ ObjectRef TapeMsg::NewInstance()
 	return ObjectRef(new TapeMsg);
 }
 
+
+//==========================================================
+TapeResponse::TapeResponse()
+{
+	m_deleteTape = false;
+}
+
+
+void TapeResponse::Define(Serializer* s)
+{
+	SimpleResponseMsg::Define(s);
+	s->BoolValue("deletetape", m_deleteTape);
+}
+
+CStdString TapeResponse::GetClassName()
+{
+	return CStdString("taperesponse");
+}
+
+ObjectRef TapeResponse::NewInstance()
+{
+	return ObjectRef(new TapeResponse);
+}
+

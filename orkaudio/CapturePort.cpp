@@ -150,8 +150,8 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			audioTapeRef->SetShouldStop();	// force stop of previous tape
 		}
 		audioTapeRef.reset(new AudioTape(m_Id));	// Create a new tape
-		audioTapeRef->AddCaptureEvent(eventRef, true);
-		Reporting::GetInstance()->AddAudioTape(audioTapeRef);
+		audioTapeRef->AddCaptureEvent(eventRef, false);
+		//Reporting::GetInstance()->AddAudioTape(audioTapeRef);
 		m_audioTapeRef = audioTapeRef;
 		LOG4CXX_INFO(LOG.portLog, "#" + m_Id + ": start");
 	}

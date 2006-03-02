@@ -88,6 +88,8 @@ public:
 	void GetMessage(MessageRef& msg);
 	/** Returns an identifier for the tape which corresponds to the filename without extension */
 	CStdString GetIdentifier();
+	/** Returns the full filename (including relative path) to the post-compression audio file */
+	CStdString GetFilename();
 	CStdString GetPath();
 	AudioFileRef GetAudioFileRef();
 	bool IsReadyForBatchProcessing();

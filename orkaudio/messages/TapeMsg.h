@@ -15,6 +15,7 @@
 #define __TAPEMSG_H__
 
 #include "messages/SyncMessage.h"
+#include "messages/ASyncMessage.h"
 #include "AudioTape.h"
 
 #define TAPE_MESSAGE_NAME "tape"
@@ -55,6 +56,22 @@ public:
 };
 
 typedef boost::shared_ptr<TapeMsg> TapeMsgRef;
+
+/** A TapeResponse is a response to TapeMsg 
+*/
+class TapeResponse : public SimpleResponseMsg
+{
+public:
+	TapeResponse();
+	void Define(Serializer* s);
+	inline void Validate() {};
+
+	CStdString GetClassName();
+	ObjectRef NewInstance();
+	inline ObjectRef Process() {return ObjectRef();};
+
+	bool m_deleteTape;
+};
 
 #endif
 
