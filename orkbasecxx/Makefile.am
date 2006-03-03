@@ -7,7 +7,7 @@ lib_LTLIBRARIES = liborkbase.la
 liborkbase_la_LDFLAGS = 
 liborkbase_la_SOURCES = Filter.cpp g711.c \
 			OrkBase.cpp Object.cpp ObjectFactory.cpp \
-			OrkClient.cpp AudioCapture.cpp 
+			OrkClient.cpp AudioCapture.cpp Utils.cpp 
 #INCLUDES = -I/projects/ext/xmlrpc++/xmlrpc++0.7/src
 SUBDIRS = messages serializers
 liborkbase_la_LIBADD = $(top_builddir)/serializers/libserializers.la \
