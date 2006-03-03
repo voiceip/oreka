@@ -208,8 +208,8 @@ int main(int argc, char* argv[])
 {
 	// figure out service name
 	CStdString program(argv[0]);
-	CStdString serviceNameWithExtension = BaseName(program);
-	CStdString serviceName = StripFileExtension(serviceNameWithExtension);
+	CStdString serviceNameWithExtension = FileBaseName(program);
+	CStdString serviceName = FileStripExtension(serviceNameWithExtension);
 	if (serviceName.IsEmpty())
 	{
 		printf("Error: Could not determine service name.\n");

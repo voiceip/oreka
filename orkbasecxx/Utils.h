@@ -25,6 +25,9 @@
 
 #include "OrkBase.h"
 
+//============================================
+// String related stuff
+
 inline  CStdString IntToString(int integer)
 {
 	CStdString ret;
@@ -59,41 +62,23 @@ inline double StringToDouble(CStdString& value)
 	return doubleValue;
 }
 
-inline CStdString BaseName(CStdString& path)
-{
-	CStdString result;
-	int lastSeparatorPosition = path.ReverseFind('/');
-	if(lastSeparatorPosition == -1)
-	{
-		lastSeparatorPosition = path.ReverseFind('\\');
-	}
-	if(lastSeparatorPosition != -1 && path.GetLength()>3)
-	{
-		result = path.Right(path.GetLength() - lastSeparatorPosition - 1);
-	}
-	else
-	{
-		result = path;
-	}
-	return result;
-}
+//========================================================
+// file related stuff
 
-inline CStdString StripFileExtension(CStdString& filename)
-{
-	CStdString result;
-	int extensionPosition = filename.ReverseFind('.');
-	if (extensionPosition != -1)
-	{
-		result = filename.Left(extensionPosition);
-	}
-	else
-	{
-		result = filename;
-	}
-	return result;
-}
+CStdString DLL_IMPORT_EXPORT FileBaseName(CStdString& path);
+CStdString DLL_IMPORT_EXPORT FileStripExtension(CStdString& filename);
+bool DLL_IMPORT_EXPORT FileCanOpen(CStdString& path);
+
+
+
+//=====================================================
+// threading related stuff
 
 typedef ACE_Guard<ACE_Thread_Mutex> MutexSentinel;
+
+
+//=====================================================
+// Miscellanous stuff
 
 /** A counter that generates a "counting" 3 character strings, i.e. aaa, aab, ..., zzz 
 	that represents a number between 0 and 26^3-1 (wrapping counter)
