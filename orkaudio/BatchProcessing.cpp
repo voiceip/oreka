@@ -138,8 +138,9 @@ void BatchProcessing::ThreadHandler(void *args)
 			else
 			{
 				fileRef = audioTapeRef->GetAudioFileRef();
+				CStdString filename = audioTapeRef->GetFilename();
 
-				if(pBatchProcessing->DropTapeIfNeeded(audioTapeRef->GetFilename()) == true)
+				if(pBatchProcessing->DropTapeIfNeeded(filename) == true)
 				{
 					// The tape we have pulled has been dropped in the meantime. just delete the capture file
 					if(CONFIG.m_deleteNativeFile)
@@ -238,7 +239,8 @@ void BatchProcessing::ThreadHandler(void *args)
 						CStdString threadIdString = IntToString(threadId);
 						LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " deleting native: " + audioTapeRef->GetIdentifier());
 					}
-					pBatchProcessing->DropTapeIfNeeded(audioTapeRef->GetFilename());		// maybe the tape was dropped while we were processing it
+					CStdString filename = audioTapeRef->GetFilename();
+					pBatchProcessing->DropTapeIfNeeded(filename);		// maybe the tape was dropped while we were processing it
 				}
 			}
 		}

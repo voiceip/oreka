@@ -15,7 +15,7 @@
 #define __TAPEMSG_H__
 
 #include "messages/SyncMessage.h"
-#include "messages/ASyncMessage.h"
+#include "messages/AsyncMessage.h"
 #include "AudioTape.h"
 
 #define TAPE_MESSAGE_NAME "tape"
