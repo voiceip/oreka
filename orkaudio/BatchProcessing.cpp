@@ -244,6 +244,10 @@ void BatchProcessing::ThreadHandler(void *args)
 		}
 		catch (CStdString& e)
 		{
+			if(CONFIG.m_deleteNativeFile && fileRef.get() != NULL)
+			{
+				fileRef->Delete();
+			}
 			LOG4CXX_ERROR(LOG.batchProcessingLog, CStdString("BatchProcessing: ") + e);
 		}
 		//catch(...)
