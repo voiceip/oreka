@@ -323,6 +323,10 @@ SOURCE=.\StdString.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Utils.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Utils.h
 # End Source File
 # End Group
