@@ -619,8 +619,15 @@ void VoIp::Initialize()
 
 	if(DLLCONFIG.m_pcapFile.size() > 0)
 	{
-		OpenPcapFile(DLLCONFIG.m_pcapFile);
-		s_liveCapture = false;
+		if(FileCanOpen(DLLCONFIG.m_pcapFile))
+		{
+			OpenPcapFile(DLLCONFIG.m_pcapFile);
+			s_liveCapture = false;
+		}
+		else
+		{
+			LOG4CXX_ERROR(s_packetLog, "Could not open pcap file: " + DLLCONFIG.m_pcapFile);
+		}
 	}
 	else
 	{
