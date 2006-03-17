@@ -515,11 +515,11 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 {
 	// Lookup by callId
 	RtpSessionRef session;
-	CStdString callId = IntToString(startMedia->conferenceId);
+	//CStdString callId = IntToString(startMedia->conferenceId);
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 
-	if(callId.Equals("0"))
-	{
+	//if(callId.Equals("0"))
+	//{
 		// Ok this seems to be CallManager 3.3 or older, Conference ID field is not populated
 		// We need to find the CallInfo with the same endpoint IP address
 		for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
@@ -532,20 +532,28 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 				{
 					session = tmpSession;
 					// The "Call ID" between StartMediaTransmission and StopMediaTransmission 
-					// is represented by the PassThruPartyId field.
+					// is represented by either PassThruPartyId or conferenceId field.
 					// So let's move the session within the callId map.
 					// 1. remove it from the map
 					m_byCallId.erase(session->m_callId);
-					// 2. add it back with PassThruPartyId as CallId
-					CStdString passThruPartyId = IntToString(startMedia->passThruPartyId);
+					// 2. add it back with new CallId
+					CStdString newCallId;
+					if(startMedia->passThruPartyId)
+					{
+						newCallId = IntToString(startMedia->passThruPartyId);
+					}
+					else
+					{
+						newCallId = IntToString(startMedia->conferenceId);
+					}
 					CStdString oldCallId = session->m_callId;
-					session->m_callId = passThruPartyId;
-					m_byCallId.insert(std::make_pair(passThruPartyId, session));
+					session->m_callId = newCallId;
+					m_byCallId.insert(std::make_pair(newCallId, session));
 
 					if(m_log->isInfoEnabled())
 					{
 						CStdString logMsg;
-						logMsg.Format("%s: Skinny StartMedia: callId %s becomes %s", session->m_trackingId, oldCallId, session->m_callId);
+						logMsg.Format("%s: Skinny StartMedia: callId %s becomes %s", session->m_trackingId, oldCallId, newCallId);
 						LOG4CXX_INFO(m_log, logMsg);
 					}
 					break;
@@ -556,16 +564,16 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 				}
 			}
 		}
-	}
-	else
-	{
+	//}
+	//else
+	//{
 		// CallManager 4 or newer
-		pair = m_byCallId.find(callId);
-		if (pair != m_byCallId.end())
-		{
-			session = pair->second;
-		}
-	}
+	//	pair = m_byCallId.find(callId);
+	//	if (pair != m_byCallId.end())
+	//	{
+	//		session = pair->second;
+	//	}
+	//}
 
 	if (session.get() != NULL)
 	{
@@ -702,20 +710,33 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	if(numSessionsFound == 2)
 	{
 		// Need to "merge" the two sessions (ie discard one of them)
-		// usually happens on CallManager with internal calls, so we keep the one that's outgoing
-
+		// Can happen when RTP stream detected before skinny StartMediaTransmission
+		// Can also happens on CallManager with internal calls, so we keep the one that's outgoing
 		RtpSessionRef mergerSession;
 		RtpSessionRef mergeeSession;
 
-		if(session1->m_direction == CaptureEvent::DirOut)
+		if(session1->m_protocol == RtpSession::ProtRawRtp)
+		{
+			mergerSession = session2;
+			mergeeSession = session1;
+		}
+		else if(session2->m_protocol == RtpSession::ProtRawRtp)
 		{
 			mergerSession = session1;
 			mergeeSession = session2;
 		}
 		else
 		{
-			mergerSession = session2;
-			mergeeSession = session1;		
+			if(session1->m_direction == CaptureEvent::DirOut)
+			{
+				mergerSession = session1;
+				mergeeSession = session2;
+			}
+			else
+			{
+				mergerSession = session2;
+				mergeeSession = session1;		
+			}
 		}
 		if(m_log->isInfoEnabled())
 		{
@@ -735,6 +756,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		RtpSessionRef session(new RtpSession(trackingId));
 		session->m_protocol = RtpSession::ProtRawRtp;
 		session->m_ipAndPort = ipAndPort;
+		session->AddRtpPacket(rtpPacket);
 		m_byIpAndPort.insert(std::make_pair(ipAndPort, session));
 	}
 }
