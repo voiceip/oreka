@@ -17,6 +17,7 @@
 #include "ace/OS_NS_unistd.h"
 #include "BatchProcessing.h"
 #include "Daemon.h"
+#include "ConfigManager.h"
 
 ImmediateProcessing ImmediateProcessing::m_immediateProcessingSingleton;
 
@@ -34,9 +35,22 @@ void ImmediateProcessing::AddAudioTape(AudioTapeRef audioTapeRef)
 	}
 }
 
+void ImmediateProcessing::SetQueueSize(int size)
+{
+	m_audioTapeQueue.setSize(size);
+}
+
+
 void ImmediateProcessing::ThreadHandler(void *args)
 {
+	CStdString logMsg;
+
 	ImmediateProcessing* pImmediateProcessing = ImmediateProcessing::GetInstance();
+
+	pImmediateProcessing->SetQueueSize(CONFIG.m_immediateProcessingQueueSize);
+
+	logMsg.Format("thread starting - queue size:%d", CONFIG.m_immediateProcessingQueueSize);
+	LOG4CXX_INFO(LOG.immediateProcessingLog, logMsg);
 
 	bool stop = false;
 

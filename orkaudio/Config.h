@@ -59,7 +59,10 @@
 #define CLIENT_TIMEOUT_PARAM "ClientTimeout"
 #define AUDIO_OUTPUT_PATH_PARAM "AudioOutputPath"
 #define AUDIO_OUTPUT_PATH_DEFAULT "."
-
+#define IMMEDIATE_PROCESSING_QUEUE_SIZE_PARAM "ImmediateProcessingQueueSize"
+#define IMMEDIATE_PROCESSING_QUEUE_SIZE_DEFAULT 10000
+#define BATCH_PROCESSING_QUEUE_SIZE_PARAM "BatchProcessingQueueSize"
+#define BATCH_PROCESSING_QUEUE_SIZE_DEFAULT 20000
 
 class Config : public Object
 {
@@ -94,6 +97,8 @@ public:
 	int m_reportingRetryDelay;
 	int m_clientTimeout;
 	CStdString m_audioOutputPath;
+	int m_immediateProcessingQueueSize;
+	int m_batchProcessingQueueSize;
 };
 
 

@@ -26,6 +26,8 @@ public:
 	static void ThreadHandler(void *args);
 
 	void AddAudioTape(AudioTapeRef audioTapeRef);
+	void SetQueueSize(int size);
+
 	/** Ask for a tape to be deleted from disk */
 	void TapeDropRegistration(CStdString& filename);
 private:
