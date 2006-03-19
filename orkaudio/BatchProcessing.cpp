@@ -46,6 +46,11 @@ void BatchProcessing::AddAudioTape(AudioTapeRef audioTapeRef)
 	}
 }
 
+void BatchProcessing::SetQueueSize(int size)
+{
+	m_audioTapeQueue.setSize(size);
+}
+
 void BatchProcessing::TapeDropRegistration(CStdString& filename)
 {
 	MutexSentinel sentinel(m_tapeDropMutex);
@@ -110,13 +115,17 @@ void BatchProcessing::ThreadHandler(void *args)
 	CStdString debug;
 
 	BatchProcessing* pBatchProcessing = BatchProcessing::GetInstance();
+
+	pBatchProcessing->SetQueueSize(CONFIG.m_batchProcessingQueueSize);
+
 	int threadId = 0;
 	{
 		MutexSentinel sentinel(pBatchProcessing->m_mutex);
 		threadId = pBatchProcessing->m_threadCount++;
 	}
 	CStdString threadIdString = IntToString(threadId);
-	LOG4CXX_DEBUG(LOG.batchProcessingLog, CStdString("Created thread #") + threadIdString);
+	debug.Format("thread #%s starting - queue size:%d", threadIdString, CONFIG.m_batchProcessingQueueSize);
+	LOG4CXX_INFO(LOG.batchProcessingLog, debug);
 
 	bool stop = false;
 
@@ -151,7 +160,7 @@ void BatchProcessing::ThreadHandler(void *args)
 				else
 				{
 					// Let's work on the tape we have pulled
-					CStdString threadIdString = IntToString(threadId);
+					//CStdString threadIdString = IntToString(threadId);
 					LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " processing: " + audioTapeRef->GetIdentifier());
 
 					fileRef->MoveOrig();
@@ -246,10 +255,10 @@ void BatchProcessing::ThreadHandler(void *args)
 		}
 		catch (CStdString& e)
 		{
-			if(CONFIG.m_deleteNativeFile && fileRef.get() != NULL)
-			{
-				fileRef->Delete();
-			}
+			//if(CONFIG.m_deleteNativeFile && fileRef.get() != NULL)
+			//{
+			//	fileRef->Delete();
+			//}
 			LOG4CXX_ERROR(LOG.batchProcessingLog, CStdString("BatchProcessing: ") + e);
 		}
 		//catch(...)

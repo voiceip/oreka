@@ -26,7 +26,7 @@
 template <class T> class ThreadSafeQueue
 {
 public:
-	ThreadSafeQueue(int size = 2000)
+	ThreadSafeQueue(int size = 10000)
 	{
 		m_size = size;
 		m_semaphore.acquire(); // reset count to zero
@@ -35,6 +35,7 @@ public:
 	bool push(T &);
 	T pop();
 	int numElements();
+	void setSize(int size);
 
 private:
 	int m_size;
@@ -82,6 +83,10 @@ template <class T> int ThreadSafeQueue<T>::numElements()
 	return m_queue.size();
 }
 
+template <class T> void ThreadSafeQueue<T>::setSize(int size)
+{
+	m_size = size;
+}
 
 #endif // __THREADSAFEQUEUE_H__
 

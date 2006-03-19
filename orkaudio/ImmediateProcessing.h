@@ -24,6 +24,7 @@ public:
 	static void ThreadHandler(void *args);
 
 	void AddAudioTape(AudioTapeRef audioTapeRef);
+	void SetQueueSize(int size);
 private:
 	static ImmediateProcessing m_immediateProcessingSingleton;
 	ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
