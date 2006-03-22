@@ -233,10 +233,13 @@ void BatchProcessing::ThreadHandler(void *args)
 						}
 						outFileRef->WriteChunk(tmpChunkRef);
 
-						// Give up CPU to make sure the actual recording always has priority
-						ACE_Time_Value yield;
-						yield.set(0,1);	// 1 us
-						ACE_OS::sleep(yield);
+						if(CONFIG.m_batchProcessingEnhancePriority == false)
+						{
+							// Give up CPU between every audio buffer to make sure the actual recording always has priority
+							ACE_Time_Value yield;
+							yield.set(0,1);	// 1 us
+							ACE_OS::sleep(yield);
+						}
 					}
 
 					fileRef->Close();

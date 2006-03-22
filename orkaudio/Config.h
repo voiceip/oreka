@@ -63,6 +63,8 @@
 #define IMMEDIATE_PROCESSING_QUEUE_SIZE_DEFAULT 10000
 #define BATCH_PROCESSING_QUEUE_SIZE_PARAM "BatchProcessingQueueSize"
 #define BATCH_PROCESSING_QUEUE_SIZE_DEFAULT 20000
+#define BATCH_PROCESSING_ENHANCE_PRIORITY_PARAM "BatchProcessingEnhancePriority"
+#define BATCH_PROCESSING_ENHANCE_PRIORITY_DEFAULT false
 
 class Config : public Object
 {
@@ -99,6 +101,7 @@ public:
 	CStdString m_audioOutputPath;
 	int m_immediateProcessingQueueSize;
 	int m_batchProcessingQueueSize;
+	bool m_batchProcessingEnhancePriority;
 };
 
 
