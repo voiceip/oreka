@@ -161,6 +161,10 @@
       untar this file in a temporary folder on the target machine and install the packages using the
       following commands:<itemizedlist>	
 
+	<listitem>
+            <para>dpkg -i log4cxx-0.9.7_0.9.7-1_i386.deb</para>
+          </listitem>
+
           <listitem>
             <para>dpkg -i orkbasecxx_X.X-1_i386.deb</para>
           </listitem>
