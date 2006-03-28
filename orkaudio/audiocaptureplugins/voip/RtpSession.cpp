@@ -30,6 +30,12 @@ extern VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
 
 
+SipInviteInfo::SipInviteInfo()
+{
+	m_fromIp.s_addr = 0;
+}
+
+
 RtpSession::RtpSession(CStdString& trackingId)
 {
 	m_trackingId = trackingId;
