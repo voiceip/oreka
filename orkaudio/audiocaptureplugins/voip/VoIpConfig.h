@@ -44,6 +44,7 @@ public:
 	std::list<unsigned int> m_lanMasks;
 	std::list<CStdString> m_asciiLanMasks;
 	CStdString m_pcapFile;
+	CStdString m_pcapDirectory;
 };
 
 //========================================

@@ -17,6 +17,7 @@
 #include "ace/OS_NS_unistd.h"
 #include "ace/OS_NS_string.h"
 #include "ace/OS_NS_strings.h"
+#include "ace/OS_NS_dirent.h"
 #include "ace/Singleton.h"
 #include "ace/Min_Max.h"
 #include "ace/OS_NS_arpa_inet.h"
@@ -234,6 +235,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		char* toField = memFindAfter("To: ", (char*)udpPayload, sipEnd);
 		char* callIdField = memFindAfter("Call-ID: ", (char*)udpPayload, sipEnd);
 		char* audioField = NULL;
+		char* connectionAddressField = NULL;
 
 		if(fromField)
 		{
@@ -280,13 +282,36 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		{
 			GrabToken(callIdField, info->m_callId);
 			audioField = memFindAfter("m=audio ", callIdField, sipEnd);
+			connectionAddressField = memFindAfter("c=IN IP4 ", callIdField, sipEnd);
 		}
 		if(audioField)
 		{
 			GrabToken(audioField, info->m_fromRtpPort);
+		}
+		if(connectionAddressField)
+		{
+			CStdString connectionAddress;
+			GrabToken(connectionAddressField, connectionAddress);
+			struct in_addr fromIp;
+			if(connectionAddress.size())
+			{
+				if(ACE_OS::inet_aton((PCSTR)connectionAddress, &fromIp))
+				{
+					info->m_fromIp = fromIp;
+				}
+			}
+		}
+		if(info->m_fromIp.s_addr == 0)
+		{
+			// In case connection address could not be extracted, use SIP invite sender IP address
 			info->m_fromIp = ipHeader->ip_src;
+		}
+
+		if(info->m_fromRtpPort.size() && info->m_from.size() && info->m_to.size() && info->m_callId.size())
+		{
 			RtpSessionsSingleton::instance()->ReportSipInvite(info);
 		}
+
 		CStdString logMsg;
 		info->ToString(logMsg);
 		logMsg = "INVITE: " + logMsg;
@@ -456,6 +481,7 @@ public:
 private:
 	void OpenDevices();
 	void OpenPcapFile(CStdString& filename);
+	void VoIp::OpenPcapDirectory(CStdString& path);
 
 	pcap_t* m_pcapHandle;
 	std::list<pcap_t*> m_pcapHandles;
@@ -489,11 +515,49 @@ void Configure(DOMNode* node)
 	}
 }
 
+void VoIp::OpenPcapDirectory(CStdString& path)
+{
+	CStdString logMsg;
+
+	// Iterate over folder
+	ACE_DIR* dir = ACE_OS::opendir((PCSTR)path);
+	if (!dir)
+	{
+		LOG4CXX_ERROR(s_packetLog, CStdString("pcap traces directory could not be found:" + path + " please correct this in config.xml"));
+	}
+	else
+	{
+		dirent* dirEntry = NULL;
+		while(dirEntry = ACE_OS::readdir(dir))
+		{	
+			CStdString dirEntryFilename = dirEntry->d_name;
+			CStdString pcapExtension = ".pcap";
+			int extensionPos = dirEntryFilename.Find(pcapExtension);
+			if(extensionPos == -1)
+			{
+				pcapExtension = ".cap";
+				extensionPos = dirEntryFilename.Find(pcapExtension);
+			}
+
+			if ( extensionPos != -1 && (dirEntryFilename.size() - extensionPos) == pcapExtension.size() )
+			{
+				CStdString pcapFilePath = path + "/" + dirEntry->d_name;
+				if(FileCanOpen(pcapFilePath))
+				{
+					OpenPcapFile(pcapFilePath);
+				}
+			}
+		}
+		ACE_OS::closedir(dir);
+	}
+
+}
+
 void VoIp::OpenPcapFile(CStdString& filename)
 {
 	CStdString logMsg;
 
-	LOG4CXX_INFO(s_packetLog, CStdString("Replaying pcap capture file:") + filename);
+	LOG4CXX_INFO(s_packetLog, CStdString("Adding pcap capture file to replay list:") + filename);
 
 	// Open device
 	char * error = NULL;
@@ -628,6 +692,10 @@ void VoIp::Initialize()
 		{
 			LOG4CXX_ERROR(s_packetLog, "Could not open pcap file: " + DLLCONFIG.m_pcapFile);
 		}
+	}
+	else if(DLLCONFIG.m_pcapDirectory.size() > 0)
+	{
+		OpenPcapDirectory(DLLCONFIG.m_pcapDirectory);
 	}
 	else
 	{

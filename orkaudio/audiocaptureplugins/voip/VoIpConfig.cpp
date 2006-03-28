@@ -33,6 +33,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->CsvValue("LanMasks", m_asciiLanMasks);
 	s->CsvValue("MediaGateways", m_asciiMediaGateways);
 	s->StringValue("PcapFile", m_pcapFile);
+	s->StringValue("PcapDirectory", m_pcapDirectory);
 }
 
 void VoIpConfig::Validate()
