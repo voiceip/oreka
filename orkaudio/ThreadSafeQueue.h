@@ -64,8 +64,13 @@ template <class T> bool ThreadSafeQueue<T>::push(T &element)
 /** Pop and element from the queue, or blocks until one available */
 template <class T> T ThreadSafeQueue<T>::pop()
 {
+// #### Fixme: when timeout specified under Linux CentOS 4.2, acquire returns immediately instead of waiting for the timeout -> causes CPU to spike at 100% 
+#ifdef WIN32
 	ACE_Time_Value timeout(time(NULL)+2);
 	m_semaphore.acquire(&timeout);
+#else
+        m_semaphore.acquire();
+#endif
 	MutexSentinel mutexSentinel(m_mutex);
 
 	T element;
