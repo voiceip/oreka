@@ -222,6 +222,7 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload)
 {
 	bool result = false;
+	bool drop = false;
 	if (memcmp("INVITE", (void*)udpPayload, 6) == 0)
 	{
 		result = true;
@@ -298,16 +299,21 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 				if(ACE_OS::inet_aton((PCSTR)connectionAddress, &fromIp))
 				{
 					info->m_fromIp = fromIp;
+
+					//if((unsigned int)fromIp.s_addr != (unsigned int)ipHeader->ip_src.s_addr)
+					//{
+					//	drop =true;
+					//}
 				}
 			}
 		}
-		if(info->m_fromIp.s_addr == 0)
+		if((unsigned int)info->m_fromIp.s_addr == 0)
 		{
 			// In case connection address could not be extracted, use SIP invite sender IP address
 			info->m_fromIp = ipHeader->ip_src;
 		}
 
-		if(info->m_fromRtpPort.size() && info->m_from.size() && info->m_to.size() && info->m_callId.size())
+		if(drop ==false && info->m_fromRtpPort.size() && info->m_from.size() && info->m_to.size() && info->m_callId.size())
 		{
 			RtpSessionsSingleton::instance()->ReportSipInvite(info);
 		}

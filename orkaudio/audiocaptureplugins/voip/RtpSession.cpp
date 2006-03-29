@@ -146,13 +146,13 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 	bool done = false;
 
 	// work out invitee IP address
-	if(rtpPacket->m_sourceIp.s_addr == m_invitorIp.s_addr)
+	if((unsigned int)rtpPacket->m_sourceIp.s_addr == (unsigned int)m_invitorIp.s_addr)
 	{
 		m_inviteeIp = rtpPacket->m_destIp;
 		m_inviteeTcpPort = rtpPacket->m_destPort;
 		m_invitorTcpPort = rtpPacket->m_sourcePort;
 	}
-	else if(rtpPacket->m_destIp.s_addr == m_invitorIp.s_addr)
+	else if((unsigned int)rtpPacket->m_destIp.s_addr == (unsigned int)m_invitorIp.s_addr)
 	{
 		m_inviteeIp = rtpPacket->m_sourceIp;
 		m_inviteeTcpPort = rtpPacket->m_sourcePort;
@@ -275,7 +275,7 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 	else
 	{
-		if(rtpPacket->m_sourceIp.s_addr == m_lastRtpPacketSide1->m_sourceIp.s_addr)
+		if((unsigned int)rtpPacket->m_sourceIp.s_addr == (unsigned int)m_lastRtpPacketSide1->m_sourceIp.s_addr)
 		{
 			m_lastRtpPacketSide1 = rtpPacket;
 			channel = 1;
@@ -526,7 +526,7 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 		{
 			RtpSessionRef tmpSession = pair->second;
 
-			if(tmpSession->m_endPointIp.s_addr == ipHeader->ip_dest.s_addr)
+			if((unsigned int)tmpSession->m_endPointIp.s_addr == (unsigned int)ipHeader->ip_dest.s_addr)
 			{
 				if(tmpSession->m_ipAndPort.size() == 0)
 				{
