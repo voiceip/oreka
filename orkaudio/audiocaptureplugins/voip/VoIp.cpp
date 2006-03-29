@@ -300,10 +300,14 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 				{
 					info->m_fromIp = fromIp;
 
-					//if((unsigned int)fromIp.s_addr != (unsigned int)ipHeader->ip_src.s_addr)
-					//{
-					//	drop =true;
-					//}
+					if (DLLCONFIG.m_sipDropIndirectInvite)
+					{
+						if((unsigned int)fromIp.s_addr != (unsigned int)ipHeader->ip_src.s_addr)
+						{
+							// SIP invite SDP connection address does not match with SIP packet origin
+							drop =true;
+						}
+					}
 				}
 			}
 		}
@@ -313,7 +317,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			info->m_fromIp = ipHeader->ip_src;
 		}
 
-		if(drop ==false && info->m_fromRtpPort.size() && info->m_from.size() && info->m_to.size() && info->m_callId.size())
+		if(drop == false && info->m_fromRtpPort.size() && info->m_from.size() && info->m_to.size() && info->m_callId.size())
 		{
 			RtpSessionsSingleton::instance()->ReportSipInvite(info);
 		}

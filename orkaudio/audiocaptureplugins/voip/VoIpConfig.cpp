@@ -24,6 +24,8 @@ VoIpConfig::VoIpConfig()
 	m_asciiLanMasks.push_back("192.168.255.255");
 	m_asciiLanMasks.push_back("10.255.255.255");
 	m_asciiLanMasks.push_back("172.31.255.255");
+	
+	m_sipDropIndirectInvite = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -34,6 +36,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->CsvValue("MediaGateways", m_asciiMediaGateways);
 	s->StringValue("PcapFile", m_pcapFile);
 	s->StringValue("PcapDirectory", m_pcapDirectory);
+	s->BoolValue("SipDropIndirectInvite", m_sipDropIndirectInvite);
 }
 
 void VoIpConfig::Validate()
