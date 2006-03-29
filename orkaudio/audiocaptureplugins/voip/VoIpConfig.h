@@ -45,6 +45,7 @@ public:
 	std::list<CStdString> m_asciiLanMasks;
 	CStdString m_pcapFile;
 	CStdString m_pcapDirectory;
+	bool m_sipDropIndirectInvite;
 };
 
 //========================================
