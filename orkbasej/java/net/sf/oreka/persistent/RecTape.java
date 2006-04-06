@@ -20,6 +20,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratorType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import net.sf.oreka.Direction;
@@ -28,6 +29,7 @@ import net.sf.oreka.Direction;
  * @hibernate.class
  */
 @Entity
+@Table(name = "rectape")
 public class RecTape implements Serializable {
 	
 	private int id;

@@ -18,8 +18,10 @@ import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratorType;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
+@Table(name = "recport")
 public class RecPort implements Serializable {
 
 	private int id;

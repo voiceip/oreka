@@ -20,11 +20,13 @@ import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratorType;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * @hibernate.class
  */
 @Entity
+@Table(name = "domain")
 public class Domain implements Serializable {
 
 	private int id;
