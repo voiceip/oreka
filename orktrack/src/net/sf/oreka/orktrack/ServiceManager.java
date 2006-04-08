@@ -36,7 +36,7 @@ public class ServiceManager {
 			service.setRecordMaster(true);
 		}
 		else {
-			service.setHostname(hostname);	// update hostname in case it has changed
+			//service.setHostname(hostname);	// update hostname in case it has changed
 		}
 		hbnSession.save(service);
 		return service;
