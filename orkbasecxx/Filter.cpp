@@ -99,10 +99,25 @@ FilterRef AlawToPcmFilter::Instanciate()
 
 void AlawToPcmFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 {
+	m_outputAudioChunk.reset();
+
+	if(inputAudioChunk.get() == NULL)
+	{
+		return;
+	}
+	if(inputAudioChunk->GetNumSamples() == 0)
+	{
+		return;
+	}
+	AudioChunkDetails outputDetails = *inputAudioChunk->GetDetails();
+	if(outputDetails.m_rtpPayloadType != GetInputRtpPayloadType())
+	{
+		return;
+	}
+
 	// Create output buffer
 	m_outputAudioChunk.reset(new AudioChunk());
-	AudioChunkDetails outputDetails = *inputAudioChunk->GetDetails();	// pass through all details
-	outputDetails.m_rtpPayloadType = -1;								// and override the ones that this filter changes
+	outputDetails.m_rtpPayloadType = -1;		//  Override details that this filter changes
 	outputDetails.m_encoding = PcmAudio;
 
 	int numSamples = inputAudioChunk->GetNumSamples();
@@ -114,7 +129,6 @@ void AlawToPcmFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 	{
 		outputBuffer[i] = (short)alaw2linear(inputBuffer[i]);
 	}
-	
 }
 
 void AlawToPcmFilter::AudioChunkOut(AudioChunkRef& chunk)
@@ -154,10 +168,26 @@ FilterRef UlawToPcmFilter::Instanciate()
 
 void UlawToPcmFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 {
+	m_outputAudioChunk.reset();
+
+	if(inputAudioChunk.get() == NULL)
+	{
+		return;
+	}
+	else if(inputAudioChunk->GetNumSamples() == 0)
+	{
+		return;
+	}
+
+	AudioChunkDetails outputDetails = *inputAudioChunk->GetDetails();
+	if(outputDetails.m_rtpPayloadType != GetInputRtpPayloadType())
+	{
+		return;
+	}
+
 	// Create output buffer
 	m_outputAudioChunk.reset(new AudioChunk());
-	AudioChunkDetails outputDetails = *inputAudioChunk->GetDetails();	// pass through all details
-	outputDetails.m_rtpPayloadType = -1;								// and override the ones that this filter changes
+	outputDetails.m_rtpPayloadType = -1;		//  Override details that this filter changes
 	outputDetails.m_encoding = PcmAudio;
 
 	int numSamples = inputAudioChunk->GetNumSamples();
@@ -168,8 +198,7 @@ void UlawToPcmFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 	for(int i=0; i<numSamples; i++)
 	{
 		outputBuffer[i] = (short)ulaw2linear(inputBuffer[i]);
-	}
-	
+	}	
 }
 
 void UlawToPcmFilter::AudioChunkOut(AudioChunkRef& chunk)
