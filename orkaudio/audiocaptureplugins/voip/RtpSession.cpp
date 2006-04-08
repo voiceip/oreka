@@ -48,9 +48,10 @@ RtpSession::RtpSession(CStdString& trackingId)
 
 void RtpSession::Stop()
 {
+	LOG4CXX_INFO(m_log, m_trackingId + ": " + m_capturePort + " Session stop");
+
 	if(m_started)
 	{
-		LOG4CXX_INFO(m_log, m_trackingId + ": " + m_capturePort + " Session stop");
 		CaptureEventRef stopEvent(new CaptureEvent);
 		stopEvent->m_type = CaptureEvent::EtStop;
 		stopEvent->m_timestamp = time(NULL);
@@ -349,8 +350,7 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		details.m_encoding = AlawAudio;
 		AudioChunkRef chunk(new AudioChunk());
 		chunk->SetBuffer(rtpPacket->m_payload, rtpPacket->m_payloadSize, details);
-		g_audioChunkCallBack(chunk, m_capturePort);	// ##### after
-		//m_rtpRingBuffer.AddRtpPacket(rtpPacket);	// ##### before
+		g_audioChunkCallBack(chunk, m_capturePort);
 
 		m_lastUpdated = rtpPacket->m_arrivalTimestamp;
 	}
@@ -360,7 +360,7 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 {
 	m_invite = invite;
-	m_invitorIp = invite->m_fromIp;
+	m_invitorIp = invite->m_fromRtpIp;
 }
 
 int RtpSession::ProtocolToEnum(CStdString& protocol)
@@ -410,34 +410,36 @@ RtpSessions::RtpSessions()
 
 void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 {
-	char szFromIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&invite->m_fromIp, szFromIp, sizeof(szFromIp));
+	char szFromRtpIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&invite->m_fromRtpIp, szFromRtpIp, sizeof(szFromRtpIp));
 
-	CStdString ipAndPort = CStdString(szFromIp) + "," + invite->m_fromRtpPort;
+	CStdString ipAndPort = CStdString(szFromRtpIp) + "," + invite->m_fromRtpPort;
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	
 	pair = m_byIpAndPort.find(ipAndPort);
 	if (pair != m_byIpAndPort.end())
 	{
-		// #### old behaviour
-		// A session exists ont the same IP+port, stop old session
-		//RtpSessionRef session = pair->second;
-		//Stop(session);
-
-		// #### new behaviour
 		// The session already exists, do nothing
 		return;
 	}
 	pair = m_byCallId.find(invite->m_callId);
 	if (pair != m_byCallId.end())
 	{
-		// #### old behaviour
-		// A session exists ont the same CallId, stop old session
-		//RtpSessionRef session = pair->second;
-		//Stop(session);
+		// The session already exists
+		RtpSessionRef session = pair->second;
+		if(!session->m_ipAndPort.Equals(ipAndPort))
+		{
+			// The session RTP connection address has changed
+			// Remove session from IP and Port map
+			m_byIpAndPort.erase(session->m_ipAndPort);
+			// ... update
+			session->m_ipAndPort = ipAndPort;
+			session->ReportSipInvite(invite);
+			// ... and reinsert
+			m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
 
-		// #### new behaviour
-		// The session already exists, do nothing
+			LOG4CXX_INFO(m_log, session->m_trackingId + ": updated with new INVITE data");
+		}
 		return;
 	}
 
@@ -450,6 +452,11 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	session->ReportSipInvite(invite);
 	m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
 	m_byCallId.insert(std::make_pair(session->m_callId, session));
+
+	CStdString numSessions = IntToString(m_byIpAndPort.size());
+	LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
+
+	LOG4CXX_INFO(m_log, trackingId + ": created by SIP INVITE");
 }
 
 void RtpSessions::ReportSipBye(SipByeInfo bye)
@@ -509,6 +516,10 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 	}
 
 	m_byCallId.insert(std::make_pair(session->m_callId, session));
+
+	CStdString numSessions = IntToString(m_byIpAndPort.size());
+	LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
+
 }
 
 void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct* startMedia, IpHeaderStruct* ipHeader)
@@ -602,6 +613,9 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 
 			session->m_ipAndPort = ipAndPort;
 			m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
+
+			CStdString numSessions = IntToString(m_byIpAndPort.size());
+			LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
 		}
 		else
 		{
@@ -652,6 +666,9 @@ void RtpSessions::Stop(RtpSessionRef& session)
 	if(session->m_ipAndPort.size() > 0)
 	{
 		m_byIpAndPort.erase(session->m_ipAndPort);
+
+		CStdString numSessions = IntToString(m_byIpAndPort.size());
+		LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
 	}
 	if(session->m_callId.size() > 0)
 	{
@@ -681,7 +698,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	if (pair != m_byIpAndPort.end())
 	{
 		session1 = pair->second;
-		if (!session1.get() == NULL)
+		if (session1.get() != NULL)
 		{
 			// Found a session give it the RTP packet info
 			session1->AddRtpPacket(rtpPacket);
@@ -699,7 +716,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	if (pair != m_byIpAndPort.end())
 	{
 		session2 = pair->second;
-		if (!session2.get() == NULL)
+		if (session2.get() != NULL)
 		{
 			// Found a session give it the RTP packet info
 			session2->AddRtpPacket(rtpPacket);
@@ -758,6 +775,11 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		session->m_ipAndPort = ipAndPort;
 		session->AddRtpPacket(rtpPacket);
 		m_byIpAndPort.insert(std::make_pair(ipAndPort, session));
+
+		CStdString numSessions = IntToString(m_byIpAndPort.size());
+		LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
+
+		LOG4CXX_INFO(m_log, trackingId + ": created by RTP packet");
 	}
 }
 
@@ -816,15 +838,21 @@ void RtpSessions::Hoover(time_t now)
 //==========================================================
 SipInviteInfo::SipInviteInfo()
 {
-	m_fromIp.s_addr = 0;
+	m_fromRtpIp.s_addr = 0;
 }
 
 void SipInviteInfo::ToString(CStdString& string)
 {
-	char fromIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_fromIp, fromIp, sizeof(fromIp));
+	char fromRtpIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_fromRtpIp, fromRtpIp, sizeof(fromRtpIp));
 
-	string.Format("from:%s %s,%s to:%s callid:%s", m_from, fromIp, m_fromRtpPort, m_to, m_callId);
+	char senderIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+
+	char receiverIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+
+	string.Format("sender:%s from:%s RTP:%s,%s to:%s rcvr:%s callid:%s", senderIp, m_from, fromRtpIp, m_fromRtpPort, m_to, receiverIp, m_callId);
 }
 
 
