@@ -26,6 +26,7 @@
 #include <queue>
 #include "Filter.h"
 #include "AudioCapture.h"
+#include <log4cxx/logger.h>
 extern "C"
 {
 #include "g711.h"
@@ -68,7 +69,7 @@ private:
 	short* m_bufferEnd;
 	short m_buffer[NUM_SAMPLES_CIRCULAR_BUFFER];
 	unsigned int m_shippedSamples;
-
+	log4cxx::LoggerPtr m_log;
 };
 
 RtpMixer::RtpMixer()
@@ -78,7 +79,7 @@ RtpMixer::RtpMixer()
 	m_bufferEnd = m_buffer + NUM_SAMPLES_CIRCULAR_BUFFER;
 	m_writeTimestamp = 0;
 	m_readTimestamp = 0;
-	//m_log = Logger::getLogger("rtpringbuffer");
+	m_log = log4cxx::Logger::getLogger("rtpmixer");
 	m_shippedSamples = 0;
 }
 
@@ -89,7 +90,20 @@ FilterRef RtpMixer::Instanciate()
 }
 
 void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
-{	
+{
+	CStdString logMsg;
+
+	if(chunk.get() == NULL)
+	{
+		LOG4CXX_DEBUG(m_log, "Null input chunk");
+		return;
+	}
+	else if(chunk->GetNumSamples() == 0)
+	{
+		LOG4CXX_DEBUG(m_log, "Empty input chunk");
+		return;
+	}
+	
 	AudioChunkDetails* details = chunk->GetDetails();		
 	if(details->m_encoding != PcmAudio)
 	{
@@ -144,9 +158,11 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 	{
 		//LOG4CXX_DEBUG(m_log, m_capturePort + " packet too old, dropped");
 	}
-	CStdString debug;
-	debug.Format("free:%u used:%u wr:%x rd:%x wrts:%u rdts:%d", FreeSpace(), UsedSpace(), m_writePtr, m_readPtr, m_writeTimestamp, m_readTimestamp);
-	//LOG4CXX_DEBUG(m_log, debug);
+	if(m_log->isDebugEnabled())
+	{
+		logMsg.Format("free:%u used:%u wr:%x rd:%x wrts:%u rdts:%d", FreeSpace(), UsedSpace(), m_writePtr, m_readPtr, m_writeTimestamp, m_readTimestamp);
+		LOG4CXX_DEBUG(m_log, logMsg);
+	}
 }
 
 void RtpMixer::AudioChunkOut(AudioChunkRef& chunk)
