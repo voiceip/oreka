@@ -33,16 +33,19 @@ class CapturePort
 public:
 	CapturePort(CStdString& Id);
 	CStdString ToString();
+	CStdString GetId();
 
 	void AddAudioChunk(AudioChunkRef chunkRef);
 	void AddCaptureEvent(CaptureEventRef eventRef);
+	bool IsExpired(time_t now);
 private:
-	CStdString m_Id;
+	CStdString m_id;
 	AudioTapeRef m_audioTapeRef;
 	ACE_Thread_Mutex m_mutex;
 	bool m_capturing;
 	double m_vadBelowThresholdSec;
 	bool m_vadUp;
+	time_t m_lastUpdated;
 };
 
 typedef boost::shared_ptr<CapturePort> CapturePortRef;
@@ -51,13 +54,15 @@ typedef boost::shared_ptr<CapturePort> CapturePortRef;
 class CapturePorts
 {
 public:
-	void Initialize();
+	CapturePorts();
 	CapturePortRef GetPort(CStdString & portId);
 	/** Tries to find a capture port from its ID. If unsuccessful, creates a new one and returns it */
 	CapturePortRef AddAndReturnPort(CStdString & portId);
+	void Hoover();
 private:
 	std::map<CStdString, CapturePortRef> m_ports;
 	ACE_Thread_Mutex m_mutex;
+	time_t m_lastHooveringTime;
 };
 
 typedef ACE_Singleton<CapturePorts, ACE_Thread_Mutex> CapturePortsSingleton;
