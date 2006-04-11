@@ -236,9 +236,15 @@ void BatchProcessing::ThreadHandler(void *args)
 						if(CONFIG.m_batchProcessingEnhancePriority == false)
 						{
 							// Give up CPU between every audio buffer to make sure the actual recording always has priority
-							ACE_Time_Value yield;
-							yield.set(0,1);	// 1 us
-							ACE_OS::sleep(yield);
+							//ACE_Time_Value yield;
+							//yield.set(0,1);	// 1 us
+							//ACE_OS::sleep(yield);
+
+							// Use this instead, even if it still seems this holds the whole process under Linux instead of this thread only.
+							struct timespec ts;
+							ts.tv_sec = 0;
+							ts.tv_nsec = 1;
+							ACE_OS::nanosleep (&ts, NULL);
 						}
 					}
 

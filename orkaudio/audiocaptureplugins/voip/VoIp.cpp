@@ -44,6 +44,7 @@ static LoggerPtr s_rtpPacketLog;
 static LoggerPtr s_sipPacketLog;
 static LoggerPtr s_skinnyPacketLog;
 static LoggerPtr s_sipExtractionLog;
+static LoggerPtr s_voipPluginLog;
 static time_t s_lastHooveringTime;
 static ACE_Thread_Mutex s_mutex;
 static bool s_liveCapture;
@@ -212,9 +213,12 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 		if(callIdField)
 		{
 			GrabToken(callIdField, info.m_callId);
-			RtpSessionsSingleton::instance()->ReportSipBye(info);
 		}
 		LOG4CXX_INFO(s_sipPacketLog, "BYE: callid:" + info.m_callId);
+		if(callIdField)
+		{
+			RtpSessionsSingleton::instance()->ReportSipBye(info);
+		}
 	}
 	return result;
 }
@@ -222,6 +226,7 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload)
 {
 	bool result = false;
+	bool drop = false;
 	if (memcmp("INVITE", (void*)udpPayload, 6) == 0)
 	{
 		result = true;
@@ -260,13 +265,9 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		}
 		if(toField)
 		{
-			char* toFieldEnd = NULL;
-			if(s_sipExtractionLog->isDebugEnabled())
-			{
-				CStdString to;
-				toFieldEnd = GrabLine(toField, sipEnd, to);
-				LOG4CXX_DEBUG(s_sipExtractionLog, "to: " + to);
-			}
+			CStdString to;
+			char* toFieldEnd = GrabLine(toField, sipEnd, to);
+			LOG4CXX_DEBUG(s_sipExtractionLog, "to: " + to);
 
 			char* sipUser = memFindAfter("sip:", toField, toFieldEnd);
 			if(sipUser)
@@ -297,25 +298,36 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			{
 				if(ACE_OS::inet_aton((PCSTR)connectionAddress, &fromIp))
 				{
-					info->m_fromIp = fromIp;
+					info->m_fromRtpIp = fromIp;
+
+					if (DLLCONFIG.m_sipDropIndirectInvite)
+					{
+						if((unsigned int)fromIp.s_addr != (unsigned int)ipHeader->ip_src.s_addr)
+						{
+							// SIP invite SDP connection address does not match with SIP packet origin
+							drop =true;
+						}
+					}
 				}
 			}
 		}
-		if(info->m_fromIp.s_addr == 0)
+		if((unsigned int)info->m_fromRtpIp.s_addr == 0)
 		{
 			// In case connection address could not be extracted, use SIP invite sender IP address
-			info->m_fromIp = ipHeader->ip_src;
+			info->m_fromRtpIp = ipHeader->ip_src;
 		}
-
-		if(info->m_fromRtpPort.size() && info->m_from.size() && info->m_to.size() && info->m_callId.size())
-		{
-			RtpSessionsSingleton::instance()->ReportSipInvite(info);
-		}
+		info->m_senderIp = ipHeader->ip_src;
+		info->m_receiverIp = ipHeader->ip_dest;
 
 		CStdString logMsg;
 		info->ToString(logMsg);
 		logMsg = "INVITE: " + logMsg;
 		LOG4CXX_INFO(s_sipPacketLog, logMsg);
+
+		if(drop == false && info->m_fromRtpPort.size() && info->m_from.size() && info->m_to.size() && info->m_callId.size())
+		{
+			RtpSessionsSingleton::instance()->ReportSipInvite(info);
+		}
 	}
 	return result;
 }
@@ -378,9 +390,20 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	{
 		// This is a pcap file replay, make sure Orkaudio won't be flooded by too many
 		// packets at a time by yielding control to other threads.
-		ACE_Time_Value yield;
-		yield.set(0,1);	// 1 us
-		ACE_OS::sleep(yield);
+		//ACE_Time_Value yield;
+		//yield.set(0,1);	// 1 us
+		//ACE_OS::sleep(yield);
+
+		// Use nanosleep instead
+		struct timespec ts;
+		ts.tv_sec = 0;
+        ts.tv_nsec = 1;
+		ACE_OS::nanosleep (&ts, NULL);
+	}
+
+	if(DLLCONFIG.IsPacketWanted(ipHeader) == false)
+	{
+		return;
 	}
 
 	if(ipHeader->ip_p == IPPROTO_UDP)
@@ -496,6 +519,8 @@ VoIp::VoIp()
 
 void Configure(DOMNode* node)
 {
+	s_voipPluginLog =  Logger::getLogger("voipplugin");
+
 	if (node)
 	{
 		VoIpConfigTopObjectRef VoIpConfigTopObjectRef(new VoIpConfigTopObject);
@@ -506,12 +531,12 @@ void Configure(DOMNode* node)
 		}
 		catch (CStdString& e)
 		{
-			LOG4CXX_WARN(g_logManager->rootLog, "VoIp.dll: " + e);
+			LOG4CXX_ERROR(s_voipPluginLog, e);
 		}
 	}
 	else
 	{
-		LOG4CXX_WARN(g_logManager->rootLog, "VoIp.dll: got empty DOM tree");
+		LOG4CXX_ERROR(s_voipPluginLog, "Got empty DOM tree");
 	}
 }
 

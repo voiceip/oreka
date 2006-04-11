@@ -26,7 +26,9 @@ public:
 	SipInviteInfo();
 	void ToString(CStdString& string);
 
-	struct in_addr m_fromIp;
+	struct in_addr m_senderIp;
+	struct in_addr m_receiverIp;
+	struct in_addr m_fromRtpIp;
 	CStdString m_fromRtpPort;
 	CStdString m_from;
 	CStdString m_to;

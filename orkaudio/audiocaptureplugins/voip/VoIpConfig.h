@@ -18,6 +18,7 @@
 #include "StdString.h"
 #include "Object.h"
 #include "boost/shared_ptr.hpp"
+#include "PacketHeaderDefs.h"
  
 #define DEVICE_PARAM "Device"
 
@@ -36,6 +37,7 @@ public:
 	bool IsPartOfLan(struct in_addr);
 	bool IsMediaGateway(struct in_addr);
 	bool IsDeviceWanted(CStdString device);
+	bool IsPacketWanted(IpHeaderStruct* ipHeader);
 
 	CStdString m_device;				// old style but can still be used for specifying single device
 	std::list<CStdString> m_devices;	// new style devices csv
@@ -43,8 +45,17 @@ public:
 	std::list<CStdString> m_asciiMediaGateways;
 	std::list<unsigned int> m_lanMasks;
 	std::list<CStdString> m_asciiLanMasks;
+
+	std::list<CStdString> m_asciiAllowedIpRanges;	// CIDR notation
+	std::list<unsigned int> m_allowedIpRangePrefixes;
+	std::list<unsigned int> m_allowedIpRangeBitWidths;
+	std::list<CStdString> m_asciiBlockedIpRanges;	// CIDR notation
+	std::list<unsigned int> m_blockedIpRangePrefixes;
+	std::list<unsigned int> m_blockedIpRangeBitWidths;
+
 	CStdString m_pcapFile;
 	CStdString m_pcapDirectory;
+	bool m_sipDropIndirectInvite;
 };
 
 //========================================
