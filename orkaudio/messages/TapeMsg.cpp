@@ -41,6 +41,11 @@ void TapeMsg::Define(Serializer* s)
 	s->StringValue(DIRECTION_PARAM, m_direction);
 	s->IntValue(DURATION_PARAM, m_duration);
 	s->StringValue(SERVICE_PARAM, m_serviceName);
+
+	s->StringValue(LOCAL_IP_PARAM, m_localIp);
+	s->StringValue(REMOTE_IP_PARAM, m_remoteIp);
+	//s->StringValue(LOCAL_MAC_PARAM, m_localMac);
+	//s->StringValue(REMOTE_MAC_PARAM, m_remoteMac);
 }
 
 void TapeMsg::Validate()

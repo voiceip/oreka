@@ -41,7 +41,9 @@ public:
 	CStdString m_remoteParty;
 	CaptureEvent::DirectionEnum m_direction;
 	time_t m_beginDate;
-	int m_duration;	
+	int m_duration;
+	CStdString m_localIp;
+	CStdString m_remoteIp;
 };
 
 class AudioTape
@@ -102,6 +104,8 @@ public:
 	time_t m_beginDate;
 	time_t m_endDate;
 	time_t m_duration;
+	CStdString m_localIp;
+	CStdString m_remoteIp;
 private:
 	void GenerateFilePathAndIdentifier();
 

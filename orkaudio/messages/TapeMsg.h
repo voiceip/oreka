@@ -28,6 +28,10 @@
 #define LOCALENTRYPOINT_PARAM "localentrypoint"
 #define DURATION_PARAM "duration"
 #define SERVICE_PARAM "service"
+#define LOCAL_IP_PARAM "localip"
+#define REMOTE_IP_PARAM "remoteip"
+#define LOCAL_MAC_PARAM "localmac"
+#define REMOTE_MAC_PARAM "remotemac"
 
 class TapeMsg : public SyncMessage
 {
@@ -53,6 +57,10 @@ public:
 	CStdString m_loginString;
 	int m_duration;
 	CStdString m_serviceName;
+	CStdString m_localIp;
+	CStdString m_remoteIp;
+	CStdString m_localMac;
+	CStdString m_remoteMac;
 };
 
 typedef boost::shared_ptr<TapeMsg> TapeMsgRef;
