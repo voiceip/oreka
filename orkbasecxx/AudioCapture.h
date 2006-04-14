@@ -112,6 +112,10 @@ public:
 #define ET_LOCALPARTY "localparty"
 #define ET_LOCALENTRYPOINT "localentrypoint"
 #define ET_KEYVALUE "keyvalue"
+#define ET_LOCALIP "localip"
+#define ET_REMOTEIP "remoteip"
+#define ET_LOCALMAC "localmac"
+#define ET_REMOTEMAC "remotemac"
 #define ET_INVALID "invalid"
 	typedef enum
 	{
@@ -123,7 +127,11 @@ public:
 		EtLocalParty = 5,
 		EtLocalEntryPoint = 6,
 		EtKeyValue = 7,
-		EtInvalid = 8
+		EtLocalIp = 8,
+		EtRemoteIp = 9,
+		EtLocalMac = 10,
+		EtRemoteMac = 11,
+		EtInvalid = 12
 	} EventTypeEnum;
 	static CStdString EventTypeToString(int eventTypeEnum);
 	static int EventTypeToEnum(CStdString&);

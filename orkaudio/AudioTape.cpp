@@ -38,6 +38,8 @@ void AudioTapeDescription::Define(Serializer* s)
 	s->StringValue("localParty", m_localParty);
 	s->StringValue("remoteParty", m_remoteParty);
 	s->StringValue("localEntryPoint", m_localEntryPoint);
+	s->StringValue("localIp", m_localIp);
+	s->StringValue("remoteIp", m_remoteIp);
 }
 
 void AudioTapeDescription::Validate(){}
@@ -182,6 +184,8 @@ void AudioTape::SetShouldStop()
 
 void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 {
+	CStdString logMsg;
+
 	// Extract useful info from well known events
 	switch(eventRef->m_type)
 	{
@@ -200,6 +204,8 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 			atd.m_localEntryPoint = m_localEntryPoint;
 			atd.m_localParty = m_localParty;
 			atd.m_remoteParty = m_remoteParty;
+			atd.m_localIp = m_localIp;
+			atd.m_remoteIp = m_remoteIp;
 			CStdString description = atd.SerializeSingleLine();
 			LOG4CXX_INFO(LOG.tapelistLog, description);
 		}
@@ -215,6 +221,12 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		break;
 	case CaptureEvent::EtLocalEntryPoint:
 		m_localEntryPoint = eventRef->m_value;
+		break;
+	case CaptureEvent::EtLocalIp:
+		m_localIp = eventRef->m_value;
+		break;
+	case CaptureEvent::EtRemoteIp:
+		m_remoteIp = eventRef->m_value;
 		break;
 	}
 
@@ -252,6 +264,8 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 		pTapeMsg->m_direction = CaptureEvent::DirectionToString(m_direction);
 		pTapeMsg->m_duration = m_duration;
 		pTapeMsg->m_timestamp = m_beginDate;
+		pTapeMsg->m_localIp = m_localIp;
+		pTapeMsg->m_remoteIp = m_remoteIp;
 	}
 	else
 	{

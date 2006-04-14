@@ -113,6 +113,10 @@ private:
 	int m_invitorTcpPort;
 	struct in_addr m_inviteeIp;
 	int m_inviteeTcpPort;
+	struct in_addr m_localIp;
+	struct in_addr m_remoteIp;
+	//struct in_addr m_localMac;
+	//struct in_addr m_remoteMac;
 	LoggerPtr m_log;
 	CStdString m_capturePort;
 	bool m_started;

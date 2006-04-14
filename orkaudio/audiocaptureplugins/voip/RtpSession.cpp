@@ -78,6 +78,8 @@ void RtpSession::ProcessMetadataSipIncoming()
 	char szInviteeIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_inviteeIp, szInviteeIp, sizeof(szInviteeIp));
 	m_capturePort.Format("%s,%d", szInviteeIp, m_inviteeTcpPort);
+	m_localIp = m_inviteeIp;
+	m_remoteIp = m_invitorIp;
 }
 
 void RtpSession::ProcessMetadataSipOutgoing()
@@ -88,6 +90,8 @@ void RtpSession::ProcessMetadataSipOutgoing()
 	char szInvitorIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_invitorIp, szInvitorIp, sizeof(szInvitorIp));
 	m_capturePort.Format("%s,%d", szInvitorIp, m_invitorTcpPort);
+	m_localIp = m_invitorIp;
+	m_remoteIp = m_inviteeIp;
 }
 
 void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
@@ -133,12 +137,17 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 		m_localParty = szSourceIp;
 		m_remoteParty = szDestIp;
 		m_capturePort.Format("%s,%d", szSourceIp, rtpPacket->m_sourcePort);
+		m_localIp = rtpPacket->m_sourceIp;
+		m_remoteIp = rtpPacket->m_destIp;
 	}
 	else
 	{
 		m_localParty = szDestIp;
 		m_remoteParty = szSourceIp;
 		m_capturePort.Format("%s,%d", szDestIp, rtpPacket->m_destPort);
+		m_localIp = rtpPacket->m_destIp;
+		m_remoteIp = rtpPacket->m_sourceIp;
+
 	}
 }
 
@@ -211,13 +220,21 @@ void RtpSession::ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket)
 		char szDestIp[16];
 		ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szDestIp, sizeof(szDestIp));
 		m_capturePort.Format("%s,%u", szDestIp, rtpPacket->m_destPort);
+
+		m_localIp = rtpPacket->m_destIp;
+		m_remoteIp = rtpPacket->m_sourceIp;
+	}
+	else
+	{
+		m_localIp = rtpPacket->m_sourceIp;
+		m_remoteIp = rtpPacket->m_destIp;
 	}
 }
 
 
 void RtpSession::ReportMetadata()
 {
-	// report Local party
+	// Report Local party
 	CaptureEventRef event(new CaptureEvent());
 	event->m_type = CaptureEvent::EtLocalParty;
 	event->m_value = m_localParty;
@@ -229,10 +246,26 @@ void RtpSession::ReportMetadata()
 	event->m_value = m_remoteParty;
 	g_captureEventCallBack(event, m_capturePort);
 
-	// report direction
+	// Report direction
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtDirection;
 	event->m_value = CaptureEvent::DirectionToString(m_direction);
+	g_captureEventCallBack(event, m_capturePort);
+
+	// Report Local IP address
+	char szLocalIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+	event.reset(new CaptureEvent());
+	event->m_type = CaptureEvent::EtLocalIp;
+	event->m_value = szLocalIp;
+	g_captureEventCallBack(event, m_capturePort);
+
+	// Report Remote IP address
+	char szRemoteIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_remoteIp, szRemoteIp, sizeof(szRemoteIp));
+	event.reset(new CaptureEvent());
+	event->m_type = CaptureEvent::EtRemoteIp;
+	event->m_value = szRemoteIp;
 	g_captureEventCallBack(event, m_capturePort);
 }
 

@@ -35,6 +35,7 @@ public:
 	LoggerPtr reportingLog;
 	LoggerPtr configLog;
 	LoggerPtr tapelistLog;
+	LoggerPtr tapeLog;
 };
 
 typedef ACE_Singleton<OrkLogManager, ACE_Thread_Mutex> OrkLogManagerSingleton;

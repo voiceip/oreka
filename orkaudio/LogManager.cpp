@@ -48,6 +48,7 @@ void OrkLogManager::Initialize()
 	reportingLog = Logger::getLogger("reporting");
 	configLog = Logger::getLogger("config");
 	tapelistLog = Logger::getLogger("tapelist");
+	tapeLog = Logger::getLogger("tape");
 }
 
 void OrkLogManager::Shutdown()

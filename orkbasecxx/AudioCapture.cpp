@@ -225,6 +225,14 @@ CStdString CaptureEvent::EventTypeToString(int eventTypeEnum)
 		return ET_LOCALENTRYPOINT;
 	case	EtKeyValue:
 		return ET_KEYVALUE;
+	case	EtLocalIp:
+		return ET_LOCALIP;
+	case	EtRemoteIp:
+		return ET_REMOTEIP;
+	case	EtLocalMac:
+		return ET_LOCALMAC;
+	case	EtRemoteMac:
+		return ET_REMOTEMAC;
 	}
 	return ET_INVALID;
 }
@@ -259,6 +267,22 @@ int CaptureEvent::EventTypeToEnum(CStdString& eventTypeString)
 	else if (eventTypeString.CompareNoCase(ET_KEYVALUE) == 0)
 	{
 		eventTypeEnum = EtKeyValue;
+	}
+	else if (eventTypeString.CompareNoCase(ET_LOCALIP) == 0)
+	{
+		eventTypeEnum = EtLocalIp;
+	}
+	else if (eventTypeString.CompareNoCase(ET_REMOTEIP) == 0)
+	{
+		eventTypeEnum = EtRemoteIp;
+	}
+	else if (eventTypeString.CompareNoCase(ET_LOCALMAC) == 0)
+	{
+		eventTypeEnum = EtLocalMac;
+	}
+	else if (eventTypeString.CompareNoCase(ET_REMOTEMAC) == 0)
+	{
+		eventTypeEnum = EtRemoteMac;
 	}
 	return eventTypeEnum;
 }
