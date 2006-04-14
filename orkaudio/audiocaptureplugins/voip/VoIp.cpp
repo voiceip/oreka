@@ -383,6 +383,16 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 {
 	EthernetHeaderStruct* ethernetHeader = (EthernetHeaderStruct *)pkt_data;
 	IpHeaderStruct* ipHeader = (IpHeaderStruct*)((char*)ethernetHeader + sizeof(EthernetHeaderStruct));
+	if(ipHeader->ip_v != 4)	// sanity check, is it an IP packet v4
+	{
+		// If not, the IP packet might be wrapped into a 802.1Q VLAN (add 4 bytes)
+		ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+4);
+		if(ipHeader->ip_v != 4)
+		{
+			// Still not an IP packet V4, drop it
+			return;
+		}
+	}
 	int ipHeaderLength = ipHeader->ip_hl*4;
 	u_char* ipPacketEnd = (u_char*)ipHeader + ipHeader->ip_len;
 
