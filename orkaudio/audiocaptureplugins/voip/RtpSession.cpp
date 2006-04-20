@@ -14,6 +14,7 @@
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
 #define RTP_SESSION_TIMEOUT 10
+#define RTP_WITH_SIGNALLING_SESSION_TIMEOUT (5*60)
 
 #include "Utils.h"
 #include "RtpSession.h"
@@ -525,6 +526,7 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 	switch(callInfo->callType)
 	{
 	case SKINNY_CALL_TYPE_INBOUND:
+	case SKINNY_CALL_TYPE_FORWARD:
 		session->m_localParty = callInfo->calledParty;
 		session->m_remoteParty = callInfo->callingParty;
 		session->m_direction = CaptureEvent::DirIn;
@@ -534,6 +536,9 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 		session->m_remoteParty = callInfo->calledParty;
 		session->m_direction = CaptureEvent::DirOut;
 		break;
+	default:
+		session->m_localParty = callInfo->calledParty;
+		session->m_remoteParty = callInfo->callingParty;		
 	}
 
 	if(m_log->isInfoEnabled())
@@ -834,7 +839,16 @@ void RtpSessions::Hoover(time_t now)
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end(); pair++)
 	{
 		RtpSessionRef session = pair->second;
-		if((now - session->m_lastUpdated) > RTP_SESSION_TIMEOUT)
+		int timeoutSeconds = 0;
+		if(session->m_protocol == RtpSession::ProtRawRtp)
+		{
+			timeoutSeconds = RTP_SESSION_TIMEOUT;
+		}
+		else
+		{
+			timeoutSeconds = RTP_WITH_SIGNALLING_SESSION_TIMEOUT;
+		}
+		if((now - session->m_lastUpdated) > timeoutSeconds)
 		{
 			toDismiss.push_back(session);
 		}
