@@ -823,7 +823,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 void RtpSessions::StopAll()
 {
-	time_t forceExpiryTime = time(NULL) + 2*RTP_SESSION_TIMEOUT;
+	time_t forceExpiryTime = time(NULL) + 2*RTP_WITH_SIGNALLING_SESSION_TIMEOUT;
 	Hoover(forceExpiryTime);
 }
 
@@ -867,7 +867,7 @@ void RtpSessions::Hoover(time_t now)
 	for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
 	{
 		RtpSessionRef session = pair->second;
-		if((now - session->m_lastUpdated) > RTP_SESSION_TIMEOUT)
+		if((now - session->m_lastUpdated) > RTP_WITH_SIGNALLING_SESSION_TIMEOUT)
 		{
 			toDismiss.push_back(session);
 		}
