@@ -146,6 +146,7 @@ typedef struct
 
 #define SKINNY_CALL_TYPE_INBOUND 1
 #define SKINNY_CALL_TYPE_OUTBOUND 2
+#define SKINNY_CALL_TYPE_FORWARD 3
 
 typedef enum
 {
