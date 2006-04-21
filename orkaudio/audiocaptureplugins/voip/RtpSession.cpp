@@ -644,8 +644,10 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 
 			if(m_log->isInfoEnabled())
 			{
+				char szEndPointIp[16];
+				ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
 				CStdString logMsg;
-				logMsg.Format("%s: Skinny StartMedia: callId %s is on %s", session->m_trackingId, session->m_callId, ipAndPort);
+				logMsg.Format("%s: Skinny StartMedia: callId %s is on %s  endpoint:%s", session->m_trackingId, session->m_callId, ipAndPort, szEndPointIp);
 				LOG4CXX_INFO(m_log, logMsg);
 			}
 
