@@ -44,6 +44,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_protocol = ProtUnkn;
 	m_numRtpPackets = 0;
 	m_started = false;
+	m_stopped = false;
 	m_rtpTimestampCorrectiveOffset = 0;
 }
 
@@ -51,12 +52,13 @@ void RtpSession::Stop()
 {
 	LOG4CXX_INFO(m_log, m_trackingId + ": " + m_capturePort + " Session stop");
 
-	if(m_started)
+	if(m_started && !m_stopped)
 	{
 		CaptureEventRef stopEvent(new CaptureEvent);
 		stopEvent->m_type = CaptureEvent::EtStop;
 		stopEvent->m_timestamp = time(NULL);
 		g_captureEventCallBack(stopEvent, m_capturePort);
+		m_stopped = true;
 	}
 }
 
@@ -508,7 +510,7 @@ void RtpSessions::ReportSipBye(SipByeInfo bye)
 
 void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader)
 {
-	CStdString callId = IntToString(callInfo->callId);
+	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, callInfo->callId);
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	pair = m_byCallId.find(callId);
 
@@ -560,129 +562,150 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 
 }
 
-void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct* startMedia, IpHeaderStruct* ipHeader)
+RtpSessionRef RtpSessions::findByEndpointIp(struct in_addr endpointIpAddr)
 {
-	// Lookup by callId
 	RtpSessionRef session;
-	//CStdString callId = IntToString(startMedia->conferenceId);
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 
-	//if(callId.Equals("0"))
-	//{
-		// Ok this seems to be CallManager 3.3 or older, Conference ID field is not populated
-		// We need to find the CallInfo with the same endpoint IP address
-		for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
-		{
-			RtpSessionRef tmpSession = pair->second;
-
-			if((unsigned int)tmpSession->m_endPointIp.s_addr == (unsigned int)ipHeader->ip_dest.s_addr)
-			{
-				if(tmpSession->m_ipAndPort.size() == 0)
-				{
-					session = tmpSession;
-					// The "Call ID" between StartMediaTransmission and StopMediaTransmission 
-					// is represented by either PassThruPartyId or conferenceId field.
-					// So let's move the session within the callId map.
-					// 1. remove it from the map
-					m_byCallId.erase(session->m_callId);
-					// 2. add it back with new CallId
-					CStdString newCallId;
-					if(startMedia->passThruPartyId)
-					{
-						newCallId = IntToString(startMedia->passThruPartyId);
-					}
-					else
-					{
-						newCallId = IntToString(startMedia->conferenceId);
-					}
-					CStdString oldCallId = session->m_callId;
-					session->m_callId = newCallId;
-					m_byCallId.insert(std::make_pair(newCallId, session));
-
-					if(m_log->isInfoEnabled())
-					{
-						CStdString logMsg;
-						logMsg.Format("%s: Skinny StartMedia: callId %s becomes %s", session->m_trackingId, oldCallId, newCallId);
-						LOG4CXX_INFO(m_log, logMsg);
-					}
-					break;
-				}
-				else
-				{
-					// The session has already had a StartMediaTransmission message.
-				}
-			}
-		}
-	//}
-	//else
-	//{
-		// CallManager 4 or newer
-	//	pair = m_byCallId.find(callId);
-	//	if (pair != m_byCallId.end())
-	//	{
-	//		session = pair->second;
-	//	}
-	//}
-
-	if (session.get() != NULL)
+	// Scan all sessions and try to find a session on the same IP endpoint
+	for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
 	{
-		// Session found
+		RtpSessionRef tmpSession = pair->second;
+
+		if((unsigned int)tmpSession->m_endPointIp.s_addr == (unsigned int)endpointIpAddr.s_addr)
+		{
+			session = tmpSession;
+			break;
+		}
+	}
+	return session;
+}
+
+void RtpSessions::ChangeCallId(RtpSessionRef& session, unsigned int newId)
+{
+	if(newId)
+	{
+		CStdString newCallId = GenerateSkinnyCallId(session->m_endPointIp, newId);
+		CStdString oldCallId = session->m_callId;
+		m_byCallId.erase(oldCallId);
+		session->m_callId = newCallId;
+		m_byCallId.insert(std::make_pair(newCallId, session));
+
+		if(m_log->isInfoEnabled())
+		{
+			CStdString logMsg;
+			logMsg.Format("%s: callId %s becomes %s", session->m_trackingId, oldCallId, newCallId);
+			LOG4CXX_INFO(m_log, logMsg);
+		}
+	}
+}
+
+
+void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort)
+{
+	CStdString ipAndPort;
+	char szMediaIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&mediaIp, szMediaIp, sizeof(szMediaIp));
+	ipAndPort.Format("%s,%u", szMediaIp, mediaPort);
+	
+	std::map<CStdString, RtpSessionRef>::iterator pair = m_byIpAndPort.find(ipAndPort);
+	if (pair != m_byIpAndPort.end())
+	{
+		// A session exists on the same IP+port, stop old session
+		RtpSessionRef session = pair->second;
+		Stop(session);
+	}
+
+	if(m_log->isInfoEnabled())
+	{
+		char szEndPointIp[16];
+		ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
+		CStdString logMsg;
+		logMsg.Format("%s: callId %s media address:%s  endpoint:%s", session->m_trackingId, session->m_callId, ipAndPort, szEndPointIp);
+		LOG4CXX_INFO(m_log, logMsg);
+	}
+
+	session->m_ipAndPort = ipAndPort;
+	m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
+
+	CStdString numSessions = IntToString(m_byIpAndPort.size());
+	LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
+}
+
+CStdString RtpSessions::GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId)
+{
+	char szEndPointIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndPointIp, sizeof(szEndPointIp));
+	CStdString skinnyCallId;
+	skinnyCallId.Format("%u@%s", callId, szEndPointIp);
+	return skinnyCallId;
+}
+
+void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct* openReceive)
+{
+	RtpSessionRef session = findByEndpointIp(openReceive->endpointIpAddr);
+	if(session.get())
+	{
 		if(session->m_ipAndPort.size() == 0)
 		{
-			CStdString ipAndPort;
-			char szRemoteIp[16];
-			ACE_OS::inet_ntop(AF_INET, (void*)&startMedia->remoteIpAddr, szRemoteIp, sizeof(szRemoteIp));
-			ipAndPort.Format("%s,%u", szRemoteIp, startMedia->remoteTcpPort);
-			
-			pair = m_byIpAndPort.find(ipAndPort);
-			if (pair != m_byIpAndPort.end())
-			{
-				// A session exists on the same IP+port, stop old session
-				RtpSessionRef session = pair->second;
-				Stop(session);
-			}
-
-			if(m_log->isInfoEnabled())
-			{
-				char szEndPointIp[16];
-				ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
-				CStdString logMsg;
-				logMsg.Format("%s: Skinny StartMedia: callId %s is on %s  endpoint:%s", session->m_trackingId, session->m_callId, ipAndPort, szEndPointIp);
-				LOG4CXX_INFO(m_log, logMsg);
-			}
-
-			session->m_ipAndPort = ipAndPort;
-			m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
-
-			CStdString numSessions = IntToString(m_byIpAndPort.size());
-			LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
+			ChangeCallId(session, openReceive->passThruPartyId);
+			SetMediaAddress(session, openReceive->endpointIpAddr, openReceive->endpointTcpPort);
 		}
 		else
 		{
-			// The session has already had a StartMediaTransmission message.
+			LOG4CXX_DEBUG(m_log, session->m_trackingId + ": OpenReceiveChannelAck: session already got media address signalling");
 		}
 	}
 	else
 	{
 		// Discard because we have not seen any CallInfo Message before
+		LOG4CXX_INFO(m_log, "Skinny OpenReceiveChannelAck without a CallInfoMessage");
 	}
 }
 
-void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct* stopMedia)
+
+void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct* startMedia, IpHeaderStruct* ipHeader)
 {
-	CStdString callId;
-	if(stopMedia->conferenceId == 0)
+	RtpSessionRef session = findByEndpointIp(ipHeader->ip_dest);
+	if(session.get())
 	{
-		// CallManager 3.3 or older, see explanation in ReportSkinnyStartMediaTransmission
-		callId = IntToString(stopMedia->passThruPartyId);
+		if(session->m_ipAndPort.size() == 0)
+		{
+			ChangeCallId(session, startMedia->passThruPartyId);
+			SetMediaAddress(session, startMedia->remoteIpAddr, startMedia->remoteTcpPort);
+		}
+		else
+		{
+			LOG4CXX_DEBUG(m_log, session->m_trackingId + ": StartMediaTransmission: session already got media address signalling");
+		}
 	}
 	else
 	{
-		// CallManager 4 or later
-		callId = IntToString(stopMedia->conferenceId);
+		// Discard because we have not seen any CallInfo Message before
+		LOG4CXX_INFO(m_log, "Skinny StartMediaTransmission without a CallInfoMessage");
 	}
-	std::map<CStdString, RtpSessionRef>::iterator pair;
-	pair = m_byCallId.find(callId);
+}
+
+void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct* stopMedia, IpHeaderStruct* ipHeader)
+{
+	CStdString conferenceId;
+	CStdString passThruPartyId;
+	CStdString skinnyCallId;
+	std::map<CStdString, RtpSessionRef>::iterator pair = m_byCallId.end();
+
+	// Try to locate the session using either conferenceId or passThruPartyId
+	if(stopMedia->conferenceId != 0)
+	{
+		conferenceId = IntToString(stopMedia->conferenceId);
+		skinnyCallId = GenerateSkinnyCallId(ipHeader->ip_dest, stopMedia->conferenceId);
+		pair = m_byCallId.find(skinnyCallId);
+	}
+	if(pair == m_byCallId.end() && stopMedia->passThruPartyId != 0)
+	{
+		passThruPartyId = IntToString(stopMedia->passThruPartyId);
+		skinnyCallId = GenerateSkinnyCallId(ipHeader->ip_dest, stopMedia->passThruPartyId);
+		pair = m_byCallId.find(skinnyCallId);
+	}
 
 	if (pair != m_byCallId.end())
 	{
@@ -692,7 +715,7 @@ void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruc
 		if(m_log->isInfoEnabled())
 		{
 			CStdString logMsg;
-			logMsg.Format("%s: Skinny StopMedia", session->m_trackingId);
+			logMsg.Format("%s: Skinny StopMedia conferenceId:%s passThruPartyId:%s", session->m_trackingId, conferenceId, passThruPartyId);
 			LOG4CXX_INFO(m_log, logMsg);
 		}
 

@@ -15,6 +15,14 @@ int SkinnyMessageToEnum(CStdString& msg)
 	{
 		msgEnum = SkCallInfoMessage;
 	}
+	else if (msg.CompareNoCase(SKINNY_MSG_OPEN_RECEIVE_CHANNEL_ACK) == 0)
+	{
+		msgEnum = SkOpenReceiveChannelAck;
+	}
+	else if (msg.CompareNoCase(SKINNY_MSG_CLOSE_RECEIVE_CHANNEL) == 0)
+	{
+		msgEnum = SkCloseReceiveChannel;
+	}
 	return msgEnum;
 }
 
@@ -31,6 +39,12 @@ CStdString SkinnyMessageToString(int msgEnum)
 		break;
 	case SkCallInfoMessage:
 		msgString = SKINNY_MSG_CALL_INFO_MESSAGE;
+		break;
+	case SkOpenReceiveChannelAck:
+		msgString = SKINNY_MSG_OPEN_RECEIVE_CHANNEL_ACK;
+		break;
+	case SkCloseReceiveChannel:
+		msgString = SKINNY_MSG_CLOSE_RECEIVE_CHANNEL;
 		break;
 	default:
 		msgString = SKINNY_MSG_UNKN;

@@ -90,6 +90,7 @@ typedef struct
 	//unsigned int csrc[1];		// optional CSRC list
 } RtpHeaderStruct;
 
+// Cisco Callmanager -> endpoint messages
 typedef struct
 {
 	unsigned long len;
@@ -117,6 +118,13 @@ typedef struct
 typedef struct
 {
 	SkinnyHeaderStruct header;
+	unsigned long conferenceId;
+	unsigned long passThruPartyId;
+} SkCloseReceiveChannelStruct;
+
+typedef struct
+{
+	SkinnyHeaderStruct header;
 	char callingPartyName[40];
 	char callingParty[24];
 	char calledPartyName[40];
@@ -135,6 +143,16 @@ typedef struct
 	char parties[76];
 } SkNewCallInfoStruct;
 
+// Endpoint -> Cisco Callmanager messages
+typedef struct
+{
+	SkinnyHeaderStruct header;
+	unsigned long openReceiveChannelStatus;
+	struct in_addr endpointIpAddr;
+	unsigned long endpointTcpPort;
+	unsigned long passThruPartyId;
+} SkOpenReceiveChannelAckStruct;
+
 #define SKINNY_CTRL_PORT 2000
 #define SKINNY_MIN_MESSAGE_SIZE 12
 #define SKINNY_HEADER_LENGTH 8
@@ -142,7 +160,9 @@ typedef struct
 #define SKINNY_MSG_UNKN "Unkn"
 #define SKINNY_MSG_START_MEDIA_TRANSMISSION "StartMediaTransmission"
 #define SKINNY_MSG_STOP_MEDIA_TRANSMISSION "StopMediaTransmission"
+#define SKINNY_MSG_CLOSE_RECEIVE_CHANNEL "CloseReceiveChannel"
 #define SKINNY_MSG_CALL_INFO_MESSAGE "CallInfoMessage"
+#define SKINNY_MSG_OPEN_RECEIVE_CHANNEL_ACK "OpenReceiveChannelAck"
 
 #define SKINNY_CALL_TYPE_INBOUND 1
 #define SKINNY_CALL_TYPE_OUTBOUND 2
@@ -150,9 +170,11 @@ typedef struct
 
 typedef enum
 {
+	SkOpenReceiveChannelAck = 0x0022,
 	SkStartMediaTransmission = 0x008A,
 	SkStopMediaTransmission = 0x008B,
 	SkCallInfoMessage = 0x008F,
+	SkCloseReceiveChannel = 0x0106,
 	SkUnkn = 0x0
 } SkinnyMessageEnum;
 int SkinnyMessageToEnum(CStdString& msg);
