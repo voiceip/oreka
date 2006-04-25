@@ -22,13 +22,11 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratorType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 
 /**
  * @hibernate.class
  */
 @Entity
-@Table(name = "loginstring")
 public class LoginString implements Serializable {
 
 	private int id;

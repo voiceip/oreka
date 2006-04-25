@@ -49,41 +49,23 @@ public class FillDatabase {
 		
 		// user 1
 		User user = new User();
-		user.setFirstname("Raymond");
-		user.setLastname("Stein");
-		user.setPassword("raymond");
+		user.setFirstname("salisse");
+		user.setPassword("salisse");
 		LoginString ls = new LoginString();
 		ls.setUser(user);
-		ls.setLoginString("2005");
-		LoginString lsA = new LoginString();
-		lsA.setUser(user);
-		lsA.setLoginString("2006");
-		LoginString lsB = new LoginString();
-		lsB.setUser(user);
-		lsB.setLoginString("raymond");
+		ls.setLoginString("1973");
 		hbnSession.save(user);
 		hbnSession.save(ls);
-		hbnSession.save(lsA);
-		hbnSession.save(lsB);
 		
 		// user 2
 		User user2 = new User();
-		user2.setFirstname("Bert");
-		user2.setLastname("Nolte");		
-		user2.setPassword("bert");
+		user2.setFirstname("zapata");
+		user2.setPassword("zapata");
 		LoginString ls2 = new LoginString();
 		ls2.setUser(user2);
-		ls2.setLoginString("2000");
-		LoginString ls2A = new LoginString();
-		ls2A.setUser(user2);
-		ls2A.setLoginString("2001");
-		LoginString ls2B = new LoginString();
-		ls2B.setUser(user2);
-		ls2B.setLoginString("bert");
+		ls2.setLoginString("1974");
 		hbnSession.save(user2);
 		hbnSession.save(ls2);
-		hbnSession.save(ls2A);
-		hbnSession.save(ls2B);
 		
 		// create program that does not filter anything
 		RecProgram prog1 = new RecProgram();
@@ -106,31 +88,12 @@ public class FillDatabase {
 			
 			String randomString = "" + generator.nextInt();
 			randomString = randomString.replace("-", "a");
+			seg.setLocalParty(randomString);
+			seg.setUser(user);
 			seg.setRemoteParty(lastParty);
 			lastParty = randomString;
 			
 			float randomDirection = generator.nextFloat();
-			
-			if(randomDirection > .8){
-				if(randomDirection > .95) {
-					seg.setLocalParty(ls.getLoginString());
-				}
-				else {
-					seg.setLocalParty(lsA.getLoginString());					
-				}
-				seg.setUser(user);
-			}
-			else {
-				if(randomDirection > .3) {
-					seg.setLocalParty(ls2.getLoginString());
-				}
-				else {
-					seg.setLocalParty(ls2A.getLoginString());
-				}
-				seg.setUser(user2);
-			}
-			
-			randomDirection = generator.nextFloat();
 			if(randomDirection > .5){
 				seg.setDirection(Direction.IN);
 			}

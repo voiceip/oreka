@@ -26,13 +26,11 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratorType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
-import javax.persistence.Table;
 
 /**
  * @hibernate.class
  */
 @Entity
-@Table(name = "user")
 public class User implements Serializable {
 	
 	private int id = 0;
@@ -146,6 +144,18 @@ public class User implements Serializable {
 	public User() {
 		//loginStrings = new HashSet<LoginString>();
 	}
+
+//	@OneToMany(fetch = FetchType.EAGER)
+//	public Set<LoginString> getLoginStrings() {
+//		return loginStrings;
+//	}
+//	
+//
+//
+//	public void setLoginStrings(Set<LoginString> loginStrings) {
+//		this.loginStrings = loginStrings;
+//	}
+
 
 	public Date getDateCreated() {
 		return dateCreated;

@@ -18,10 +18,8 @@ import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 
 @Entity
-@Table(name = "recportface")
 public class RecPortFace implements Serializable {
 
 	private RecPort recPort;

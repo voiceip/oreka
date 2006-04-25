@@ -38,7 +38,6 @@ import net.sf.oreka.Direction;
  * @hibernate.class
  */
 @Entity
-@Table(name = "recprogram")
 public class RecProgram implements Serializable {
 
 	private int id;
@@ -84,7 +83,7 @@ public class RecProgram implements Serializable {
 //    		targetEntity="net.sf.oreka.persistent.RecSegment"
 //    )
     @JoinTable(
-    		table=@Table(name="progtoseg"),
+    		table=@Table(name="ProgToSeg"),
     		joinColumns={@JoinColumn(name="ProgId")},
     		inverseJoinColumns={@JoinColumn(name="SegId")}
     )

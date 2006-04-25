@@ -19,14 +19,12 @@ import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.GeneratorType;
 import javax.persistence.Id;
-import javax.persistence.Table;
 import javax.persistence.Transient;
 
 /**
  * @hibernate.class
  */
 @Entity
-@Table(name = "recsession")
 public class RecSession implements Serializable {
 	private int id;
 	private Date timestamp = new Date(0);
