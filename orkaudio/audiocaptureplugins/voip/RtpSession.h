@@ -120,10 +120,12 @@ private:
 	LoggerPtr m_log;
 	CStdString m_capturePort;
 	bool m_started;
+	bool m_stopped;
 	int m_rtpTimestampCorrectiveOffset;
 };
 typedef boost::shared_ptr<RtpSession> RtpSessionRef;
 
+//===================================================================
 class RtpSessions
 {
 public:
@@ -134,10 +136,16 @@ public:
 	void ReportSipBye(SipByeInfo bye);
 	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader);
 	void ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
-	void ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct*);
+	void ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
+	void ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct*);
 	void ReportRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void Hoover(time_t now);
 private:
+	RtpSessionRef findByEndpointIp(struct in_addr);
+	void ChangeCallId(RtpSessionRef& session, unsigned int newId);
+	void SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort);
+	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId);
+
 	std::map<CStdString, RtpSessionRef> m_byIpAndPort;
 	std::map<CStdString, RtpSessionRef> m_byCallId;
 	LoggerPtr m_log;

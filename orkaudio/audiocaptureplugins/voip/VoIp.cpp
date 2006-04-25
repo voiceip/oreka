@@ -171,9 +171,9 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 
 				if(s_rtpPacketLog->isDebugEnabled())
 				{
-					CStdString debug;
-					rtpInfo->ToString(debug);
-					LOG4CXX_DEBUG(s_rtpPacketLog, debug);
+					CStdString logMsg;
+					rtpInfo->ToString(logMsg);
+					LOG4CXX_DEBUG(s_rtpPacketLog, logMsg);
 				}
 				if(payloadLength < 800)		// sanity check, speech RTP payload should always be smaller
 				{
@@ -185,13 +185,13 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 				// unsupported CODEC
 				if(s_rtpPacketLog->isDebugEnabled())
 				{
-					CStdString debug;
+					CStdString logMsg;
 					char sourceIp[16];
 					ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, sourceIp, sizeof(sourceIp));
 					char destIp[16];
 					ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_dest, destIp, sizeof(destIp));
-					debug.Format("Unsupported codec:%x  src:%s dst:%s", rtpHeader->pt, sourceIp, destIp);
-					LOG4CXX_DEBUG(s_rtpPacketLog, debug);
+					logMsg.Format("Unsupported codec:%x  src:%s dst:%s", rtpHeader->pt, sourceIp, destIp);
+					LOG4CXX_DEBUG(s_rtpPacketLog, logMsg);
 				}
 			}
 		}
@@ -335,47 +335,66 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHeader)
 {
 	bool useful = true;
-	CStdString debug;
+	CStdString logMsg;
+	
 	SkStartMediaTransmissionStruct* startMedia;
 	SkStopMediaTransmissionStruct* stopMedia;
 	SkCallInfoStruct* callInfo;
+	SkOpenReceiveChannelAckStruct* openReceiveAck;
+
+	char szEndpointIp[16];
+	struct in_addr endpointIp = ipHeader->ip_dest;	// most of the interesting skinny messages are CCM -> phone
 
 	switch(skinnyHeader->messageType)
 	{
 	case SkStartMediaTransmission:
 		startMedia = (SkStartMediaTransmissionStruct*)skinnyHeader;
-		if(s_skinnyPacketLog->isDebugEnabled())
+		if(s_skinnyPacketLog->isInfoEnabled())
 		{
 			char szRemoteIp[16];
 			ACE_OS::inet_ntop(AF_INET, (void*)&startMedia->remoteIpAddr, szRemoteIp, sizeof(szRemoteIp));
-			debug.Format(" CallId:%u PassThru:%u %s,%u", startMedia->conferenceId, startMedia->passThruPartyId, szRemoteIp, startMedia->remoteTcpPort);
+			logMsg.Format(" CallId:%u PassThru:%u media address:%s,%u", startMedia->conferenceId, startMedia->passThruPartyId, szRemoteIp, startMedia->remoteTcpPort);
 		}
 		RtpSessionsSingleton::instance()->ReportSkinnyStartMediaTransmission(startMedia, ipHeader);
 		break;
 	case SkStopMediaTransmission:
+	case SkCloseReceiveChannel:
+		// StopMediaTransmission and CloseReceiveChannel have the same definition, treat them the same for now.
 		stopMedia = (SkStopMediaTransmissionStruct*)skinnyHeader;
-		if(s_skinnyPacketLog->isDebugEnabled())
+		if(s_skinnyPacketLog->isInfoEnabled())
 		{
-			debug.Format(" CallId:%u PassThru:%u", stopMedia->conferenceId, stopMedia->passThruPartyId);
+			logMsg.Format(" ConferenceId:%u PassThruPartyId:%u", stopMedia->conferenceId, stopMedia->passThruPartyId);
 		}
-		RtpSessionsSingleton::instance()->ReportSkinnyStopMediaTransmission(stopMedia);
+		RtpSessionsSingleton::instance()->ReportSkinnyStopMediaTransmission(stopMedia, ipHeader);
 		break;
 	case SkCallInfoMessage:
 		callInfo = (SkCallInfoStruct*)skinnyHeader;
-		if(s_skinnyPacketLog->isDebugEnabled())
+		if(s_skinnyPacketLog->isInfoEnabled())
 		{
-			debug.Format(" CallId:%u calling:%s called:%s", callInfo->callId, callInfo->callingParty, callInfo->calledParty);
+			logMsg.Format(" CallId:%u calling:%s called:%s", callInfo->callId, callInfo->callingParty, callInfo->calledParty);
 		}
 		RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(callInfo, ipHeader);
+		break;
+	case SkOpenReceiveChannelAck:
+		openReceiveAck = (SkOpenReceiveChannelAckStruct*)skinnyHeader;
+		if(s_skinnyPacketLog->isInfoEnabled())
+		{
+			char szMediaIp[16];
+			ACE_OS::inet_ntop(AF_INET, (void*)&openReceiveAck->endpointIpAddr, szMediaIp, sizeof(szMediaIp));
+			logMsg.Format(" PassThru:%u media address:%s,%u", openReceiveAck->passThruPartyId, szMediaIp, openReceiveAck->endpointTcpPort);
+		}
+		endpointIp = ipHeader->ip_src;	// this skinny message is phone -> CCM
+		RtpSessionsSingleton::instance()->ReportSkinnyOpenReceiveChannelAck(openReceiveAck);
 		break;
 	default:
 		useful = false;
 	}
-	if(useful && s_skinnyPacketLog->isDebugEnabled())
+	if(useful && s_skinnyPacketLog->isInfoEnabled())
 	{
 		CStdString msg = SkinnyMessageToString(skinnyHeader->messageType);
-		debug = msg + debug;
-		LOG4CXX_INFO(s_skinnyPacketLog, debug);
+		ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
+		logMsg = "processed " + msg + logMsg + " endpoint:" + szEndpointIp;
+		LOG4CXX_INFO(s_skinnyPacketLog, logMsg);
 	}
 }
 
