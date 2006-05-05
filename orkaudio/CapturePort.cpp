@@ -187,7 +187,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 				// Notify immediate processing that tape has stopped
 				ImmediateProcessing::GetInstance()->AddAudioTape(m_audioTapeRef);
 				// Reporting needs to send a stop message
-				Reporting::GetInstance()->AddAudioTape(audioTapeRef);
+				// Reporting::GetInstance()->AddAudioTape(audioTapeRef);
 			}
 			else
 			{
