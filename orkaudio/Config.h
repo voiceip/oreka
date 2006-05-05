@@ -65,6 +65,8 @@
 #define BATCH_PROCESSING_QUEUE_SIZE_DEFAULT 20000
 #define BATCH_PROCESSING_ENHANCE_PRIORITY_PARAM "BatchProcessingEnhancePriority"
 #define BATCH_PROCESSING_ENHANCE_PRIORITY_DEFAULT false
+#define DELETE_FAILED_CAPTURE_FILE_PARAM "DeleteFailedCaptureFile"
+#define DELETE_FAILED_CAPTURE_FILE_DEFAULT false
 
 class Config : public Object
 {
@@ -102,6 +104,7 @@ public:
 	int m_immediateProcessingQueueSize;
 	int m_batchProcessingQueueSize;
 	bool m_batchProcessingEnhancePriority;
+	bool m_deleteFailedCaptureFile;
 };
 
 

@@ -43,7 +43,7 @@ void BatchProcessing::AddAudioTape(AudioTapeRef audioTapeRef)
 	if (!m_audioTapeQueue.push(audioTapeRef))
 	{
 		// Log error
-		LOG4CXX_ERROR(LOG.batchProcessingLog, CStdString("BatchProcessing: queue full"));
+		LOG4CXX_ERROR(LOG.batchProcessingLog, CStdString("queue full"));
 	}
 }
 
@@ -185,8 +185,6 @@ void BatchProcessing::ThreadHandler(void *args)
 					default:
 						outFileRef.reset(new LibSndFileFile(SF_FORMAT_PCM_16 | SF_FORMAT_WAV));
 					}
-					CStdString file = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath() + audioTapeRef->GetIdentifier();
-					outFileRef->Open(file, AudioFile::WRITE, false, fileRef->GetSampleRate());
 
 					FilterRef filter;
 					FilterRef decoder1;
@@ -200,22 +198,29 @@ void BatchProcessing::ThreadHandler(void *args)
 						AudioChunkDetails details = *chunkRef->GetDetails();
 						if(firstChunk && details.m_rtpPayloadType != -1)
 						{
-							firstChunk = false;
 							CStdString filterName("RtpMixer");
 							filter = FilterRegistry::instance()->GetNewFilter(filterName);
 							if(filter.get() == NULL)
 							{
-								debug = "BatchProcessing - Could not instanciate RTP mixer";
+								debug = "Could not instanciate RTP mixer";
 								throw(debug);
 							}
 							decoder1 = FilterRegistry::instance()->GetNewFilter(details.m_rtpPayloadType);
 							decoder2 = FilterRegistry::instance()->GetNewFilter(details.m_rtpPayloadType);
 							if(decoder1.get() == NULL || decoder2.get() == NULL)
 							{
-								debug.Format("BatchProcessing - Could not find decoder for RTP payload type:%u", chunkRef->GetDetails()->m_rtpPayloadType);
+								debug.Format("Could not find decoder for RTP payload type:%u", chunkRef->GetDetails()->m_rtpPayloadType);
 								throw(debug);
 							}
 							voIpSession = true;
+						}
+						if(firstChunk)
+						{
+							firstChunk = false;
+
+							// At this point, we know we have the right codec, open the output file
+							CStdString file = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath() + audioTapeRef->GetIdentifier();
+							outFileRef->Open(file, AudioFile::WRITE, false, fileRef->GetSampleRate());
 						}
 						if(voIpSession)
 						{	
@@ -267,15 +272,15 @@ void BatchProcessing::ThreadHandler(void *args)
 		}
 		catch (CStdString& e)
 		{
-			//if(CONFIG.m_deleteNativeFile && fileRef.get() != NULL)
-			//{
-			//	fileRef->Delete();
-			//}
-			LOG4CXX_ERROR(LOG.batchProcessingLog, CStdString("BatchProcessing: ") + e);
+			LOG4CXX_ERROR(LOG.batchProcessingLog, e);
+			if(CONFIG.m_deleteFailedCaptureFile && fileRef.get() != NULL)
+			{
+				fileRef->Delete();
+			}
 		}
 		//catch(...)
 		//{
-		//	LOG4CXX_ERROR(LOG.batchProcessingLog, CStdString("BatchProcessing: unknown exception"));
+		//	LOG4CXX_ERROR(LOG.batchProcessingLog, CStdString("unknown exception"));
 		//}
 	}
 	LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Exiting thread #" + threadIdString));
