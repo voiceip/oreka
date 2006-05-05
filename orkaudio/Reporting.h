@@ -20,6 +20,7 @@
 class Reporting
 {
 public:
+	Reporting();
 	static Reporting* GetInstance();
 	static void ThreadHandler(void *args);
 
@@ -27,6 +28,7 @@ public:
 private:
 	static Reporting m_reportingSingleton;
 	ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
+	bool m_queueFullError;
 };
 
 #endif

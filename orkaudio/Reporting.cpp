@@ -23,6 +23,11 @@
 
 Reporting Reporting::m_reportingSingleton;
 
+Reporting::Reporting()
+{
+	m_queueFullError = false;
+}
+
 Reporting* Reporting::GetInstance()
 {
 	return &m_reportingSingleton;
@@ -33,10 +38,15 @@ void Reporting::AddAudioTape(AudioTapeRef audioTapeRef)
 	if (m_audioTapeQueue.push(audioTapeRef))
 	{
 		LOG4CXX_DEBUG(LOG.reportingLog, CStdString("added audiotape to queue:") + audioTapeRef->GetIdentifier());
+		m_queueFullError = false;
 	}
 	else
 	{
-		LOG4CXX_ERROR(LOG.reportingLog, CStdString("Reporting: queue full"));
+		if(m_queueFullError == false)
+		{
+			m_queueFullError = true;
+			LOG4CXX_ERROR(LOG.reportingLog, CStdString("queue full"));
+		}
 	}
 }
 
@@ -63,7 +73,7 @@ void Reporting::ThreadHandler(void *args)
 
 				MessageRef msgRef;
 				audioTapeRef->GetMessage(msgRef);
-				if(msgRef.get() && CONFIG.m_enableReporting)
+				if(msgRef.get() /*&& CONFIG.m_enableReporting*/)
 				{
 					CStdString msgAsSingleLineString = msgRef->SerializeSingleLine();
 					LOG4CXX_INFO(LOG.reportingLog, msgAsSingleLineString);
