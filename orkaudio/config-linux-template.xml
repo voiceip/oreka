@@ -15,7 +15,7 @@
 	<StorageAudioFormat>gsm</StorageAudioFormat>
 
 	<!-- If you want to keep native audio files as well as compressed, change this to "no" -->
-	<DeleteNativeFile>yes</DeleteNativeFile>
+	<DeleteNativeFile>yes</DeleteNativeFile>	
 
 	<NumBatchThreads></NumBatchThreads>
 
@@ -26,10 +26,19 @@
 	<AudioSegmentation>false</AudioSegmentation>
 	<AudioSegmentDuration>10</AudioSegmentDuration>
 	
+	<BatchProcessingEnhancePriority>true</BatchProcessingEnhancePriority>	
+	
 	<VoIpPlugin>
-		<!-- Unix style network device. Use this if you want to force capture from a given device. -->
+		<!-- Use this if you want to force capture from a given list of devices. -->
 		<!-- All available devices are listed in /etc/orkaudio/orkaudio.log when the service is starting -->
-		<!--<Device>eth0</Device>-->
+		<!--<Devices>eth1, eth2</Devices>-->
+		
+		<!-- If AllowedIpRanges is used, only packets with *both* source and destination -->
+		<!-- matching the list are retained -->
+		<!--<AllowedIpRanges>212.125.143.0/24, 82.150.0.0/16, 82.199.64.133</AllowedIpRanges>-->
+		<!-- If BlockedIpRanges is used, packets with *either* source or destination -->
+		<!-- matching the list are dropped -->
+		<!--<BlockedIpRanges>212.125.143.0/24, 82.150.0.0/16, 82.199.64.133</BlockedIpRanges>-->		
 		
 		<!-- LanMasks can be ignored if you have standard LAN addresses (192.168.x.x or 10.x.x.x) -->
 		<!-- LanMasks might be used to determine the direction of a call (incoming or outgoing into or from the LAN) -->
