@@ -13,6 +13,7 @@
 
 #include "ConfigManager.h"
 #include "BatchProcessing.h"
+#include "Reporting.h"
 #include "LogManager.h"
 #include "ace/OS_NS_unistd.h"
 #include "audiofile/LibSndFileFile.h"
@@ -149,16 +150,16 @@ void BatchProcessing::ThreadHandler(void *args)
 				fileRef = audioTapeRef->GetAudioFileRef();
 				CStdString filename = audioTapeRef->GetFilename();
 
-				if(pBatchProcessing->DropTapeIfNeeded(filename) == true)
-				{
-					// The tape we have pulled has been dropped in the meantime. just delete the capture file
-					if(CONFIG.m_deleteNativeFile)
-					{
-						fileRef->Delete();
-					}
-				}
-				else
-				{
+				//if(pBatchProcessing->DropTapeIfNeeded(filename) == true)
+				//{
+				//	// The tape we have pulled has been dropped in the meantime. just delete the capture file
+				//	if(CONFIG.m_deleteNativeFile)
+				//	{
+				//		fileRef->Delete();
+				//	}
+				//}
+				//else
+				//{
 					// Let's work on the tape we have pulled
 					//CStdString threadIdString = IntToString(threadId);
 					LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " processing: " + audioTapeRef->GetIdentifier());
@@ -257,9 +258,11 @@ void BatchProcessing::ThreadHandler(void *args)
 						CStdString threadIdString = IntToString(threadId);
 						LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " deleting native: " + audioTapeRef->GetIdentifier());
 					}
-					CStdString filename = audioTapeRef->GetFilename();
-					pBatchProcessing->DropTapeIfNeeded(filename);		// maybe the tape was dropped while we were processing it
-				}
+					//CStdString filename = audioTapeRef->GetFilename();
+					//pBatchProcessing->DropTapeIfNeeded(filename);		// maybe the tape was dropped while we were processing it
+
+					Reporting::GetInstance()->AddAudioTape(audioTapeRef);
+				//}
 			}
 		}
 		catch (CStdString& e)

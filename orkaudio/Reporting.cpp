@@ -81,9 +81,21 @@ void Reporting::ThreadHandler(void *args)
 							success = true;
 							if(tr.m_deleteTape)
 							{
-								LOG4CXX_INFO(LOG.reportingLog, "Registered tape for removal: " + audioTapeRef->GetIdentifier());
+								//LOG4CXX_INFO(LOG.reportingLog, "Registered tape for removal: " + audioTapeRef->GetIdentifier());
+								//BatchProcessing::GetInstance()->TapeDropRegistration(tapeFilename);
+
 								CStdString tapeFilename = audioTapeRef->GetFilename();
-								BatchProcessing::GetInstance()->TapeDropRegistration(tapeFilename);
+
+								CStdString absoluteFilename = CONFIG.m_audioOutputPath + "/" + tapeFilename;
+								if (ACE_OS::unlink((PCSTR)absoluteFilename) == 0)
+								{
+									LOG4CXX_INFO(LOG.reportingLog, "Deleted tape: " + tapeFilename);
+								}
+								else
+								{
+									LOG4CXX_DEBUG(LOG.reportingLog, "Could not delete tape: " + tapeFilename);
+								}
+
 							}
 						}
 						else
