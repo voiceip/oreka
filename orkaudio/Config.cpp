@@ -41,6 +41,7 @@ Config::Config()
 	m_immediateProcessingQueueSize = IMMEDIATE_PROCESSING_QUEUE_SIZE_DEFAULT;
 	m_batchProcessingQueueSize = BATCH_PROCESSING_QUEUE_SIZE_DEFAULT;
 	m_batchProcessingEnhancePriority = BATCH_PROCESSING_ENHANCE_PRIORITY_DEFAULT;
+	m_deleteFailedCaptureFile = DELETE_FAILED_CAPTURE_FILE_DEFAULT;
 
 	char hostname[40];
 	ACE_OS::hostname(hostname, 40);
@@ -78,6 +79,7 @@ void Config::Define(Serializer* s)
 	s->IntValue(IMMEDIATE_PROCESSING_QUEUE_SIZE_PARAM, m_immediateProcessingQueueSize);
 	s->IntValue(BATCH_PROCESSING_QUEUE_SIZE_PARAM, m_batchProcessingQueueSize);
 	s->BoolValue(BATCH_PROCESSING_ENHANCE_PRIORITY_PARAM, m_batchProcessingEnhancePriority);
+	s->BoolValue(DELETE_FAILED_CAPTURE_FILE_PARAM, m_deleteFailedCaptureFile);
 }
 
 void Config::Validate()
