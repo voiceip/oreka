@@ -108,12 +108,16 @@ typedef struct
 	// and some more fields
 } SkStartMediaTransmissionStruct;
 
+bool SkinnyValidateStartMediaTransmission(SkStartMediaTransmissionStruct *);
+
+
 typedef struct
 {
 	SkinnyHeaderStruct header;
 	unsigned long conferenceId;
 	unsigned long passThruPartyId;
 } SkStopMediaTransmissionStruct;
+
 
 typedef struct
 {
@@ -122,17 +126,24 @@ typedef struct
 	unsigned long passThruPartyId;
 } SkCloseReceiveChannelStruct;
 
+#define SKINNY_CALLING_PARTY_SIZE 24
+#define SKINNY_CALLED_PARTY_SIZE 24
+#define SKINNY_CALLING_PARTY_NAME_SIZE 40
+#define SKINNY_CALLED_PARTY_NAME_SIZE 40
 typedef struct
 {
 	SkinnyHeaderStruct header;
-	char callingPartyName[40];
-	char callingParty[24];
-	char calledPartyName[40];
-	char calledParty[24];
+	char callingPartyName[SKINNY_CALLING_PARTY_NAME_SIZE];
+	char callingParty[SKINNY_CALLING_PARTY_SIZE];
+	char calledPartyName[SKINNY_CALLED_PARTY_NAME_SIZE];
+	char calledParty[SKINNY_CALLED_PARTY_SIZE];
 	unsigned long lineInstance;
 	unsigned long callId;
 	unsigned long callType;
 } SkCallInfoStruct;
+
+bool SkinnyValidateCallInfo(SkCallInfoStruct *);
+
 
 typedef struct
 {
@@ -152,6 +163,9 @@ typedef struct
 	unsigned long endpointTcpPort;
 	unsigned long passThruPartyId;
 } SkOpenReceiveChannelAckStruct;
+
+bool SkinnyValidateOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct *);
+
 
 #define SKINNY_CTRL_PORT 2000
 #define SKINNY_MIN_MESSAGE_SIZE 12
