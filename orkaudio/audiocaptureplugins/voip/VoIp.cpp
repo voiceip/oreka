@@ -349,13 +349,21 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 	{
 	case SkStartMediaTransmission:
 		startMedia = (SkStartMediaTransmissionStruct*)skinnyHeader;
-		if(s_skinnyPacketLog->isInfoEnabled())
+		if(SkinnyValidateStartMediaTransmission(startMedia))
 		{
-			char szRemoteIp[16];
-			ACE_OS::inet_ntop(AF_INET, (void*)&startMedia->remoteIpAddr, szRemoteIp, sizeof(szRemoteIp));
-			logMsg.Format(" CallId:%u PassThru:%u media address:%s,%u", startMedia->conferenceId, startMedia->passThruPartyId, szRemoteIp, startMedia->remoteTcpPort);
+			if(s_skinnyPacketLog->isInfoEnabled())
+			{
+				char szRemoteIp[16];
+				ACE_OS::inet_ntop(AF_INET, (void*)&startMedia->remoteIpAddr, szRemoteIp, sizeof(szRemoteIp));
+				logMsg.Format(" CallId:%u PassThru:%u media address:%s,%u", startMedia->conferenceId, startMedia->passThruPartyId, szRemoteIp, startMedia->remoteTcpPort);
+			}
+			RtpSessionsSingleton::instance()->ReportSkinnyStartMediaTransmission(startMedia, ipHeader);
 		}
-		RtpSessionsSingleton::instance()->ReportSkinnyStartMediaTransmission(startMedia, ipHeader);
+		else
+		{
+			useful = false;
+			LOG4CXX_WARN(s_skinnyPacketLog, "Invalid StartMediaTransmission.");
+		}
 		break;
 	case SkStopMediaTransmission:
 	case SkCloseReceiveChannel:
@@ -369,22 +377,38 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		break;
 	case SkCallInfoMessage:
 		callInfo = (SkCallInfoStruct*)skinnyHeader;
-		if(s_skinnyPacketLog->isInfoEnabled())
+		if(SkinnyValidateCallInfo(callInfo))
 		{
-			logMsg.Format(" CallId:%u calling:%s called:%s", callInfo->callId, callInfo->callingParty, callInfo->calledParty);
+			if(s_skinnyPacketLog->isInfoEnabled())
+			{
+				logMsg.Format(" CallId:%u calling:%s called:%s", callInfo->callId, callInfo->callingParty, callInfo->calledParty);
+			}
+			RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(callInfo, ipHeader);
 		}
-		RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(callInfo, ipHeader);
+		else
+		{
+			useful = false;
+			LOG4CXX_WARN(s_skinnyPacketLog, "Invalid CallInfoMessage.");
+		}
 		break;
 	case SkOpenReceiveChannelAck:
 		openReceiveAck = (SkOpenReceiveChannelAckStruct*)skinnyHeader;
-		if(s_skinnyPacketLog->isInfoEnabled())
+		if(SkinnyValidateOpenReceiveChannelAck(openReceiveAck))
 		{
-			char szMediaIp[16];
-			ACE_OS::inet_ntop(AF_INET, (void*)&openReceiveAck->endpointIpAddr, szMediaIp, sizeof(szMediaIp));
-			logMsg.Format(" PassThru:%u media address:%s,%u", openReceiveAck->passThruPartyId, szMediaIp, openReceiveAck->endpointTcpPort);
+			if(s_skinnyPacketLog->isInfoEnabled())
+			{
+				char szMediaIp[16];
+				ACE_OS::inet_ntop(AF_INET, (void*)&openReceiveAck->endpointIpAddr, szMediaIp, sizeof(szMediaIp));
+				logMsg.Format(" PassThru:%u media address:%s,%u", openReceiveAck->passThruPartyId, szMediaIp, openReceiveAck->endpointTcpPort);
+			}
+			endpointIp = ipHeader->ip_src;	// this skinny message is phone -> CCM
+			RtpSessionsSingleton::instance()->ReportSkinnyOpenReceiveChannelAck(openReceiveAck);
 		}
-		endpointIp = ipHeader->ip_src;	// this skinny message is phone -> CCM
-		RtpSessionsSingleton::instance()->ReportSkinnyOpenReceiveChannelAck(openReceiveAck);
+		else
+		{
+			useful = false;
+			LOG4CXX_WARN(s_skinnyPacketLog, "Invalid OpenReceiveChannelAck.");
+		}
 		break;
 	default:
 		useful = false;
@@ -404,7 +428,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	IpHeaderStruct* ipHeader = (IpHeaderStruct*)((char*)ethernetHeader + sizeof(EthernetHeaderStruct));
 	if(ipHeader->ip_v != 4)	// sanity check, is it an IP packet v4
 	{
-		// If not, the IP packet might be wrapped into a 802.1Q VLAN (add 4 bytes)
+		// If not, the IP packet might be wrapped into a 802.1Q VLAN or MPLS header (add 4 bytes)
 		ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+4);
 		if(ipHeader->ip_v != 4)
 		{
