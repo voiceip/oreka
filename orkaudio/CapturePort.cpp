@@ -207,7 +207,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 
 bool CapturePort::IsExpired(time_t now)
 {
-	if((now - m_lastUpdated) > 60)	// 1 minute
+	if((now - m_lastUpdated) > (10*60))	// 10 minutes
 	{
 		return true;
 	}
