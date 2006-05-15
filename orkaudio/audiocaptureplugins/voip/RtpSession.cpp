@@ -56,7 +56,7 @@ void RtpSession::Stop()
 	{
 		CaptureEventRef stopEvent(new CaptureEvent);
 		stopEvent->m_type = CaptureEvent::EtStop;
-		stopEvent->m_timestamp = time(NULL);
+		stopEvent->m_timestamp = m_lastUpdated;
 		g_captureEventCallBack(stopEvent, m_capturePort);
 		m_stopped = true;
 	}
