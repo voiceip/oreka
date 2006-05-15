@@ -192,7 +192,7 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 	case CaptureEvent::EtStop:
 		m_shouldStop = true;
 
-		m_duration = time(NULL) - m_beginDate;
+		m_duration = eventRef->m_timestamp - m_beginDate;
 
 		{
 			// Log the call details
