@@ -59,7 +59,7 @@ void BatchProcessing::TapeDropRegistration(CStdString& filename)
 	CStdString absoluteFilename = CONFIG.m_audioOutputPath + "/" + filename;
 	if (ACE_OS::unlink((PCSTR)absoluteFilename) != 0)
 	{
-		LOG4CXX_DEBUG(LOG.batchProcessingLog, "Could not deleted tape: " + filename);
+		LOG4CXX_DEBUG(LOG.batchProcessingLog, "Could not delete tape: " + filename);
 		m_tapesToDrop.insert(std::make_pair(filename, time(NULL)));
 	}
 	else
@@ -125,7 +125,7 @@ void BatchProcessing::ThreadHandler(void *args)
 		threadId = pBatchProcessing->m_threadCount++;
 	}
 	CStdString threadIdString = IntToString(threadId);
-	debug.Format("thread #%s starting - queue size:%d", threadIdString, CONFIG.m_batchProcessingQueueSize);
+	debug.Format("thread Th%s starting - queue size:%d", threadIdString, CONFIG.m_batchProcessingQueueSize);
 	LOG4CXX_INFO(LOG.batchProcessingLog, debug);
 
 	bool stop = false;
@@ -198,6 +198,9 @@ void BatchProcessing::ThreadHandler(void *args)
 						AudioChunkDetails details = *chunkRef->GetDetails();
 						if(firstChunk && details.m_rtpPayloadType != -1)
 						{
+							CStdString rtpPayloadType = IntToString(details.m_rtpPayloadType);
+							LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " RTP payload type:" + rtpPayloadType);
+
 							CStdString filterName("RtpMixer");
 							filter = FilterRegistry::instance()->GetNewFilter(filterName);
 							if(filter.get() == NULL)
@@ -260,7 +263,6 @@ void BatchProcessing::ThreadHandler(void *args)
 					if(CONFIG.m_deleteNativeFile)
 					{
 						fileRef->Delete();
-						CStdString threadIdString = IntToString(threadId);
 						LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " deleting native: " + audioTapeRef->GetIdentifier());
 					}
 					//CStdString filename = audioTapeRef->GetFilename();
@@ -272,10 +274,14 @@ void BatchProcessing::ThreadHandler(void *args)
 		}
 		catch (CStdString& e)
 		{
-			LOG4CXX_ERROR(LOG.batchProcessingLog, e);
+			LOG4CXX_ERROR(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " " + e);
+			fileRef->Close();
+			outFileRef->Close();
 			if(CONFIG.m_deleteFailedCaptureFile && fileRef.get() != NULL)
 			{
+				LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " deleting native and transcoded");
 				fileRef->Delete();
+				outFileRef->Delete();
 			}
 		}
 		//catch(...)
@@ -283,7 +289,7 @@ void BatchProcessing::ThreadHandler(void *args)
 		//	LOG4CXX_ERROR(LOG.batchProcessingLog, CStdString("unknown exception"));
 		//}
 	}
-	LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Exiting thread #" + threadIdString));
+	LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Exiting thread Th" + threadIdString));
 }
 
 
