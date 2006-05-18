@@ -275,13 +275,13 @@ void BatchProcessing::ThreadHandler(void *args)
 		catch (CStdString& e)
 		{
 			LOG4CXX_ERROR(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " " + e);
-			fileRef->Close();
-			outFileRef->Close();
+			if(fileRef.get()) {fileRef->Close();}
+			if(outFileRef.get()) {outFileRef->Close();}
 			if(CONFIG.m_deleteFailedCaptureFile && fileRef.get() != NULL)
 			{
 				LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " deleting native and transcoded");
-				fileRef->Delete();
-				outFileRef->Delete();
+				if(fileRef.get()) {fileRef->Delete();}
+				if(outFileRef.get()) {outFileRef->Delete();}
 			}
 		}
 		//catch(...)
