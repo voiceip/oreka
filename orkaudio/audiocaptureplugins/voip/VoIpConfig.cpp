@@ -26,6 +26,7 @@ VoIpConfig::VoIpConfig()
 	m_asciiLanMasks.push_back("172.31.255.255");
 	
 	m_sipDropIndirectInvite = false;
+	m_pcapRepeat = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -40,6 +41,7 @@ void VoIpConfig::Define(Serializer* s)
 
 	s->StringValue("PcapFile", m_pcapFile);
 	s->StringValue("PcapDirectory", m_pcapDirectory);
+	s->BoolValue("PcapRepeat", m_pcapRepeat);
 	s->BoolValue("SipDropIndirectInvite", m_sipDropIndirectInvite);
 }
 
