@@ -24,6 +24,7 @@
 #include "ace/OS_NS_ctype.h"
 #include "ace/Thread_Manager.h"
 #include "ace/Thread_Mutex.h"
+#include "ace/Thread_Semaphore.h"
 #include "AudioCapturePlugin.h"
 #include "AudioCapturePluginCommon.h"
 #include "Utils.h"
@@ -47,6 +48,7 @@ static LoggerPtr s_sipExtractionLog;
 static LoggerPtr s_voipPluginLog;
 static time_t s_lastHooveringTime;
 static ACE_Thread_Mutex s_mutex;
+static ACE_Thread_Semaphore s_replaySemaphore;
 static bool s_liveCapture;
 
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
@@ -527,6 +529,11 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 
 void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 {
+	if(!s_liveCapture)
+	{
+		// File replay, make sure that only one file is replayed at a time
+		s_replaySemaphore.acquire();
+	}
 	if(pcapHandle)
 	{
 		CStdString log;
@@ -544,6 +551,11 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 	else
 	{
 		LOG4CXX_ERROR(s_packetLog, "Cannot start capturing, pcap handle is null");
+	}
+	if(!s_liveCapture)
+	{
+		// Pass token to for next file replay
+		s_replaySemaphore.release();
 	}
 }
 
