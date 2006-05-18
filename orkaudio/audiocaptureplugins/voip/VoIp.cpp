@@ -439,6 +439,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	int ipHeaderLength = ipHeader->ip_hl*4;
 	u_char* ipPacketEnd = (u_char*)ipHeader + ipHeader->ip_len;
 
+#ifdef WIN32
 	if(!s_liveCapture)
 	{
 		// This is a pcap file replay, make sure Orkaudio won't be flooded by too many
@@ -453,6 +454,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
         ts.tv_nsec = 1;
 		ACE_OS::nanosleep (&ts, NULL);
 	}
+#endif
 
 	if(DLLCONFIG.IsPacketWanted(ipHeader) == false)
 	{
