@@ -49,6 +49,7 @@ static LoggerPtr s_voipPluginLog;
 static time_t s_lastHooveringTime;
 static ACE_Thread_Mutex s_mutex;
 static ACE_Thread_Semaphore s_replaySemaphore;
+int s_replayThreadCounter;
 static bool s_liveCapture;
 
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
@@ -56,6 +57,28 @@ VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 
 #define PROMISCUOUS 1
 
+//========================================================
+class VoIp
+{
+public:
+	VoIp();
+	void Initialize();
+	void Run();
+	void Shutdown();
+	void StartCapture(CStdString& port);
+	void StopCapture(CStdString& port);
+private:
+	void OpenDevices();
+	void OpenPcapFile(CStdString& filename);
+	void VoIp::OpenPcapDirectory(CStdString& path);
+
+	pcap_t* m_pcapHandle;
+	std::list<pcap_t*> m_pcapHandles;
+};
+
+typedef ACE_Singleton<VoIp, ACE_Thread_Mutex> VoIpSingleton;
+
+//=========================================================
 // Convert a piece of memory to hex string
 void memToHex(unsigned char* input, size_t len, CStdString&output)
 {
@@ -526,13 +549,18 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	}
 }
 
-
 void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 {
+	bool repeat = false;
 	if(!s_liveCapture)
 	{
 		// File replay, make sure that only one file is replayed at a time
 		s_replaySemaphore.acquire();
+		s_replayThreadCounter--;
+		if(s_replayThreadCounter == 0 && DLLCONFIG.m_pcapRepeat)
+		{
+			repeat = true;
+		}
 	}
 	if(pcapHandle)
 	{
@@ -557,28 +585,16 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 		// Pass token to for next file replay
 		s_replaySemaphore.release();
 	}
+	if(repeat == true)
+	{
+		// Reinitialize for another file replay cycle.
+		VoIpSingleton::instance()->Initialize();
+		VoIpSingleton::instance()->Run();
+	}
 }
 
-class VoIp
-{
-public:
-	VoIp();
-	void Initialize();
-	void Run();
-	void Shutdown();
-	void StartCapture(CStdString& port);
-	void StopCapture(CStdString& port);
-private:
-	void OpenDevices();
-	void OpenPcapFile(CStdString& filename);
-	void VoIp::OpenPcapDirectory(CStdString& path);
 
-	pcap_t* m_pcapHandle;
-	std::list<pcap_t*> m_pcapHandles;
-};
-
-typedef ACE_Singleton<VoIp, ACE_Thread_Mutex> VoIpSingleton;
-
+//=======================================================
 VoIp::VoIp()
 {
 	m_pcapHandle = NULL;
@@ -796,8 +812,11 @@ void VoIp::Initialize()
 	}
 }
 
+
 void VoIp::Run()
 {
+	s_replayThreadCounter = m_pcapHandles.size();
+
 	for(std::list<pcap_t*>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
 	{
 		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(SingleDeviceCaptureThreadHandler), *it))
@@ -824,6 +843,7 @@ void VoIp::StopCapture(CStdString& port)
 {
 	;
 }
+
 
 void __CDECL__ Initialize()
 {

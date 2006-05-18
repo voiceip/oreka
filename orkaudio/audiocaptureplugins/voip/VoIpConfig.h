@@ -55,6 +55,7 @@ public:
 
 	CStdString m_pcapFile;
 	CStdString m_pcapDirectory;
+	bool m_pcapRepeat;
 	bool m_sipDropIndirectInvite;
 };
 
