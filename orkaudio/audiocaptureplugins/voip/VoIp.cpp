@@ -775,6 +775,8 @@ void VoIp::OpenDevices()
 
 void VoIp::Initialize()
 {
+	m_pcapHandles.clear();
+
 	s_packetLog = Logger::getLogger("packet");
 	s_rtpPacketLog = Logger::getLogger("packet.rtp");
 	s_sipPacketLog = Logger::getLogger("packet.sip");
