@@ -572,6 +572,7 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 		{
 			// This is a pcap file replay, stop all sessions before exiting
 			RtpSessionsSingleton::instance()->StopAll();
+			pcap_close(pcapHandle);
 		}
 		log.Format("Stop Capturing: pcap handle:%x", pcapHandle);
 		LOG4CXX_INFO(s_packetLog, log);
