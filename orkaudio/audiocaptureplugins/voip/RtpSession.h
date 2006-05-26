@@ -121,7 +121,7 @@ private:
 	CStdString m_capturePort;
 	bool m_started;
 	bool m_stopped;
-	int m_rtpTimestampCorrectiveOffset;
+	int m_rtpTimestampCorrectiveDelta;
 };
 typedef boost::shared_ptr<RtpSession> RtpSessionRef;
 

@@ -45,7 +45,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_numRtpPackets = 0;
 	m_started = false;
 	m_stopped = false;
-	m_rtpTimestampCorrectiveOffset = 0;
+	m_rtpTimestampCorrectiveDelta = 0;
 }
 
 void RtpSession::Stop()
@@ -334,27 +334,24 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		}
 	}
 
-	// Compute the corrective offset (only if the two streams have greatly different timestamp, eg for Cisco CallManager)
-	if(m_rtpTimestampCorrectiveOffset == 0 && m_lastRtpPacketSide2.get() != NULL)
+	// Compute the corrective offset
+	if(m_rtpTimestampCorrectiveDelta == 0 && m_lastRtpPacketSide2.get() != NULL)
 	{
-		//if (m_lastRtpPacketSide2->m_arrivalTimestamp == m_lastRtpPacketSide1->m_arrivalTimestamp)
+		int timestampOffset = m_lastRtpPacketSide2->m_timestamp - m_lastRtpPacketSide1->m_timestamp;
+		//if(timestampOffset > 8000 || timestampOffset < -8000)	// 1s @ 8KHz
 		//{
-			int timestampOffset = m_lastRtpPacketSide2->m_timestamp - m_lastRtpPacketSide1->m_timestamp;
-			if(timestampOffset > 8000 || timestampOffset < -8000)	// 1s @ 8KHz
+			m_rtpTimestampCorrectiveDelta = timestampOffset;
+			if(m_log->isDebugEnabled())
 			{
-				m_rtpTimestampCorrectiveOffset = timestampOffset;
-				if(m_log->isDebugEnabled())
-				{
-					CStdString timestampOffsetString = IntToString(timestampOffset);
-					LOG4CXX_DEBUG(m_log,  m_trackingId + ": " + m_capturePort + ": " + "Applying timestamp corrective offset:" + timestampOffsetString);
-				}
+				CStdString timestampOffsetString = IntToString(timestampOffset);
+				LOG4CXX_DEBUG(m_log,  m_trackingId + ": " + m_capturePort + ": " + "Applying timestamp corrective offset:" + timestampOffsetString);
 			}
 		//}
 	}
 	// apply the corrective offset
 	if(m_lastRtpPacketSide2.get() != NULL)
 	{
-		m_lastRtpPacketSide2->m_timestamp = m_lastRtpPacketSide2->m_timestamp - m_rtpTimestampCorrectiveOffset;
+		m_lastRtpPacketSide2->m_timestamp = m_lastRtpPacketSide2->m_timestamp - m_rtpTimestampCorrectiveDelta;
 	}
 
 	if(m_log->isDebugEnabled())
