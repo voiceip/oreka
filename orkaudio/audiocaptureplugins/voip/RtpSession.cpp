@@ -50,7 +50,8 @@ RtpSession::RtpSession(CStdString& trackingId)
 
 void RtpSession::Stop()
 {
-	LOG4CXX_INFO(m_log, m_trackingId + ": " + m_capturePort + " Session stop");
+	CStdString lastUpdated = IntToString(m_lastUpdated);
+	LOG4CXX_INFO(m_log, m_trackingId + ": " + m_capturePort + " Session stop, last updated:" + lastUpdated);
 
 	if(m_started && !m_stopped)
 	{
@@ -65,11 +66,12 @@ void RtpSession::Stop()
 void RtpSession::Start()
 {
 	m_started = true;
-	LOG4CXX_INFO(m_log,  m_trackingId + ": " + m_capturePort + " " + ProtocolToString(m_protocol) + " Session start");
 	m_rtpRingBuffer.SetCapturePort(m_capturePort);
 	CaptureEventRef startEvent(new CaptureEvent);
 	startEvent->m_type = CaptureEvent::EtStart;
 	startEvent->m_timestamp = time(NULL);
+	CStdString timestamp = IntToString(startEvent->m_timestamp);
+	LOG4CXX_INFO(m_log,  m_trackingId + ": " + m_capturePort + " " + ProtocolToString(m_protocol) + " Session start, timestamp:" + timestamp);
 	g_captureEventCallBack(startEvent, m_capturePort);
 }
 
@@ -341,14 +343,15 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		//if(timestampOffset > 8000 || timestampOffset < -8000)	// 1s @ 8KHz
 		//{
 			m_rtpTimestampCorrectiveDelta = timestampOffset;
-			if(m_log->isDebugEnabled())
+			if(m_log->isInfoEnabled())
 			{
 				CStdString timestampOffsetString = IntToString(timestampOffset);
-				LOG4CXX_DEBUG(m_log,  m_trackingId + ": " + m_capturePort + ": " + "Applying timestamp corrective offset:" + timestampOffsetString);
+				LOG4CXX_INFO(m_log,  m_trackingId + ": " + m_capturePort + ": " + "Applying timestamp corrective delta:" + timestampOffsetString);
 			}
 		//}
 	}
 	// apply the corrective offset
+	unsigned int timestamp = rtpPacket->m_timestamp;
 	if(m_lastRtpPacketSide2.get() != NULL)
 	{
 		m_lastRtpPacketSide2->m_timestamp = m_lastRtpPacketSide2->m_timestamp - m_rtpTimestampCorrectiveDelta;
@@ -357,7 +360,7 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	if(m_log->isDebugEnabled())
 	{
 		CStdString debug;
-		debug.Format("%s: %s: Add RTP packet ts:%u arrival:%u", m_trackingId, m_capturePort, rtpPacket->m_timestamp, rtpPacket->m_arrivalTimestamp);
+		debug.Format("%s: %s: Add RTP packet ts:%u, corrected ts:%u, arrival:%u, channel:%d", m_trackingId, m_capturePort, timestamp, rtpPacket->m_timestamp, rtpPacket->m_arrivalTimestamp, channel);
 		LOG4CXX_DEBUG(m_log, debug);
 	}
 
