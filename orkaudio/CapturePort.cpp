@@ -176,6 +176,8 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		// Ok, at this point, we know we have a valid audio tape
 		switch(eventRef->m_type)
 		{
+		case CaptureEvent::EtStart:
+			break;
 		case CaptureEvent::EtStop:
 
 			m_capturing = false;
