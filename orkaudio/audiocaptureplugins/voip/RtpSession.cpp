@@ -137,11 +137,13 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 	char szDestIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szDestIp, sizeof(szDestIp));
 
+	m_capturePort = m_ipAndPort;
+
 	if(sourceIsLocal)
 	{
 		m_localParty = szSourceIp;
 		m_remoteParty = szDestIp;
-		m_capturePort.Format("%s,%d", szSourceIp, rtpPacket->m_sourcePort);
+		//m_capturePort.Format("%s,%d", szSourceIp, rtpPacket->m_sourcePort);
 		m_localIp = rtpPacket->m_sourceIp;
 		m_remoteIp = rtpPacket->m_destIp;
 	}
@@ -149,7 +151,7 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 	{
 		m_localParty = szDestIp;
 		m_remoteParty = szSourceIp;
-		m_capturePort.Format("%s,%d", szDestIp, rtpPacket->m_destPort);
+		//m_capturePort.Format("%s,%d", szDestIp, rtpPacket->m_destPort);
 		m_localIp = rtpPacket->m_destIp;
 		m_remoteIp = rtpPacket->m_sourceIp;
 
@@ -274,8 +276,8 @@ void RtpSession::ReportMetadata()
 	g_captureEventCallBack(event, m_capturePort);
 }
 
-
-void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
+// Returns false if the packet does not belong to the session (RTP timestamp discontinuity)
+bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 {
 	CStdString logMsg;
 	unsigned char channel = 0;
@@ -364,6 +366,18 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		LOG4CXX_DEBUG(m_log, debug);
 	}
 
+	// Detect RTP timestamp discontinuity
+	//if(m_protocol == ProtRawRtp)
+	//{
+	//	int delta = rtpPacket->m_timestamp - m_lastRtpPacketSide1->m_timestamp;
+	//	if(delta > (RTP_SESSION_TIMEOUT*8000) || delta < (RTP_SESSION_TIMEOUT*8000*-1))
+	//	{
+	//		logMsg.Format("RTP timestamp discontinuity before:%u after:%u", m_lastRtpPacketSide1->m_timestamp, rtpPacket->m_timestamp);
+	//		LOG4CXX_INFO(m_log, logMsg);
+	//		return false;
+	//	}
+	//}
+
 	if(		(m_protocol == ProtRawRtp && m_numRtpPackets == 50)	||
 			(m_protocol == ProtSkinny && m_numRtpPackets == 2)	||
 			(m_protocol == ProtSip && m_numRtpPackets == 2)			)
@@ -390,6 +404,7 @@ void RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 		m_lastUpdated = rtpPacket->m_arrivalTimestamp;
 	}
+	return true;
 }
 
 
@@ -764,8 +779,15 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		if (session1.get() != NULL)
 		{
 			// Found a session give it the RTP packet info
-			session1->AddRtpPacket(rtpPacket);
-			numSessionsFound++;;
+			if(session1->AddRtpPacket(rtpPacket))
+			{
+				numSessionsFound++;
+			}
+			else
+			{
+				// RTP discontinuity detected
+				Stop(session1);
+			}
 		}
 	}
 
@@ -782,8 +804,15 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		if (session2.get() != NULL)
 		{
 			// Found a session give it the RTP packet info
-			session2->AddRtpPacket(rtpPacket);
-			numSessionsFound++;
+			if(session2->AddRtpPacket(rtpPacket))
+			{
+				numSessionsFound++;
+			}
+			else
+			{
+				// RTP discontinuity detected
+				Stop(session2);
+			}
 		}
 	}
 
