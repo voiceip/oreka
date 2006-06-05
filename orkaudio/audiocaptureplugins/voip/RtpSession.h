@@ -82,7 +82,7 @@ public:
 	RtpSession(CStdString& trackingId);
 	void Stop();
 	void Start();
-	void AddRtpPacket(RtpPacketInfoRef& rtpPacket);
+	bool AddRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void ReportSipInvite(SipInviteInfoRef& invite);
 
 	CStdString m_trackingId;
