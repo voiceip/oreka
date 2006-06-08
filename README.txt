@@ -1,4 +1,4 @@
-
+=================================================
 Welcome to Oreka, an open media capture and retrieval platform
 
 Copyright (C) 2005, orecx LLC	http://www.orecx.com
