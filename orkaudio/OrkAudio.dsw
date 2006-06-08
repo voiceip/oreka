@@ -3,43 +3,7 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
-Project: "G723Codec"=..\..\..\devOrx\orkaudio\filters\g723codec\G723Codec.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "G729Codec"=..\..\..\devOrx\orkaudio\filters\g729codec\G729Codec.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
 Project: "Generator"=.\AUDIOCAPTUREPLUGINS\Generator\Generator.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "IPP"=..\..\..\DEVORX\ORKAUDIO\FILTERS\IPP\IPP.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
