@@ -232,7 +232,16 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk)
 
 	for(int i=0; i<audioChunk->GetNumSamples() ; i++)
 	{
-		*tempWritePtr += payload[i];
+		int sample = *tempWritePtr + payload[i];
+        	if (sample > 32767)
+		{
+           		sample = 32767;
+		}
+        	if (sample < -32768)
+		{
+           		sample = -32768;
+		}
+		*tempWritePtr = (short)sample;
 		tempWritePtr++;
 		if(tempWritePtr >= m_bufferEnd)
 		{
