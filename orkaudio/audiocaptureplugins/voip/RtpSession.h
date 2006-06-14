@@ -141,15 +141,13 @@ public:
 	void ReportRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void Hoover(time_t now);
 private:
-	//RtpSessionRef findByEndpointIp(struct in_addr);
-	//void ChangeCallId(RtpSessionRef& session, unsigned int newId);
+	RtpSessionRef findByEndpointIp(struct in_addr);
+	void ChangeCallId(RtpSessionRef& session, unsigned int newId);
 	void SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort);
 	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId);
-	void CreateSkinnySession(struct in_addr endpointIp, RtpSessionRef& session);
 
 	std::map<CStdString, RtpSessionRef> m_byIpAndPort;
 	std::map<CStdString, RtpSessionRef> m_byCallId;
-	std::map<unsigned int, RtpSessionRef> m_byEndPointIp;	// Skinny only
 	LoggerPtr m_log;
 	AlphaCounter alphaCounter;
 };
