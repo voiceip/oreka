@@ -562,7 +562,7 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 
 	if(session.get() == NULL)
 	{
-		CreateSkinnySession(ipHeader->ip_dest, session);
+		SessionCreateSkinny(ipHeader->ip_dest, session);
 	}
 
 	// Update the session with data from this CallInfo message
@@ -658,7 +658,7 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 		char szEndPointIp[16];
 		ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
 		CStdString logMsg;
-		logMsg.Format("%s: callId %s media address:%s  endpoint:%s", session->m_trackingId, session->m_callId, ipAndPort, szEndPointIp);
+		logMsg.Format("%s: media address:%s endpoint:%s callId:%s", session->m_trackingId, ipAndPort, szEndPointIp, session->m_callId);
 		LOG4CXX_INFO(m_log, logMsg);
 	}
 
@@ -678,10 +678,15 @@ CStdString RtpSessions::GenerateSkinnyCallId(struct in_addr endpointIp, unsigned
 	return skinnyCallId;
 }
 
-void RtpSessions::CreateSkinnySession(struct in_addr endpointIp, RtpSessionRef& session)
+void RtpSessions::SessionCreateSkinny(struct in_addr endpointIp, RtpSessionRef& session)
 {
 	CStdString trackingId = alphaCounter.GetNext();
 	session.reset(new RtpSession(trackingId));
+	SessionMakeSkinny(endpointIp, session);
+}
+
+void RtpSessions::SessionMakeSkinny(struct in_addr endpointIp, RtpSessionRef& session)
+{
 	session->m_endPointIp = endpointIp; 
 	session->m_protocol = RtpSession::ProtSkinny;
 
@@ -690,59 +695,60 @@ void RtpSessions::CreateSkinnySession(struct in_addr endpointIp, RtpSessionRef& 
 }
 
 
+
 void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct* openReceive)
 {
-	RtpSessionRef session;
+	//RtpSessionRef session;
 
-	std::map<unsigned int, RtpSessionRef>::iterator pair;
-	pair = m_byEndPointIp.find((unsigned int)(openReceive->endpointIpAddr.s_addr));
+	//std::map<unsigned int, RtpSessionRef>::iterator pair;
+	//pair = m_byEndPointIp.find((unsigned int)(openReceive->endpointIpAddr.s_addr));
 
-	if (pair != m_byEndPointIp.end())
-	{
-		session = pair->second;
+	//if (pair != m_byEndPointIp.end())
+	//{
+	//	session = pair->second;
 
-		if(session->m_ipAndPort.size() == 0)
-		{
-			SetMediaAddress(session, openReceive->endpointIpAddr, openReceive->endpointTcpPort);
-		}
-		else
-		{
-			LOG4CXX_DEBUG(m_log, session->m_trackingId + ": OpenReceiveChannelAck: session already got media address signalling");
-		}
-	}
-	else
-	{
-		CreateSkinnySession(openReceive->endpointIpAddr, session);
-		SetMediaAddress(session, openReceive->endpointIpAddr, openReceive->endpointTcpPort);
-	}
+	//	if(session->m_ipAndPort.size() == 0)
+	//	{
+	//		SetMediaAddress(session, openReceive->endpointIpAddr, openReceive->endpointTcpPort);
+	//	}
+	//	else
+	//	{
+	//		LOG4CXX_DEBUG(m_log, session->m_trackingId + ": OpenReceiveChannelAck: session already got media address signalling");
+	//	}
+	//}
+	//else
+	//{
+	//	SessionCreateSkinny(openReceive->endpointIpAddr, session);
+	//	SetMediaAddress(session, openReceive->endpointIpAddr, openReceive->endpointTcpPort);
+	//}
 }
 
 
 void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct* startMedia, IpHeaderStruct* ipHeader)
 {
-	RtpSessionRef session;
+	//RtpSessionRef session;
 
-	std::map<unsigned int, RtpSessionRef>::iterator pair;
-	pair = m_byEndPointIp.find((unsigned int)(ipHeader->ip_dest.s_addr));
+	//std::map<unsigned int, RtpSessionRef>::iterator pair;
+	//pair = m_byEndPointIp.find((unsigned int)(ipHeader->ip_dest.s_addr));
 
-	if (pair != m_byEndPointIp.end())
-	{
-		session = pair->second;
+	//if (pair != m_byEndPointIp.end())
+	//{
+	//	session = pair->second;
 
-		if(session->m_ipAndPort.size() == 0)
-		{
-			SetMediaAddress(session, startMedia->remoteIpAddr, startMedia->remoteTcpPort);
-		}
-		else
-		{
-			LOG4CXX_DEBUG(m_log, session->m_trackingId + ": StartMediaTransmission: session already got media address signalling");
-		}
-	}
-	else
-	{
-		CreateSkinnySession(ipHeader->ip_dest, session);
-		SetMediaAddress(session, startMedia->remoteIpAddr, startMedia->remoteTcpPort);
-	}
+	//	if(session->m_ipAndPort.size() == 0)
+	//	{
+	//		SetMediaAddress(session, startMedia->remoteIpAddr, startMedia->remoteTcpPort);
+	//	}
+	//	else
+	//	{
+	//		LOG4CXX_DEBUG(m_log, session->m_trackingId + ": StartMediaTransmission: session already got media address signalling");
+	//	}
+	//}
+	//else
+	//{
+	//	SessionCreateSkinny(ipHeader->ip_dest, session);
+	//	SetMediaAddress(session, startMedia->remoteIpAddr, startMedia->remoteTcpPort);
+	//}
 }
 
 void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct* stopMedia, IpHeaderStruct* ipHeader)
@@ -794,16 +800,18 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	int numSessionsFound = 0;
 	RtpSessionRef session1;
 	RtpSessionRef session2;
+	CStdString ipAndPort;
+	CStdString logMsg;
 
 	// Add RTP packet to session with matching source or dest IP+Port. 
 	// On CallManager there might be two sessions with two different CallIDs for one 
 	// phone call, so this RTP packet can potentially be reported to two sessions.
 
-	// Does a session exist with this source Ip+Port
+	// Does a session exist with this source Ip+Port ?
 	CStdString port = IntToString(rtpPacket->m_sourcePort);
 	char szSourceIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szSourceIp, sizeof(szSourceIp));
-	CStdString ipAndPort = CStdString(szSourceIp) + "," + port;
+	ipAndPort = CStdString(szSourceIp) + "," + port;
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 
 	pair = m_byIpAndPort.find(ipAndPort);
@@ -825,7 +833,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		}
 	}
 
-	// Does a session exist with this destination Ip+Port
+	// Does a session exist with this destination Ip+Port ?
 	port = IntToString(rtpPacket->m_destPort);
 	char szDestIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szDestIp, sizeof(szDestIp));
@@ -849,6 +857,83 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 			}
 		}
 	}
+
+	RtpSessionRef skinnySession;
+	RtpSessionRef rtpSession;
+	struct in_addr endPointIp;
+	std::map<unsigned int, RtpSessionRef>::iterator byEndPointIpPair;
+
+	// Let's see if one of the RTP sessions could become a skinny session
+	if(session2.get())
+	{
+		if(session2->m_protocol == RtpSession::ProtRawRtp)
+		{
+			byEndPointIpPair = m_byEndPointIp.find((unsigned int)(rtpPacket->m_destIp.s_addr));
+			if (byEndPointIpPair != m_byEndPointIp.end())
+			{
+				skinnySession = byEndPointIpPair->second;
+				rtpSession = session2;
+				endPointIp = rtpPacket->m_destIp;
+			}
+		}
+	}
+	else if(session1.get())
+	{
+		if(session1->m_protocol == RtpSession::ProtRawRtp)
+		{
+			byEndPointIpPair = m_byEndPointIp.find((unsigned int)(rtpPacket->m_sourceIp.s_addr));
+			if (byEndPointIpPair != m_byEndPointIp.end())
+			{
+				skinnySession = byEndPointIpPair->second;
+				rtpSession = session1;
+				endPointIp = rtpPacket->m_sourceIp;
+			}
+		}		
+	}
+
+	if(skinnySession.get())
+	{
+		// We have an RTP session that needs to become Skinny
+		// -> Update RTP session with info from the Skinny session
+		rtpSession->m_direction = skinnySession->m_direction;
+		rtpSession->m_localParty = skinnySession->m_localParty;
+		rtpSession->m_remoteParty = skinnySession->m_remoteParty;
+		rtpSession->m_callId = skinnySession->m_callId;
+
+		Stop(skinnySession);
+		SessionMakeSkinny(endPointIp, rtpSession);
+		CStdString direction = CaptureEvent::DirectionToString(rtpSession->m_direction);
+		logMsg.Format("%s becomes Skinny", rtpSession->m_trackingId);
+		//					rtpSession->m_trackingId, rtpSession->m_localParty, rtpSession->m_remoteParty, rtpSession->m_direction);
+		LOG4CXX_INFO(m_log, logMsg);
+		rtpSession->ReportMetadata();
+	}
+
+	if(numSessionsFound == 0)
+	{
+		// This RTP packet seems to be a first
+
+		// Let's see if we can find a Skinny Session for the source IP
+		byEndPointIpPair = m_byEndPointIp.find((unsigned int)(rtpPacket->m_sourceIp.s_addr));
+		if (byEndPointIpPair != m_byEndPointIp.end())
+		{
+			session1 = byEndPointIpPair->second;
+			numSessionsFound++;
+			SetMediaAddress(session1, rtpPacket->m_sourceIp, rtpPacket->m_sourcePort);
+			session1->AddRtpPacket(rtpPacket);
+		}
+
+		// Let's see if we can find a Skinny Session for the dest IP
+		byEndPointIpPair = m_byEndPointIp.find((unsigned int)(rtpPacket->m_destIp.s_addr));
+		if (byEndPointIpPair != m_byEndPointIp.end())
+		{
+			session2 = byEndPointIpPair->second;
+			numSessionsFound++;
+			SetMediaAddress(session2, rtpPacket->m_destIp, rtpPacket->m_destPort);
+			session2->AddRtpPacket(rtpPacket);
+		}
+	}
+
 
 	if(numSessionsFound == 2)
 	{
@@ -892,6 +977,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		Stop(mergeeSession);
 	}
 
+	// Last resort, create a Raw RTP session
 	if(numSessionsFound == 0)
 	{
 		// create new Raw RTP session and insert into IP+Port map

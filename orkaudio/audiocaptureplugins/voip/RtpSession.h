@@ -84,6 +84,7 @@ public:
 	void Start();
 	bool AddRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void ReportSipInvite(SipInviteInfoRef& invite);
+	void ReportMetadata();
 
 	CStdString m_trackingId;
 	CStdString m_ipAndPort;	// IP address and TCP port of one side of the session, serves as a key for session storage and retrieval. Not necessarily the same as the capturePort (capturePort is usually the client (phone) IP+port)
@@ -103,7 +104,6 @@ private:
 	void ProcessMetadataSipOutgoing();
 	void ProcessMetadataRawRtp(RtpPacketInfoRef&);
 	void ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket);
-	void ReportMetadata();
 
 	RtpPacketInfoRef m_lastRtpPacket;
 	RtpPacketInfoRef m_lastRtpPacketSide1;
@@ -145,7 +145,8 @@ private:
 	//void ChangeCallId(RtpSessionRef& session, unsigned int newId);
 	void SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort);
 	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId);
-	void CreateSkinnySession(struct in_addr endpointIp, RtpSessionRef& session);
+	void SessionCreateSkinny(struct in_addr endpointIp, RtpSessionRef& session);
+	void SessionMakeSkinny(struct in_addr endpointIp, RtpSessionRef& session);
 
 	std::map<CStdString, RtpSessionRef> m_byIpAndPort;
 	std::map<CStdString, RtpSessionRef> m_byCallId;
