@@ -247,14 +247,6 @@ SOURCE=.\LogManager.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\MultiThreadedServer.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\MultiThreadedServer.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\OrkAudio.cpp
 # End Source File
 # Begin Source File

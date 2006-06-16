@@ -17,11 +17,15 @@
 #include "ace/Acceptor.h"
 #include "ace/SOCK_Acceptor.h"
 
+#include <log4cxx/logger.h>
+
+#include "OrkBase.h"
+
 /** This server accepts permanent telnet like connections.
 	commands are accepted in "single line" format.
 	one thread per connection
 */
-class CommandLineServer : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>
+class DLL_IMPORT_EXPORT CommandLineServer : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>
 {
 public:
 	virtual int open (void *);
@@ -29,6 +33,9 @@ public:
 	static void run(void *args);
 	/** service routine */
 	virtual int svc (void);
+
+private:
+	static log4cxx::LoggerPtr s_log;
 };
 typedef ACE_Acceptor<CommandLineServer, ACE_SOCK_ACCEPTOR> CommandLineAcceptor;
 
@@ -38,7 +45,7 @@ typedef ACE_Acceptor<CommandLineServer, ACE_SOCK_ACCEPTOR> CommandLineAcceptor;
 	Example url:
 	http://localhost:23000/message=print&text=hello
 */
-class HttpServer : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>
+class DLL_IMPORT_EXPORT HttpServer : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>
 {
 public:
 	virtual int open (void *);
@@ -46,6 +53,10 @@ public:
 	static void run(void *args);
 	/** service routine */
 	virtual int svc (void);
+
+private:
+	static log4cxx::LoggerPtr s_log;
+
 };
 typedef ACE_Acceptor<HttpServer, ACE_SOCK_ACCEPTOR> HttpAcceptor;
 

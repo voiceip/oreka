@@ -11,30 +11,35 @@
  *
  */
 
-#include "MultiThreadedServer.h"
-
 #include "ace/INET_Addr.h"
 #include "ace/OS_NS_string.h"
-#include "ObjectFactory.h"
-#include "serializers/SingleLineSerializer.h"
-#include "serializers/DomSerializer.h"
-#include "serializers/UrlSerializer.h"
-#include "LogManager.h"
-#include "Utils.h"
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/dom/DOMWriter.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 
+#include "ObjectFactory.h"
+#include "serializers/SingleLineSerializer.h"
+#include "serializers/DomSerializer.h"
+#include "serializers/UrlSerializer.h"
+#include "Utils.h"
 
+#include "MultiThreadedServer.h"
+
+log4cxx::LoggerPtr CommandLineServer::s_log;
+
+// This is run at the start of each connection
 int CommandLineServer::open (void *void_acceptor)
 {
+	LOG4CXX_INFO(s_log, "new connection");
 	return this->activate (THR_DETACHED);
 }
 
-
+// This is run at program initialization
 void CommandLineServer::run(void* args)
 {
+	s_log = log4cxx::Logger::getLogger("interface.commandlineserver");
+
 	unsigned short tcpPort = (unsigned short)(unsigned int)args;
 	CommandLineAcceptor peer_acceptor;
 	ACE_INET_Addr addr (tcpPort);
@@ -43,7 +48,7 @@ void CommandLineServer::run(void* args)
 	if (peer_acceptor.open (addr, &reactor) == -1)
 	{
 		CStdString tcpPortString = IntToString(tcpPort);
-		LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to start command line server on port:") + tcpPortString);
+		LOG4CXX_ERROR(s_log, CStdString("Failed to start command line server on port:") + tcpPortString);
 	}
 	else
 	{
@@ -119,14 +124,19 @@ int CommandLineServer::svc(void)
 
 //==============================================================
 
+log4cxx::LoggerPtr HttpServer::s_log;
+
+// This is run at the start of each connection
 int HttpServer::open (void *void_acceptor)
 {
 	return this->activate (THR_DETACHED);
 }
 
-
+// This is run at program initialization
 void HttpServer::run(void* args)
 {
+	s_log = log4cxx::Logger::getLogger("interface.httpserver");
+
 	unsigned short tcpPort = (unsigned short)(unsigned int)args;
 	HttpAcceptor peer_acceptor;
 	ACE_INET_Addr addr (tcpPort);
@@ -135,7 +145,7 @@ void HttpServer::run(void* args)
 	if (peer_acceptor.open (addr, &reactor) == -1)
 	{
 		CStdString tcpPortString = IntToString(tcpPort);
-		LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to start http server on port:") + tcpPortString);
+		LOG4CXX_ERROR(s_log, CStdString("Failed to start http server on port:") + tcpPortString);
 	}
 	else
 	{
