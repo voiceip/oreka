@@ -260,6 +260,14 @@ SOURCE=.\g711.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\MultiThreadedServer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\MultiThreadedServer.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Object.cpp
 
 !IF  "$(CFG)" == "OrkBase - Win32 Release"
