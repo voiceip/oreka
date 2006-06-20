@@ -17,6 +17,7 @@
 #define RTP_WITH_SIGNALLING_SESSION_TIMEOUT (5*60)
 
 #include "Utils.h"
+#include "AudioCapture.h"
 #include "RtpSession.h"
 #include "AudioCapturePlugin.h"
 #include "AudioCapturePluginCommon.h"
@@ -67,7 +68,7 @@ void RtpSession::Stop()
 void RtpSession::Start()
 {
 	m_started = true;
-	m_rtpRingBuffer.SetCapturePort(m_capturePort);
+	//m_rtpRingBuffer.SetCapturePort(m_capturePort);
 	CaptureEventRef startEvent(new CaptureEvent);
 	startEvent->m_type = CaptureEvent::EtStart;
 	startEvent->m_timestamp = time(NULL);
