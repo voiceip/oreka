@@ -32,9 +32,9 @@ extern "C"
 #include "g711.h"
 }
 
-#define NUM_SAMPLES_CIRCULAR_BUFFER 8000
-#define NUM_SAMPLES_TRIGGER 4000			// when we have this number of available samples make a shipment
-#define NUM_SAMPLES_SHIPMENT_HOLDOFF 2000	// when shipping, ship everything but this number of samples 
+#define NUM_SAMPLES_CIRCULAR_BUFFER 16000
+#define NUM_SAMPLES_TRIGGER 12000			// when we have this number of available samples make a shipment
+#define NUM_SAMPLES_SHIPMENT_HOLDOFF 11000	// when shipping, ship everything but this number of samples 
 
 
 class RtpMixer : public Filter
@@ -49,6 +49,8 @@ public:
 	AudioEncodingEnum __CDECL__ GetOutputAudioEncoding();
 	CStdString __CDECL__ GetName();
 	int __CDECL__ GetInputRtpPayloadType();
+	inline void __CDECL__ CaptureEventIn(CaptureEventRef& event) {;}
+	inline void __CDECL__ CaptureEventOut(CaptureEventRef& event) {;}
 
 private:
 	//AudioChunkRef m_outputAudioChunk;
@@ -110,12 +112,18 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 		throw (CStdString("RtpMixer input audio must be PCM !"));
 	}
 
+	if(m_log->isDebugEnabled())
+	{
+		logMsg.Format("New chunk, timestamp:%d", details->m_timestamp);
+		LOG4CXX_DEBUG(m_log, logMsg);
+	}
+
 	unsigned int rtpEndTimestamp = details->m_timestamp + chunk->GetNumSamples();
 
 	if(m_writeTimestamp == 0)
 	{
 		// First RTP packet of the session
-		//LOG4CXX_DEBUG(m_log, m_capturePort + " first packet");
+		LOG4CXX_DEBUG(m_log, "first chunk");
 		m_writeTimestamp = details->m_timestamp;
 		m_readTimestamp = m_writeTimestamp;
 		StoreRtpPacket(chunk);
@@ -156,7 +164,7 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 	}
 	else
 	{
-		//LOG4CXX_DEBUG(m_log, m_capturePort + " packet too old, dropped");
+		LOG4CXX_DEBUG(m_log, " chunk too old, dropped");
 	}
 	if(m_log->isDebugEnabled())
 	{
@@ -221,7 +229,7 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk)
 		int silenceSize = endRtpTimestamp - m_writeTimestamp;
 		m_writeTimestamp = endRtpTimestamp;
 		debug.Format("Zeroed %d samples, wr:%x wrts:%u", silenceSize, m_writePtr, m_writeTimestamp);
-		//LOG4CXX_DEBUG(m_log, debug);
+		LOG4CXX_DEBUG(m_log, debug);
 	}
 
 	// 2. Mix in the latest samples from this RTP packet
@@ -249,7 +257,7 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk)
 		}
 	}
 	debug.Format("Copied %d samples, tmpwr:%x", audioChunk->GetNumSamples(), tempWritePtr);
-	//LOG4CXX_DEBUG(m_log, debug);
+	LOG4CXX_DEBUG(m_log, debug);
 }
 
 short* RtpMixer::CircularPointerAddOffset(short *ptr, size_t offset)
@@ -311,7 +319,7 @@ void RtpMixer::CreateShipment(size_t silenceSize)
 
 	CStdString debug;
 	debug.Format("Ship %d samples, rd:%x rdts:%u", shortSize, m_readPtr, m_readTimestamp);
-	//LOG4CXX_DEBUG(m_log, debug);
+	LOG4CXX_DEBUG(m_log, debug);
 
 
 	// 2. ship from beginning of buffer until stop ptr
@@ -328,7 +336,7 @@ void RtpMixer::CreateShipment(size_t silenceSize)
 		m_readPtr = CircularPointerAddOffset(m_readPtr ,shortSize);
 		m_readTimestamp += shortSize;
 		debug.Format("Ship wrapped %d samples, rd:%x rdts:%u", shortSize, m_readPtr, m_readTimestamp);
-		//LOG4CXX_DEBUG(m_log, debug);
+		LOG4CXX_DEBUG(m_log, debug);
 	}
 
 	// 3. ship silence
@@ -348,7 +356,7 @@ void RtpMixer::CreateShipment(size_t silenceSize)
 			m_readTimestamp += silenceSize;
 		}
 		debug.Format("Ship %d silence samples, rd:%x rdts:%u", silenceSize, m_readPtr, m_readTimestamp);
-		//LOG4CXX_DEBUG(m_log, debug);
+		LOG4CXX_DEBUG(m_log, debug);
 	}
 }
 
