@@ -156,6 +156,15 @@ int AlawToPcmFilter::GetInputRtpPayloadType()
 	return 0x8;
 }
 
+void AlawToPcmFilter::CaptureEventIn(CaptureEventRef& event)
+{
+	;
+}
+
+void AlawToPcmFilter::CaptureEventOut(CaptureEventRef& event)
+{
+	;
+}
 
 //====================================================================
 
@@ -224,4 +233,14 @@ CStdString UlawToPcmFilter::GetName()
 int UlawToPcmFilter::GetInputRtpPayloadType()
 {
 	return 0x0;
+}
+
+void UlawToPcmFilter::CaptureEventIn(CaptureEventRef& event)
+{
+	;
+}
+
+void UlawToPcmFilter::CaptureEventOut(CaptureEventRef& event)
+{
+	;
 }

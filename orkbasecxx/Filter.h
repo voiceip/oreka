@@ -43,6 +43,8 @@ public:
 	/** Input RTP payload time - this is overridden if the filter is a codec that accepts a certain
 	    RTP payload type such as GSM. if not, returns -1 by default */
 	virtual int __CDECL__ GetInputRtpPayloadType();
+	virtual void __CDECL__ CaptureEventIn(CaptureEventRef& event) = 0;
+	virtual void __CDECL__ CaptureEventOut(CaptureEventRef& event) = 0;
 };
 //===================================================================
 
@@ -56,6 +58,8 @@ public:
 	AudioEncodingEnum __CDECL__ GetOutputAudioEncoding();
 	CStdString __CDECL__ GetName();
 	int __CDECL__ GetInputRtpPayloadType();
+	void __CDECL__ CaptureEventIn(CaptureEventRef& event);
+	void __CDECL__ CaptureEventOut(CaptureEventRef& event);
 
 private:
 	AudioChunkRef m_outputAudioChunk;
@@ -73,6 +77,8 @@ public:
 	AudioEncodingEnum __CDECL__ GetOutputAudioEncoding();
 	CStdString __CDECL__ GetName();
 	int __CDECL__ GetInputRtpPayloadType();
+	void __CDECL__ CaptureEventIn(CaptureEventRef& event);
+	void __CDECL__ CaptureEventOut(CaptureEventRef& event);
 
 private:
 	AudioChunkRef m_outputAudioChunk;
