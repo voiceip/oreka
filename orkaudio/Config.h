@@ -16,7 +16,7 @@
 
 #include "StdString.h"
 #include "Object.h"
-#include "AudioTape.h"
+#include "AudioCapture.h"
 
 #define LOG_MESSAGES_PARAM "LogMessages"
 #define LOG_MESSAGES_DEFAULT false
@@ -25,7 +25,7 @@
 #define CAPTURE_PLUGIN_PATH_PARAM "CapturePluginPath"
 #define CAPTURE_PLUGIN_PATH_DEFAULT "AudioCapturePlugins"
 #define STORAGE_AUDIO_FORMAT_PARAM "StorageAudioFormat"
-#define STORAGE_AUDIO_FORMAT_DEFAULT (AudioTape::FfGsm)
+#define STORAGE_AUDIO_FORMAT_DEFAULT FfGsm
 #define NUM_BATCH_THREADS_PARAM "NumBatchThreads"
 #define NUM_BATCH_THREADS_DEFAULT 1
 #define DELETE_NATIVE_FILE_PARAM "DeleteNativeFile"
@@ -89,7 +89,7 @@ public:
 	int m_audioChunkDefaultSize;
 	bool m_audioSegmentation;
 	int m_audioSegmentDuration;
-	AudioTape::FileFormatEnum m_storageAudioFormat;
+	FileFormatEnum m_storageAudioFormat;
 	bool m_vad;
 	double m_vadHighThresholdDb;
 	double m_vadLowThresholdDb;

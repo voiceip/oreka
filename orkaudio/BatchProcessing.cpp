@@ -172,16 +172,16 @@ void BatchProcessing::ThreadHandler(void *args)
 
 					switch(CONFIG.m_storageAudioFormat)
 					{
-					case AudioTape::FfUlaw:
+					case FfUlaw:
 						outFileRef.reset(new LibSndFileFile(SF_FORMAT_ULAW | SF_FORMAT_WAV));
 						break;
-					case AudioTape::FfAlaw:
+					case FfAlaw:
 						outFileRef.reset(new LibSndFileFile(SF_FORMAT_ALAW | SF_FORMAT_WAV));
 						break;
-					case AudioTape::FfGsm:
+					case FfGsm:
 						outFileRef.reset(new LibSndFileFile(SF_FORMAT_GSM610 | SF_FORMAT_WAV));
 						break;
-					case AudioTape::FfPcmWav:
+					case FfPcmWav:
 					default:
 						outFileRef.reset(new LibSndFileFile(SF_FORMAT_PCM_16 | SF_FORMAT_WAV));
 					}
