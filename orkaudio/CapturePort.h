@@ -17,6 +17,7 @@
 #define __PORT_H__
 
 #include <map>
+#include <list>
 #include "boost/shared_ptr.hpp"
 #include "ace/Thread_Mutex.h"
 #include "ace/Singleton.h"
@@ -25,6 +26,7 @@
 
 #include "AudioCapture.h"
 #include "AudioTape.h"
+#include "Filter.h"
 
 
 /** Base class for all types of capture ports. */ 
@@ -39,6 +41,9 @@ public:
 	void AddCaptureEvent(CaptureEventRef eventRef);
 	bool IsExpired(time_t now);
 private:
+	void FilterAudioChunk(AudioChunkRef& chunkRef);
+	void FilterCaptureEvent(CaptureEventRef& eventRef);
+
 	CStdString m_id;
 	AudioTapeRef m_audioTapeRef;
 	ACE_Thread_Mutex m_mutex;
@@ -46,6 +51,7 @@ private:
 	double m_vadBelowThresholdSec;
 	bool m_vadUp;
 	time_t m_lastUpdated;
+	std::list<FilterRef> m_filters;
 };
 
 typedef boost::shared_ptr<CapturePort> CapturePortRef;

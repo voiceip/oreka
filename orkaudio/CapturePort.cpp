@@ -27,6 +27,9 @@ CapturePort::CapturePort(CStdString& id)
 	m_vadUp = false;
 	m_capturing = false;
 	m_lastUpdated = 0;
+
+	FilterRef streamingSink = FilterRegistry::instance()->GetNewFilter(CStdString("LiveMonitoring"));
+	m_filters.push_back(streamingSink);
 }
 
 CStdString CapturePort::ToString()
@@ -40,9 +43,34 @@ CStdString CapturePort::GetId()
 	return m_id;
 }
 
+void CapturePort::FilterAudioChunk(AudioChunkRef& chunkRef)
+{
+	// Iterate through all filters
+	std::list<FilterRef>::iterator it;
+	for(it = m_filters.begin(); it != m_filters.end(); it++)
+	{
+		FilterRef filter = *it;
+		filter->AudioChunkIn(chunkRef);
+		filter->AudioChunkOut(chunkRef);
+	}
+}
+
+void CapturePort::FilterCaptureEvent(CaptureEventRef& eventRef)
+{
+	// Iterate through all filters
+	std::list<FilterRef>::iterator it;
+	for(it = m_filters.begin(); it != m_filters.end(); it++)
+	{
+		FilterRef filter = *it;
+		filter->CaptureEventIn(eventRef);
+		filter->CaptureEventOut(eventRef);
+	}
+}
 
 void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 {
+	FilterAudioChunk(chunkRef);
+
 	time_t now = time(NULL);
 	m_lastUpdated = now;
 
@@ -147,6 +175,8 @@ void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 
 void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 {
+	FilterCaptureEvent(eventRef);
+
 	m_lastUpdated = time(NULL);
 
 	AudioTapeRef audioTapeRef = m_audioTapeRef;
