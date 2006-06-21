@@ -10,6 +10,7 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
+#pragma warning( disable: 4786 )
 
 #include "ConfigManager.h"
 #include "Reporting.h"
