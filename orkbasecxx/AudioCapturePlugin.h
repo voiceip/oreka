@@ -14,17 +14,18 @@
 #ifndef __AUDIOCAPTUREPLUGIN_H__
 #define __AUDIOCAPTUREPLUGIN_H__
 
+#include "dll.h"
 #include "AudioCapture.h"
 #include "LogManager.h"
 #include "xercesc/dom/DOMNode.hpp"
 
 using namespace XERCES_CPP_NAMESPACE;
 
-#ifdef WIN32
-#define __CDECL__ __cdecl
-#else
-#define __CDECL__
-#endif
+//#ifdef WIN32
+//#define __CDECL__ __cdecl
+//#else
+//#define __CDECL__
+//#endif
 
 #define AUDIO_CAPTURE_PLUGIN_INTERFACE_VERSION 1
 

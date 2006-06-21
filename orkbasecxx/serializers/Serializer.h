@@ -16,10 +16,11 @@
 
 #pragma warning( disable: 4786 ) // disables truncated symbols in browse-info warning
 
-#include "OrkBase.h"
+#include "dll.h"
 #include <map>
 #include <list>
 #include "boost/shared_ptr.hpp"
+#include "StdString.h"
 
 typedef int (*StringToEnumFunction)(CStdString&);
 typedef CStdString (*EnumToStringFunction)(int);

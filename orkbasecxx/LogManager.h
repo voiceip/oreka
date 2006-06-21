@@ -16,11 +16,12 @@
 
 #include <log4cxx/logger.h>
 #include "ace/Singleton.h"
+#include "dll.h"
 
 using namespace log4cxx;
 
 
-class OrkLogManager
+class DLL_IMPORT_EXPORT OrkLogManager
 {
 public:
 	void Initialize();

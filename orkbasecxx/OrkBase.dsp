@@ -244,6 +244,30 @@ SOURCE=.\AudioCapture.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\AudioCapturePlugin.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Config.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Config.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ConfigManager.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ConfigManager.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\dll.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Filter.cpp
 # End Source File
 # Begin Source File
@@ -257,6 +281,14 @@ SOURCE=.\g711.c
 # Begin Source File
 
 SOURCE=.\g711.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\LogManager.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\LogManager.h
 # End Source File
 # Begin Source File
 
@@ -312,10 +344,6 @@ SOURCE=.\OrkBase.cpp
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\OrkBase.h
 # End Source File
 # Begin Source File
 

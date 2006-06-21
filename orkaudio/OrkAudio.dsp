@@ -171,10 +171,6 @@ SOURCE=.\App.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\AudioCapturePlugin.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\AudioTape.cpp
 # End Source File
 # Begin Source File
@@ -207,22 +203,6 @@ SOURCE=.\CapturePort.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Config.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\Config.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ConfigManager.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\ConfigManager.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\Daemon.cpp
 # End Source File
 # Begin Source File
@@ -236,14 +216,6 @@ SOURCE=.\ImmediateProcessing.cpp
 # Begin Source File
 
 SOURCE=.\ImmediateProcessing.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\LogManager.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\LogManager.h
 # End Source File
 # Begin Source File
 

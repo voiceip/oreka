@@ -18,7 +18,7 @@
 #include "Config.h"
 #include "AudioCapturePlugin.h"
 
-class ConfigManager
+class DLL_IMPORT_EXPORT ConfigManager
 {
 public:
 	void Initialize();

@@ -19,7 +19,7 @@
 #pragma warning( disable: 4018 ) // signed/unsigned mismatch
 //#endif
 
-#include "OrkBase.h"
+#include "dll.h"
 #include "ace/OS_NS_time.h"
 #include "ace/OS_NS_unistd.h"
 

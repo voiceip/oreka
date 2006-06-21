@@ -19,7 +19,7 @@
 
 #include <log4cxx/logger.h>
 
-#include "OrkBase.h"
+#include "dll.h"
 
 /** This server accepts permanent telnet like connections.
 	commands are accepted in "single line" format.

@@ -14,7 +14,8 @@
 #ifndef __OBJECT_H__
 #define __OBJECT_H__
 
-#include "OrkBase.h"
+#include "dll.h"
+#include "StdString.h"
 #include "boost/shared_ptr.hpp"
 #include "xercesc/dom/DOMNode.hpp"
 
