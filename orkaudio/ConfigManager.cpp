@@ -20,7 +20,6 @@
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 #include "serializers/DomSerializer.h"
 #include "ConfigManager.h"
-#include "LogManager.h"
 
 #define CONFIG_FILE_NAME "config.xml"
 #define ETC_CONFIG_FILE_NAME "/etc/orkaudio/config.xml"
