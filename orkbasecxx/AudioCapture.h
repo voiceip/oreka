@@ -88,6 +88,9 @@ private:
 
 typedef boost::shared_ptr<AudioChunk> AudioChunkRef;
 
+
+//==========================================================
+
 class DLL_IMPORT_EXPORT CaptureEvent
 {
 public:
@@ -143,5 +146,31 @@ public:
 };
 
 typedef boost::shared_ptr<CaptureEvent> CaptureEventRef;
+
+
+//=========================================================
+#define FF_NATIVE "native"
+#define FF_GSM "GSM"
+#define FF_ULAW "ulaw"
+#define FF_ALAW "alaw"
+#define FF_PCMWAV "pcmwav"
+#define FF_UNKNOWN "unknown"
+	typedef enum
+	{
+		FfUnknown = 0,
+		FfNative = 1,
+		FfGsm = 2,
+		FfUlaw = 3,
+		FfAlaw = 4,
+		FfPcmWav = 5,
+		FfInvalid = 6
+	} FileFormatEnum;
+
+int DLL_IMPORT_EXPORT FileFormatToEnum(CStdString& format);
+CStdString DLL_IMPORT_EXPORT FileFormatToString(int formatEnum);
+CStdString DLL_IMPORT_EXPORT FileFormatGetExtension(FileFormatEnum);
+
 #endif
+
+
 

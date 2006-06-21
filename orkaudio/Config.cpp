@@ -13,6 +13,7 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
+#include "ace/OS_NS_unistd.h"
 #include "Utils.h"
 #include "serializers/Serializer.h"
 #include "Config.h"
@@ -45,7 +46,7 @@ Config::Config()
 
 	char hostname[40];
 	ACE_OS::hostname(hostname, 40);
-	ACE_OS::hostname(hostname, HOSTNAME_BUF_LEN);
+	//ACE_OS::hostname(hostname, HOSTNAME_BUF_LEN);
 	m_serviceName = CStdString("orkaudio-") + hostname;
 
 	m_reportingRetryDelay = 5;
@@ -59,7 +60,7 @@ void Config::Define(Serializer* s)
 	s->BoolValue(ENABLE_REPORTING_PARAM, m_enableReporting);
 	s->StringValue(CAPTURE_PLUGIN_PARAM, m_capturePlugin);
 	s->StringValue(CAPTURE_PLUGIN_PATH_PARAM, m_capturePluginPath);
-	s->EnumValue(STORAGE_AUDIO_FORMAT_PARAM, (int&)m_storageAudioFormat, AudioTape::FileFormatToEnum, AudioTape::FileFormatToString);
+	s->EnumValue(STORAGE_AUDIO_FORMAT_PARAM, (int&)m_storageAudioFormat, FileFormatToEnum, FileFormatToString);
 	s->IntValue(NUM_BATCH_THREADS_PARAM, m_numBatchThreads);
 	s->BoolValue(DELETE_NATIVE_FILE_PARAM, m_deleteNativeFile);
 	s->IntValue(AUDIO_CHUNK_DEFAULT_SIZE_PARAM, m_audioChunkDefaultSize);
@@ -84,7 +85,7 @@ void Config::Define(Serializer* s)
 
 void Config::Validate()
 {
-	if (m_storageAudioFormat <= AudioTape::FfUnknown || m_storageAudioFormat >= AudioTape::FfInvalid)
+	if (m_storageAudioFormat <= FfUnknown || m_storageAudioFormat >= FfInvalid)
 	{
 		throw CStdString(CStdString("Config::Validate: value out of range:") + STORAGE_AUDIO_FORMAT_PARAM);
 	}

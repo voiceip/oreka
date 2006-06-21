@@ -139,7 +139,7 @@ void AudioTape::Write()
 						}
 						else
 						{
-							m_fileExtension = GetFileFormatExtension(CONFIG.m_storageAudioFormat);
+							m_fileExtension = FileFormatGetExtension(CONFIG.m_storageAudioFormat);
 						}
 					}
 				}
@@ -326,80 +326,5 @@ bool AudioTape::IsReadyForBatchProcessing()
 	}
 	return false;
 }
-
-
-//========================================
-// File format related methods
-
-int AudioTape::FileFormatToEnum(CStdString& format)
-{
-	int formatEnum = FfUnknown;
-	if(format.CompareNoCase(FF_NATIVE) == 0)
-	{
-		formatEnum = FfNative;
-	}
-	else if (format.CompareNoCase(FF_GSM) == 0)
-	{
-		formatEnum = FfGsm;
-	}
-	else if (format.CompareNoCase(FF_ULAW) == 0)
-	{
-		formatEnum = FfUlaw;
-	}
-	else if (format.CompareNoCase(FF_ALAW) == 0)
-	{
-		formatEnum = FfAlaw;
-	}
-	else if (format.CompareNoCase(FF_PCMWAV) == 0)
-	{
-		formatEnum = FfPcmWav;
-	}
-	return formatEnum;
-}
-
-CStdString AudioTape::FileFormatToString(int formatEnum)
-{
-	CStdString formatString;
-	switch (formatEnum)
-	{
-	case FfNative:
-		formatString = FF_NATIVE;
-		break;
-	case FfGsm:
-		formatString = FF_GSM;
-		break;
-	case FfUlaw:
-		formatString = FF_ULAW;
-		break;
-	case FfAlaw:
-		formatString = FF_ALAW;
-		break;
-	case FfPcmWav:
-		formatString = FF_PCMWAV;
-		break;
-	default:
-		formatString = FF_UNKNOWN;
-	}
-	return formatString;
-}
-
-CStdString AudioTape::GetFileFormatExtension(FileFormatEnum formatEnum)
-{
-	CStdString extension;
-	switch (formatEnum)
-	{
-	case FfGsm:
-	case FfUlaw:
-	case FfAlaw:
-	case FfPcmWav:
-		extension = ".wav";
-		break;
-	default:
-		CStdString formatEnumString = IntToString(formatEnum);
-		throw (CStdString("AudioTape::GetFileFormatExtension: unknown file format:") + formatEnumString);
-	}
-	return extension;
-}
-
 
 

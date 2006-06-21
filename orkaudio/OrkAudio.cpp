@@ -150,7 +150,7 @@ void MainThread()
 	{
 		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create immediate processing thread"));
 	}
-	if(CONFIG.m_storageAudioFormat != AudioTape::FfNative)
+	if(CONFIG.m_storageAudioFormat != FfNative)
 	{
 		// storage format is not native, which means we need batch workers to compress to wanted format 
 		if (!ACE_Thread_Manager::instance()->spawn_n(CONFIG.m_numBatchThreads, ACE_THR_FUNC(BatchProcessing::ThreadHandler)))

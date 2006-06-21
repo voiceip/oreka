@@ -59,27 +59,6 @@ public:
 		StateInvalid = 5
 	} StateEnum; 
 
-#define FF_NATIVE "native"
-#define FF_GSM "GSM"
-#define FF_ULAW "ulaw"
-#define FF_ALAW "alaw"
-#define FF_PCMWAV "pcmwav"
-#define FF_UNKNOWN "unknown"
-	typedef enum
-	{
-		FfUnknown = 0,
-		FfNative = 1,
-		FfGsm = 2,
-		FfUlaw = 3,
-		FfAlaw = 4,
-		FfPcmWav = 5,
-		FfInvalid = 6
-	} FileFormatEnum;
-	static int FileFormatToEnum(CStdString& format);
-	static CStdString FileFormatToString(int formatEnum);
-	static CStdString GetFileFormatExtension(FileFormatEnum);
-
-
 	AudioTape(CStdString &portId);
 
 	void AddAudioChunk(AudioChunkRef chunkRef);
