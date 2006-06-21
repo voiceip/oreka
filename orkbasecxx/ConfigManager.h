@@ -14,6 +14,7 @@
 #ifndef __CONFIGMANAGER_H__
 #define __CONFIGMANAGER_H__
 
+#include <list>
 #include "ace/Singleton.h"
 #include "Config.h"
 #include "AudioCapturePlugin.h"
@@ -26,7 +27,7 @@ public:
 
 	Config m_config;
 private:
-	ConfigureFunction m_configureFunction;
+	std::list<ConfigureFunction> m_configureFunctions;
 	DOMNode* m_configTopNode;
 };
 
