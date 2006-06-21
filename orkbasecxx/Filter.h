@@ -16,12 +16,7 @@
 #include <list>
 #include "ace/Singleton.h"
 #include "AudioCapture.h"
-
-#ifdef WIN32
-#define __CDECL__ __cdecl
-#else
-#define __CDECL__
-#endif
+#include "dll.h"
 
 class Filter;
 

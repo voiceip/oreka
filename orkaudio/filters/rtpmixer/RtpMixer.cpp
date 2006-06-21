@@ -12,17 +12,7 @@
  */
 #pragma warning( disable: 4786 )
 
-#ifdef WIN32
-#define __CDECL__ __cdecl
-#else
-#define __CDECL__
-#endif
-#ifdef WIN32
-	#define DLL_EXPORT  __declspec( dllexport )
-#else
-	#define DLL_EXPORT
-#endif
-
+#include "dll.h"
 #include <queue>
 #include "Filter.h"
 #include "AudioCapture.h"
