@@ -105,8 +105,8 @@ void ConfigManager::Initialize()
 
 void ConfigManager::AddConfigureFunction(ConfigureFunction configureFunction)
 {
-	m_configureFunction = configureFunction;
+	m_configureFunctions.push_back(configureFunction);
 	// Cal the external configure callback straight away
-	m_configureFunction(m_configTopNode);
+	configureFunction(m_configTopNode);
 }
 
