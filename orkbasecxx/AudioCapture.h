@@ -16,7 +16,7 @@
 
 #include "time.h"
 #include "StdString.h"
-#include "OrkBase.h"
+#include "dll.h"
 
 #include "boost/shared_ptr.hpp"
 
