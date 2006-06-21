@@ -17,6 +17,8 @@
 #include "StdString.h"
 #include "Object.h"
 #include "AudioCapture.h"
+#include <log4cxx/logger.h>
+
 
 #define LOG_MESSAGES_PARAM "LogMessages"
 #define LOG_MESSAGES_DEFAULT false
@@ -105,6 +107,9 @@ public:
 	int m_batchProcessingQueueSize;
 	bool m_batchProcessingEnhancePriority;
 	bool m_deleteFailedCaptureFile;
+
+private:
+	log4cxx::LoggerPtr m_log;
 };
 
 

@@ -17,10 +17,11 @@
 #include "Utils.h"
 #include "serializers/Serializer.h"
 #include "Config.h"
-#include "LogManager.h"
 
 Config::Config()
 {
+	m_log = log4cxx::Logger::getLogger("config");
+
 	m_logMessages = LOG_MESSAGES_DEFAULT;
 	m_logRms = LOG_RMS_DEFAULT;
 	m_enableReporting = ENABLE_REPORTING_DEFAULT;
@@ -91,7 +92,7 @@ void Config::Validate()
 	}
 	if (m_numBatchThreads > 2)
 	{
-		LOG4CXX_WARN(LOG.configLog, "It is not recommended to have more batch threads than CPUs");
+		LOG4CXX_WARN(m_log, "It is not recommended to have more batch threads than CPUs");
 	}
 	if (m_vadHighThresholdDb < -45.0 || m_vadHighThresholdDb>0.0)
 	{
