@@ -41,6 +41,7 @@ public:
 	void AddCaptureEvent(CaptureEventRef eventRef);
 	bool IsExpired(time_t now);
 private:
+	void LoadFilters();
 	void FilterAudioChunk(AudioChunkRef& chunkRef);
 	void FilterCaptureEvent(CaptureEventRef& eventRef);
 

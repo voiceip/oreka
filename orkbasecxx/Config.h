@@ -69,6 +69,7 @@
 #define BATCH_PROCESSING_ENHANCE_PRIORITY_DEFAULT false
 #define DELETE_FAILED_CAPTURE_FILE_PARAM "DeleteFailedCaptureFile"
 #define DELETE_FAILED_CAPTURE_FILE_DEFAULT false
+#define CAPTURE_PORT_FILTERS_PARAM "CapturePortFilters" 
 
 class DLL_IMPORT_EXPORT Config : public Object
 {
@@ -107,6 +108,7 @@ public:
 	int m_batchProcessingQueueSize;
 	bool m_batchProcessingEnhancePriority;
 	bool m_deleteFailedCaptureFile;
+	std::list<CStdString> m_capturePortFilters;
 
 private:
 	log4cxx::LoggerPtr m_log;
