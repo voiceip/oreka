@@ -13,12 +13,15 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
+#include <log4cxx/logger.h>
 #include "CapturePort.h"
 #include "Utils.h"
 #include "ImmediateProcessing.h"
-#include "LogManager.h"
 #include "Reporting.h"
 #include "ConfigManager.h"
+
+static LoggerPtr s_log;
+
 
 CapturePort::CapturePort(CStdString& id)
 {
@@ -28,9 +31,27 @@ CapturePort::CapturePort(CStdString& id)
 	m_capturing = false;
 	m_lastUpdated = 0;
 
-	FilterRef streamingSink = FilterRegistry::instance()->GetNewFilter(CStdString("LiveMonitoring"));
-	m_filters.push_back(streamingSink);
+	LoadFilters();
 }
+
+void CapturePort::LoadFilters()
+{
+	for(std::list<CStdString>::iterator it = CONFIG.m_capturePortFilters.begin(); it != CONFIG.m_capturePortFilters.end(); it++)
+	{
+		CStdString filterName = *it;
+		FilterRef filter = FilterRegistry::instance()->GetNewFilter(filterName);
+		if(filter.get())
+		{
+			m_filters.push_back(filter);
+			LOG4CXX_DEBUG(s_log, CStdString("Adding filter:") + filterName);
+		}
+		else
+		{
+			LOG4CXX_ERROR(s_log, CStdString("Filter:") + filterName + " does not exist, please check <CapturePortFilters> in config.xml");
+		}
+	}
+}
+
 
 CStdString CapturePort::ToString()
 {
@@ -160,7 +181,7 @@ void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 		}
 		else
 		{
-			LOG4CXX_ERROR(LOG.portLog, CStdString("Voice activity detection cannot be used on non PCM audio"));
+			LOG4CXX_ERROR(s_log, CStdString("Voice activity detection cannot be used on non PCM audio"));
 		}
 	}
 
@@ -193,12 +214,12 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		audioTapeRef->AddCaptureEvent(eventRef, false);
 		//Reporting::GetInstance()->AddAudioTape(audioTapeRef);
 		m_audioTapeRef = audioTapeRef;
-		LOG4CXX_INFO(LOG.portLog, "#" + m_id + ": start");
+		LOG4CXX_INFO(s_log, "#" + m_id + ": start");
 	}
 
 	if (!audioTapeRef.get())
 	{
-		LOG4CXX_WARN(LOG.portLog, "#" + m_id + ": received unexpected capture event:" 
+		LOG4CXX_WARN(s_log, "#" + m_id + ": received unexpected capture event:" 
 			+ CaptureEvent::EventTypeToString(eventRef->m_type));
 	}
 	else
@@ -211,7 +232,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		case CaptureEvent::EtStop:
 
 			m_capturing = false;
-			LOG4CXX_INFO(LOG.portLog, "#" + m_id + ": stop");
+			LOG4CXX_INFO(s_log, "#" + m_id + ": stop");
 			audioTapeRef->AddCaptureEvent(eventRef, true);
 
 			if (m_audioTapeRef->GetAudioFileRef().get())
@@ -224,7 +245,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			else
 			{
 				// Received a stop but there is no valid audio file associated with the tape
-				LOG4CXX_WARN(LOG.portLog, "#" + m_id + ": no audio reported between last start and stop");
+				LOG4CXX_WARN(s_log, "#" + m_id + ": no audio reported between last start and stop");
 			}
 			break;
 		case CaptureEvent::EtDirection:
@@ -252,6 +273,7 @@ CapturePorts::CapturePorts()
 {
 	m_ports.clear();
 	m_lastHooveringTime = time(NULL);
+	s_log = Logger::getLogger("port");
 }
 
 CapturePortRef CapturePorts::GetPort(CStdString & portId)
@@ -318,10 +340,10 @@ void CapturePorts::Hoover()
 		{
 			CapturePortRef port = *it;
 			m_ports.erase(port->GetId());
-			LOG4CXX_DEBUG(LOG.portLog,  port->GetId() + ": Expired");
+			LOG4CXX_DEBUG(s_log,  port->GetId() + ": Expired");
 		}
 		logMsg.Format("Hoovered %d ports. New number:%d", (numPorts - m_ports.size()), m_ports.size());
-		LOG4CXX_DEBUG(LOG.portLog,  logMsg);
+		LOG4CXX_DEBUG(s_log,  logMsg);
 	}
 }
 

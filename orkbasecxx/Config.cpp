@@ -82,6 +82,7 @@ void Config::Define(Serializer* s)
 	s->IntValue(BATCH_PROCESSING_QUEUE_SIZE_PARAM, m_batchProcessingQueueSize);
 	s->BoolValue(BATCH_PROCESSING_ENHANCE_PRIORITY_PARAM, m_batchProcessingEnhancePriority);
 	s->BoolValue(DELETE_FAILED_CAPTURE_FILE_PARAM, m_deleteFailedCaptureFile);
+	s->CsvValue(CAPTURE_PORT_FILTERS_PARAM, m_capturePortFilters);
 }
 
 void Config::Validate()
