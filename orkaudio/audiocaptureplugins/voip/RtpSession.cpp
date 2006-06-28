@@ -219,22 +219,21 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 
 void RtpSession::ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket)
 {
-	// In skinny, we know that ipAndPort are always those of the remote party (other internal phone or gateway).
-	// However, what we want as a capture port are IP+Port of the local phone
-	char szSourceIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szSourceIp, sizeof(szSourceIp));
-	m_capturePort.Format("%s,%u", szSourceIp, rtpPacket->m_sourcePort);
-	if(m_capturePort.Equals(m_ipAndPort))
+	//  In Skinny we always want the endpoint (phone) to be used as a capture port and as a local IP address
+	char szEndpointIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_endPointIp, szEndpointIp, sizeof(szEndpointIp));
+
+	if( ( (unsigned int)m_endPointIp.s_addr) == ((unsigned int)rtpPacket->m_destIp.s_addr) )
 	{
-		char szDestIp[16];
-		ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szDestIp, sizeof(szDestIp));
-		m_capturePort.Format("%s,%u", szDestIp, rtpPacket->m_destPort);
+		m_capturePort.Format("%s,%u", szEndpointIp, rtpPacket->m_destPort);
 
 		m_localIp = rtpPacket->m_destIp;
 		m_remoteIp = rtpPacket->m_sourceIp;
 	}
 	else
 	{
+		m_capturePort.Format("%s,%u", szEndpointIp, rtpPacket->m_sourcePort);
+
 		m_localIp = rtpPacket->m_sourceIp;
 		m_remoteIp = rtpPacket->m_destIp;
 	}
