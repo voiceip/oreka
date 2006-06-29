@@ -22,7 +22,7 @@
     key and values are separated by equal signs.
     example: message=doit what=run
 */
-class DLL_IMPORT_EXPORT SingleLineSerializer : public KeyValueSerializer
+class DLL_IMPORT_EXPORT_ORKBASE SingleLineSerializer : public KeyValueSerializer
 {
 public:
 	SingleLineSerializer(Object* object) : KeyValueSerializer(object){};

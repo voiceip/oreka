@@ -18,14 +18,14 @@
 #include "messages/AsyncMessage.h"
 
 /** Abstract base class for all clients. */
-class DLL_IMPORT_EXPORT OrkClient
+class DLL_IMPORT_EXPORT_ORKBASE OrkClient
 {
 public:
 	virtual bool Execute(SyncMessage& request, AsyncMessage& response, CStdString& hostname, int tcpPort, CStdString& serviceName, int timeout = 5) = 0;
 };
 
 /** Abstract base class for all clients based on http. */
-class DLL_IMPORT_EXPORT OrkHttpClient : public OrkClient
+class DLL_IMPORT_EXPORT_ORKBASE OrkHttpClient : public OrkClient
 {
 public:
 	virtual bool Execute(SyncMessage& request, AsyncMessage& response, CStdString& hostname, int tcpPort, CStdString& serviceName, int timeout = 5) = 0;
@@ -34,7 +34,7 @@ protected:
 };
 
 /** Client that uses a HTTP URL request and receives the response back in the SingleLine format. */
-class DLL_IMPORT_EXPORT OrkHttpSingleLineClient : public OrkHttpClient
+class DLL_IMPORT_EXPORT_ORKBASE OrkHttpSingleLineClient : public OrkHttpClient
 {
 public:
 	bool Execute(SyncMessage& request, AsyncMessage& response, CStdString& hostname, int tcpPort, CStdString& serviceName, int timeout = 5);

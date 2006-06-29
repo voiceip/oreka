@@ -22,7 +22,7 @@
 /** The ObjectFactory can be used to instanciate Objects based on class name.
     All existing Objects must be registered to the ObjectFactory at startup.
 */
-class DLL_IMPORT_EXPORT ObjectFactory
+class DLL_IMPORT_EXPORT_ORKBASE ObjectFactory
 {
 public:
 	void Initialize();

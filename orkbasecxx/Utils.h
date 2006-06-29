@@ -66,9 +66,9 @@ inline double StringToDouble(CStdString& value)
 //========================================================
 // file related stuff
 
-CStdString DLL_IMPORT_EXPORT FileBaseName(CStdString& path);
-CStdString DLL_IMPORT_EXPORT FileStripExtension(CStdString& filename);
-bool DLL_IMPORT_EXPORT FileCanOpen(CStdString& path);
+CStdString DLL_IMPORT_EXPORT_ORKBASE FileBaseName(CStdString& path);
+CStdString DLL_IMPORT_EXPORT_ORKBASE FileStripExtension(CStdString& filename);
+bool DLL_IMPORT_EXPORT_ORKBASE FileCanOpen(CStdString& path);
 
 
 

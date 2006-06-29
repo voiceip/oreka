@@ -27,7 +27,7 @@ typedef boost::shared_ptr<Filter> FilterRef;
  *  a filter is a black box that takes media chunks as an input and produces media chunks as an output
  *  it can be translating between two encodings (codec) or just processing the signal
  */
-class DLL_IMPORT_EXPORT Filter
+class DLL_IMPORT_EXPORT_ORKBASE Filter
 {
 public:
 	virtual FilterRef __CDECL__ Instanciate() = 0;
@@ -44,7 +44,7 @@ public:
 };
 //===================================================================
 
-class DLL_IMPORT_EXPORT AlawToPcmFilter : public Filter
+class DLL_IMPORT_EXPORT_ORKBASE AlawToPcmFilter : public Filter
 {
 public:
 	FilterRef __CDECL__ Instanciate();
@@ -63,7 +63,7 @@ private:
 
 //===================================================================
 
-class DLL_IMPORT_EXPORT UlawToPcmFilter : public Filter
+class DLL_IMPORT_EXPORT_ORKBASE UlawToPcmFilter : public Filter
 {
 public:
 	FilterRef __CDECL__ Instanciate();
@@ -84,7 +84,7 @@ private:
 
 /** Filter Registry
 */
-class DLL_IMPORT_EXPORT FilterRegistry
+class DLL_IMPORT_EXPORT_ORKBASE FilterRegistry
 {
 public:
 	static FilterRegistry* instance();

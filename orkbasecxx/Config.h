@@ -71,7 +71,7 @@
 #define DELETE_FAILED_CAPTURE_FILE_DEFAULT false
 #define CAPTURE_PORT_FILTERS_PARAM "CapturePortFilters" 
 
-class DLL_IMPORT_EXPORT Config : public Object
+class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
 public:
 	Config();	

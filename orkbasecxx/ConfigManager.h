@@ -19,7 +19,7 @@
 #include "Config.h"
 #include "AudioCapturePlugin.h"
 
-class DLL_IMPORT_EXPORT ConfigManager
+class DLL_IMPORT_EXPORT_ORKBASE ConfigManager
 {
 public:
 	void Initialize();
