@@ -20,6 +20,7 @@
 //#endif
 
 #include "dll.h"
+#include "OrkBase.h"
 #include "ace/OS_NS_time.h"
 #include "ace/OS_NS_unistd.h"
 

@@ -11,16 +11,13 @@
  *
  */
 
-#define _WINSOCKAPI_		// prevents the inclusion of winsock.h
+#ifdef WIN32
+	#ifdef BUILD_ORKBASE
+	#define DLL_IMPORT_EXPORT  __declspec( dllexport )
+	#else
+	#define DLL_IMPORT_EXPORT  __declspec( dllimport )
+	#endif
+#else
+	#define DLL_IMPORT_EXPORT
+#endif
 
-//#ifdef WIN32
-//	#ifdef BUILD_ORKBASE
-//	#define DLL_IMPORT_EXPORT  __declspec( dllexport )
-//	#else
-//	#define DLL_IMPORT_EXPORT  __declspec( dllimport )
-//	#endif
-//#else
-//	#define DLL_IMPORT_EXPORT
-//#endif
-
-#include "StdString.h"

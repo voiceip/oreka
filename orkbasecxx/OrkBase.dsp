@@ -347,6 +347,10 @@ SOURCE=.\OrkBase.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\OrkBase.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\OrkClient.cpp
 # End Source File
 # Begin Source File

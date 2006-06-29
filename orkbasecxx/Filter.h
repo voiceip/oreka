@@ -17,6 +17,7 @@
 #include "ace/Singleton.h"
 #include "AudioCapture.h"
 #include "dll.h"
+#include "OrkBase.h"
 
 class Filter;
 

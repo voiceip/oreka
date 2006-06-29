@@ -15,6 +15,7 @@
 #define __AUDIOCAPTUREPLUGIN_H__
 
 #include "dll.h"
+#include "OrkBase.h"
 #include "AudioCapture.h"
 #include "LogManager.h"
 #include "xercesc/dom/DOMNode.hpp"
