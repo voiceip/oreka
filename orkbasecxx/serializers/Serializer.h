@@ -17,6 +17,7 @@
 #pragma warning( disable: 4786 ) // disables truncated symbols in browse-info warning
 
 #include "dll.h"
+#include "OrkBase.h"
 #include <map>
 #include <list>
 #include "boost/shared_ptr.hpp"

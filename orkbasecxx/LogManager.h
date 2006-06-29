@@ -17,6 +17,7 @@
 #include <log4cxx/logger.h>
 #include "ace/Singleton.h"
 #include "dll.h"
+#include "OrkBase.h"
 
 using namespace log4cxx;
 

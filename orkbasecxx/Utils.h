@@ -23,6 +23,7 @@
 #include "ace/OS_NS_time.h"
 #include "StdString.h"
 
+#include "OrkBase.h"
 #include "dll.h"
 
 //============================================
