@@ -26,7 +26,7 @@ using namespace XERCES_CPP_NAMESPACE;
 	This class allows a nested object to be serialized or deserialized
 	to or from a xerces DOM object.
 */
-class DLL_IMPORT_EXPORT DomSerializer : public Serializer
+class DLL_IMPORT_EXPORT_ORKBASE DomSerializer : public Serializer
 {
 public:
 	DomSerializer(Object* object) : Serializer(object){};
@@ -54,7 +54,7 @@ protected:
 };
 
 /** Container for xerces unicode string initialized with char* string */
-class DLL_IMPORT_EXPORT XStr
+class DLL_IMPORT_EXPORT_ORKBASE XStr
 {
 public :
     inline XStr(const char* const toTranscode)

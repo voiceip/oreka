@@ -22,7 +22,7 @@
 /** A SyncMessage is a synchronous message that needs an immediate answer from the remote server.
     The response should be an AsyncMessage
 */
-class DLL_IMPORT_EXPORT SyncMessage : public Message
+class DLL_IMPORT_EXPORT_ORKBASE SyncMessage : public Message
 {
 public:
 };

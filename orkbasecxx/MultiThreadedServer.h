@@ -26,7 +26,7 @@
 	commands are accepted in "single line" format.
 	one thread per connection
 */
-class DLL_IMPORT_EXPORT CommandLineServer : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>
+class DLL_IMPORT_EXPORT_ORKBASE CommandLineServer : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>
 {
 public:
 	virtual int open (void *);
@@ -46,7 +46,7 @@ typedef ACE_Acceptor<CommandLineServer, ACE_SOCK_ACCEPTOR> CommandLineAcceptor;
 	Example url:
 	http://localhost:23000/message=print&text=hello
 */
-class DLL_IMPORT_EXPORT HttpServer : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>
+class DLL_IMPORT_EXPORT_ORKBASE HttpServer : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>
 {
 public:
 	virtual int open (void *);

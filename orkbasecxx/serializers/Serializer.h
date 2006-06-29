@@ -30,7 +30,7 @@ class Object;
 
 /** Base class for serializing Objects.
 */
-class DLL_IMPORT_EXPORT Serializer
+class DLL_IMPORT_EXPORT_ORKBASE Serializer
 {
 public:
 	Serializer(Object* object);
@@ -70,7 +70,7 @@ typedef boost::shared_ptr<Serializer> SerializerRef;
 
 /** Base class for all Key-Value pair based serializers.
 */
-class DLL_IMPORT_EXPORT KeyValueSerializer : public Serializer
+class DLL_IMPORT_EXPORT_ORKBASE KeyValueSerializer : public Serializer
 {
 public:
 	KeyValueSerializer(Object* object) : Serializer(object), m_numParams(0){};

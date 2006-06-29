@@ -13,11 +13,11 @@
 
 #ifdef WIN32
 	#ifdef BUILD_ORKBASE
-	#define DLL_IMPORT_EXPORT  __declspec( dllexport )
+	#define DLL_IMPORT_EXPORT_ORKBASE  __declspec( dllexport )
 	#else
-	#define DLL_IMPORT_EXPORT  __declspec( dllimport )
+	#define DLL_IMPORT_EXPORT_ORKBASE  __declspec( dllimport )
 	#endif
 #else
-	#define DLL_IMPORT_EXPORT
+	#define DLL_IMPORT_EXPORT_ORKBASE
 #endif
 

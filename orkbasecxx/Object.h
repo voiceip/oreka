@@ -31,7 +31,7 @@ typedef boost::shared_ptr<Object> ObjectRef;
 
 /** An Object is the equivalent of a Java Object
 */
-class DLL_IMPORT_EXPORT Object
+class DLL_IMPORT_EXPORT_ORKBASE Object
 {
 public:
 	virtual void Define(Serializer* s) = 0;

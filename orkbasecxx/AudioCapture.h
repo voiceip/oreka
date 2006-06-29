@@ -36,7 +36,7 @@ typedef enum
  */
 #define MEDIA_CHUNK_MARKER 0x2A2A2A2A // corresponds to "****"
 
-class DLL_IMPORT_EXPORT AudioChunkDetails
+class DLL_IMPORT_EXPORT_ORKBASE AudioChunkDetails
 {
 public:
 	AudioChunkDetails();
@@ -56,7 +56,7 @@ public:
 /** 
  * This class represents a piece of audio. 
  */
-class DLL_IMPORT_EXPORT AudioChunk
+class DLL_IMPORT_EXPORT_ORKBASE AudioChunk
 {
 public: 
 	AudioChunk();
@@ -92,7 +92,7 @@ typedef boost::shared_ptr<AudioChunk> AudioChunkRef;
 
 //==========================================================
 
-class DLL_IMPORT_EXPORT CaptureEvent
+class DLL_IMPORT_EXPORT_ORKBASE CaptureEvent
 {
 public:
 	CaptureEvent();
@@ -167,9 +167,9 @@ typedef boost::shared_ptr<CaptureEvent> CaptureEventRef;
 		FfInvalid = 6
 	} FileFormatEnum;
 
-int DLL_IMPORT_EXPORT FileFormatToEnum(CStdString& format);
-CStdString DLL_IMPORT_EXPORT FileFormatToString(int formatEnum);
-CStdString DLL_IMPORT_EXPORT FileFormatGetExtension(FileFormatEnum);
+int DLL_IMPORT_EXPORT_ORKBASE FileFormatToEnum(CStdString& format);
+CStdString DLL_IMPORT_EXPORT_ORKBASE FileFormatToString(int formatEnum);
+CStdString DLL_IMPORT_EXPORT_ORKBASE FileFormatGetExtension(FileFormatEnum);
 
 #endif
 
