@@ -19,7 +19,7 @@
 #include "AudioCapture.h"
 
 
-class CaptureResponseMsg : public AsyncMessage
+class DLL_IMPORT_EXPORT_ORKBASE CaptureResponseMsg : public AsyncMessage
 {
 public:
 	void Define(Serializer* s);
@@ -33,7 +33,7 @@ public:
 	CStdString m_comment;
 };
 
-class CaptureMsg : public SyncMessage
+class DLL_IMPORT_EXPORT_ORKBASE CaptureMsg : public SyncMessage
 {
 public:
 	void Define(Serializer* s);

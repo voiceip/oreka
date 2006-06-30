@@ -14,7 +14,7 @@
 #include "Utils.h"
 #include "CaptureMsg.h"
 //#include "LogManager.h"
-#include "CapturePluginProxy.h"
+//#include "CapturePluginProxy.h"
 
 #define CAPTURE_CLASS "capture"
 #define CAPTURE_RESPONSE_CLASS "captureresponse"
@@ -65,12 +65,12 @@ ObjectRef CaptureMsg::Process()
 
 	if(m_eventType == CaptureEvent::EtStart)
 	{
-		CapturePluginProxySingleton::instance()->StartCapture(m_capturePort);
+		//CapturePluginProxySingleton::instance()->StartCapture(m_capturePort);
 		msg->m_success = true;
 	}
 	else if(m_eventType == CaptureEvent::EtStop)
 	{
-		CapturePluginProxySingleton::instance()->StopCapture(m_capturePort);
+		//CapturePluginProxySingleton::instance()->StopCapture(m_capturePort);
 		msg->m_success = true;
 	}
 	else

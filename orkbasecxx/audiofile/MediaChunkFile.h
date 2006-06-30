@@ -18,7 +18,7 @@
 
 
 /** File class for saving audio chunks as-is */
-class MediaChunkFile : public AudioFile
+class DLL_IMPORT_EXPORT_ORKBASE MediaChunkFile : public AudioFile
 {
 public:
 	MediaChunkFile();
