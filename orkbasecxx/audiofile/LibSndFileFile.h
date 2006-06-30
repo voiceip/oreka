@@ -24,7 +24,7 @@
 /** file accessor class for all file types supported by the libsndfile library. 
 	The library can be found at http://www.mega-nerd.com/libsndfile/
 */
-class LibSndFileFile : public AudioFile
+class DLL_IMPORT_EXPORT_ORKBASE LibSndFileFile : public AudioFile
 {
 public:
 	LibSndFileFile(int fileFormat);	// fileFormat is described at http://www.mega-nerd.com/libsndfile/api.html

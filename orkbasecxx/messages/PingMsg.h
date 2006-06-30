@@ -18,7 +18,7 @@
 #include "messages/AsyncMessage.h"
 
 
-class PingResponseMsg : public AsyncMessage
+class DLL_IMPORT_EXPORT_ORKBASE PingResponseMsg : public AsyncMessage
 {
 public:
 	void Define(Serializer* s);
@@ -31,7 +31,7 @@ public:
 	bool m_success;
 };
 
-class PingMsg : public SyncMessage
+class DLL_IMPORT_EXPORT_ORKBASE PingMsg : public SyncMessage
 {
 public:
 	void Define(Serializer* s);

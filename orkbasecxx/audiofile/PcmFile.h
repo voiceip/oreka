@@ -19,7 +19,7 @@
 #define PCM_FILE_DEFAULT_CHUNK_NUM_SAMPLES 8000
 
 /** File class for raw 16 bit signed PCM output */
-class PcmFile : public AudioFile
+class DLL_IMPORT_EXPORT_ORKBASE PcmFile : public AudioFile
 {
 public:
 	PcmFile();

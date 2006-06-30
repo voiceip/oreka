@@ -33,7 +33,7 @@
 #define LOCAL_MAC_PARAM "localmac"
 #define REMOTE_MAC_PARAM "remotemac"
 
-class TapeMsg : public SyncMessage
+class DLL_IMPORT_EXPORT_ORKBASE TapeMsg : public SyncMessage
 {
 public:
 	TapeMsg();
@@ -67,7 +67,7 @@ typedef boost::shared_ptr<TapeMsg> TapeMsgRef;
 
 /** A TapeResponse is a response to TapeMsg 
 */
-class TapeResponse : public SimpleResponseMsg
+class DLL_IMPORT_EXPORT_ORKBASE TapeResponse : public SimpleResponseMsg
 {
 public:
 	TapeResponse();

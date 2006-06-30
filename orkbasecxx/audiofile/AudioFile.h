@@ -23,7 +23,7 @@
 
 
 /** Base class for all file accessor classes. */
-class AudioFile
+class DLL_IMPORT_EXPORT_ORKBASE AudioFile
 {
 public:
 	typedef enum {READ = 0, WRITE = 1} fileOpenModeEnum;
