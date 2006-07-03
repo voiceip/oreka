@@ -88,7 +88,7 @@ bool CapturePluginProxy::Initialize()
 
 			RegisterCallBacksFunction registerCallBacks;
 			registerCallBacks = (RegisterCallBacksFunction)m_dll.symbol("RegisterCallBacks");
-			registerCallBacks(AudioChunkCallBack, CaptureEventCallBack, OrkLogManagerSingleton::instance());
+			registerCallBacks(AudioChunkCallBack, CaptureEventCallBack, OrkLogManager::Instance());
 
 			m_configureFunction = (ConfigureFunction)m_dll.symbol("Configure");
 			if (m_configureFunction)

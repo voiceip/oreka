@@ -113,7 +113,7 @@ void LoadPlugins(std::list<ACE_DLL>& pluginDlls)
 
 void MainThread()
 {
-	OrkLogManagerSingleton::instance()->Initialize();
+	OrkLogManager::Instance()->Initialize();
 	LOG4CXX_INFO(LOG.rootLog, CStdString("\n\nOrkAudio service starting\n"));
 
 	// Initialize object factory and register existing objects
@@ -200,7 +200,7 @@ void MainThread()
 	//*****
 
 	LOG4CXX_INFO(LOG.rootLog, CStdString("Service stopped"));
-	OrkLogManagerSingleton::instance()->Shutdown();
+	OrkLogManager::Instance()->Shutdown();
 }
 
 
