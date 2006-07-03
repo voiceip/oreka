@@ -18,6 +18,13 @@
 #include <log4cxx/basicconfigurator.h>
 #include <log4cxx/logmanager.h>
 
+OrkLogManager OrkLogManager::m_orkLogManager;
+
+OrkLogManager* OrkLogManager::Instance()
+{
+	return &m_orkLogManager;
+}
+
 void OrkLogManager::Initialize()
 {
 	BasicConfigurator::configure();
