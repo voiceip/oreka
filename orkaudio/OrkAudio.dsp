@@ -85,97 +85,9 @@ LINK32=link.exe
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
-# Begin Group "Messages"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\Messages\CaptureMsg.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\Messages\CaptureMsg.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\Messages\DeleteTapeMsg.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\Messages\DeleteTapeMsg.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\Messages\PingMsg.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\Messages\PingMsg.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\Messages\TapeMsg.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\Messages\TapeMsg.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\messages\TestMsg.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\messages\TestMsg.h
-# End Source File
-# End Group
-# Begin Group "AudioFile"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\AudioFile\AudioFile.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\AudioFile\AudioFile.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\AudioFile\LibSndFileFile.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\AudioFile\LibSndFileFile.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\audiofile\MediaChunkFile.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\audiofile\MediaChunkFile.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\AudioFile\PcmFile.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\AudioFile\PcmFile.h
-# End Source File
-# End Group
 # Begin Source File
 
 SOURCE=.\App.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\AudioTape.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\AudioTape.h
 # End Source File
 # Begin Source File
 
@@ -232,10 +144,6 @@ SOURCE=.\Reporting.cpp
 # Begin Source File
 
 SOURCE=.\Reporting.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ThreadSafeQueue.h
 # End Source File
 # End Group
 # Begin Group "Header Files"
