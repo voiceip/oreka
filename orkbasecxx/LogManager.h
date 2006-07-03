@@ -25,6 +25,8 @@ using namespace log4cxx;
 class DLL_IMPORT_EXPORT_ORKBASE OrkLogManager
 {
 public:
+	static OrkLogManager* Instance();
+
 	void Initialize();
 	void Shutdown();
 
@@ -38,11 +40,14 @@ public:
 	LoggerPtr configLog;
 	LoggerPtr tapelistLog;
 	LoggerPtr tapeLog;
+
+private:
+	static OrkLogManager m_orkLogManager;
 };
 
-typedef ACE_Singleton<OrkLogManager, ACE_Thread_Mutex> OrkLogManagerSingleton;
+//typedef ACE_Singleton<OrkLogManager, ACE_Thread_Mutex> OrkLogManagerSingleton;
 
-#define LOG (*OrkLogManagerSingleton::instance())
+#define LOG (*OrkLogManager::Instance())
 
 #endif
 
