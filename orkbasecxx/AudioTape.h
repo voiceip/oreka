@@ -23,7 +23,7 @@
 #include "audiofile/AudioFile.h"
 #include "messages/Message.h"
 
-class AudioTapeDescription : public Object
+class DLL_IMPORT_EXPORT_ORKBASE AudioTapeDescription : public Object
 {
 public:
 	AudioTapeDescription();
@@ -46,7 +46,7 @@ public:
 	CStdString m_remoteIp;
 };
 
-class AudioTape
+class DLL_IMPORT_EXPORT_ORKBASE AudioTape
 {
 public:
 	typedef enum 
