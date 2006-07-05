@@ -21,7 +21,8 @@
 #include <queue>
 #include "AudioCapture.h"
 #include "audiofile/AudioFile.h"
-#include "messages/Message.h"
+#include "messages/TapeMsg.h"
+
 
 class DLL_IMPORT_EXPORT_ORKBASE AudioTapeDescription : public Object
 {
@@ -75,6 +76,7 @@ public:
 	AudioFileRef GetAudioFileRef();
 	bool IsReadyForBatchProcessing();
 
+
 	CStdString m_portId;
 	CStdString m_localParty;
 	CStdString m_localEntryPoint;
@@ -85,6 +87,9 @@ public:
 	time_t m_duration;
 	CStdString m_localIp;
 	CStdString m_remoteIp;
+
+	TapeResponseRef m_tapeResponse;
+
 private:
 	void GenerateFilePathAndIdentifier();
 

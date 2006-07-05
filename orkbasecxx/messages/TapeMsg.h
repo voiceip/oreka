@@ -16,7 +16,6 @@
 
 #include "messages/SyncMessage.h"
 #include "messages/AsyncMessage.h"
-#include "AudioTape.h"
 
 #define TAPE_MESSAGE_NAME "tape"
 #define REC_ID_PARAM "recid"
@@ -80,6 +79,8 @@ public:
 
 	bool m_deleteTape;
 };
+
+typedef boost::shared_ptr<TapeResponse> TapeResponseRef;
 
 #endif
 

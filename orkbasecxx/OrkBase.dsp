@@ -447,6 +447,10 @@ SOURCE=.\StdString.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\TapeProcessor.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\TapeProcessor.h
 # End Source File
 # Begin Source File

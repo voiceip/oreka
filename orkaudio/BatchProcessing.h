@@ -15,35 +15,39 @@
 #define __BATCHPROCESSING_H__
 
 #include "ThreadSafeQueue.h"
+#include "TapeProcessor.h"
 #include "AudioTape.h"
 #include "ace/Thread_Mutex.h"
 #include <map>
 
-class BatchProcessing
+class  BatchProcessing;
+typedef boost::shared_ptr<BatchProcessing> BatchProcessingRef;
+
+/**
+ * This tape processor handles the audio transcoding
+ */
+class BatchProcessing : public TapeProcessor
 {
 public:
-	static BatchProcessing* GetInstance();
+	static void Initialize();
+
+	CStdString __CDECL__ GetName();
+	TapeProcessorRef __CDECL__ Instanciate();
+	void __CDECL__ AddAudioTape(AudioTapeRef& audioTapeRef);
+
+
 	static void ThreadHandler(void *args);
 
-	void AddAudioTape(AudioTapeRef audioTapeRef);
 	void SetQueueSize(int size);
 
-	/** Ask for a tape to be deleted from disk */
-	void TapeDropRegistration(CStdString& filename);
 private:
 	BatchProcessing();
+	static TapeProcessorRef m_singleton;
 
-	bool DropTapeIfNeeded(CStdString&filename);
-	void TapeDropHousekeeping();
-
-	static BatchProcessing m_batchProcessingSingleton;
 	ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
 
 	size_t m_threadCount;
 	ACE_Thread_Mutex m_mutex;
-
-	ACE_Thread_Mutex m_tapeDropMutex;
-	std::map<CStdString, time_t> m_tapesToDrop;
 	int m_currentDay;
 };
 

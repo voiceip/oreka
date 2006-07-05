@@ -14,7 +14,6 @@
 #define __FILTER_H__
 
 #include <list>
-#include "ace/Singleton.h"
 #include "AudioCapture.h"
 #include "dll.h"
 #include "OrkBase.h"
@@ -81,7 +80,6 @@ private:
 };
 
 //===================================================================
-
 /** Filter Registry
 */
 class DLL_IMPORT_EXPORT_ORKBASE FilterRegistry
@@ -99,6 +97,5 @@ private:
 	static FilterRegistry* m_singleton;
 };
 
-//typedef ACE_Singleton<FilterRegistry, ACE_Thread_Mutex> FilterRegistrySingleton;
 
 #endif

@@ -15,25 +15,26 @@
 #define __CONFIGMANAGER_H__
 
 #include <list>
-#include "ace/Singleton.h"
 #include "Config.h"
 #include "AudioCapturePlugin.h"
+
+class ConfigManager;
 
 class DLL_IMPORT_EXPORT_ORKBASE ConfigManager
 {
 public:
+	static ConfigManager* Instance();
 	void Initialize();
 	void AddConfigureFunction(ConfigureFunction);
 
 	Config m_config;
 private:
+	static ConfigManager m_singleton;
 	std::list<ConfigureFunction> m_configureFunctions;
 	DOMNode* m_configTopNode;
 };
 
-typedef ACE_Singleton<ConfigManager, ACE_Thread_Mutex> ConfigManagerSingleton;
-
-#define CONFIG ConfigManagerSingleton::instance()->m_config
+#define CONFIG ConfigManager::Instance()->m_config
 
 #endif
 

@@ -37,6 +37,7 @@
 #include "CapturePluginProxy.h"
 #include "AudioCapturePlugin.h"
 #include "Filter.h"
+#include "TapeProcessor.h"
 #include <list>
 
 
@@ -135,7 +136,10 @@ void MainThread()
 	objRef.reset(new TestMsg);
 	ObjectFactorySingleton::instance()->RegisterObject(objRef);
 
-	ConfigManagerSingleton::instance()->Initialize();
+	ConfigManager::Instance()->Initialize();
+
+	std::list<ACE_DLL> pluginDlls;
+	LoadPlugins(pluginDlls);
 
 	// Register in-built filters
 	FilterRef filter(new AlawToPcmFilter());
@@ -143,8 +147,10 @@ void MainThread()
 	filter.reset(new UlawToPcmFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
 
-	std::list<ACE_DLL> pluginDlls;
-	LoadPlugins(pluginDlls);
+	// Register in-built tape processors and build the processing chain
+	BatchProcessing::Initialize();
+	Reporting::Initialize();
+	TapeProcessorRegistry::instance()->CreateProcessingChain();
 
 	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(ImmediateProcessing::ThreadHandler)))
 	{

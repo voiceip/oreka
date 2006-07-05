@@ -12,12 +12,16 @@
  */
 #pragma warning( disable: 4786 )
 
+#define _WINSOCKAPI_		// prevents the inclusion of winsock.h
+
 #include "ImmediateProcessing.h"
 #include "LogManager.h"
 #include "ace/OS_NS_unistd.h"
 #include "BatchProcessing.h"
 #include "Daemon.h"
 #include "ConfigManager.h"
+#include "TapeProcessor.h"
+
 
 ImmediateProcessing ImmediateProcessing::m_immediateProcessingSingleton;
 
@@ -46,7 +50,6 @@ void ImmediateProcessing::ThreadHandler(void *args)
 	CStdString logMsg;
 
 	ImmediateProcessing* pImmediateProcessing = ImmediateProcessing::GetInstance();
-
 	pImmediateProcessing->SetQueueSize(CONFIG.m_immediateProcessingQueueSize);
 
 	logMsg.Format("thread starting - queue size:%d", CONFIG.m_immediateProcessingQueueSize);
@@ -75,8 +78,8 @@ void ImmediateProcessing::ThreadHandler(void *args)
 
 				if (audioTapeRef->IsReadyForBatchProcessing())
 				{
-					// Forward to batch processing thread
-					BatchProcessing::GetInstance()->AddAudioTape(audioTapeRef);
+					// Pass the tape to the tape processor chain
+					TapeProcessorRegistry::instance()->RunProcessingChain(audioTapeRef);
 				}
 			}
 		}
@@ -87,5 +90,4 @@ void ImmediateProcessing::ThreadHandler(void *args)
 	}
 	LOG4CXX_INFO(LOG.immediateProcessingLog, CStdString("Exiting thread"));
 }
-
 

@@ -24,6 +24,12 @@
 #define CONFIG_FILE_NAME "config.xml"
 #define ETC_CONFIG_FILE_NAME "/etc/orkaudio/config.xml"
 
+ConfigManager ConfigManager::m_singleton;
+
+ConfigManager* ConfigManager::Instance()
+{
+	return &m_singleton;
+}
 
 void ConfigManager::Initialize()
 {

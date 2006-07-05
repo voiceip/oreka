@@ -19,36 +19,48 @@
 
 CStdString Object::SerializeSingleLine()
 {
-	SingleLineSerializer serializer(this);
-	return serializer.Serialize();
+	SingleLineSerializer* serializer = new SingleLineSerializer(this);
+	m_serializer.reset(serializer);
+	return serializer->Serialize();
 }
 
 void Object::DeSerializeSingleLine(CStdString& input)
 {
-	SingleLineSerializer serializer(this);
-	serializer.DeSerialize(input);
+	SingleLineSerializer* serializer = new SingleLineSerializer(this);
+	m_serializer.reset(serializer);
+	serializer->DeSerialize(input);
 }
 
 void Object::SerializeDom(XERCES_CPP_NAMESPACE::DOMDocument* doc)
 {
-	DomSerializer serializer(this);
-	serializer.Serialize(doc);
+
+	DomSerializer* serializer = new DomSerializer(this);
+	m_serializer.reset(serializer);
+	serializer->Serialize(doc);
 }
 
 void Object::DeSerializeDom(DOMNode* doc)
 {
-	DomSerializer serializer(this);
-	serializer.DeSerialize(doc);
+	DomSerializer* serializer = new DomSerializer(this);
+	m_serializer.reset(serializer);
+	serializer->DeSerialize(doc);
 }
 
 CStdString Object::SerializeUrl()
 {
-	UrlSerializer serializer(this);
-	return serializer.Serialize();
+	UrlSerializer* serializer = new UrlSerializer(this);
+	m_serializer.reset(serializer);
+	return serializer->Serialize();
 }
 
 void Object::DeSerializeUrl(CStdString& input)
 {
-	UrlSerializer serializer(this);
-	serializer.DeSerialize(input);
+	UrlSerializer* serializer = new UrlSerializer(this);
+	m_serializer.reset(serializer);
+	serializer->DeSerialize(input);
+}
+
+SerializerRef Object::GetSerializer()
+{
+	return m_serializer;
 }
