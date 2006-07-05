@@ -15,18 +15,26 @@
 #define __REPORTING_H__
 
 #include "ThreadSafeQueue.h"
+#include "TapeProcessor.h"
 #include "AudioTape.h"
 
-class Reporting
+class Reporting : public TapeProcessor
 {
 public:
-	Reporting();
-	static Reporting* GetInstance();
+	static void Initialize();
+
+	CStdString __CDECL__ GetName();
+	TapeProcessorRef __CDECL__ Instanciate();
+	void __CDECL__ AddAudioTape(AudioTapeRef& audioTapeRef);
+
+	//static Reporting* GetInstance();
 	static void ThreadHandler(void *args);
 
-	void AddAudioTape(AudioTapeRef audioTapeRef);
 private:
-	static Reporting m_reportingSingleton;
+	Reporting();
+	//static Reporting m_reportingSingleton;
+	static TapeProcessorRef m_singleton;
+
 	ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
 	bool m_queueFullError;
 };

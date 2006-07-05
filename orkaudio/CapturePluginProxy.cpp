@@ -93,7 +93,7 @@ bool CapturePluginProxy::Initialize()
 			m_configureFunction = (ConfigureFunction)m_dll.symbol("Configure");
 			if (m_configureFunction)
 			{
-				ConfigManagerSingleton::instance()->AddConfigureFunction(m_configureFunction);
+				ConfigManager::Instance()->AddConfigureFunction(m_configureFunction);
 
 				m_initializeFunction = (InitializeFunction)m_dll.symbol("Initialize");
 				if (m_initializeFunction)

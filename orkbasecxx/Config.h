@@ -70,6 +70,7 @@
 #define DELETE_FAILED_CAPTURE_FILE_PARAM "DeleteFailedCaptureFile"
 #define DELETE_FAILED_CAPTURE_FILE_DEFAULT false
 #define CAPTURE_PORT_FILTERS_PARAM "CapturePortFilters" 
+#define TAPE_PROCESSORS_PARAM "TapeProcessors"
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -109,6 +110,7 @@ public:
 	bool m_batchProcessingEnhancePriority;
 	bool m_deleteFailedCaptureFile;
 	std::list<CStdString> m_capturePortFilters;
+	std::list<CStdString> m_tapeProcessors;
 
 private:
 	log4cxx::LoggerPtr m_log;

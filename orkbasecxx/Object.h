@@ -50,6 +50,11 @@ public:
 	virtual ObjectRef NewInstance() = 0;
 
 	virtual ObjectRef Process() = 0;
+
+	boost::shared_ptr<Serializer> GetSerializer();
+
+private:
+	boost::shared_ptr<Serializer> m_serializer;
 };
 
 

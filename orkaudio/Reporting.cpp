@@ -19,22 +19,33 @@
 #include "messages/TapeMsg.h"
 #include "OrkClient.h"
 #include "Daemon.h"
-#include "BatchProcessing.h"
 
 
-Reporting Reporting::m_reportingSingleton;
+TapeProcessorRef Reporting::m_singleton;
+
+void Reporting::Initialize()
+{
+	m_singleton.reset(new Reporting());
+	TapeProcessorRegistry::instance()->RegisterTapeProcessor(m_singleton);
+}
+
 
 Reporting::Reporting()
 {
 	m_queueFullError = false;
 }
 
-Reporting* Reporting::GetInstance()
+CStdString __CDECL__ Reporting::GetName()
 {
-	return &m_reportingSingleton;
+	return "Reporting";
 }
 
-void Reporting::AddAudioTape(AudioTapeRef audioTapeRef)
+TapeProcessorRef  Reporting::Instanciate()
+{
+	return m_singleton;
+}
+
+void Reporting::AddAudioTape(AudioTapeRef& audioTapeRef)
 {
 	if (m_audioTapeQueue.push(audioTapeRef))
 	{
@@ -53,7 +64,14 @@ void Reporting::AddAudioTape(AudioTapeRef audioTapeRef)
 
 void Reporting::ThreadHandler(void *args)
 {
-	Reporting* pReporting = Reporting::GetInstance();
+	TapeProcessorRef reporting = TapeProcessorRegistry::instance()->GetNewTapeProcessor(CStdString("Reporting"));
+	if(reporting.get() == NULL)
+	{
+		LOG4CXX_ERROR(LOG.reportingLog, "Could not instanciate Reporting");
+		return;
+	}
+	Reporting* pReporting = (Reporting*)(reporting->Instanciate().get());
+
 	bool stop = false;
 
 	for(;stop == false;)
@@ -80,21 +98,19 @@ void Reporting::ThreadHandler(void *args)
 					LOG4CXX_INFO(LOG.reportingLog, msgAsSingleLineString);
 
 					OrkHttpSingleLineClient c;
-					TapeResponse tr;
+					TapeResponseRef tr(new TapeResponse());
+					audioTapeRef->m_tapeResponse = tr;
 
 					bool success = false;
 					bool firstError = true;
 
 					while (!success)
 					{
-						if (c.Execute((SyncMessage&)(*msgRef.get()), tr, CONFIG.m_trackerHostname, CONFIG.m_trackerTcpPort, CONFIG.m_trackerServicename, CONFIG.m_clientTimeout))
+						if (c.Execute((SyncMessage&)(*msgRef.get()), (AsyncMessage&)(*tr.get()), CONFIG.m_trackerHostname, CONFIG.m_trackerTcpPort, CONFIG.m_trackerServicename, CONFIG.m_clientTimeout))
 						{
 							success = true;
-							if(tr.m_deleteTape)
+							if(tr->m_deleteTape)
 							{
-								//LOG4CXX_INFO(LOG.reportingLog, "Registered tape for removal: " + audioTapeRef->GetIdentifier());
-								//BatchProcessing::GetInstance()->TapeDropRegistration(tapeFilename);
-
 								CStdString tapeFilename = audioTapeRef->GetFilename();
 
 								CStdString absoluteFilename = CONFIG.m_audioOutputPath + "/" + tapeFilename;
@@ -107,6 +123,11 @@ void Reporting::ThreadHandler(void *args)
 									LOG4CXX_DEBUG(LOG.reportingLog, "Could not delete tape: " + tapeFilename);
 								}
 
+							}
+							else
+							{
+								// Pass the tape to the next processor
+								pReporting->RunNextProcessor(audioTapeRef);
 							}
 						}
 						else
@@ -129,5 +150,6 @@ void Reporting::ThreadHandler(void *args)
 	}
 	LOG4CXX_INFO(LOG.reportingLog, CStdString("Exiting thread"));
 }
+
 
 
