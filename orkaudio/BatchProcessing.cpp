@@ -12,6 +12,8 @@
  */
 #pragma warning( disable: 4786 )
 
+#define _WINSOCKAPI_		// prevents the inclusion of winsock.h
+
 #include "ConfigManager.h"
 #include "BatchProcessing.h"
 #include "ace/OS_NS_unistd.h"

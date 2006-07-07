@@ -249,13 +249,16 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 	CaptureEventRef captureEventRef;
 	{
 		MutexSentinel sentinel(m_mutex);
-		captureEventRef = m_toSendEventQueue.front();
-		m_toSendEventQueue.pop();
+		if(m_toSendEventQueue.size() > 0)
+		{
+			captureEventRef = m_toSendEventQueue.front();
+			m_toSendEventQueue.pop();
+		}
 	}
 
 	msgRef.reset(new TapeMsg);
 	TapeMsg* pTapeMsg = (TapeMsg*)msgRef.get();
-	if(captureEventRef->m_type == CaptureEvent::EtStop)
+	if(captureEventRef->m_type == CaptureEvent::EtStop || captureEventRef->m_type == CaptureEvent::EtStart)
 	{
 		pTapeMsg->m_recId = m_fileIdentifier;
 		pTapeMsg->m_fileName = m_filePath + m_fileIdentifier + m_fileExtension;
@@ -272,7 +275,7 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 	}
 	else
 	{
-		// This should be a key-value pair message or a start event
+		// This should be a key-value pair message
 	}
 }
 

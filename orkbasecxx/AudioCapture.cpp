@@ -233,6 +233,8 @@ CStdString CaptureEvent::EventTypeToString(int eventTypeEnum)
 		return ET_LOCALMAC;
 	case	EtRemoteMac:
 		return ET_REMOTEMAC;
+	case	EtEndMetadata:
+		return ET_ENDMETADATA;
 	}
 	return ET_INVALID;
 }
@@ -283,6 +285,10 @@ int CaptureEvent::EventTypeToEnum(CStdString& eventTypeString)
 	else if (eventTypeString.CompareNoCase(ET_REMOTEMAC) == 0)
 	{
 		eventTypeEnum = EtRemoteMac;
+	}
+	else if (eventTypeString.CompareNoCase(ET_ENDMETADATA) == 0)
+	{
+		eventTypeEnum = EtEndMetadata;
 	}
 	return eventTypeEnum;
 }

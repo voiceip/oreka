@@ -22,6 +22,7 @@ class Reporting : public TapeProcessor
 {
 public:
 	static void Initialize();
+	static Reporting* Instance();
 
 	CStdString __CDECL__ GetName();
 	TapeProcessorRef __CDECL__ Instanciate();

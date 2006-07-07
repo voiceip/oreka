@@ -12,6 +12,8 @@
  */
 #pragma warning( disable: 4786 )
 
+#define _WINSOCKAPI_		// prevents the inclusion of winsock.h
+
 #include "ConfigManager.h"
 #include "Reporting.h"
 #include "LogManager.h"
@@ -29,6 +31,10 @@ void Reporting::Initialize()
 	TapeProcessorRegistry::instance()->RegisterTapeProcessor(m_singleton);
 }
 
+Reporting* Reporting::Instance()
+{
+	return (Reporting*)m_singleton.get();
+}
 
 Reporting::Reporting()
 {
@@ -92,8 +98,16 @@ void Reporting::ThreadHandler(void *args)
 
 				MessageRef msgRef;
 				audioTapeRef->GetMessage(msgRef);
+				TapeMsg* ptapeMsg = (TapeMsg*)msgRef.get();
+				bool startMsg = false;
+
 				if(msgRef.get() /*&& CONFIG.m_enableReporting*/)
 				{
+					if(ptapeMsg->m_stage.Equals("START"))
+					{
+						startMsg = true;
+					}
+
 					CStdString msgAsSingleLineString = msgRef->SerializeSingleLine();
 					LOG4CXX_INFO(LOG.reportingLog, msgAsSingleLineString);
 
@@ -126,8 +140,11 @@ void Reporting::ThreadHandler(void *args)
 							}
 							else
 							{
-								// Pass the tape to the next processor
-								pReporting->RunNextProcessor(audioTapeRef);
+								if(!startMsg)
+								{
+									// Pass the tape to the next processor
+									pReporting->RunNextProcessor(audioTapeRef);
+								}
 							}
 						}
 						else
