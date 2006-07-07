@@ -274,6 +274,11 @@ void RtpSession::ReportMetadata()
 	event->m_type = CaptureEvent::EtRemoteIp;
 	event->m_value = szRemoteIp;
 	g_captureEventCallBack(event, m_capturePort);
+
+	// Report end of metadata
+	event.reset(new CaptureEvent());
+	event->m_type = CaptureEvent::EtEndMetadata;
+	g_captureEventCallBack(event, m_capturePort);
 }
 
 // Returns false if the packet does not belong to the session (RTP timestamp discontinuity)

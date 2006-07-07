@@ -53,7 +53,6 @@ public:
 	CStdString m_localEntryPoint;
 	CStdString m_remoteParty;
 	CStdString m_direction;
-	CStdString m_loginString;
 	int m_duration;
 	CStdString m_serviceName;
 	CStdString m_localIp;

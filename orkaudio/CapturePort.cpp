@@ -211,8 +211,8 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			audioTapeRef->SetShouldStop();	// force stop of previous tape
 		}
 		audioTapeRef.reset(new AudioTape(m_id));	// Create a new tape
-		audioTapeRef->AddCaptureEvent(eventRef, false);
-		//Reporting::GetInstance()->AddAudioTape(audioTapeRef);
+		audioTapeRef->AddCaptureEvent(eventRef, true);
+
 		m_audioTapeRef = audioTapeRef;
 		LOG4CXX_INFO(s_log, "#" + m_id + ": start");
 	}
@@ -239,14 +239,16 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			{
 				// Notify immediate processing that tape has stopped
 				ImmediateProcessing::GetInstance()->AddAudioTape(m_audioTapeRef);
-				// Reporting needs to send a stop message
-				// Reporting::GetInstance()->AddAudioTape(audioTapeRef);
 			}
 			else
 			{
 				// Received a stop but there is no valid audio file associated with the tape
 				LOG4CXX_WARN(s_log, "#" + m_id + ": no audio reported between last start and stop");
 			}
+			break;
+		case CaptureEvent::EtEndMetadata:
+			// Now that all metadata has been acquired, we can generate the tape start message
+			Reporting::Instance()->AddAudioTape(audioTapeRef);
 			break;
 		case CaptureEvent::EtDirection:
 		case CaptureEvent::EtRemoteParty:
