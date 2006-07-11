@@ -27,8 +27,11 @@ TapeProcessorRef Reporting::m_singleton;
 
 void Reporting::Initialize()
 {
-	m_singleton.reset(new Reporting());
-	TapeProcessorRegistry::instance()->RegisterTapeProcessor(m_singleton);
+	if(m_singleton.get() == NULL)
+	{
+		m_singleton.reset(new Reporting());
+		TapeProcessorRegistry::instance()->RegisterTapeProcessor(m_singleton);
+	}
 }
 
 Reporting* Reporting::Instance()
