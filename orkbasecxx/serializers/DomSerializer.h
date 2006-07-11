@@ -32,14 +32,18 @@ public:
 	DomSerializer(Object* object) : Serializer(object){};
 
 	void ObjectValue(const char* key, Object& value, bool required = false);
+	void ListValue(const char* key, std::list<ObjectRef>& value, Object& model, bool required = false);
+
 
 	void AddInt(const char* key, int value);
 	void AddString(const char* key, CStdString& value);
 	void AddObject(const char* key, Object& value);
+	void AddList(const char* key, std::list<ObjectRef>& value);
 	void Serialize(XERCES_CPP_NAMESPACE::DOMDocument* node);
 
 	void GetString(const char* key, CStdString& value, bool required = false);
 	void GetObject(const char* key, Object& value, bool required = false);
+	void GetList(const char* key, std::list<ObjectRef>& value, Object& model, bool required = false);
 	void DeSerialize(DOMNode* node);
 
 	static CStdString XMLStringToLocal(const XMLCh* const toTranscode);

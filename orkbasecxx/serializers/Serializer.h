@@ -27,6 +27,7 @@ typedef int (*StringToEnumFunction)(CStdString&);
 typedef CStdString (*EnumToStringFunction)(int);
 
 class Object;
+typedef boost::shared_ptr<Object> ObjectRef;
 
 /** Base class for serializing Objects.
 */
@@ -43,6 +44,7 @@ public:
 	virtual void ObjectValue(const char* key, Object& value, bool required = false) = 0;
 	void CsvValue(const char* key, std::list<CStdString>& value, bool required = false);
 	void DateValue(const char* key, time_t& value, bool required = false);
+	virtual void ListValue(const char* key, std::list<ObjectRef>& value, Object& model, bool required = false) = 0;
 
 	void AddInt(const char* key, int value);
 	void AddDouble(const char* key, double value);
@@ -76,6 +78,7 @@ public:
 	KeyValueSerializer(Object* object) : Serializer(object), m_numParams(0){};
 
 	void ObjectValue(const char* key, Object& value, bool required = false);
+	void ListValue(const char* key, std::list<ObjectRef>& value, Object& model, bool required = false);
 
 	void GetString(const char* key, CStdString& value, bool required = false);
 

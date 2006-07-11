@@ -34,6 +34,18 @@ void DomSerializer::ObjectValue(const char* key, Object& value, bool required)
 	}
 }
 
+void DomSerializer::ListValue(const char* key, std::list<ObjectRef>& value, Object& model, bool required)
+{
+	if (m_deSerialize == true)
+	{
+		GetList(key, value, model, required);
+	}
+	else
+	{
+		AddList(key, value);
+	}
+}
+
 void DomSerializer::GetString(const char* key, CStdString& value, bool required)
 {
 	// Find the right node
@@ -71,10 +83,57 @@ void DomSerializer::GetObject(const char* key, Object& value, bool required)
 	}
 }
 
+void DomSerializer::GetList(const char* key, std::list<ObjectRef>& value, Object& model, bool required)
+{
+	// Find the node corresponding to the object list wanting to be populated
+	DOMNode* listNode = FindElementByName(m_node, CStdString(key));
+
+	// Create a new serializer and affect it to this object
+	if (listNode)
+	{
+		// Iterate over the nodes #####
+		DOMNode* node = listNode->getFirstChild();
+		while(node)
+		{
+			// Create a new object instance
+			ObjectRef newObject = model.NewInstance();
+			try
+			{
+				DomSerializer serializer(newObject.get());
+				serializer.DeSerialize(node);
+				value.push_back(newObject);
+
+			}
+			catch (CStdString& e)
+			{
+				// For now, do not interrupt the deserialization process.
+				// in the future, we might let this exception go through if the node has been 
+				// recognized to bear the proper tag name 
+				;
+			}
+			node = node->getNextSibling();
+		}
+
+	}
+	else if (required)
+	{
+		throw(CStdString("DomSerializer::GetList: required node missing:") + key);
+	}
+}
+
+
 void DomSerializer::AddObject(const char* key, Object& value)
 {
+	// Not yet implemented ####
 	;
 }
+
+void DomSerializer::AddList(const char* key, std::list<ObjectRef>& value)
+{
+	// Not yet implemented ####
+	;
+}
+
 
 void DomSerializer::AddString(const char* key, CStdString& value)
 {
