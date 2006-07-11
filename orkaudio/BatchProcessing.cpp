@@ -25,8 +25,11 @@ TapeProcessorRef BatchProcessing::m_singleton;
 
 void BatchProcessing::Initialize()
 {
-	m_singleton.reset(new BatchProcessing());
-	TapeProcessorRegistry::instance()->RegisterTapeProcessor(m_singleton);
+	if(m_singleton.get == NULL)
+	{
+		m_singleton.reset(new BatchProcessing());
+		TapeProcessorRegistry::instance()->RegisterTapeProcessor(m_singleton);
+	}
 }
 
 
