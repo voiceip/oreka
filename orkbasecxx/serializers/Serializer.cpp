@@ -310,3 +310,8 @@ void KeyValueSerializer::ObjectValue(const char* key, Object& value, bool requir
 	throw CStdString(CStdString("KeyValueSerializer::ObjectValue: Nested objects not allowed for key-value serializers"));
 }
 
+void KeyValueSerializer::ListValue(const char* key, std::list<ObjectRef>& value, Object& model, bool required )
+{
+	throw CStdString(CStdString("KeyValueSerializer::ListValue: Nested objects not allowed for key-value serializers"));
+}
+
