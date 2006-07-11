@@ -14,8 +14,7 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
-#include "ConfigManager.h"
-#include "AudioTape.h"
+
 #include "ace/OS_NS_time.h"
 #include "Utils.h"
 #include "ThreadSafeQueue.h"
@@ -24,6 +23,10 @@
 #include "audiofile/LibSndFileFile.h"
 #include "audiofile/MediaChunkFile.h"
 #include "messages/TapeMsg.h"
+#include "AudioTape.h"
+#include "ConfigManager.h"
+
+
 
 AudioTapeDescription::AudioTapeDescription()
 {

@@ -68,9 +68,9 @@ public:
 	bool IsStoppedAndValid();
 	void AddCaptureEvent(CaptureEventRef eventRef, bool send = true);
 	void GetMessage(MessageRef& msg);
-	/** Returns an identifier for the tape which corresponds to the filename without extension */
+	/// Returns an identifier for the tape which corresponds to the filename without extension
 	CStdString GetIdentifier();
-	/** Returns the full filename (including relative path) to the post-compression audio file */
+	/// Returns the full filename (including relative path) to the post-compression audio file
 	CStdString GetFilename();
 	CStdString GetPath();
 	AudioFileRef GetAudioFileRef();
