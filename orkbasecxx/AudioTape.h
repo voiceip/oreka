@@ -73,6 +73,7 @@ public:
 	/// Returns the full filename (including relative path) to the post-compression audio file
 	CStdString GetFilename();
 	CStdString GetPath();
+	CStdString GetExtension();
 	AudioFileRef GetAudioFileRef();
 	bool IsReadyForBatchProcessing();
 

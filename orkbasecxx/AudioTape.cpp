@@ -309,6 +309,11 @@ CStdString AudioTape::GetPath()
 	return m_filePath;
 }
 
+CStdString AudioTape::GetExtension()
+{
+	return m_fileExtension;
+}
+
 bool AudioTape::IsStoppedAndValid()
 {
 	if (m_state == StateStopped)
