@@ -27,6 +27,10 @@ int SkinnyMessageToEnum(CStdString& msg)
 	{
 		msgEnum = SkLineStatMessage;
 	}
+	else if (msg.CompareNoCase(SKINNY_MSG_CCM5_CALL_INFO_MESSAGE) == 0)
+	{
+		msgEnum = SkCcm5CallInfoMessage;
+	}
 	return msgEnum;
 }
 
@@ -52,6 +56,9 @@ CStdString SkinnyMessageToString(int msgEnum)
 		break;
 	case SkLineStatMessage:
 		msgString = SKINNY_MSG_LINE_STAT_MESSAGE;
+		break;
+	case SkCcm5CallInfoMessage:
+		msgString = SKINNY_MSG_CCM5_CALL_INFO_MESSAGE;
 		break;
 	default:
 		msgString = SKINNY_MSG_UNKN;
@@ -118,6 +125,32 @@ bool SkinnyValidateCallInfo(SkCallInfoStruct* sci)
 	}
 	return valid;
 }
+
+
+bool SkinnyValidateCcm5CallInfo(SkCcm5CallInfoStruct *sci)
+{
+	bool valid = true;
+	if (sci->callType > SKINNY_CALL_TYPE_FORWARD)
+	{
+		valid = false;
+	}
+	if(valid)
+	{
+		valid = checkPartyString(sci->parties, SKINNY_CCM5_PARTIES_BLOCK_SIZE);
+	}
+	if(valid)
+	{
+		// Find the first null char separating the calling and called parties (at this point, we know there's one)
+		char* nullChar = (char*)&sci->parties;
+		while(*nullChar != '\0')
+		{
+			nullChar++;
+		}
+		valid = checkPartyString(nullChar+1, SKINNY_CCM5_PARTIES_BLOCK_SIZE);
+	}
+	return valid;
+}
+
 
 bool SkinnyValidateOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct* orca)
 {
