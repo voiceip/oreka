@@ -53,10 +53,6 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
 # ADD LINK32 packet.lib wpcap.lib wininet.lib OrkBase.lib ace.lib log4cxx.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386 /libpath:"C:\devExt\winpcap\WpdPack\Lib" /libpath:"../../../OrkBaseCxx/Release" /libpath:"C:\devExt\log4cxx\log4cxx-0.9.7\msvc\Lib\Release" /libpath:"C:\devExt\ACE_wrappers\lib"
-# Begin Special Build Tool
-SOURCE="$(InputPath)"
-PostBuild_Cmds=copy Release\RtpMixer.dll ..\..\plugins\RtpMixer.dll
-# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "RtpMixer - Win32 Debug"
 
