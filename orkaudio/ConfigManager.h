@@ -14,6 +14,7 @@
 #ifndef __CONFIGMANAGER_H__
 #define __CONFIGMANAGER_H__
 
+#include <xercesc/parsers/XercesDOMParser.hpp>
 #include "ace/Singleton.h"
 #include "Config.h"
 #include "AudioCapturePlugin.h"
@@ -28,6 +29,7 @@ public:
 private:
 	ConfigureFunction m_configureFunction;
 	DOMNode* m_configTopNode;
+	XercesDOMParser *m_parser;
 };
 
 typedef ACE_Singleton<ConfigManager, ACE_Thread_Mutex> ConfigManagerSingleton;
