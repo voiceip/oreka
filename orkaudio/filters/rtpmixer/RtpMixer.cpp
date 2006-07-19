@@ -335,18 +335,14 @@ void RtpMixer::CreateShipment(size_t silenceSize)
 	if (silenceSize)
 	{
 		byteSize = silenceSize*2;
-		char* silenceBuffer = (char*)calloc(byteSize, 1);
-		if (silenceBuffer)
-		{
-			AudioChunkRef chunk(new AudioChunk());
-			AudioChunkDetails details;
-			details.m_encoding = PcmAudio;
-			chunk->SetBuffer((void*)silenceBuffer, byteSize, details);
-			m_outputQueue.push(chunk);
-			m_shippedSamples += silenceSize;
-			m_readPtr = CircularPointerAddOffset(m_readPtr ,silenceSize);
-			m_readTimestamp += silenceSize;
-		}
+		AudioChunkRef chunk(new AudioChunk());
+		AudioChunkDetails details;
+		details.m_encoding = PcmAudio;
+		chunk->CreateBuffer(byteSize, details);
+		m_outputQueue.push(chunk);
+		m_shippedSamples += silenceSize;
+		m_readPtr = CircularPointerAddOffset(m_readPtr ,silenceSize);
+		m_readTimestamp += silenceSize;
 		debug.Format("Ship %d silence samples, rd:%x rdts:%u", silenceSize, m_readPtr, m_readTimestamp);
 		//LOG4CXX_DEBUG(m_log, debug);
 	}
