@@ -60,7 +60,8 @@ public:
 		StateInvalid = 5
 	} StateEnum; 
 
-	AudioTape(CStdString &portId);
+	AudioTape(CStdString& portId);
+	AudioTape(CStdString& portId, CStdString& file);
 
 	void AddAudioChunk(AudioChunkRef chunkRef);
 	void Write();

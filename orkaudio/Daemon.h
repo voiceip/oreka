@@ -30,6 +30,9 @@ public:
 	void Install();
 	void Uninstall();
 	bool IsStopping();
+
+	void SetShortLived();
+	bool GetShortLived();
 private:
 #ifdef WIN32
 	static void WINAPI Run( DWORD /*argc*/, TCHAR* /*argv*/[] );
@@ -42,6 +45,7 @@ private:
 	CStdString m_serviceName;
 
 	bool m_stopping;
+	bool m_shortLived;
 };
 
 typedef ACE_Singleton<Daemon, ACE_Thread_Mutex> DaemonSingleton;

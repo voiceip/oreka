@@ -23,6 +23,21 @@ CStdString FileBaseName(CStdString& path)
 	return result;
 }
 
+CStdString FilePath(CStdString& path)
+{
+	CStdString result;
+	int lastSeparatorPosition = path.ReverseFind('/');
+	if(lastSeparatorPosition == -1)
+	{
+		lastSeparatorPosition = path.ReverseFind('\\');
+	}
+	if(lastSeparatorPosition != -1 && path.GetLength()>3)
+	{
+		result = path.Left(lastSeparatorPosition + 1);
+	}
+	return result;
+}
+
 CStdString FileStripExtension(CStdString& filename)
 {
 	CStdString result;

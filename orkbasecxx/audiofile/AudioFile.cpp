@@ -57,6 +57,12 @@ void AudioFile::Delete()
 	ACE_OS::unlink((PCSTR)m_filename);
 }
 
+void AudioFile::SetFilename(CStdString& filename)
+{
+	m_filename = filename;
+}
+
+
 int AudioFile::GetSampleRate()
 {
 	return m_sampleRate;
