@@ -106,17 +106,20 @@ void BatchProcessing::ThreadHandler(void *args)
 				{
 					stop = true;
 				}
+				if(DaemonSingleton::instance()->GetShortLived())
+				{
+					DaemonSingleton::instance()->Stop();
+				}
 			}
 			else
 			{
 				fileRef = audioTapeRef->GetAudioFileRef();
-				CStdString filename = audioTapeRef->GetFilename();
 
 				// Let's work on the tape we have pulled
 				//CStdString threadIdString = IntToString(threadId);
 				LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " processing: " + audioTapeRef->GetIdentifier());
 
-				fileRef->MoveOrig();
+				//fileRef->MoveOrig();	// #### could do this only when original and output file have the same extension. Irrelevant for now as everything is captured as mcf file
 				fileRef->Open(AudioFile::READ);
 
 				AudioChunkRef chunkRef;

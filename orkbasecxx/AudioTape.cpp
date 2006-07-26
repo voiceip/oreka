@@ -83,6 +83,19 @@ AudioTape::AudioTape(CStdString &portId)
 	GenerateFilePathAndIdentifier();
 }
 
+AudioTape::AudioTape(CStdString &portId, CStdString& file)
+{
+	m_portId = portId;
+
+	// Extract Path and Identifier
+	m_filePath = FilePath(file);
+	CStdString basename = FileBaseName(file);
+	m_fileIdentifier = FileStripExtension(basename);
+
+	// Create the audiofile
+	m_audioFileRef.reset(new MediaChunkFile());
+	m_audioFileRef->SetFilename(file);
+}
 
 void AudioTape::AddAudioChunk(AudioChunkRef chunkRef)
 {

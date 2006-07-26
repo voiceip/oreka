@@ -53,6 +53,7 @@ public:
 
 	/** Move the file to a new name including ".orig" suffix */
 	void MoveOrig();
+	void SetFilename(CStdString&);
 	void Delete();
 	virtual CStdString GetExtension() = 0;
 	virtual int GetSampleRate();

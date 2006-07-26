@@ -59,6 +59,7 @@ void Daemon::Initialize(CStdString serviceName, DaemonHandler runHandler, Daemon
 	m_serviceName = serviceName;
 
 	m_stopping = false;
+	m_shortLived = false;
 }
 
 void Daemon::Start()
@@ -232,3 +233,12 @@ bool Daemon::IsStopping()
 	return m_stopping;
 }
 
+void Daemon::SetShortLived()
+{
+	m_shortLived = true;
+}
+
+bool Daemon::GetShortLived()
+{
+	return m_shortLived;
+}

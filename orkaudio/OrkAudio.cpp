@@ -112,6 +112,49 @@ void LoadPlugins(std::list<ACE_DLL>& pluginDlls)
 	}
 }
 
+void Transcode(CStdString &file)
+{
+	OrkLogManager::Instance()->Initialize();
+
+	ObjectFactorySingleton::instance()->Initialize();
+
+	ConfigManager::Instance()->Initialize();
+
+	std::list<ACE_DLL> pluginDlls;
+	LoadPlugins(pluginDlls);
+
+	// Register in-built filters
+	FilterRef filter(new AlawToPcmFilter());
+	FilterRegistry::instance()->RegisterFilter(filter);
+	filter.reset(new UlawToPcmFilter());
+	FilterRegistry::instance()->RegisterFilter(filter);
+
+	// Register in-built tape processors and build the processing chain
+	BatchProcessing::Initialize();
+
+	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(BatchProcessing::ThreadHandler)))
+	{
+		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create batch processing thread"));
+	}
+
+
+	
+	// Transmit the tape to the BatchProcessing
+	TapeProcessorRef bp = TapeProcessorRegistry::instance()->GetNewTapeProcessor(CStdString("BatchProcessing"));
+	AudioTapeRef tape(new AudioTape(CStdString("SinglePort"), file));
+	bp->AddAudioTape(tape);
+	
+	// Make sure it stops after processing
+	tape.reset();
+	bp->AddAudioTape(tape);
+
+	// Wait for completion
+	while(!DaemonSingleton::instance()->IsStopping())
+	{
+		ACE_OS::sleep(1);
+	}
+}
+
 void MainThread()
 {
 	OrkLogManager::Instance()->Initialize();
@@ -231,6 +274,19 @@ int main(int argc, char* argv[])
 		{
 			MainThread();
 		}
+		else if (argument.CompareNoCase("transcode") == 0)
+		{
+			if(argc == 3)
+			{
+				DaemonSingleton::instance()->SetShortLived();
+				CStdString file = argv[2];
+				Transcode(file);
+			}
+			else
+			{
+				printf("Please specify file to transcode\n\n");
+			}
+		}
 		else if (argument.CompareNoCase("install") == 0)
 		{
 			DaemonSingleton::instance()->Install();
@@ -242,9 +298,9 @@ int main(int argc, char* argv[])
 		else
 		{
 #ifdef WIN32
-	printf("Argument incorrect. Possibilies are:\n\tinstall:\t\tinstall NT service\n\tuninstall:\t\tuninstall NT service\n\n");
+	printf("Argument incorrect. Possibilies are:\ninstall: install NT service\nuninstall: uninstall NT service\ntranscode <file>: convert .mcf file to storage format specified in config.xml\n\n");
 #else
-	printf("Argument incorrect. Possibilies are:\n\tdebug:\trun attached to tty\n\n");
+	printf("Argument incorrect. Possibilies are:\ndebug: run attached to tty\ntranscode <file>: convert .mcf file to storage format specified in config.xml\n\n");
 #endif
 		}
 	}
