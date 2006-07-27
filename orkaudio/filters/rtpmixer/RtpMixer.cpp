@@ -152,11 +152,15 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 				// Store new packet
 				StoreRtpPacket(chunk);
 			}
+			else
+			{
+				LOG4CXX_DEBUG(m_log, "Packet too distant in the future, dropped");
+			}
 		}
 	}
 	else
 	{
-		//LOG4CXX_DEBUG(m_log, m_capturePort + " packet too old, dropped");
+		LOG4CXX_DEBUG(m_log, "Packet too old, dropped");
 	}
 	if(m_log->isDebugEnabled())
 	{
