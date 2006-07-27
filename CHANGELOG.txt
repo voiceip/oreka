@@ -1,4 +1,22 @@
 ===========================================================================
+2006-02-16 Oreka 0.5-311
+
+	* Added supports Cisco CallManager 5 signalling
+	* Added IP address and address range filtering capability
+	* Added support for MPLS and 802.Q VLAN traffic
+	* Local Party now always reported as local IP address if emtpy 
+	* Added local and remote IP addresses reporting
+	* Improved SIP detection
+	* Improved Cisco Skinny detection
+	* Configurable queue sizes for high load systems
+	* Added ability to replay an entire directory worth of pcap traces
+	* Recording duration now more precise
+	* Fixed a number of problems that could lead to one sided, garbled or saturated recordings
+	* Fixed memory leak
+	* Redundant RTP packets now detected and discarded
+	* Improved robustness with more packet sanity checking
+
+===========================================================================
 2006-02-16 Oreka 0.5
 
 	* Fixed a critical bug that could cause Orkaudio to crash given a certain sequence of RTP packets
