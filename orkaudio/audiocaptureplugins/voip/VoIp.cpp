@@ -445,6 +445,11 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			}
 			RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(&callInfo, ipHeader);
 		}
+		else
+		{
+			useful = false;
+			LOG4CXX_WARN(s_skinnyPacketLog, "Invalid Ccm5CallInfoMessage.");
+		}
 		break;
 	case SkOpenReceiveChannelAck:
 		openReceiveAck = (SkOpenReceiveChannelAckStruct*)skinnyHeader;
