@@ -501,12 +501,22 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	IpHeaderStruct* ipHeader = (IpHeaderStruct*)((char*)ethernetHeader + sizeof(EthernetHeaderStruct));
 	if(ipHeader->ip_v != 4)	// sanity check, is it an IP packet v4
 	{
-		// If not, the IP packet might be wrapped into a 802.1Q VLAN or MPLS header (add 4 bytes)
-		ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+4);
+		// If not, the IP packet might have been captured from multiple interfaces using the tcpdump -i switch
+		ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+2);
 		if(ipHeader->ip_v != 4)
 		{
-			// Still not an IP packet V4, drop it
-			return;
+			// If not, the IP packet might be wrapped into a 802.1Q VLAN or MPLS header (add 4 bytes, ie 2 bytes on top of previous 2)
+			ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+2);
+			if(ipHeader->ip_v != 4)
+			{
+				// If not, the IP packet might be tcpdump -i as well as VLAN, add another 2 bytes
+				ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+2);
+				if(ipHeader->ip_v != 4)
+				{
+					// Still not an IP packet V4, drop it
+					return;
+				}
+			}
 		}
 	}
 	int ipHeaderLength = ipHeader->ip_hl*4;
