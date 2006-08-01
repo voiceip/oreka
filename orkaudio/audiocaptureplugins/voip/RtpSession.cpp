@@ -241,6 +241,17 @@ void RtpSession::ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket)
 
 void RtpSession::ReportMetadata()
 {
+	char szLocalIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+	char szRemoteIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_remoteIp, szRemoteIp, sizeof(szRemoteIp));
+
+	// Make sure Local Party is always reported
+	if(m_localParty.IsEmpty())
+	{
+		m_localParty = szLocalIp;
+	}
+
 	// Report Local party
 	CaptureEventRef event(new CaptureEvent());
 	event->m_type = CaptureEvent::EtLocalParty;
@@ -260,16 +271,12 @@ void RtpSession::ReportMetadata()
 	g_captureEventCallBack(event, m_capturePort);
 
 	// Report Local IP address
-	char szLocalIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtLocalIp;
 	event->m_value = szLocalIp;
 	g_captureEventCallBack(event, m_capturePort);
 
 	// Report Remote IP address
-	char szRemoteIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_remoteIp, szRemoteIp, sizeof(szRemoteIp));
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtRemoteIp;
 	event->m_value = szRemoteIp;
