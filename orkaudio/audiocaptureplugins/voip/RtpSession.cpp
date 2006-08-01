@@ -50,8 +50,9 @@ RtpSession::RtpSession(CStdString& trackingId)
 
 void RtpSession::Stop()
 {
-	CStdString lastUpdated = IntToString(m_lastUpdated);
-	LOG4CXX_INFO(m_log, m_trackingId + ": " + m_capturePort + " Session stop, last updated:" + lastUpdated);
+	CStdString logMsg;
+	logMsg.Format("%s: %s Session stop, num RTP packets:%d, last updated:%u", m_trackingId, m_capturePort, m_numRtpPackets, m_lastUpdated);
+	LOG4CXX_INFO(m_log, logMsg);
 
 	if(m_started && !m_stopped)
 	{
@@ -315,7 +316,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		}
 	}
 	m_lastRtpPacket = rtpPacket;
-	m_numRtpPackets++;
+
 	if(m_lastRtpPacketSide1.get() == NULL)
 	{
 		// First RTP packet for side 1
@@ -362,6 +363,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 			channel = 2;
 		}
 	}
+	m_numRtpPackets++;
 
 	// Compute the corrective delta
 	if(m_rtpTimestampCorrectiveDelta == 0 && m_lastRtpPacketSide2.get() != NULL)
