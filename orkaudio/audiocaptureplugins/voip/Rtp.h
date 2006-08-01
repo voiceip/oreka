@@ -14,6 +14,7 @@
 #ifndef __RTP_H__
 #define __RTP_H__
 
+#include "ace/OS_NS_arpa_inet.h"
 #include "boost/shared_ptr.hpp"
 #include "StdString.h"
 
