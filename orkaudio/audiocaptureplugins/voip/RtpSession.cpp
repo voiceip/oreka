@@ -286,6 +286,8 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 {
 	CStdString logMsg;
 	unsigned char channel = 0;
+	unsigned int correctedRtpTimestamp = rtpPacket->m_timestamp;
+
 
 	if(m_lastRtpPacket.get() == NULL)
 	{
@@ -323,6 +325,10 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	{
 		if((unsigned int)rtpPacket->m_sourceIp.s_addr == (unsigned int)m_lastRtpPacketSide1->m_sourceIp.s_addr)
 		{
+			if(rtpPacket->m_timestamp == m_lastRtpPacketSide1->m_timestamp)
+			{
+				return true;	// dismiss duplicate RTP packet
+			}
 			m_lastRtpPacketSide1 = rtpPacket;
 			channel = 1;
 		}
@@ -338,36 +344,54 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 					LOG4CXX_INFO(m_log, logMsg);
 				}
 			}
+			else
+			{
+				if(rtpPacket->m_timestamp == m_lastRtpPacketSide2->m_timestamp)
+				{
+					return true;	// dismiss duplicate RTP packet
+				}
+			}
 			m_lastRtpPacketSide2 = rtpPacket;
 			channel = 2;
 		}
 	}
 
-	// Compute the corrective offset
+	// Compute the corrective delta
 	if(m_rtpTimestampCorrectiveDelta == 0 && m_lastRtpPacketSide2.get() != NULL)
 	{
-		int timestampOffset = m_lastRtpPacketSide2->m_timestamp - m_lastRtpPacketSide1->m_timestamp;
-		//if(timestampOffset > 8000 || timestampOffset < -8000)	// 1s @ 8KHz
-		//{
-			m_rtpTimestampCorrectiveDelta = timestampOffset;
-			if(m_log->isInfoEnabled())
-			{
-				CStdString timestampOffsetString = IntToString(timestampOffset);
-				LOG4CXX_INFO(m_log,  m_trackingId + ": " + m_capturePort + ": " + "Applying timestamp corrective delta:" + timestampOffsetString);
-			}
-		//}
+		if(m_lastRtpPacketSide2->m_timestamp > m_lastRtpPacketSide1->m_timestamp)
+		{
+			m_rtpTimestampCorrectiveSign = true;
+			m_rtpTimestampCorrectiveDelta = m_lastRtpPacketSide2->m_timestamp - m_lastRtpPacketSide1->m_timestamp;
+		}
+		else
+		{
+			m_rtpTimestampCorrectiveSign = false;
+			m_rtpTimestampCorrectiveDelta = m_lastRtpPacketSide1->m_timestamp - m_lastRtpPacketSide2->m_timestamp;
+		}
+		if(m_log->isInfoEnabled())
+		{
+			CStdString timestampOffsetString = IntToString(m_rtpTimestampCorrectiveDelta);
+			LOG4CXX_INFO(m_log,  m_trackingId + ": " + m_capturePort + ": " + "Applying timestamp corrective delta:" + timestampOffsetString);
+		}
 	}
-	// apply the corrective offset
-	unsigned int timestamp = rtpPacket->m_timestamp;
-	if(m_lastRtpPacketSide2.get() != NULL)
+	// apply the corrective delta to packets of side 2
+	if(channel == 2)
 	{
-		m_lastRtpPacketSide2->m_timestamp = m_lastRtpPacketSide2->m_timestamp - m_rtpTimestampCorrectiveDelta;
+		if(m_rtpTimestampCorrectiveSign)
+		{
+			correctedRtpTimestamp = rtpPacket->m_timestamp - m_rtpTimestampCorrectiveDelta;
+		}
+		else
+		{
+			correctedRtpTimestamp = rtpPacket->m_timestamp + m_rtpTimestampCorrectiveDelta;
+		}
 	}
 
 	if(m_log->isDebugEnabled())
 	{
 		CStdString debug;
-		debug.Format("%s: %s: Add RTP packet ts:%u, corrected ts:%u, arrival:%u, channel:%d", m_trackingId, m_capturePort, timestamp, rtpPacket->m_timestamp, rtpPacket->m_arrivalTimestamp, channel);
+		debug.Format("%s: %s: Add RTP packet ts:%u, corrected ts:%u, arrival:%u, channel:%d", m_trackingId, m_capturePort, rtpPacket->m_timestamp, correctedRtpTimestamp, rtpPacket->m_arrivalTimestamp, channel);
 		LOG4CXX_DEBUG(m_log, debug);
 	}
 
@@ -398,7 +422,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		AudioChunkDetails details;
 		details.m_arrivalTimestamp = rtpPacket->m_arrivalTimestamp;
 		details.m_numBytes = rtpPacket->m_payloadSize;
-		details.m_timestamp = rtpPacket->m_timestamp;
+		details.m_timestamp = correctedRtpTimestamp;
 		details.m_rtpPayloadType = rtpPacket->m_payloadType;
 		details.m_sequenceNumber = rtpPacket->m_seqNum;
 		details.m_channel = channel;
