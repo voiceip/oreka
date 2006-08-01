@@ -23,6 +23,10 @@ int SkinnyMessageToEnum(CStdString& msg)
 	{
 		msgEnum = SkCloseReceiveChannel;
 	}
+	else if (msg.CompareNoCase(SKINNY_MSG_LINE_STAT_MESSAGE) == 0)
+	{
+		msgEnum = SkLineStatMessage;
+	}
 	return msgEnum;
 }
 
@@ -45,6 +49,9 @@ CStdString SkinnyMessageToString(int msgEnum)
 		break;
 	case SkCloseReceiveChannel:
 		msgString = SKINNY_MSG_CLOSE_RECEIVE_CHANNEL;
+		break;
+	case SkLineStatMessage:
+		msgString = SKINNY_MSG_LINE_STAT_MESSAGE;
 		break;
 	default:
 		msgString = SKINNY_MSG_UNKN;
@@ -121,3 +128,18 @@ bool SkinnyValidateOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct* orca)
 	}
 	return valid;
 }
+
+bool SkinnyValidateLineStat(SkLineStatStruct* lineStat)
+{
+	bool valid = true;
+	if(valid)
+	{
+		valid = checkPartyString(lineStat->displayName, SKINNY_DISPLAY_NAME_SIZE);
+	}
+	if(valid)
+	{
+		valid = checkPartyString(lineStat->lineDirNumber, SKINNY_LINE_DIR_NUMBER_SIZE);
+	}
+	return valid;
+}
+

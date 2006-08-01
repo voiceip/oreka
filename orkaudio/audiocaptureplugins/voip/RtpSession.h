@@ -45,31 +45,17 @@ public:
 	CStdString m_callId;
 };
 
+//=============================================================
 
-class SccpCallInfoMessageInfo
+class EndpointInfo
 {
-	CStdString m_callingParty;
-	CStdString m_calledParty;
-	CStdString m_callId;
+public:
+	CStdString m_extension;
 };
-typedef boost::shared_ptr<SccpCallInfoMessageInfo> SccpCallInfoMessageInfoRef;
+typedef boost::shared_ptr<EndpointInfo> EndpointInfoRef;
 
 
-class SccpStartMediaTransmissionInfo
-{
-	struct in_addr m_remoteIp;
-	int m_remoteTcpPort;
-	CStdString m_callId;
-};
-typedef boost::shared_ptr<SccpStartMediaTransmissionInfo> SccpStartMediaTransmissionInfoRef;
-
-
-class SccpStopMediaTransmissionInfo
-{
-	CStdString m_callId;
-};
-typedef boost::shared_ptr<SccpStopMediaTransmissionInfo> SccpStopMediaTransmissionInfoRef;
-
+// ============================================================
 
 class RtpSession
 {
@@ -142,8 +128,10 @@ public:
 	void ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
 	void ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
 	void ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct*);
+	void ReportSkinnyLineStat(SkLineStatStruct*, IpHeaderStruct* ipHeader);
 	void ReportRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void Hoover(time_t now);
+	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp);
 private:
 	RtpSessionRef findByEndpointIp(struct in_addr);
 	void ChangeCallId(RtpSessionRef& session, unsigned int newId);
@@ -152,6 +140,7 @@ private:
 
 	std::map<CStdString, RtpSessionRef> m_byIpAndPort;
 	std::map<CStdString, RtpSessionRef> m_byCallId;
+	std::map<unsigned int, EndpointInfoRef> m_endpoints;
 	LoggerPtr m_log;
 	AlphaCounter alphaCounter;
 };
