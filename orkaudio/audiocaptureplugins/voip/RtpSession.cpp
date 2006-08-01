@@ -309,6 +309,16 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	unsigned char channel = 0;
 	unsigned int correctedRtpTimestamp = rtpPacket->m_timestamp;
 
+	
+	// Dismiss packets that should not be part of a Skinny session
+	if(m_protocol == ProtSkinny)
+	{
+		if(	(unsigned int)rtpPacket->m_sourceIp.s_addr != (unsigned int)m_endPointIp.s_addr &&
+			(unsigned int)rtpPacket->m_destIp.s_addr != (unsigned int)m_endPointIp.s_addr     )
+		{
+			return true;	// dismiss packet that has neither source or destination matching the endpoint.
+		}
+	}
 
 	if(m_lastRtpPacket.get() == NULL)
 	{
@@ -376,6 +386,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 			channel = 2;
 		}
 	}
+
 	m_numRtpPackets++;
 
 	// Compute the corrective delta
