@@ -15,6 +15,8 @@
 #define __CONFIGMANAGER_H__
 
 #include <list>
+#include <xercesc/parsers/XercesDOMParser.hpp>
+#include "ace/Singleton.h"
 #include "Config.h"
 #include "AudioCapturePlugin.h"
 
@@ -32,6 +34,7 @@ private:
 	static ConfigManager m_singleton;
 	std::list<ConfigureFunction> m_configureFunctions;
 	DOMNode* m_configTopNode;
+	XercesDOMParser *m_parser;
 };
 
 #define CONFIG ConfigManager::Instance()->m_config
