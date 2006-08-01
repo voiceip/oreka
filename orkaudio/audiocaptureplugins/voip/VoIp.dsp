@@ -108,14 +108,6 @@ SOURCE=..\..\ConfigManager.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\g711.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\g711.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\PacketHeaderDefs.cpp
 # End Source File
 # Begin Source File

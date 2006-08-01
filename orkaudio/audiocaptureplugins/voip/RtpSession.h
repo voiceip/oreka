@@ -14,11 +14,14 @@
 #ifndef __RTPSESSION_H__
 #define __RTPSESSION_H__
 
+#include <log4cxx/logger.h>
 #include "RtpSession.h"
 #include "Rtp.h"
 #include <map>
 #include "ace/Singleton.h"
 #include "PacketHeaderDefs.h"
+
+using namespace log4cxx;
 
 class SipInviteInfo
 {
@@ -108,7 +111,7 @@ private:
 	RtpPacketInfoRef m_lastRtpPacket;
 	RtpPacketInfoRef m_lastRtpPacketSide1;
 	RtpPacketInfoRef m_lastRtpPacketSide2;
-	RtpRingBuffer m_rtpRingBuffer;
+	//RtpRingBuffer m_rtpRingBuffer;
 	struct in_addr m_invitorIp;
 	int m_invitorTcpPort;
 	struct in_addr m_inviteeIp;
