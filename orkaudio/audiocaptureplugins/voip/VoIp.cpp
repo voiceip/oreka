@@ -117,6 +117,7 @@ char* memFindEOL(char* start, char* limit)
 	return start;
 }
 
+// Grabs a string in memory until encountering null char, a space a CR or LF chars
 void GrabToken(char* in, CStdString& out)
 {
 	for(char* c = in; *c != '\0' && *c != 0x20 && *c != 0x0D && *c != 0x0A; c = c+1)
@@ -367,6 +368,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 	SkCallInfoStruct* callInfo;
 	SkOpenReceiveChannelAckStruct* openReceiveAck;
 	SkLineStatStruct* lineStat;
+	SkCcm5CallInfoStruct* ccm5CallInfo;
 
 	char szEndpointIp[16];
 	struct in_addr endpointIp = ipHeader->ip_dest;	// most of the interesting skinny messages are CCM -> phone
@@ -415,6 +417,33 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		{
 			useful = false;
 			LOG4CXX_WARN(s_skinnyPacketLog, "Invalid CallInfoMessage.");
+		}
+		break;
+	case SkCcm5CallInfoMessage:
+		ccm5CallInfo = (SkCcm5CallInfoStruct*)skinnyHeader;
+		if(SkinnyValidateCcm5CallInfo(ccm5CallInfo))
+		{
+			// Extract Calling and Called number.
+			CStdString callingParty;
+			char* parties = (char*)(&ccm5CallInfo->parties);
+			GrabToken(parties, callingParty);
+			CStdString calledParty;
+			GrabToken(parties+callingParty.size()+1, calledParty);
+
+			// Emulate a regular CCM CallInfo message
+			SkCallInfoStruct callInfo;
+			strcpy(callInfo.calledParty, (PCSTR)calledParty);
+			strcpy(callInfo.callingParty, (PCSTR)callingParty);
+			callInfo.callId = ccm5CallInfo->callId;
+			callInfo.callType = ccm5CallInfo->callType;
+			callInfo.lineInstance = 0;
+			callInfo.calledPartyName[0] = '\0';
+			callInfo.callingPartyName[0] = '\0';
+			if(s_skinnyPacketLog->isInfoEnabled())
+			{
+				logMsg.Format(" CallId:%u calling:%s called:%s", callInfo.callId, callInfo.callingParty, callInfo.calledParty);
+			}
+			RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(&callInfo, ipHeader);
 		}
 		break;
 	case SkOpenReceiveChannelAck:

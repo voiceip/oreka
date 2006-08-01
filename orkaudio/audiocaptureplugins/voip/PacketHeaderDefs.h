@@ -146,14 +146,18 @@ typedef struct
 bool SkinnyValidateCallInfo(SkCallInfoStruct *);
 
 
+#define SKINNY_CCM5_PARTIES_BLOCK_SIZE 76
 typedef struct
 {
 	SkinnyHeaderStruct header;
 	unsigned long unknown1;
 	unsigned long callId;
-	char unknown2[24];
-	char parties[76];
-} SkNewCallInfoStruct;
+	unsigned long callType;
+	char unknown2[20];
+	char parties[SKINNY_CCM5_PARTIES_BLOCK_SIZE];
+} SkCcm5CallInfoStruct;
+
+bool SkinnyValidateCcm5CallInfo(SkCcm5CallInfoStruct *);
 
 #define SKINNY_LINE_DIR_NUMBER_SIZE 24
 #define SKINNY_DISPLAY_NAME_SIZE 40
@@ -191,6 +195,7 @@ bool SkinnyValidateOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct *);
 #define SKINNY_MSG_CALL_INFO_MESSAGE "CallInfoMessage"
 #define SKINNY_MSG_OPEN_RECEIVE_CHANNEL_ACK "OpenReceiveChannelAck"
 #define SKINNY_MSG_LINE_STAT_MESSAGE "LineStatMessage"
+#define SKINNY_MSG_CCM5_CALL_INFO_MESSAGE "Ccm5CallInfoMessage"
 
 #define SKINNY_CALL_TYPE_INBOUND 1
 #define SKINNY_CALL_TYPE_OUTBOUND 2
@@ -204,6 +209,7 @@ typedef enum
 	SkCallInfoMessage = 0x008F,
 	SkLineStatMessage = 0x0092,
 	SkCloseReceiveChannel = 0x0106,
+	SkCcm5CallInfoMessage = 0x14A,
 	SkUnkn = 0x0
 } SkinnyMessageEnum;
 int SkinnyMessageToEnum(CStdString& msg);
