@@ -248,6 +248,19 @@ void RtpSession::ReportMetadata()
 	char szRemoteIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_remoteIp, szRemoteIp, sizeof(szRemoteIp));
 
+	// Check if we don't have the local party based on the endpoint IP address
+	if(m_localParty.IsEmpty())
+	{
+		if(m_protocol == ProtSkinny)
+		{
+			EndpointInfoRef endpointInfo = RtpSessionsSingleton::instance()->GetEndpointInfo(m_endPointIp);
+			if(endpointInfo.get())
+			{
+				m_localParty = endpointInfo->m_extension;
+			}
+		}
+	}
+
 	// Make sure Local Party is always reported
 	if(m_localParty.IsEmpty())
 	{
@@ -776,6 +789,51 @@ void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruc
 		Stop(session);
 	}
 }
+
+void RtpSessions::ReportSkinnyLineStat(SkLineStatStruct* lineStat, IpHeaderStruct* ipHeader)
+{
+	if(strlen(lineStat->lineDirNumber) > 1)
+	{
+		EndpointInfoRef endpoint;
+		std::map<unsigned int, EndpointInfoRef>::iterator pair;
+		pair = m_endpoints.find((unsigned int)(ipHeader->ip_dest.s_addr));
+		if(pair != m_endpoints.end())
+		{
+			// Update the existing endpoint	info
+			endpoint = pair->second;
+			endpoint->m_extension = lineStat->lineDirNumber;
+
+		}
+		else
+		{
+			// Create endpoint info for the new endpoint
+			endpoint.reset(new EndpointInfo());
+			endpoint->m_extension = lineStat->lineDirNumber;
+			m_endpoints.insert(std::make_pair((unsigned int)(ipHeader->ip_dest.s_addr), endpoint));
+		}
+		if(endpoint.get())
+		{
+			CStdString logMsg;
+			char szEndpointIp[16];
+			ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_dest, szEndpointIp, sizeof(szEndpointIp));
+
+			logMsg.Format("Extension:%s is on endpoint:%s", endpoint->m_extension, szEndpointIp);
+			LOG4CXX_INFO(m_log, logMsg);
+		}
+	}
+}
+
+EndpointInfoRef RtpSessions::GetEndpointInfo(struct in_addr endpointIp)
+{
+	std::map<unsigned int, EndpointInfoRef>::iterator pair;
+	pair = m_endpoints.find((unsigned int)(endpointIp.s_addr));
+	if(pair != m_endpoints.end())
+	{
+		return pair->second;
+	}
+	return EndpointInfoRef();
+}
+
 
 void RtpSessions::Stop(RtpSessionRef& session)
 {

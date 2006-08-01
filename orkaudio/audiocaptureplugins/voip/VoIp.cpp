@@ -366,6 +366,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 	SkStopMediaTransmissionStruct* stopMedia;
 	SkCallInfoStruct* callInfo;
 	SkOpenReceiveChannelAckStruct* openReceiveAck;
+	SkLineStatStruct* lineStat;
 
 	char szEndpointIp[16];
 	struct in_addr endpointIp = ipHeader->ip_dest;	// most of the interesting skinny messages are CCM -> phone
@@ -434,6 +435,24 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			useful = false;
 			LOG4CXX_WARN(s_skinnyPacketLog, "Invalid OpenReceiveChannelAck.");
 		}
+		break;
+	case SkLineStatMessage:
+		lineStat = (SkLineStatStruct*)skinnyHeader;
+		if(SkinnyValidateLineStat(lineStat))
+		{
+			if(s_skinnyPacketLog->isInfoEnabled())
+			{
+				logMsg.Format(" line:%u extension:%s display name:%s", lineStat->lineNumber, lineStat->lineDirNumber, lineStat->displayName);
+			}
+			endpointIp = ipHeader->ip_dest;	// this skinny message is CCM -> phone
+			RtpSessionsSingleton::instance()->ReportSkinnyLineStat(lineStat, ipHeader);
+		}
+		else
+		{
+			useful = false;
+			LOG4CXX_WARN(s_skinnyPacketLog, "Invalid LineStatMessage.");
+		}
+
 		break;
 	default:
 		useful = false;
