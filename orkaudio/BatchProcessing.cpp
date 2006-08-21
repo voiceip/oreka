@@ -71,7 +71,8 @@ void BatchProcessing::ThreadHandler(void *args)
 {
 	CStdString debug;
 
-	TapeProcessorRef batchProcessing = TapeProcessorRegistry::instance()->GetNewTapeProcessor(CStdString("BatchProcessing"));
+	CStdString processorName("BatchProcessing");
+	TapeProcessorRef batchProcessing = TapeProcessorRegistry::instance()->GetNewTapeProcessor(processorName);
 	if(batchProcessing.get() == NULL)
 	{
 		LOG4CXX_ERROR(LOG.batchProcessingLog, "Could not instanciate BatchProcessing");

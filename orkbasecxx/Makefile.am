@@ -7,9 +7,13 @@ lib_LTLIBRARIES = liborkbase.la
 liborkbase_la_LDFLAGS = 
 liborkbase_la_SOURCES = Filter.cpp g711.c \
 			OrkBase.cpp Object.cpp ObjectFactory.cpp \
-			OrkClient.cpp AudioCapture.cpp Utils.cpp 
+			OrkClient.cpp AudioCapture.cpp Utils.cpp  \
+			AudioTape.cpp \
+			Config.cpp ConfigManager.cpp LogManager.cpp \
+			MultiThreadedServer.cpp TapeProcessor.cpp
 #INCLUDES = -I/projects/ext/xmlrpc++/xmlrpc++0.7/src
-SUBDIRS = messages serializers
+SUBDIRS = messages serializers audiofile
 liborkbase_la_LIBADD = $(top_builddir)/serializers/libserializers.la \
-	$(top_builddir)/messages/libmessages.la
+	$(top_builddir)/messages/libmessages.la \
+	$(top_builddir)/audiofile/libaudiofile.la
 AM_CXXFLAGS = -D_REENTRANT

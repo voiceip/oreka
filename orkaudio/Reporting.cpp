@@ -73,7 +73,8 @@ void Reporting::AddAudioTape(AudioTapeRef& audioTapeRef)
 
 void Reporting::ThreadHandler(void *args)
 {
-	TapeProcessorRef reporting = TapeProcessorRegistry::instance()->GetNewTapeProcessor(CStdString("Reporting"));
+	CStdString processorName("Reporting");
+	TapeProcessorRef reporting = TapeProcessorRegistry::instance()->GetNewTapeProcessor(processorName);
 	if(reporting.get() == NULL)
 	{
 		LOG4CXX_ERROR(LOG.reportingLog, "Could not instanciate Reporting");

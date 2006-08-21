@@ -140,8 +140,10 @@ void Transcode(CStdString &file)
 
 	
 	// Transmit the tape to the BatchProcessing
-	TapeProcessorRef bp = TapeProcessorRegistry::instance()->GetNewTapeProcessor(CStdString("BatchProcessing"));
-	AudioTapeRef tape(new AudioTape(CStdString("SinglePort"), file));
+	CStdString ProcessorName("BatchProcessing");
+	TapeProcessorRef bp = TapeProcessorRegistry::instance()->GetNewTapeProcessor(ProcessorName);
+	CStdString portName("SinglePort");
+	AudioTapeRef tape(new AudioTape(portName, file));
 	bp->AddAudioTape(tape);
 	
 	// Make sure it stops after processing
@@ -176,8 +178,8 @@ void MainThread()
 	ObjectFactorySingleton::instance()->RegisterObject(objRef);
 	objRef.reset(new CaptureMsg);
 	ObjectFactorySingleton::instance()->RegisterObject(objRef);
-	objRef.reset(new TestMsg);
-	ObjectFactorySingleton::instance()->RegisterObject(objRef);
+	//objRef.reset(new TestMsg);
+	//ObjectFactorySingleton::instance()->RegisterObject(objRef);
 
 	ConfigManager::Instance()->Initialize();
 
