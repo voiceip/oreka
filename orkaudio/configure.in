@@ -1,7 +1,7 @@
 AC_INIT(configure.in)
 
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(orkaudio, 0.5)
+AM_INIT_AUTOMAKE(orkaudio, 0.6)
 
 AC_LANG_CPLUSPLUS
 AC_PROG_CXX
@@ -9,4 +9,4 @@ AM_PROG_LIBTOOL
 
 AC_PREFIX_DEFAULT(/usr)
 
-AC_OUTPUT(Makefile messages/Makefile audiofile/Makefile audiocaptureplugins/Makefile audiocaptureplugins/generator/Makefile audiocaptureplugins/voip/Makefile filters/Makefile filters/rtpmixer/Makefile)
+AC_OUTPUT(Makefile audiocaptureplugins/Makefile audiocaptureplugins/generator/Makefile audiocaptureplugins/voip/Makefile filters/Makefile filters/rtpmixer/Makefile)
