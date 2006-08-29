@@ -376,6 +376,14 @@ SOURCE=.\LogManager.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\MemUtils.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\MemUtils.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\MultiThreadedServer.cpp
 # End Source File
 # Begin Source File
