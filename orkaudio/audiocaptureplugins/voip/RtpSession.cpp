@@ -389,38 +389,6 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	m_numRtpPackets++;
 
-	// Compute the corrective delta
-	if(m_rtpTimestampCorrectiveDelta == 0 && m_lastRtpPacketSide2.get() != NULL)
-	{
-		if(m_lastRtpPacketSide2->m_timestamp > m_lastRtpPacketSide1->m_timestamp)
-		{
-			m_rtpTimestampCorrectiveSign = true;
-			m_rtpTimestampCorrectiveDelta = m_lastRtpPacketSide2->m_timestamp - m_lastRtpPacketSide1->m_timestamp;
-		}
-		else
-		{
-			m_rtpTimestampCorrectiveSign = false;
-			m_rtpTimestampCorrectiveDelta = m_lastRtpPacketSide1->m_timestamp - m_lastRtpPacketSide2->m_timestamp;
-		}
-		if(m_log->isInfoEnabled())
-		{
-			CStdString timestampOffsetString = IntToString(m_rtpTimestampCorrectiveDelta);
-			LOG4CXX_INFO(m_log,  m_trackingId + ": " + m_capturePort + ": " + "Applying timestamp corrective delta:" + timestampOffsetString);
-		}
-	}
-	// apply the corrective delta to packets of side 2
-	if(channel == 2)
-	{
-		if(m_rtpTimestampCorrectiveSign)
-		{
-			correctedRtpTimestamp = rtpPacket->m_timestamp - m_rtpTimestampCorrectiveDelta;
-		}
-		else
-		{
-			correctedRtpTimestamp = rtpPacket->m_timestamp + m_rtpTimestampCorrectiveDelta;
-		}
-	}
-
 	if(m_log->isDebugEnabled())
 	{
 		CStdString debug;
