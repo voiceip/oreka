@@ -13,6 +13,10 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
+#ifndef WIN32
+#include "sys/socket.h"
+#endif
+
 #include <list>
 #include "ace/OS_NS_unistd.h"
 #include "ace/OS_NS_string.h"
@@ -70,7 +74,8 @@ public:
 private:
 	void OpenDevices();
 	void OpenPcapFile(CStdString& filename);
-	void VoIp::OpenPcapDirectory(CStdString& path);
+	void OpenPcapDirectory(CStdString& path);
+	void SetPcapSocketBufferSize(pcap_t* pcapHandle); 
 
 	pcap_t* m_pcapHandle;
 	std::list<pcap_t*> m_pcapHandles;
@@ -742,6 +747,27 @@ void VoIp::OpenPcapFile(CStdString& filename)
 	}
 }
 
+void VoIp::SetPcapSocketBufferSize(pcap_t* pcapHandle)
+{
+#ifndef WIN32
+	CStdString logMsg = "failure";
+	int pcapFileno = pcap_fileno(m_pcapHandle);
+	size_t bufSize = DLLCONFIG.m_pcapSocketBufferSize;
+	if(bufSize < 1)
+	{
+		return;
+	}
+	if(pcapFileno)
+	{
+		if(setsockopt(pcapFileno, SOL_SOCKET, SO_RCVBUF, &bufSize, sizeof(bufSize)) == 0)
+		{
+			logMsg = "success";		
+		}
+	}
+	logMsg.Format("Setting pcap socket buffer size:%u bytes ... %s", bufSize, logMsg);
+	LOG4CXX_INFO(s_packetLog, logMsg);
+#endif
+}
 
 void VoIp::OpenDevices()
 {
@@ -789,6 +815,7 @@ void VoIp::OpenDevices()
 						CStdString logMsg;
 						logMsg.Format("Successfully opened device. pcap handle:%x", m_pcapHandle);
 						LOG4CXX_INFO(s_packetLog, logMsg);
+						SetPcapSocketBufferSize(m_pcapHandle);
 
 						m_pcapHandles.push_back(m_pcapHandle);
 					}
@@ -814,6 +841,7 @@ void VoIp::OpenDevices()
 					{
 						logMsg.Format("Successfully opened default device:%s pcap handle:%x", defaultDevice->name, m_pcapHandle);
 						LOG4CXX_INFO(s_packetLog, logMsg);
+						SetPcapSocketBufferSize(m_pcapHandle);
 
 						m_pcapHandles.push_back(m_pcapHandle);
 					}

@@ -27,6 +27,7 @@ VoIpConfig::VoIpConfig()
 	
 	m_sipDropIndirectInvite = false;
 	m_pcapRepeat = false;
+	m_pcapSocketBufferSize = 0;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -43,6 +44,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->StringValue("PcapDirectory", m_pcapDirectory);
 	s->BoolValue("PcapRepeat", m_pcapRepeat);
 	s->BoolValue("SipDropIndirectInvite", m_sipDropIndirectInvite);
+	s->IntValue("PcapSocketBufferSize", m_pcapSocketBufferSize);
 }
 
 void VoIpConfig::Validate()
@@ -169,6 +171,13 @@ void VoIpConfig::Validate()
 		{
 			throw (CStdString("VoIpConfig: invalid IP range in BlockedIpRanges:" + entry) + " please fix config.xml");
 		}
+	}
+	if(m_pcapSocketBufferSize < 0)
+	{
+		CStdString exception;
+		exception.Format("VoIpConfig: PcapSocketBufferSize must be a positive number (currently:%d) please fix config.xml", m_pcapSocketBufferSize);
+		throw (exception);
+
 	}
 }
 

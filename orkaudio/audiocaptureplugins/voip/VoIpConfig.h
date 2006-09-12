@@ -57,6 +57,7 @@ public:
 	CStdString m_pcapDirectory;
 	bool m_pcapRepeat;
 	bool m_sipDropIndirectInvite;
+	int m_pcapSocketBufferSize;
 };
 
 //========================================
