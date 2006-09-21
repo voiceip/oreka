@@ -14,6 +14,7 @@
 #ifndef __MEDIACHUNKFILE_H__
 #define __MEDIACHUNKFILE_H__
 
+#include <queue>
 #include "audiofile/AudioFile.h"
 
 
@@ -32,8 +33,12 @@ public:
 
 	CStdString GetExtension();
 protected:
+	bool FlushToDisk();
 
 	FILE* m_stream;
+
+	size_t m_chunkQueueDataSize;
+	std::queue<AudioChunkRef> m_chunkQueue;
 };
 
 #endif

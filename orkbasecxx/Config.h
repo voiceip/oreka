@@ -71,6 +71,8 @@
 #define DELETE_FAILED_CAPTURE_FILE_DEFAULT false
 #define CAPTURE_PORT_FILTERS_PARAM "CapturePortFilters" 
 #define TAPE_PROCESSORS_PARAM "TapeProcessors"
+#define CAPTURE_FILE_BATCH_SIZE_KBYTE_PARAM "CaptureFileBatchSizeKByte"
+#define CAPTURE_FILE_BATCH_SIZE_KBYTE_DEFAULT 4
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -111,6 +113,7 @@ public:
 	bool m_deleteFailedCaptureFile;
 	std::list<CStdString> m_capturePortFilters;
 	std::list<CStdString> m_tapeProcessors;
+	int m_captureFileBatchSizeKByte;
 
 private:
 	log4cxx::LoggerPtr m_log;
