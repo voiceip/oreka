@@ -44,6 +44,7 @@ Config::Config()
 	m_batchProcessingQueueSize = BATCH_PROCESSING_QUEUE_SIZE_DEFAULT;
 	m_batchProcessingEnhancePriority = BATCH_PROCESSING_ENHANCE_PRIORITY_DEFAULT;
 	m_deleteFailedCaptureFile = DELETE_FAILED_CAPTURE_FILE_DEFAULT;
+	m_captureFileBatchSizeKByte = CAPTURE_FILE_BATCH_SIZE_KBYTE_DEFAULT;
 
 	char hostname[40];
 	ACE_OS::hostname(hostname, 40);
@@ -84,6 +85,7 @@ void Config::Define(Serializer* s)
 	s->BoolValue(DELETE_FAILED_CAPTURE_FILE_PARAM, m_deleteFailedCaptureFile);
 	s->CsvValue(CAPTURE_PORT_FILTERS_PARAM, m_capturePortFilters);
 	s->CsvValue(TAPE_PROCESSORS_PARAM, m_tapeProcessors);
+	s->IntValue(CAPTURE_FILE_BATCH_SIZE_KBYTE_PARAM, m_captureFileBatchSizeKByte);
 }
 
 void Config::Validate()

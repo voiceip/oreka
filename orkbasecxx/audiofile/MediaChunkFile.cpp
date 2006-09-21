@@ -10,7 +10,9 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
+#pragma warning( disable: 4786 ) // disables truncated symbols in browse-info warning
 
+#include "ConfigManager.h"
 #include "MediaChunkFile.h"
 
 #define MAX_CHUNK_SIZE 100000
@@ -22,6 +24,8 @@ MediaChunkFile::MediaChunkFile()
 	m_mode = READ;
 	m_numChunksWritten = 0;
 	m_sampleRate = 0;
+
+	m_chunkQueueDataSize = 0;
 }
 
 MediaChunkFile::~MediaChunkFile()
@@ -34,10 +38,37 @@ void MediaChunkFile::Close()
 {
 	if(m_stream)
 	{
+		FlushToDisk();
 		ACE_OS::fclose(m_stream);
 		m_stream = NULL;
 	}
 }
+
+bool MediaChunkFile::FlushToDisk()
+{
+	bool writeError = false;
+	while(m_chunkQueue.size() > 0)
+	{
+		AudioChunkRef tmpChunk = m_chunkQueue.front();
+		m_chunkQueue.pop();
+		int tmp = sizeof(AudioChunkDetails);
+		unsigned int numWritten = ACE_OS::fwrite(tmpChunk->GetDetails(), sizeof(AudioChunkDetails), 1, m_stream);
+		if(numWritten != 1)
+		{
+			writeError = true;
+			break;
+		}
+		numWritten = ACE_OS::fwrite(tmpChunk->m_pBuffer, sizeof(char), tmpChunk->GetNumBytes(), m_stream);
+		if(numWritten != tmpChunk->GetNumBytes())
+		{
+			writeError = true;
+			break;
+		}
+	}
+	m_chunkQueueDataSize = 0;
+	return writeError;
+}
+
 
 void MediaChunkFile::WriteChunk(AudioChunkRef chunkRef)
 {
@@ -50,27 +81,25 @@ void MediaChunkFile::WriteChunk(AudioChunkRef chunkRef)
 		return;
 	}
 
-	unsigned int numWritten = 0;
 	bool writeError = false;
-	if (m_stream)
+
+	if(m_chunkQueueDataSize < (CONFIG.m_captureFileBatchSizeKByte*1024))
 	{
-		int tmp = sizeof(AudioChunkDetails);
-		numWritten = ACE_OS::fwrite(chunkRef->GetDetails(), sizeof(AudioChunkDetails), 1, m_stream);
-		if(numWritten != 1)
-		{
-			writeError = true;
-		}
-		numWritten = ACE_OS::fwrite(chunkRef->m_pBuffer, sizeof(char), chunkRef->GetNumBytes(), m_stream);
-		if(numWritten != chunkRef->GetNumBytes())
-		{
-			writeError = true;
-		}
+		AudioChunk* pChunk = chunkRef.get();
+		m_chunkQueueDataSize += pChunk->GetNumBytes();
+		m_chunkQueue.push(chunkRef);
 	}
 	else
 	{
-		throw(CStdString("Write attempt on unopened file:")+ m_filename);
+		if (m_stream)
+		{
+			writeError = FlushToDisk();
+		}
+		else
+		{
+			throw(CStdString("Write attempt on unopened file:")+ m_filename);
+		}
 	}
-
 	if (writeError)
 	{
 		throw(CStdString("Could not write to file:")+ m_filename);
