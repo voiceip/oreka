@@ -70,6 +70,7 @@ void BatchProcessing::SetQueueSize(int size)
 void BatchProcessing::ThreadHandler(void *args)
 {
 	CStdString debug;
+	CStdString logMsg;
 
 	CStdString processorName("BatchProcessing");
 	TapeProcessorRef batchProcessing = TapeProcessorRegistry::instance()->GetNewTapeProcessor(processorName);
@@ -149,8 +150,18 @@ void BatchProcessing::ThreadHandler(void *args)
 				bool firstChunk = true;
 				bool voIpSession = false;
 
+				size_t numSamplesS1 = 0;
+				size_t numSamplesS2 = 0;
+				size_t numSamplesOut = 0;
+
 				while(fileRef->ReadChunkMono(chunkRef))
 				{
+					// ############ HACK
+					//ACE_Time_Value yield;
+					//yield.set(0,1);
+					//ACE_OS::sleep(yield);
+					// ############ HACK
+
 					AudioChunkDetails details = *chunkRef->GetDetails();
 					if(firstChunk && details.m_rtpPayloadType != -1)
 					{
@@ -187,16 +198,28 @@ void BatchProcessing::ThreadHandler(void *args)
 						{
 							decoder2->AudioChunkIn(chunkRef);
 							decoder2->AudioChunkOut(tmpChunkRef);
+							if(tmpChunkRef.get())
+							{
+								numSamplesS2 += tmpChunkRef->GetNumSamples();
+							}
 						}
 						else
 						{
 							decoder1->AudioChunkIn(chunkRef);
 							decoder1->AudioChunkOut(tmpChunkRef);
+							if(tmpChunkRef.get())
+							{
+								numSamplesS1 += tmpChunkRef->GetNumSamples();
+							}
 						}
 						filter->AudioChunkIn(tmpChunkRef);
 						filter->AudioChunkOut(tmpChunkRef);
 					}
 					outFileRef->WriteChunk(tmpChunkRef);
+					if(tmpChunkRef.get())
+					{
+						numSamplesOut += tmpChunkRef->GetNumSamples();
+					}
 
 					if(CONFIG.m_batchProcessingEnhancePriority == false)
 					{
@@ -215,6 +238,8 @@ void BatchProcessing::ThreadHandler(void *args)
 
 				fileRef->Close();
 				outFileRef->Close();
+				logMsg.Format("Th%s stop, num samples: s1:%u s2:%u out:%u", threadIdString, numSamplesS1, numSamplesS2, numSamplesOut);
+				LOG4CXX_INFO(LOG.batchProcessingLog, logMsg);
 
 				if(CONFIG.m_deleteNativeFile)
 				{
