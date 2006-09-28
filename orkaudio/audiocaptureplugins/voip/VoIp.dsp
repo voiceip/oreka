@@ -104,10 +104,6 @@ SOURCE=..\Common\AudioCapturePluginCommon.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\ConfigManager.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\PacketHeaderDefs.cpp
 # End Source File
 # Begin Source File
