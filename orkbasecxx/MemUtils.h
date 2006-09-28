@@ -15,14 +15,15 @@
 #define __MEMUTILS_H__
 
 #include "StdString.h"
+#include "OrkBase.h"
 
-void	MemToHex(unsigned char* input, size_t len, CStdString&output);
-char*	MemFindAfter(char* toFind, char* start, char* stop);
-char*	MemFindEOL(char* start, char* limit);
-void	MemGrabToken(char* in, CStdString& out);
-void	MemGrabAlphaNumToken(char * in, char* limit, CStdString& out);
-void	MemGrabString(char* start, char* stop, CStdString& out);
-char*	MemGrabLine(char* start, char* limit, CStdString& out);
+void DLL_IMPORT_EXPORT_ORKBASE	MemToHex(unsigned char* input, size_t len, CStdString&output);
+DLL_IMPORT_EXPORT_ORKBASE char* MemFindAfter(char* toFind, char* start, char* stop);
+DLL_IMPORT_EXPORT_ORKBASE char* MemFindEOL(char* start, char* limit);
+void DLL_IMPORT_EXPORT_ORKBASE	MemGrabToken(char* in, CStdString& out);
+void DLL_IMPORT_EXPORT_ORKBASE	MemGrabAlphaNumToken(char * in, char* limit, CStdString& out);
+void DLL_IMPORT_EXPORT_ORKBASE	MemGrabString(char* start, char* stop, CStdString& out);
+DLL_IMPORT_EXPORT_ORKBASE char* MemGrabLine(char* start, char* limit, CStdString& out);
 
 
 #endif
