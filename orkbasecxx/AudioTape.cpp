@@ -79,6 +79,7 @@ AudioTape::AudioTape(CStdString &portId)
 	m_direction = CaptureEvent::DirUnkn;
 	m_shouldStop = false;
 	m_readyForBatchProcessing = false;
+	m_trackingId = portId;	// to make sure this has a value before we get the capture tracking Id.
 
 	GenerateFilePathAndIdentifier();
 }
@@ -171,13 +172,13 @@ void AudioTape::Write()
 						// Compute RMS, RMS dB and log
 						CStdString rmsString;
 						rmsString.Format("%.1f dB:%.1f", chunkRef.get()->ComputeRms(), chunkRef.get()->ComputeRmsDb());
-						LOG4CXX_INFO(LOG.portLog, m_portId + " RMS: " + rmsString);
+						LOG4CXX_INFO(LOG.portLog, "[" + m_trackingId + "] RMS: " + rmsString);
 					}
 				}
 			}
 			catch (CStdString& e)
 			{
-				LOG4CXX_INFO(LOG.portLog, "#" + m_portId + ": " + e);
+				LOG4CXX_INFO(LOG.portLog, "[" + m_trackingId + "] " + e);
 				m_state = StateError;
 			}
 		}
@@ -208,6 +209,15 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 	// Extract useful info from well known events
 	switch(eventRef->m_type)
 	{
+	case CaptureEvent::EtStart:
+		m_trackingId = eventRef->m_value;
+		if (m_state == StateCreated)
+		{
+			// Media chunk stream not yet started, we can update begin date with the actual capture begin date
+			m_beginDate = eventRef->m_timestamp;
+			GenerateFilePathAndIdentifier();
+		}
+		break;
 	case CaptureEvent::EtStop:
 		m_shouldStop = true;
 
@@ -246,6 +256,14 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		break;
 	case CaptureEvent::EtRemoteIp:
 		m_remoteIp = eventRef->m_value;
+		break;
+	case CaptureEvent::EtOrkUid:
+		m_orkUid = eventRef->m_value;
+		if (m_state == StateCreated)
+		{
+			// Media chunk stream not yet started, we can set the mcf file name to be the Oreka Unique ID
+			m_fileIdentifier = m_orkUid;
+		}
 		break;
 	}
 

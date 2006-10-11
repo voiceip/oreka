@@ -214,7 +214,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		audioTapeRef->AddCaptureEvent(eventRef, true);
 
 		m_audioTapeRef = audioTapeRef;
-		LOG4CXX_INFO(s_log, "#" + m_id + ": start");
+		LOG4CXX_INFO(s_log, "[" + m_audioTapeRef->m_trackingId + "] #" + m_id + " start");
 	}
 
 	if (!audioTapeRef.get())
@@ -232,7 +232,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		case CaptureEvent::EtStop:
 
 			m_capturing = false;
-			LOG4CXX_INFO(s_log, "#" + m_id + ": stop");
+			LOG4CXX_INFO(s_log, "[" + audioTapeRef->m_trackingId + "] #" + m_id + " stop");
 			audioTapeRef->AddCaptureEvent(eventRef, true);
 
 			if (m_audioTapeRef->GetAudioFileRef().get())
@@ -243,7 +243,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			else
 			{
 				// Received a stop but there is no valid audio file associated with the tape
-				LOG4CXX_WARN(s_log, "#" + m_id + ": no audio reported between last start and stop");
+				LOG4CXX_WARN(s_log, "[" + audioTapeRef->m_trackingId + "] #" + m_id + " no audio reported between last start and stop");
 			}
 			break;
 		case CaptureEvent::EtEndMetadata:

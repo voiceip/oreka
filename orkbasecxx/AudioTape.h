@@ -89,6 +89,7 @@ public:
 	time_t m_duration;
 	CStdString m_localIp;
 	CStdString m_remoteIp;
+	CStdString m_trackingId;
 
 	TapeResponseRef m_tapeResponse;
 
@@ -109,6 +110,7 @@ private:
 	StateEnum m_state;
 	bool m_shouldStop;
 	bool m_readyForBatchProcessing;
+	CStdString m_orkUid;
 };
 
 typedef boost::shared_ptr<AudioTape> AudioTapeRef;
