@@ -47,12 +47,13 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_started = false;
 	m_stopped = false;
 	m_rtpTimestampCorrectiveDelta = 0;
+	m_beginDate = 0;
 }
 
 void RtpSession::Stop()
 {
 	CStdString logMsg;
-	logMsg.Format("%s: %s Session stop, num RTP packets:%d, last updated:%u", m_trackingId, m_capturePort, m_numRtpPackets, m_lastUpdated);
+	logMsg.Format("[%s] %s Session stop, num RTP packets:%d, last updated:%u", m_trackingId, m_capturePort, m_numRtpPackets, m_lastUpdated);
 	LOG4CXX_INFO(m_log, logMsg);
 
 	if(m_started && !m_stopped)
@@ -68,13 +69,24 @@ void RtpSession::Stop()
 void RtpSession::Start()
 {
 	m_started = true;
-	//m_rtpRingBuffer.SetCapturePort(m_capturePort);
+	m_beginDate = time(NULL);
+	GenerateOrkUid();
 	CaptureEventRef startEvent(new CaptureEvent);
 	startEvent->m_type = CaptureEvent::EtStart;
-	startEvent->m_timestamp = time(NULL);
+	startEvent->m_timestamp = m_beginDate;
+	startEvent->m_value = m_trackingId;
 	CStdString timestamp = IntToString(startEvent->m_timestamp);
-	LOG4CXX_INFO(m_log,  m_trackingId + ": " + m_capturePort + " " + ProtocolToString(m_protocol) + " Session start, timestamp:" + timestamp);
+	LOG4CXX_INFO(m_log,  "[" + m_trackingId + "] " + m_capturePort + " " + ProtocolToString(m_protocol) + " Session start, timestamp:" + timestamp);
 	g_captureEventCallBack(startEvent, m_capturePort);
+}
+
+void RtpSession::GenerateOrkUid()
+{
+	struct tm date = {0};
+	ACE_OS::localtime_r(&m_beginDate, &date);
+	int month = date.tm_mon + 1;				// january=0, decembre=11
+	int year = date.tm_year + 1900;
+	m_orkUid.Format("%.4d%.2d%.2d_%.2d%.2d%.2d_%s", year, month, date.tm_mday, date.tm_hour, date.tm_min, date.tm_sec, m_trackingId);
 }
 
 void RtpSession::ProcessMetadataSipIncoming()
@@ -179,7 +191,7 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 	}
 	else
 	{
-		LOG4CXX_ERROR(m_log,  m_trackingId + ": " + m_ipAndPort + " alien RTP packet");
+		LOG4CXX_ERROR(m_log,  "[" + m_trackingId + "] " + m_ipAndPort + " alien RTP packet");
 	}
 
 	// work out capture port and direction
@@ -296,6 +308,12 @@ void RtpSession::ReportMetadata()
 	event->m_value = szRemoteIp;
 	g_captureEventCallBack(event, m_capturePort);
 
+	// Report OrkUid
+	event.reset(new CaptureEvent());
+	event->m_type = CaptureEvent::EtOrkUid;
+	event->m_value = m_orkUid;
+	g_captureEventCallBack(event, m_capturePort);
+
 	// Report end of metadata
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtEndMetadata;
@@ -348,7 +366,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		if(m_log->isInfoEnabled())
 		{
 			rtpPacket->ToString(logMsg);
-			logMsg =  m_trackingId + ": " + "1st packet s1: " + logMsg;
+			logMsg =  "[" + m_trackingId + "] 1st packet s1: " + logMsg;
 			LOG4CXX_INFO(m_log, logMsg);
 		}
 	}
@@ -371,7 +389,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 				if(m_log->isInfoEnabled())
 				{
 					rtpPacket->ToString(logMsg);
-					logMsg =  m_trackingId + ": " + "1st packet s2: " + logMsg;
+					logMsg =  "[" + m_trackingId + "] 1st packet s2: " + logMsg;
 					LOG4CXX_INFO(m_log, logMsg);
 				}
 			}
@@ -392,7 +410,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	if(m_log->isDebugEnabled())
 	{
 		CStdString debug;
-		debug.Format("%s: %s: Add RTP packet ts:%u, corrected ts:%u, arrival:%u, channel:%d", m_trackingId, m_capturePort, rtpPacket->m_timestamp, correctedRtpTimestamp, rtpPacket->m_arrivalTimestamp, channel);
+		debug.Format("[%s] %s: Add RTP packet ts:%u, corrected ts:%u, arrival:%u, channel:%d", m_trackingId, m_capturePort, rtpPacket->m_timestamp, correctedRtpTimestamp, rtpPacket->m_arrivalTimestamp, channel);
 		LOG4CXX_DEBUG(m_log, debug);
 	}
 
@@ -519,7 +537,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			// ... and reinsert
 			m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
 
-			LOG4CXX_INFO(m_log, session->m_trackingId + ": updated with new INVITE data");
+			LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] updated with new INVITE data");
 		}
 		return;
 	}
@@ -537,7 +555,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	CStdString numSessions = IntToString(m_byIpAndPort.size());
 	LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
 
-	LOG4CXX_INFO(m_log, trackingId + ": created by SIP INVITE");
+	LOG4CXX_INFO(m_log, "[" + trackingId + "] created by SIP INVITE");
 }
 
 void RtpSessions::ReportSipBye(SipByeInfo bye)
@@ -595,7 +613,7 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 		char szEndPointIp[16];
 		ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
 
-		logMsg.Format("%s: Skinny CallInfo callId %s local:%s remote:%s dir:%s endpoint:%s", session->m_trackingId,
+		logMsg.Format("[%s] Skinny CallInfo callId %s local:%s remote:%s dir:%s endpoint:%s", session->m_trackingId,
 			session->m_callId, session->m_localParty, session->m_remoteParty, dir, szEndPointIp);
 		LOG4CXX_INFO(m_log, logMsg);
 	}
@@ -639,7 +657,7 @@ void RtpSessions::ChangeCallId(RtpSessionRef& session, unsigned int newId)
 		if(m_log->isInfoEnabled())
 		{
 			CStdString logMsg;
-			logMsg.Format("%s: callId %s becomes %s", session->m_trackingId, oldCallId, newCallId);
+			logMsg.Format("[%s] callId %s becomes %s", session->m_trackingId, oldCallId, newCallId);
 			LOG4CXX_INFO(m_log, logMsg);
 		}
 	}
@@ -666,7 +684,7 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 		char szEndPointIp[16];
 		ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
 		CStdString logMsg;
-		logMsg.Format("%s: callId %s media address:%s  endpoint:%s", session->m_trackingId, session->m_callId, ipAndPort, szEndPointIp);
+		logMsg.Format("[%s] callId %s media address:%s  endpoint:%s", session->m_trackingId, session->m_callId, ipAndPort, szEndPointIp);
 		LOG4CXX_INFO(m_log, logMsg);
 	}
 
@@ -698,7 +716,7 @@ void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruc
 		}
 		else
 		{
-			LOG4CXX_DEBUG(m_log, session->m_trackingId + ": OpenReceiveChannelAck: session already got media address signalling");
+			LOG4CXX_DEBUG(m_log, "[" + session->m_trackingId + "] OpenReceiveChannelAck: session already got media address signalling");
 		}
 	}
 	else
@@ -721,7 +739,7 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 		}
 		else
 		{
-			LOG4CXX_DEBUG(m_log, session->m_trackingId + ": StartMediaTransmission: session already got media address signalling");
+			LOG4CXX_DEBUG(m_log, "[" + session->m_trackingId + "] StartMediaTransmission: session already got media address signalling");
 		}
 	}
 	else
@@ -760,7 +778,7 @@ void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruc
 		if(m_log->isInfoEnabled())
 		{
 			CStdString logMsg;
-			logMsg.Format("%s: Skinny StopMedia conferenceId:%s passThruPartyId:%s", session->m_trackingId, conferenceId, passThruPartyId);
+			logMsg.Format("[%s] Skinny StopMedia conferenceId:%s passThruPartyId:%s", session->m_trackingId, conferenceId, passThruPartyId);
 			LOG4CXX_INFO(m_log, logMsg);
 		}
 
@@ -925,7 +943,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		if(m_log->isInfoEnabled())
 		{
 			CStdString debug;
-			debug.Format("Merging session %s %s with callid:%s into session %s %s with callid:%s",
+			debug.Format("Merging [%s] %s with callid:%s into [%s] %s with callid:%s",
 				mergeeSession->m_trackingId, mergeeSession->m_ipAndPort, mergeeSession->m_callId,
 				mergerSession->m_trackingId, mergerSession->m_ipAndPort, mergerSession->m_callId);
 			LOG4CXX_INFO(m_log, debug);
@@ -946,7 +964,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		CStdString numSessions = IntToString(m_byIpAndPort.size());
 		LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
 
-		LOG4CXX_INFO(m_log, trackingId + ": created by RTP packet");
+		LOG4CXX_INFO(m_log, "[" + trackingId + "] created by RTP packet");
 	}
 }
 
@@ -987,7 +1005,7 @@ void RtpSessions::Hoover(time_t now)
 	for (std::list<RtpSessionRef>::iterator it = toDismiss.begin(); it != toDismiss.end() ; it++)
 	{
 		RtpSessionRef session = *it;
-		LOG4CXX_INFO(m_log,  session->m_trackingId + ": " + session->m_ipAndPort + " Expired");
+		LOG4CXX_INFO(m_log,  "[" + session->m_trackingId + "] " + session->m_ipAndPort + " Expired");
 		Stop(session);
 	}
 
@@ -1006,7 +1024,7 @@ void RtpSessions::Hoover(time_t now)
 	for (std::list<RtpSessionRef>::iterator it2 = toDismiss.begin(); it2 != toDismiss.end() ; it2++)
 	{
 		RtpSessionRef session = *it2;
-		LOG4CXX_INFO(m_log,  session->m_trackingId + ": " + session->m_ipAndPort + " Expired");
+		LOG4CXX_INFO(m_log,  "[" + session->m_trackingId + "] " + session->m_ipAndPort + " Expired");
 		Stop(session);
 	}
 }

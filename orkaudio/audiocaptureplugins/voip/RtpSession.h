@@ -93,6 +93,7 @@ private:
 	void ProcessMetadataRawRtp(RtpPacketInfoRef&);
 	void ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket);
 	void ReportMetadata();
+	void GenerateOrkUid();
 
 	RtpPacketInfoRef m_lastRtpPacket;
 	RtpPacketInfoRef m_lastRtpPacketSide1;
@@ -112,6 +113,8 @@ private:
 	bool m_stopped;
 	unsigned int m_rtpTimestampCorrectiveDelta;
 	bool m_rtpTimestampCorrectiveSign;
+	time_t m_beginDate;
+	CStdString m_orkUid;
 };
 typedef boost::shared_ptr<RtpSession> RtpSessionRef;
 

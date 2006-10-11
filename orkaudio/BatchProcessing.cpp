@@ -98,10 +98,12 @@ void BatchProcessing::ThreadHandler(void *args)
 	{
 		AudioFileRef fileRef;
 		AudioFileRef outFileRef;
+		AudioTapeRef audioTapeRef;
+		CStdString trackingId = "[no-trk]";
 
 		try
 		{
-			AudioTapeRef audioTapeRef = pBatchProcessing->m_audioTapeQueue.pop();
+			audioTapeRef = pBatchProcessing->m_audioTapeQueue.pop();
 			if(audioTapeRef.get() == NULL)
 			{
 				if(DaemonSingleton::instance()->IsStopping())
@@ -116,10 +118,11 @@ void BatchProcessing::ThreadHandler(void *args)
 			else
 			{
 				fileRef = audioTapeRef->GetAudioFileRef();
+				trackingId = audioTapeRef->m_trackingId;
 
 				// Let's work on the tape we have pulled
 				//CStdString threadIdString = IntToString(threadId);
-				LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " processing: " + audioTapeRef->GetIdentifier());
+				LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " processing " + audioTapeRef->GetIdentifier());
 
 				//fileRef->MoveOrig();	// #### could do this only when original and output file have the same extension. Irrelevant for now as everything is captured as mcf file
 				fileRef->Open(AudioFile::READ);
@@ -166,7 +169,7 @@ void BatchProcessing::ThreadHandler(void *args)
 					if(firstChunk && details.m_rtpPayloadType != -1)
 					{
 						CStdString rtpPayloadType = IntToString(details.m_rtpPayloadType);
-						LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " RTP payload type:" + rtpPayloadType);
+						LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " RTP payload type:" + rtpPayloadType);
 
 						CStdString filterName("RtpMixer");
 						filter = FilterRegistry::instance()->GetNewFilter(filterName);
@@ -238,13 +241,13 @@ void BatchProcessing::ThreadHandler(void *args)
 
 				fileRef->Close();
 				outFileRef->Close();
-				logMsg.Format("Th%s stop, num samples: s1:%u s2:%u out:%u", threadIdString, numSamplesS1, numSamplesS2, numSamplesOut);
+				logMsg.Format("[%s] Th%s stop: num samples: s1:%u s2:%u out:%u", trackingId, threadIdString, numSamplesS1, numSamplesS2, numSamplesOut);
 				LOG4CXX_INFO(LOG.batchProcessingLog, logMsg);
 
 				if(CONFIG.m_deleteNativeFile)
 				{
 					fileRef->Delete();
-					LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " deleting native: " + audioTapeRef->GetIdentifier());
+					LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " deleting native: " + audioTapeRef->GetIdentifier());
 				}
 
 				// Finished processing the tape, pass on to next processor
@@ -253,12 +256,12 @@ void BatchProcessing::ThreadHandler(void *args)
 		}
 		catch (CStdString& e)
 		{
-			LOG4CXX_ERROR(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " " + e);
+			LOG4CXX_ERROR(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + e);
 			if(fileRef.get()) {fileRef->Close();}
 			if(outFileRef.get()) {outFileRef->Close();}
 			if(CONFIG.m_deleteFailedCaptureFile && fileRef.get() != NULL)
 			{
-				LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Th") + threadIdString + " deleting native and transcoded");
+				LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " deleting native and transcoded");
 				if(fileRef.get()) {fileRef->Delete();}
 				if(outFileRef.get()) {outFileRef->Delete();}
 			}
