@@ -28,6 +28,8 @@ VoIpConfig::VoIpConfig()
 	m_sipDropIndirectInvite = false;
 	m_pcapRepeat = false;
 	m_pcapSocketBufferSize = 0;
+	m_pcapFastReplay = true;
+	m_pcapFastReplaySleepUsPerSec = 0;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -43,8 +45,11 @@ void VoIpConfig::Define(Serializer* s)
 	s->StringValue("PcapFile", m_pcapFile);
 	s->StringValue("PcapDirectory", m_pcapDirectory);
 	s->BoolValue("PcapRepeat", m_pcapRepeat);
+	s->BoolValue("PcapFastReplay", m_pcapFastReplay);
+	s->IntValue("PcapFastReplaySleepUsPerSec", m_pcapFastReplaySleepUsPerSec);
 	s->BoolValue("SipDropIndirectInvite", m_sipDropIndirectInvite);
 	s->IntValue("PcapSocketBufferSize", m_pcapSocketBufferSize);
+
 }
 
 void VoIpConfig::Validate()
