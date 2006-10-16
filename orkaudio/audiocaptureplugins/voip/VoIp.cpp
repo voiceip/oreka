@@ -51,6 +51,8 @@ static LoggerPtr s_skinnyPacketLog;
 static LoggerPtr s_sipExtractionLog;
 static LoggerPtr s_voipPluginLog;
 static time_t s_lastHooveringTime;
+static time_t s_lastPause;
+static time_t s_lastPacketTimestamp;
 static ACE_Thread_Mutex s_mutex;
 static ACE_Thread_Semaphore s_replaySemaphore;
 int s_replayThreadCounter;
@@ -527,20 +529,50 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	int ipHeaderLength = ipHeader->ip_hl*4;
 	u_char* ipPacketEnd = (u_char*)ipHeader + ntohs(ipHeader->ip_len);
 
+	time_t now = time(NULL);
+
 #ifdef WIN32
 	if(!s_liveCapture)
 	{
-		// This is a pcap file replay, make sure Orkaudio won't be flooded by too many
-		// packets at a time by yielding control to other threads.
-		//ACE_Time_Value yield;
-		//yield.set(0,1);	// 1 us
-		//ACE_OS::sleep(yield);
-
-		// Use nanosleep instead
-		struct timespec ts;
-		ts.tv_sec = 0;
-        ts.tv_nsec = 1;
-		ACE_OS::nanosleep (&ts, NULL);
+		// This is a pcap file replay
+		if(DLLCONFIG.m_pcapFastReplay)
+		{
+			if((now - s_lastPause) > 1)
+			{
+				if(DLLCONFIG.m_pcapFastReplaySleepUsPerSec > 0)
+				{
+					ACE_Time_Value yield;
+					yield.set(0,DLLCONFIG.m_pcapFastReplaySleepUsPerSec * 1000);
+					ACE_OS::sleep(yield);
+				}
+				s_lastPause = now;
+			}
+			else
+			{
+				// Make sure Orkaudio won't be flooded by too many
+				// packets at a time by yielding control to other threads.
+				struct timespec ts;
+				ts.tv_sec = 0;
+				ts.tv_nsec = 1;
+				ACE_OS::nanosleep (&ts, NULL);
+			}
+		}
+		else
+		{
+			// Simulate normal ("real-time") replay speed:
+			// Every capture-second, wait for the local clock to elapse a second.
+			if(header->ts.tv_sec != s_lastPacketTimestamp)
+			{
+				while(now == time(NULL))
+				{
+					struct timespec ts;
+					ts.tv_sec = 0;
+					ts.tv_nsec = 5000000;	// 5 ms
+					ACE_OS::nanosleep (&ts, NULL);
+				}
+				s_lastPacketTimestamp = header->ts.tv_sec;
+			}
+		}
 	}
 #endif
 
@@ -604,7 +636,6 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 		}
 	}
 
-	time_t now = time(NULL);
 	if((now - s_lastHooveringTime) > 5)
 	{
 		s_lastHooveringTime = now;
@@ -774,6 +805,7 @@ void VoIp::OpenDevices()
 	pcap_if_t* devices = NULL;
 	pcap_if_t* defaultDevice = NULL;
 	s_lastHooveringTime = time(NULL);
+	s_lastPause = time(NULL);
 
 	CStdString logMsg;
 

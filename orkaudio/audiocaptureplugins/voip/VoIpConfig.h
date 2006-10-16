@@ -58,6 +58,8 @@ public:
 	bool m_pcapRepeat;
 	bool m_sipDropIndirectInvite;
 	int m_pcapSocketBufferSize;
+	bool m_pcapFastReplay;
+	int m_pcapFastReplaySleepUsPerSec;
 };
 
 //========================================
