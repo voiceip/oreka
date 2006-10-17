@@ -243,6 +243,9 @@ void RtpMixer::ManageOutOfRangeTimestamp(AudioChunkRef& chunk)
 		// 2. Reset circular buffer and add this new chunk
 		Reset(details->m_timestamp);
 		StoreRtpPacket(chunk ,details->m_timestamp);
+
+		// 3. Reset corrective delta to force reevaluation.
+		m_timestampCorrectiveDelta = 0.0;
 	}
 	else if(details->m_channel == 2)
 	{
