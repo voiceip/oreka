@@ -122,6 +122,7 @@ public:
 #define ET_REMOTEMAC "remotemac"
 #define ET_ORKUID "orkuid"
 #define ET_ENDMETADATA "endmetadata"
+#define ET_READY "ready"
 #define ET_INVALID "invalid"
 	typedef enum
 	{
@@ -139,7 +140,8 @@ public:
 		EtRemoteMac = 11,
 		EtOrkUid = 12,
 		EtEndMetadata = 13,
-		EtInvalid = 14
+		EtReady = 14,
+		EtInvalid = 15
 	} EventTypeEnum;
 	static CStdString EventTypeToString(int eventTypeEnum);
 	static int EventTypeToEnum(CStdString&);

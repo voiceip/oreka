@@ -237,6 +237,8 @@ CStdString CaptureEvent::EventTypeToString(int eventTypeEnum)
 		return ET_ORKUID;
 	case	EtEndMetadata:
 		return ET_ENDMETADATA;
+	case	EtReady:
+		return ET_READY;
 	}
 	return ET_INVALID;
 }
@@ -295,6 +297,10 @@ int CaptureEvent::EventTypeToEnum(CStdString& eventTypeString)
 	else if (eventTypeString.CompareNoCase(ET_ENDMETADATA) == 0)
 	{
 		eventTypeEnum = EtEndMetadata;
+	}
+	else if (eventTypeString.CompareNoCase(ET_READY) == 0)
+	{
+		eventTypeEnum = EtReady;
 	}
 	return eventTypeEnum;
 }
