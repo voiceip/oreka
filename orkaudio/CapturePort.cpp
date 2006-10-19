@@ -234,6 +234,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			m_capturing = false;
 			LOG4CXX_INFO(s_log, "[" + audioTapeRef->m_trackingId + "] #" + m_id + " stop");
 			audioTapeRef->AddCaptureEvent(eventRef, true);
+			Reporting::Instance()->AddAudioTape(audioTapeRef);
 
 			if (m_audioTapeRef->GetAudioFileRef().get())
 			{

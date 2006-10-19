@@ -103,13 +103,18 @@ void Reporting::ThreadHandler(void *args)
 				MessageRef msgRef;
 				audioTapeRef->GetMessage(msgRef);
 				TapeMsg* ptapeMsg = (TapeMsg*)msgRef.get();
-				bool startMsg = false;
+				//bool startMsg = false;
+				bool realtimeMessage = false;
 
 				if(msgRef.get() /*&& CONFIG.m_enableReporting*/)
 				{
-					if(ptapeMsg->m_stage.Equals("START"))
+					//if(ptapeMsg->m_stage.Equals("START"))
+					//{
+					//	startMsg = true;
+					//}
+					if(ptapeMsg->m_stage.Equals("start") || ptapeMsg->m_stage.Equals("stop"))
 					{
-						startMsg = true;
+						realtimeMessage = true;
 					}
 
 					CStdString msgAsSingleLineString = msgRef->SerializeSingleLine();
@@ -142,14 +147,14 @@ void Reporting::ThreadHandler(void *args)
 								}
 
 							}
-							else
-							{
-								if(!startMsg)
-								{
-									// Pass the tape to the next processor
-									pReporting->RunNextProcessor(audioTapeRef);
-								}
-							}
+							//else
+							//{
+							//	if(!startMsg)
+							//	{
+							//		// Pass the tape to the next processor
+							//		pReporting->Runsftp NextProcessor(audioTapeRef);
+							//	}
+							//}
 						}
 						else
 						{
@@ -158,7 +163,14 @@ void Reporting::ThreadHandler(void *args)
 								firstError = false;
 								LOG4CXX_ERROR(LOG.reportingLog, CStdString("Could not contact orktrack"));
 							}
-							ACE_OS::sleep(5);
+							if(realtimeMessage)
+							{
+								success = true;		// No need to resend realtime messages
+							}
+							else
+							{
+								ACE_OS::sleep(2);	// Make sure orktrack is not flooded in case of a problem
+							}
 						}
 					}
 				}
