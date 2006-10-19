@@ -26,7 +26,7 @@
 	<AudioSegmentDuration>10</AudioSegmentDuration>
 
 	<CapturePortFilters>LiveMonitoring</CapturePortFilters>
-	<TapeProcessors>BatchProcessing, Reporting</TapeProcessors>
+	<TapeProcessors>BatchProcessing</TapeProcessors>
 	
 	<VoIpPlugin>
 		<!-- Use this if you want to force capture from a given list of devices. -->
