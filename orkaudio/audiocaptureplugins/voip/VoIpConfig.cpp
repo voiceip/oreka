@@ -30,6 +30,8 @@ VoIpConfig::VoIpConfig()
 	m_pcapSocketBufferSize = 0;
 	m_pcapFastReplay = true;
 	m_pcapFastReplaySleepUsPerSec = 0;
+	m_rtpSessionTimeoutSec = 10;
+	m_rtpSessionWithSignallingTimeoutSec = 5*60;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -49,7 +51,8 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("PcapFastReplaySleepUsPerSec", m_pcapFastReplaySleepUsPerSec);
 	s->BoolValue("SipDropIndirectInvite", m_sipDropIndirectInvite);
 	s->IntValue("PcapSocketBufferSize", m_pcapSocketBufferSize);
-
+	s->IntValue("RtpSessionTimeoutSec", m_rtpSessionTimeoutSec);
+	s->IntValue("RtpSessionWithSignallingTimeoutSec", m_rtpSessionWithSignallingTimeoutSec);
 }
 
 void VoIpConfig::Validate()
@@ -183,6 +186,18 @@ void VoIpConfig::Validate()
 		exception.Format("VoIpConfig: PcapSocketBufferSize must be a positive number (currently:%d) please fix config.xml", m_pcapSocketBufferSize);
 		throw (exception);
 
+	}
+	if(m_rtpSessionTimeoutSec < 1)
+	{
+		CStdString exception;
+		exception.Format("VoIpConfig: RtpSessionTimeoutSec must be > 0 (currently:%d) please fix config.xml", m_rtpSessionTimeoutSec);
+		throw (exception);
+	}
+	if(m_rtpSessionWithSignallingTimeoutSec < 1)
+	{
+		CStdString exception;
+		exception.Format("VoIpConfig: RtpSessionWithSignallingTimeoutSec must be > 0 (currently:%d) please fix config.xml", m_rtpSessionWithSignallingTimeoutSec);
+		throw (exception);
 	}
 }
 
