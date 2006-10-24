@@ -60,6 +60,9 @@ public:
 	int m_pcapSocketBufferSize;
 	bool m_pcapFastReplay;
 	int m_pcapFastReplaySleepUsPerSec;
+	int m_rtpSessionTimeoutSec;
+	int m_rtpSessionWithSignallingTimeoutSec;
+
 };
 
 //========================================

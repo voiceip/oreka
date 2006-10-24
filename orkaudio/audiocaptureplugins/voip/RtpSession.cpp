@@ -13,9 +13,6 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
-#define RTP_SESSION_TIMEOUT 10
-#define RTP_WITH_SIGNALLING_SESSION_TIMEOUT (5*60)
-
 #include "Utils.h"
 #include "AudioCapture.h"
 #include "RtpSession.h"
@@ -970,7 +967,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 void RtpSessions::StopAll()
 {
-	time_t forceExpiryTime = time(NULL) + 2*RTP_WITH_SIGNALLING_SESSION_TIMEOUT;
+	time_t forceExpiryTime = time(NULL) + 2*DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec;
 	Hoover(forceExpiryTime);
 }
 
@@ -989,11 +986,11 @@ void RtpSessions::Hoover(time_t now)
 		int timeoutSeconds = 0;
 		if(session->m_protocol == RtpSession::ProtRawRtp)
 		{
-			timeoutSeconds = RTP_SESSION_TIMEOUT;
+			timeoutSeconds = DLLCONFIG.m_rtpSessionTimeoutSec;
 		}
 		else
 		{
-			timeoutSeconds = RTP_WITH_SIGNALLING_SESSION_TIMEOUT;
+			timeoutSeconds = DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec;
 		}
 		if((now - session->m_lastUpdated) > timeoutSeconds)
 		{
@@ -1014,7 +1011,7 @@ void RtpSessions::Hoover(time_t now)
 	for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
 	{
 		RtpSessionRef session = pair->second;
-		if((now - session->m_lastUpdated) > RTP_WITH_SIGNALLING_SESSION_TIMEOUT)
+		if((now - session->m_lastUpdated) > DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec)
 		{
 			toDismiss.push_back(session);
 		}
