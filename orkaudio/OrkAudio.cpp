@@ -37,6 +37,7 @@
 #include "CapturePluginProxy.h"
 #include "AudioCapturePlugin.h"
 #include "Filter.h"
+#include "GsmFilters.h"
 #include "TapeProcessor.h"
 #include <list>
 
@@ -128,6 +129,8 @@ void Transcode(CStdString &file)
 	FilterRegistry::instance()->RegisterFilter(filter);
 	filter.reset(new UlawToPcmFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
+	filter.reset(new GsmToPcmFilter());
+	FilterRegistry::instance()->RegisterFilter(filter);
 
 	// Register in-built tape processors and build the processing chain
 	BatchProcessing::Initialize();
@@ -190,6 +193,8 @@ void MainThread()
 	FilterRef filter(new AlawToPcmFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
 	filter.reset(new UlawToPcmFilter());
+	FilterRegistry::instance()->RegisterFilter(filter);
+	filter.reset(new GsmToPcmFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
 
 	// Register in-built tape processors and build the processing chain
