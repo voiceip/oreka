@@ -752,6 +752,7 @@ void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruc
 	CStdString passThruPartyId;
 	CStdString skinnyCallId;
 	std::map<CStdString, RtpSessionRef>::iterator pair = m_byCallId.end();
+	RtpSessionRef session;
 
 	// Try to locate the session using either conferenceId or passThruPartyId
 	if(stopMedia->conferenceId != 0)
@@ -766,12 +767,18 @@ void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruc
 		skinnyCallId = GenerateSkinnyCallId(ipHeader->ip_dest, stopMedia->passThruPartyId);
 		pair = m_byCallId.find(skinnyCallId);
 	}
-
 	if (pair != m_byCallId.end())
 	{
 		// Session found: stop it
-		RtpSessionRef session = pair->second;
-
+		session = pair->second;
+	}
+	else
+	{
+		// Session was not found by conferenceId or passThruPartyId, try to find it by endpoint IP address
+		session = findByEndpointIp(ipHeader->ip_dest);
+	}
+	if(session.get())
+	{
 		if(m_log->isInfoEnabled())
 		{
 			CStdString logMsg;
