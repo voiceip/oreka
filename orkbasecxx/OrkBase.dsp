@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /Ob0 /I "." /I "C:\devExt\libsndfile\src" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /D "BUILD_ORKBASE" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /Ob0 /I "." /I "./filters/gsm" /I "./filters/gsm/gsm610" /I "C:\devExt\libsndfile\src" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /D "BUILD_ORKBASE" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D inline=__inline /FD /c
 # SUBTRACT CPP /YX /Yc /Yu
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
@@ -73,7 +73,7 @@ PostBuild_Cmds=copy Release\OrkBase.dll ..\OrkAudio\OrkBase.dll
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "." /I "C:\devExt\libsndfile\src" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /D "BUILD_ORKBASE" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /FR /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "." /I "./filters/gsm" /I "./filters/gsm/gsm610" /I "C:\devExt\libsndfile\src" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /D "BUILD_ORKBASE" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D inline=__inline /FR /FD /GZ /c
 # SUBTRACT CPP /YX /Yc /Yu
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -309,6 +309,94 @@ SOURCE=.\audiofile\PcmFile.cpp
 
 SOURCE=.\audiofile\PcmFile.h
 # End Source File
+# End Group
+# Begin Group "filters"
+
+# PROP Default_Filter ""
+# Begin Group "gsm"
+
+# PROP Default_Filter ""
+# Begin Group "gsm610"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\add.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\code.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\config.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\decode.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\gsm.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\gsm610_priv.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\gsm_create.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\gsm_decode.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\gsm_destroy.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\gsm_encode.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\gsm_option.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\long_term.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\lpc.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\preprocess.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\rpe.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\short_term.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\gsm610\table.c
+# End Source File
+# End Group
+# Begin Source File
+
+SOURCE=.\filters\gsm\GsmFilters.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\gsm\GsmFilters.h
+# End Source File
+# End Group
 # End Group
 # Begin Source File
 
