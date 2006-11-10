@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign 1.4
 
 sbin_PROGRAMS = orkaudio
 orkaudio_LDADD =
-orkaudio_LDFLAGS = -lsndfile -lACE -lxerces-c -llog4cxx -lorkbase 
+orkaudio_LDFLAGS = -lACE -lxerces-c -llog4cxx -lorkbase -lsndfile
 orkaudio_SOURCES = 	OrkAudio.cpp  \
 			BatchProcessing.cpp \
 			CapturePluginProxy.cpp \
@@ -14,7 +14,7 @@ orkaudio_SOURCES = 	OrkAudio.cpp  \
 			ImmediateProcessing.cpp  \
 			Reporting.cpp
 AM_CPPFLAGS = -D_REENTRANT
-INCLUDES = -I@top_srcdir@ -I../orkbasecxx
+INCLUDES = -I@top_srcdir@ -I../orkbasecxx -I../orkbasecxx/filters/gsm -I../orkbasecxx/filters/gsm/gsm610
 SUBDIRS = audiocaptureplugins filters
 #orkaudio_LDADD = $(top_builddir)/messages/libmessages.la 
 

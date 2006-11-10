@@ -100,3 +100,4 @@ void GsmToPcmFilter::CaptureEventOut(CaptureEventRef& event)
 {
 	;
 }
+

@@ -36,3 +36,4 @@ private:
 	AudioChunkRef m_outputAudioChunk;
 	struct gsm_state * gsmState;
 };
+
