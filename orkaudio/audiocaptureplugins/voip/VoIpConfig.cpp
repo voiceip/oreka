@@ -32,6 +32,7 @@ VoIpConfig::VoIpConfig()
 	m_pcapFastReplaySleepUsPerSec = 0;
 	m_rtpSessionTimeoutSec = 10;
 	m_rtpSessionWithSignallingTimeoutSec = 5*60;
+	m_pcapTest= false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -53,6 +54,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("PcapSocketBufferSize", m_pcapSocketBufferSize);
 	s->IntValue("RtpSessionTimeoutSec", m_rtpSessionTimeoutSec);
 	s->IntValue("RtpSessionWithSignallingTimeoutSec", m_rtpSessionWithSignallingTimeoutSec);
+	s->BoolValue("PcapTest", m_pcapTest);
 }
 
 void VoIpConfig::Validate()
