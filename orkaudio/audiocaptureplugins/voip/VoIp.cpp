@@ -507,6 +507,19 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 
 void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data)
 {
+	time_t now = time(NULL);
+
+	if(s_liveCapture && (now - s_lastPcapStatsReportingTime) > 10)
+	{
+		MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
+		s_lastPcapStatsReportingTime = now;
+		VoIpSingleton::instance()->ReportPcapStats();
+	}
+	if(DLLCONFIG.m_pcapTest)
+	{
+		return;
+	}
+
 	EthernetHeaderStruct* ethernetHeader = (EthernetHeaderStruct *)pkt_data;
 	IpHeaderStruct* ipHeader = (IpHeaderStruct*)((char*)ethernetHeader + sizeof(EthernetHeaderStruct));
 	if(ipHeader->ip_v != 4)	// sanity check, is it an IP packet v4
@@ -531,8 +544,6 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	}
 	int ipHeaderLength = ipHeader->ip_hl*4;
 	u_char* ipPacketEnd = (u_char*)ipHeader + ntohs(ipHeader->ip_len);
-
-	time_t now = time(NULL);
 
 #ifdef WIN32
 	if(!s_liveCapture)
@@ -603,11 +614,6 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 			if(!detectedUsefulPacket)
 			{
 				detectedUsefulPacket = TrySipBye(ethernetHeader, ipHeader, udpHeader, udpPayload);
-			}
-			if(detectedUsefulPacket && s_liveCapture && (now - s_lastPcapStatsReportingTime) > 10)
-			{
-				s_lastPcapStatsReportingTime = now;
-				VoIpSingleton::instance()->ReportPcapStats();
 			}
 		}
 	}
@@ -951,7 +957,7 @@ void VoIp::ReportPcapStats()
 		struct pcap_stat stats;
 		pcap_stats(*it, &stats);
 		CStdString logMsg;
-		logMsg.Format("received:%u dropped:%u", stats.ps_recv, stats.ps_drop);
+		logMsg.Format("handle:%x received:%u dropped:%u", *it, stats.ps_recv, stats.ps_drop);
 		LOG4CXX_INFO(s_packetStatsLog, logMsg)
 	}
 }

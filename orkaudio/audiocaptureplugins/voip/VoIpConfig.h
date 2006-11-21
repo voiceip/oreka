@@ -62,6 +62,7 @@ public:
 	int m_pcapFastReplaySleepUsPerSec;
 	int m_rtpSessionTimeoutSec;
 	int m_rtpSessionWithSignallingTimeoutSec;
+	bool m_pcapTest;
 
 };
 
