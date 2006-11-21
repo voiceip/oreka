@@ -45,12 +45,14 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_stopped = false;
 	m_rtpTimestampCorrectiveDelta = 0;
 	m_beginDate = 0;
+	m_hasDuplicateRtp = false;
+	m_highestRtpSeqNumDelta = 0;
 }
 
 void RtpSession::Stop()
 {
 	CStdString logMsg;
-	logMsg.Format("[%s] %s Session stop, num RTP packets:%d, last updated:%u", m_trackingId, m_capturePort, m_numRtpPackets, m_lastUpdated);
+	logMsg.Format("[%s] %s Session stop, numRtpPkts:%d dupl:%d seqDelta:%d lastUpdated:%u", m_trackingId, m_capturePort, m_numRtpPackets, m_hasDuplicateRtp, m_highestRtpSeqNumDelta, m_lastUpdated);
 	LOG4CXX_INFO(m_log, logMsg);
 
 	if(m_started && !m_stopped)
@@ -373,7 +375,16 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		{
 			if(rtpPacket->m_timestamp == m_lastRtpPacketSide1->m_timestamp)
 			{
+				m_hasDuplicateRtp = true;
 				return true;	// dismiss duplicate RTP packet
+			}
+			else
+			{
+				int delta = rtpPacket->m_seqNum - m_lastRtpPacketSide1->m_seqNum;
+				if(delta > m_highestRtpSeqNumDelta)
+				{
+					m_highestRtpSeqNumDelta = delta;
+				}
 			}
 			m_lastRtpPacketSide1 = rtpPacket;
 			channel = 1;
@@ -394,7 +405,16 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 			{
 				if(rtpPacket->m_timestamp == m_lastRtpPacketSide2->m_timestamp)
 				{
+					m_hasDuplicateRtp = true;
 					return true;	// dismiss duplicate RTP packet
+				}
+				else
+				{
+					int delta = rtpPacket->m_seqNum - m_lastRtpPacketSide2->m_seqNum;
+					if(delta > m_highestRtpSeqNumDelta)
+					{
+						m_highestRtpSeqNumDelta = delta;
+					}
 				}
 			}
 			m_lastRtpPacketSide2 = rtpPacket;
