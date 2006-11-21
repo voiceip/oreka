@@ -45,6 +45,7 @@ extern OrkLogManager* g_logManager;
 #include "LogManager.h"
 
 static LoggerPtr s_packetLog;
+static LoggerPtr s_packetStatsLog;
 static LoggerPtr s_rtpPacketLog;
 static LoggerPtr s_sipPacketLog;
 static LoggerPtr s_skinnyPacketLog;
@@ -57,6 +58,7 @@ static ACE_Thread_Mutex s_mutex;
 static ACE_Thread_Semaphore s_replaySemaphore;
 int s_replayThreadCounter;
 static bool s_liveCapture;
+static time_t s_lastPcapStatsReportingTime;
 
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
@@ -73,11 +75,12 @@ public:
 	void Shutdown();
 	void StartCapture(CStdString& port);
 	void StopCapture(CStdString& port);
+	void ReportPcapStats();
 private:
 	void OpenDevices();
 	void OpenPcapFile(CStdString& filename);
 	void OpenPcapDirectory(CStdString& path);
-	void SetPcapSocketBufferSize(pcap_t* pcapHandle); 
+	void SetPcapSocketBufferSize(pcap_t* pcapHandle);
 
 	pcap_t* m_pcapHandle;
 	std::list<pcap_t*> m_pcapHandles;
@@ -601,6 +604,11 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 			{
 				detectedUsefulPacket = TrySipBye(ethernetHeader, ipHeader, udpHeader, udpPayload);
 			}
+			if(detectedUsefulPacket && s_liveCapture && (now - s_lastPcapStatsReportingTime) > 10)
+			{
+				s_lastPcapStatsReportingTime = now;
+				VoIpSingleton::instance()->ReportPcapStats();
+			}
 		}
 	}
 	else if(ipHeader->ip_p == IPPROTO_TCP)
@@ -638,6 +646,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 
 	if((now - s_lastHooveringTime) > 5)
 	{
+		MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
 		s_lastHooveringTime = now;
 		RtpSessionsSingleton::instance()->Hoover(now);
 	}
@@ -806,6 +815,7 @@ void VoIp::OpenDevices()
 	pcap_if_t* defaultDevice = NULL;
 	s_lastHooveringTime = time(NULL);
 	s_lastPause = time(NULL);
+	s_lastPcapStatsReportingTime = time(NULL);
 
 	CStdString logMsg;
 
@@ -897,6 +907,7 @@ void VoIp::Initialize()
 	m_pcapHandles.clear();
 
 	s_packetLog = Logger::getLogger("packet");
+	s_packetStatsLog = Logger::getLogger("packet.pcapstats");
 	s_rtpPacketLog = Logger::getLogger("packet.rtp");
 	s_sipPacketLog = Logger::getLogger("packet.sip");
 	s_skinnyPacketLog = Logger::getLogger("packet.skinny");
@@ -930,6 +941,18 @@ void VoIp::Initialize()
 	{
 		OpenDevices();
 		s_liveCapture = true;
+	}
+}
+
+void VoIp::ReportPcapStats()
+{
+	for(std::list<pcap_t*>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
+	{
+		struct pcap_stat stats;
+		pcap_stats(*it, &stats);
+		CStdString logMsg;
+		logMsg.Format("received:%u dropped:%u", stats.ps_recv, stats.ps_drop);
+		LOG4CXX_INFO(s_packetStatsLog, logMsg)
 	}
 }
 
