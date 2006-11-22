@@ -523,6 +523,10 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 		{
 			s_maxPacketsPerSecond = s_numPacketsPerSecond;
 		}
+		if(s_minPacketsPerSecond == 0)
+		{
+			s_minPacketsPerSecond = s_numPacketsPerSecond;
+		}
 		if(s_numPacketsPerSecond < s_minPacketsPerSecond)
 		{
 			s_minPacketsPerSecond = s_numPacketsPerSecond;
