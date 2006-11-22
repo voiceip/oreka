@@ -59,6 +59,11 @@ static ACE_Thread_Semaphore s_replaySemaphore;
 int s_replayThreadCounter;
 static bool s_liveCapture;
 static time_t s_lastPcapStatsReportingTime;
+static time_t s_lastPacketsPerSecondTime;
+static unsigned int s_numPackets;
+static unsigned int s_numPacketsPerSecond;
+static unsigned int s_minPacketsPerSecond;
+static unsigned int s_maxPacketsPerSecond;
 
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
@@ -509,11 +514,34 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 {
 	time_t now = time(NULL);
 
+	s_numPackets++;
+	s_numPacketsPerSecond++;
+	if(s_lastPacketsPerSecondTime != now)
+	{
+		s_lastPacketsPerSecondTime = now;
+		if(s_numPacketsPerSecond > s_maxPacketsPerSecond)
+		{
+			s_maxPacketsPerSecond = s_numPacketsPerSecond;
+		}
+		if(s_numPacketsPerSecond < s_minPacketsPerSecond)
+		{
+			s_minPacketsPerSecond = s_numPacketsPerSecond;
+		}
+		s_numPacketsPerSecond = 0;
+	}
+
 	if(s_liveCapture && (now - s_lastPcapStatsReportingTime) > 10)
 	{
 		MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
 		s_lastPcapStatsReportingTime = now;
 		VoIpSingleton::instance()->ReportPcapStats();
+
+		CStdString logMsg;
+		logMsg.Format("numPackets:%u maxPPS:%u minPPS:%u", s_numPackets, s_maxPacketsPerSecond, s_minPacketsPerSecond);
+		LOG4CXX_INFO(s_packetStatsLog, logMsg)
+		s_numPackets = 0;
+		s_maxPacketsPerSecond = 0;
+		s_minPacketsPerSecond = 0;
 	}
 	if(DLLCONFIG.m_pcapTest)
 	{
@@ -822,6 +850,11 @@ void VoIp::OpenDevices()
 	s_lastHooveringTime = time(NULL);
 	s_lastPause = time(NULL);
 	s_lastPcapStatsReportingTime = time(NULL);
+	s_lastPacketsPerSecondTime = time(NULL);
+	s_numPackets = 0;
+	s_numPacketsPerSecond = 0;
+	s_minPacketsPerSecond = 0;
+	s_maxPacketsPerSecond = 0;
 
 	CStdString logMsg;
 
@@ -955,10 +988,13 @@ void VoIp::ReportPcapStats()
 	for(std::list<pcap_t*>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
 	{
 		struct pcap_stat stats;
-		pcap_stats(*it, &stats);
-		CStdString logMsg;
-		logMsg.Format("handle:%x received:%u dropped:%u", *it, stats.ps_recv, stats.ps_drop);
-		LOG4CXX_INFO(s_packetStatsLog, logMsg)
+		if(*it)
+		{
+			pcap_stats(*it, &stats);
+			CStdString logMsg;
+			logMsg.Format("handle:%x received:%u dropped:%u", *it, stats.ps_recv, stats.ps_drop);
+			LOG4CXX_INFO(s_packetStatsLog, logMsg)
+		}
 	}
 }
 
