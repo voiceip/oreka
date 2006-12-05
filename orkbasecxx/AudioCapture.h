@@ -64,10 +64,10 @@ public:
 	~AudioChunk();
 
 	/** Allocate a new empty buffer (zeroed) */
-	void* CreateBuffer(size_t numBytes, AudioChunkDetails& details);
+	void* CreateBuffer(AudioChunkDetails& details);
 
 	/** Copy external buffer to internal buffer. Create internal buffer if necessary */
-	void SetBuffer(void* pBuffer, size_t numBytes, AudioChunkDetails& details);
+	void SetBuffer(void* pBuffer, AudioChunkDetails& details);
 
 	/** Computes the Root-Mean-Square power value of the buffer */
 	double ComputeRms();

@@ -113,7 +113,8 @@ int LibSndFileFile::ReadChunkMono(AudioChunkRef& chunk)
 		numRead = sf_read_short(m_pFile, temp, 8000);
 		AudioChunkDetails details;
 		details.m_encoding = PcmAudio;
-		chunk->SetBuffer(temp, sizeof(short)*numRead, details);
+		details.m_numBytes = sizeof(short)*numRead;
+		chunk->SetBuffer(temp, details);
 	}
 	else
 	{

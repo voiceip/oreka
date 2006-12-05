@@ -73,7 +73,8 @@ int PcmFile::ReadChunkMono(AudioChunkRef& chunkRef)
 		numRead = ACE_OS::fread(temp, sizeof(short), PCM_FILE_DEFAULT_CHUNK_NUM_SAMPLES, m_stream);
 		AudioChunkDetails details;
 		details.m_encoding = PcmAudio;
-		chunkRef->SetBuffer(temp, sizeof(short)*numRead, details);
+		details.m_numBytes = sizeof(short)*numRead;
+		chunkRef->SetBuffer(temp, details);
 	}
 	else
 	{
