@@ -401,9 +401,10 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 	AudioChunkRef chunk(new AudioChunk());
 	AudioChunkDetails details;
 	details.m_encoding = PcmAudio;
+	details.m_numBytes = byteSize;
 	if(CheckChunkDetails(details))
 	{
-		chunk->SetBuffer((void*)m_readPtr, byteSize, details);
+		chunk->SetBuffer((void*)m_readPtr, details);
 		m_outputQueue.push(chunk);
 	}
 	m_shippedSamples += shortSize;
@@ -423,9 +424,10 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 		chunk.reset(new AudioChunk());
 		AudioChunkDetails details;
 		details.m_encoding = PcmAudio;
+		details.m_numBytes = byteSize;
 		if(CheckChunkDetails(details))
 		{
-			chunk->SetBuffer((void*)m_buffer, byteSize, details);
+			chunk->SetBuffer((void*)m_buffer, details);
 			m_outputQueue.push(chunk);
 		}
 		m_shippedSamples += shortSize;
@@ -442,9 +444,10 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 		AudioChunkRef chunk(new AudioChunk());
 		AudioChunkDetails details;
 		details.m_encoding = PcmAudio;
+		details.m_numBytes = byteSize;
 		if(CheckChunkDetails(details))
 		{
-			chunk->CreateBuffer(byteSize, details);
+			chunk->CreateBuffer(details);
 			m_outputQueue.push(chunk);
 		}
 		m_shippedSamples += silenceSize;
@@ -477,6 +480,10 @@ bool RtpMixer::CheckChunkDetails(AudioChunkDetails& details)
 	{
 		m_error = true;
 		LOG4CXX_ERROR(m_log, "RtpMixer: output chunk too big");
+		return false;
+	}
+	if(details.m_numBytes == 0)
+	{
 		return false;
 	}
 	return true;

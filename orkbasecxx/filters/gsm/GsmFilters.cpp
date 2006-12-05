@@ -59,9 +59,9 @@ void GsmToPcmFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 	m_outputAudioChunk.reset(new AudioChunk());
 	outputDetails.m_rtpPayloadType = -1;		//  Override details that this filter changes
 	outputDetails.m_encoding = PcmAudio;
-
 	int numSamples = 160;	// standard GSM frame is 33 bytes for 160 PCM samples (20 ms)
-	short* outputBuffer = (short*)m_outputAudioChunk->CreateBuffer(numSamples*2, outputDetails);
+	outputDetails.m_numBytes = numSamples*2;
+	short* outputBuffer = (short*)m_outputAudioChunk->CreateBuffer(outputDetails);
 	unsigned char* inputBuffer = (unsigned char*)inputAudioChunk->m_pBuffer;
 	gsm_decode(gsmState, inputBuffer, outputBuffer);
 }

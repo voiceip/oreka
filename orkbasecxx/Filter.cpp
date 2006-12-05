@@ -119,9 +119,9 @@ void AlawToPcmFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 	m_outputAudioChunk.reset(new AudioChunk());
 	outputDetails.m_rtpPayloadType = -1;		//  Override details that this filter changes
 	outputDetails.m_encoding = PcmAudio;
-
 	int numSamples = inputAudioChunk->GetNumSamples();
-	short* outputBuffer = (short*)m_outputAudioChunk->CreateBuffer(numSamples*2, outputDetails);
+	outputDetails.m_numBytes = numSamples*2;
+	short* outputBuffer = (short*)m_outputAudioChunk->CreateBuffer(outputDetails);
 	char* inputBuffer = (char*)inputAudioChunk->m_pBuffer;
 	
 
@@ -198,9 +198,9 @@ void UlawToPcmFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 	m_outputAudioChunk.reset(new AudioChunk());
 	outputDetails.m_rtpPayloadType = -1;		//  Override details that this filter changes
 	outputDetails.m_encoding = PcmAudio;
-
 	int numSamples = inputAudioChunk->GetNumSamples();
-	short* outputBuffer = (short*)m_outputAudioChunk->CreateBuffer(numSamples*2, outputDetails);
+	outputDetails.m_numBytes = numSamples*2;
+	short* outputBuffer = (short*)m_outputAudioChunk->CreateBuffer(outputDetails);
 	char* inputBuffer = (char*)inputAudioChunk->m_pBuffer;
 	
 

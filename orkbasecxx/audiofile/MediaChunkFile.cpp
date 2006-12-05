@@ -136,7 +136,7 @@ int MediaChunkFile::ReadChunkMono(AudioChunkRef& chunkRef)
 				{
 					throw(CStdString("Incomplete chunk in file:")+ m_filename);
 				}
-				chunkRef->SetBuffer(temp, details.m_numBytes, details);
+				chunkRef->SetBuffer(temp, details);
 			}
 		}
 	}

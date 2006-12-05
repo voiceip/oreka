@@ -32,32 +32,30 @@ AudioChunk::~AudioChunk()
 	}
 }
 
-void* AudioChunk::CreateBuffer(size_t numBytes, AudioChunkDetails& details)
+void* AudioChunk::CreateBuffer(AudioChunkDetails& details)
 {
 	if(m_pBuffer)
 	{
 		free(m_pBuffer);
 		m_pBuffer = NULL;
-		m_details.m_numBytes = 0;
 	}
-	if(numBytes)
+	if(details.m_numBytes)
 	{
-		m_pBuffer = calloc(numBytes, 1);
+		m_pBuffer = calloc(details.m_numBytes, 1);
 	}
 	if (!m_pBuffer)
 	{
-		CStdString numBytesString = IntToString(numBytes);
+		CStdString numBytesString = IntToString(details.m_numBytes);
 		throw("AudioChunk::AudioChunk: could not calloc a buffer of size:" + numBytesString);
 	}
 	else
 	{
 		m_details = details;
-		m_details.m_numBytes = numBytes;
 	}
 	return m_pBuffer;
 }
 
-void AudioChunk::SetBuffer(void* pBuffer, size_t numBytes, AudioChunkDetails& details)
+void AudioChunk::SetBuffer(void* pBuffer, AudioChunkDetails& details)
 {
 	if(m_pBuffer)
 	{
@@ -65,19 +63,18 @@ void AudioChunk::SetBuffer(void* pBuffer, size_t numBytes, AudioChunkDetails& de
 		m_pBuffer = NULL;
 		m_details.m_numBytes = 0;
 	}
-	if(numBytes && pBuffer)
+	if(details.m_numBytes && pBuffer)
 	{
-		m_pBuffer = malloc(numBytes);
+		m_pBuffer = malloc(details.m_numBytes);
 		if (!m_pBuffer)
 		{
-			CStdString numBytesString = IntToString(numBytes);
+			CStdString numBytesString = IntToString(details.m_numBytes);
 			throw("AudioChunk::AudioChunk: could not malloc a buffer of size:" + numBytesString);
 		}
 		else
 		{
-			memcpy(m_pBuffer, pBuffer, numBytes);
+			memcpy(m_pBuffer, pBuffer, details.m_numBytes);
 			m_details = details;
-			m_details.m_numBytes = numBytes;
 		}
 	}
 }

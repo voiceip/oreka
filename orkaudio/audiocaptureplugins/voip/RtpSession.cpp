@@ -463,8 +463,9 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		details.m_sequenceNumber = rtpPacket->m_seqNum;
 		details.m_channel = channel;
 		details.m_encoding = AlawAudio;
+		details.m_numBytes = rtpPacket->m_payloadSize;
 		AudioChunkRef chunk(new AudioChunk());
-		chunk->SetBuffer(rtpPacket->m_payload, rtpPacket->m_payloadSize, details);
+		chunk->SetBuffer(rtpPacket->m_payload, details);
 		g_audioChunkCallBack(chunk, m_capturePort);
 
 		m_lastUpdated = rtpPacket->m_arrivalTimestamp;
