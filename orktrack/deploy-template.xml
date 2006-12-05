@@ -1,9 +1,13 @@
 <?xml version="1.0"?>
 <project name="ServletDeploy" default="do_everything">
    <!--
-      This ANT script does NOT compile the application,
+      By default, this ANT script does NOT compile the application,
       we are relying on Eclipse to do all Java compilation.
       This script merely deploys the application to Tomcat.
+      
+      If you don't want to use Eclipse to compile, run this script
+      with target "compile_java" and it will compile all files, as well as
+      deploy the application to Tomcat.
 
       You will need Tomcat manager running and working
       login for Tomcat manager. To create a user for
@@ -36,6 +40,7 @@
    <property name="workspaceHome" value="c:/devOrk/" />
    <property name="mgrUsername" value="admin" />
    <property name="mgrPassword" value="" />
+   <property name="javadependencies" value="c:/oreka-0.5-java-dependencies" />
 	<!-- Change these properties to suit your needs (End)-->
 
 	
@@ -49,7 +54,35 @@
    <property name="mgrRemoveUrl" value="${mgrUrl}/remove" />
    <property name="mgrDeployUrl" value="${mgrUrl}/install" />
    <property name="orkbasejHome" value="${workspaceHome}/orkbasej" />
-	
+
+   <target name="compile_java_base">
+     <mkdir dir="${orkbasejHome}/bin" /> 
+     <javac srcdir="${orkbasejHome}/java"
+            destdir="${orkbasejHome}/bin"
+            fork="java$$javac.exe"
+            source="1.5">
+         <classpath id="base.path">
+           	<fileset dir="${javadependencies}">
+             		<include name="**/*.jar"/>
+      		</fileset>
+     	 </classpath>        
+     </javac>
+   </target>
+   
+   <target name="compile_java" depends="compile_java_base">
+        <mkdir dir="${contextHome}/WEB-INF/classes" /> 
+        <javac srcdir="${workspaceHome}/${application}/src"
+                destdir="${contextHome}/WEB-INF/classes"
+                fork="java$$javac.exe"
+                source="1.5">
+        	<classpath>
+           		<path refid="base.path"/>
+           		<pathelement location="${orkbasejHome}/bin"/>
+        	</classpath>  
+        </javac>
+        <!--<antcall target="do_everything"/>-->
+   </target>
+   
 	<target name="create_war">
 	      <mkdir dir="${deployWarDir}" /> 
 	      <delete file="${deployWarDir}/${application}.war" />
