@@ -128,7 +128,8 @@ void Run()
 			int sampleOffset = (elapsed % numChunks)*NUM_SAMPLES_PER_CHUNK;
 			AudioChunkDetails details;
 			details.m_encoding = PcmAudio;
-			chunkRef->SetBuffer(audioBuffer+sampleOffset, sizeof(short)*NUM_SAMPLES_PER_CHUNK, details);
+			details.m_numBytes = sizeof(short) * NUM_SAMPLES_PER_CHUNK;
+			chunkRef->SetBuffer(audioBuffer+sampleOffset, details);
 			g_audioChunkCallBack(chunkRef, portName);
 		}
 
