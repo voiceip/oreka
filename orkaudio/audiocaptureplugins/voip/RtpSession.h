@@ -50,7 +50,7 @@ public:
 class EndpointInfo
 {
 public:
-	CStdString m_extension;
+	CStdString m_partyNumber;
 };
 typedef boost::shared_ptr<EndpointInfo> EndpointInfoRef;
 
@@ -137,11 +137,13 @@ private:
 	void ChangeCallId(RtpSessionRef& session, unsigned int newId);
 	void SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort);
 	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId);
+	void SetEndpointPartyNumber(struct in_addr endpointIp, CStdString& number);
 
 	std::map<CStdString, RtpSessionRef> m_byIpAndPort;
 	std::map<CStdString, RtpSessionRef> m_byCallId;
 	std::map<unsigned int, EndpointInfoRef> m_endpoints;
 	LoggerPtr m_log;
+	LoggerPtr m_endpointLog;
 	AlphaCounter alphaCounter;
 };
 typedef ACE_Singleton<RtpSessions, ACE_Thread_Mutex> RtpSessionsSingleton;

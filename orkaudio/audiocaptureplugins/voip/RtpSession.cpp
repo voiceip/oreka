@@ -255,7 +255,7 @@ void RtpSession::ReportMetadata()
 			EndpointInfoRef endpointInfo = RtpSessionsSingleton::instance()->GetEndpointInfo(m_endPointIp);
 			if(endpointInfo.get())
 			{
-				m_localParty = endpointInfo->m_extension;
+				m_localParty = endpointInfo->m_partyNumber;
 			}
 		}
 	}
@@ -513,6 +513,7 @@ CStdString RtpSession::ProtocolToString(int protocolEnum)
 RtpSessions::RtpSessions()
 {
 	m_log = Logger::getLogger("rtpsessions");
+	m_endpointLog = Logger::getLogger("rtpsessions.endpoint");
 }
 
 
@@ -745,6 +746,7 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 		{
 			ChangeCallId(session, startMedia->passThruPartyId);
 			SetMediaAddress(session, startMedia->remoteIpAddr, startMedia->remoteTcpPort);
+			SetEndpointPartyNumber(startMedia->remoteIpAddr, session->m_remoteParty);
 		}
 		else
 		{
@@ -797,8 +799,8 @@ void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruc
 
 void RtpSessions::ReportSkinnyLineStat(SkLineStatStruct* lineStat, IpHeaderStruct* ipHeader)
 {
-	if(strlen(lineStat->lineDirNumber) > 1)
-	{
+	SetEndpointPartyNumber(ipHeader->ip_dest, CStdString(lineStat->lineDirNumber));
+/*
 		EndpointInfoRef endpoint;
 		std::map<unsigned int, EndpointInfoRef>::iterator pair;
 		pair = m_endpoints.find((unsigned int)(ipHeader->ip_dest.s_addr));
@@ -806,14 +808,14 @@ void RtpSessions::ReportSkinnyLineStat(SkLineStatStruct* lineStat, IpHeaderStruc
 		{
 			// Update the existing endpoint	info
 			endpoint = pair->second;
-			endpoint->m_extension = lineStat->lineDirNumber;
+			endpoint->m_partyNumber = lineStat->lineDirNumber;
 
 		}
 		else
 		{
 			// Create endpoint info for the new endpoint
 			endpoint.reset(new EndpointInfo());
-			endpoint->m_extension = lineStat->lineDirNumber;
+			endpoint->m_partyNumber = lineStat->lineDirNumber;
 			m_endpoints.insert(std::make_pair((unsigned int)(ipHeader->ip_dest.s_addr), endpoint));
 		}
 		if(endpoint.get())
@@ -825,7 +827,7 @@ void RtpSessions::ReportSkinnyLineStat(SkLineStatStruct* lineStat, IpHeaderStruc
 			logMsg.Format("Extension:%s is on endpoint:%s", endpoint->m_extension, szEndpointIp);
 			LOG4CXX_INFO(m_log, logMsg);
 		}
-	}
+*/
 }
 
 EndpointInfoRef RtpSessions::GetEndpointInfo(struct in_addr endpointIp)
@@ -839,6 +841,39 @@ EndpointInfoRef RtpSessions::GetEndpointInfo(struct in_addr endpointIp)
 	return EndpointInfoRef();
 }
 
+void RtpSessions::SetEndpointPartyNumber(struct in_addr endpointIp, CStdString& number)
+{
+	if(number.size() < 2)
+	{
+		return;
+	}
+	EndpointInfoRef endpoint;
+	std::map<unsigned int, EndpointInfoRef>::iterator pair;
+	pair = m_endpoints.find((unsigned int)(endpointIp.s_addr));
+	if(pair != m_endpoints.end())
+	{
+		// Update the existing endpoint	info
+		endpoint = pair->second;
+		endpoint->m_partyNumber = number;
+
+	}
+	else
+	{
+		// Create endpoint info for the new endpoint
+		endpoint.reset(new EndpointInfo());
+		endpoint->m_partyNumber = number;
+		m_endpoints.insert(std::make_pair((unsigned int)(endpointIp.s_addr), endpoint));
+	}
+	if(endpoint.get())
+	{
+		CStdString logMsg;
+		char szEndpointIp[16];
+		ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
+
+		logMsg.Format("PartyNumber:%s is on endpoint:%s", endpoint->m_partyNumber, szEndpointIp);
+		LOG4CXX_DEBUG(m_endpointLog, logMsg);
+	}
+}
 
 void RtpSessions::Stop(RtpSessionRef& session)
 {
