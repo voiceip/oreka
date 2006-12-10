@@ -409,7 +409,7 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 	AudioChunkRef chunk(new AudioChunk());
 	AudioChunkDetails details;
 	details.m_encoding = PcmAudio;
-	if(CheckChunkDetails(details))
+	if(CheckChunkDetails(details) && byteSize>0)
 	{
 		chunk->SetBuffer((void*)m_readPtr, byteSize, details);
 		m_outputQueue.push(chunk);
@@ -431,7 +431,7 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 		chunk.reset(new AudioChunk());
 		AudioChunkDetails details;
 		details.m_encoding = PcmAudio;
-		if(CheckChunkDetails(details))
+		if(CheckChunkDetails(details) && byteSize>0)
 		{
 			chunk->SetBuffer((void*)m_buffer, byteSize, details);
 			m_outputQueue.push(chunk);
@@ -450,7 +450,7 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 		AudioChunkRef chunk(new AudioChunk());
 		AudioChunkDetails details;
 		details.m_encoding = PcmAudio;
-		if(CheckChunkDetails(details))
+		if(CheckChunkDetails(details) && byteSize>0)
 		{
 			chunk->CreateBuffer(byteSize, details);
 			m_outputQueue.push(chunk);
