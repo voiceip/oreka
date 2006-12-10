@@ -130,11 +130,13 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 		double tmp = (double)details->m_timestamp - m_timestampCorrectiveDelta;
 		if(tmp < 0.0)
 		{
-			logMsg.Format("Corrected s2 timestamp is negative: ts:%u delta:%f wrts:%u", details->m_timestamp, m_timestampCorrectiveDelta, m_writeTimestamp);
-			LOG4CXX_ERROR(m_log, logMsg);
-			return;
+			// Unsuccessful correction, do not correct.
+			correctedTimestamp = details->m_timestamp;
 		}
-		correctedTimestamp = (unsigned int)tmp;
+		else
+		{
+			correctedTimestamp = (unsigned int)tmp;
+		}
 	}
 	else
 	{
