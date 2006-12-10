@@ -171,7 +171,7 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 
 	if(m_log->isDebugEnabled())
 	{
-		logMsg.Format("New chunk, s%d ts:%u corr-ts:%u", details->m_channel, details->m_timestamp, correctedTimestamp);
+		logMsg.Format("New chunk, s%d seq:%u ts:%u corr-ts:%u", details->m_channel, details->m_sequenceNumber, details->m_timestamp, correctedTimestamp);
 		LOG4CXX_DEBUG(m_log, logMsg);
 	}
 
