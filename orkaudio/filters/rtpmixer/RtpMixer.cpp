@@ -63,6 +63,7 @@ private:
 	short* GetHoldOffPtr();
 	short* CircularPointerAddOffset(short *ptr, size_t offset);
 	short* CicularPointerSubtractOffset(short *ptr, size_t offset);
+	bool CheckChunkDetails(AudioChunkDetails&);
 
 	short* m_writePtr;		// pointer after newest RTP data we've received
 	short* m_readPtr;		// where to read from next
@@ -73,8 +74,9 @@ private:
 	unsigned int m_shippedSamples;
 	log4cxx::LoggerPtr m_log;
 	double m_timestampCorrectiveDelta;
-
 	bool m_invalidChannelReported;
+	size_t m_numProcessedSamples;
+	bool m_error;
 };
 
 RtpMixer::RtpMixer()
@@ -87,8 +89,9 @@ RtpMixer::RtpMixer()
 	m_log = log4cxx::Logger::getLogger("rtpmixer");
 	m_shippedSamples = 0;
 	m_timestampCorrectiveDelta = 0.0;
-
 	m_invalidChannelReported = false;
+	m_numProcessedSamples = 0;
+	m_error = false;
 }
 
 FilterRef RtpMixer::Instanciate()
@@ -101,6 +104,10 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 {
 	CStdString logMsg;
 
+	if(m_error)
+	{
+		return;
+	}
 	if(chunk.get() == NULL)
 	{
 		LOG4CXX_DEBUG(m_log, "Null input chunk");
@@ -111,7 +118,13 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 		LOG4CXX_DEBUG(m_log, "Empty input chunk");
 		return;
 	}
-	
+	if(chunk->GetNumBytes() > 100000)
+	{
+		m_error = true;
+		LOG4CXX_ERROR(m_log, "RtpMixer: input chunk too big");
+		return;
+	}
+
 	AudioChunkDetails* details = chunk->GetDetails();		
 	if(details->m_encoding != PcmAudio)
 	{
@@ -123,6 +136,13 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 	if(details->m_channel == 1)
 	{
 		correctedTimestamp = details->m_timestamp;
+		m_numProcessedSamples += chunk->GetNumSamples();
+		if(m_numProcessedSamples > 115200000)	// arbitrary high number (= 4 hours worth of 8KHz samples)
+		{
+			m_error = true;
+			LOG4CXX_ERROR(m_log, "RtpMixer: Reached input stream size limit");
+			return;
+		}
 	}
 	else if(details->m_channel == 2)
 	{
@@ -157,11 +177,18 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 
 	if(m_writeTimestamp == 0)
 	{
-		// First RTP packet of the session
-		//LOG4CXX_DEBUG(m_log, m_capturePort + " first packet");
-		m_writeTimestamp = correctedTimestamp;
-		m_readTimestamp = m_writeTimestamp;
-		StoreRtpPacket(chunk, correctedTimestamp);
+		if(details->m_channel == 1)
+		{
+			// First RTP packet of the session
+			LOG4CXX_DEBUG(m_log, "first chunk");
+			m_writeTimestamp = correctedTimestamp;
+			m_readTimestamp = m_writeTimestamp;
+			StoreRtpPacket(chunk, correctedTimestamp);
+		}
+		else
+		{
+			return;
+		}
 	}
 	else if (correctedTimestamp >= m_readTimestamp)
 	{
@@ -180,23 +207,23 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 		{
 			// RTP packet does not fit into current buffer
 			// work out how much silence we need to add to the current buffer when shipping
-			size_t silenceSize = correctedTimestamp - m_writeTimestamp;
+			//size_t silenceSize = correctedTimestamp - m_writeTimestamp;
 
-			if(silenceSize < (8000*10) && (correctedTimestamp > m_writeTimestamp))	// maximum silence is 10 seconds @8KHz
-			{
-				CreateShipment(silenceSize);
+			//if(silenceSize < (8000*10) && (correctedTimestamp > m_writeTimestamp))	// maximum silence is 10 seconds @8KHz
+			//{
+			//	CreateShipment(silenceSize);
 
 				// reset buffer
-				Reset(correctedTimestamp);
+			//	Reset(correctedTimestamp);
 
 				// Store new packet
-				StoreRtpPacket(chunk, correctedTimestamp);
-			}
-			else
-			{
+			//	StoreRtpPacket(chunk, correctedTimestamp);
+			//}
+			//else
+			//{
 				// This chunk is newer than the curent timestamp window
 				ManageOutOfRangeTimestamp(chunk);
-			}
+			//}
 		}
 	}
 	else
@@ -379,8 +406,11 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 	AudioChunkRef chunk(new AudioChunk());
 	AudioChunkDetails details;
 	details.m_encoding = PcmAudio;
-	chunk->SetBuffer((void*)m_readPtr, byteSize, details);
-	m_outputQueue.push(chunk);
+	if(CheckChunkDetails(details))
+	{
+		chunk->SetBuffer((void*)m_readPtr, byteSize, details);
+		m_outputQueue.push(chunk);
+	}
 	m_shippedSamples += shortSize;
 	m_readPtr = CircularPointerAddOffset(m_readPtr ,shortSize);
 	m_readTimestamp += shortSize;
@@ -398,8 +428,11 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 		chunk.reset(new AudioChunk());
 		AudioChunkDetails details;
 		details.m_encoding = PcmAudio;
-		chunk->SetBuffer((void*)m_buffer, byteSize, details);
-		m_outputQueue.push(chunk);
+		if(CheckChunkDetails(details))
+		{
+			chunk->SetBuffer((void*)m_buffer, byteSize, details);
+			m_outputQueue.push(chunk);
+		}
 		m_shippedSamples += shortSize;
 		m_readPtr = CircularPointerAddOffset(m_readPtr ,shortSize);
 		m_readTimestamp += shortSize;
@@ -414,8 +447,11 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 		AudioChunkRef chunk(new AudioChunk());
 		AudioChunkDetails details;
 		details.m_encoding = PcmAudio;
-		chunk->CreateBuffer(byteSize, details);
-		m_outputQueue.push(chunk);
+		if(CheckChunkDetails(details))
+		{
+			chunk->CreateBuffer(byteSize, details);
+			m_outputQueue.push(chunk);
+		}
 		m_shippedSamples += silenceSize;
 		m_readPtr = CircularPointerAddOffset(m_readPtr ,silenceSize);
 		m_readTimestamp += silenceSize;
@@ -440,6 +476,16 @@ unsigned int RtpMixer::FreeSpace()
 	return NUM_SAMPLES_CIRCULAR_BUFFER - UsedSpace();
 }
 
+bool RtpMixer::CheckChunkDetails(AudioChunkDetails& details)
+{
+	if(details.m_numBytes > 100000)
+	{
+		m_error = true;
+		LOG4CXX_ERROR(m_log, "RtpMixer: output chunk too big");
+		return false;
+	}
+	return true;
+}
 
 //=====================================================================
 
