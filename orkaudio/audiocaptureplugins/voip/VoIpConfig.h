@@ -63,7 +63,8 @@ public:
 	int m_rtpSessionTimeoutSec;
 	int m_rtpSessionWithSignallingTimeoutSec;
 	bool m_pcapTest;
-
+	bool m_rtpDiscontinuityDetect;
+	int  m_rtpDiscontinuityMinSeqDelta;
 };
 
 //========================================
