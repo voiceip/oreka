@@ -117,6 +117,8 @@ private:
 	CStdString m_orkUid;
 	bool m_hasDuplicateRtp;
 	unsigned int m_highestRtpSeqNumDelta;
+	double m_minRtpSeqDelta;
+	double m_minRtpTimestampDelta;
 };
 typedef boost::shared_ptr<RtpSession> RtpSessionRef;
 

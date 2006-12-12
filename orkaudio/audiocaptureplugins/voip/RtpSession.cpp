@@ -47,6 +47,8 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_beginDate = 0;
 	m_hasDuplicateRtp = false;
 	m_highestRtpSeqNumDelta = 0;
+	m_minRtpSeqDelta = (double)DLLCONFIG.m_rtpDiscontinuityMinSeqDelta;
+	m_minRtpTimestampDelta = (double)DLLCONFIG.m_rtpDiscontinuityMinSeqDelta * 160;		// arbitrarily based on 160 samples per packet (does not need to be precise)
 }
 
 void RtpSession::Stop()
@@ -326,7 +328,6 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	unsigned char channel = 0;
 	unsigned int correctedRtpTimestamp = rtpPacket->m_timestamp;
 
-	
 	// Dismiss packets that should not be part of a Skinny session
 	if(m_protocol == ProtSkinny)
 	{
@@ -380,10 +381,23 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 			}
 			else
 			{
-				int delta = rtpPacket->m_seqNum - m_lastRtpPacketSide1->m_seqNum;
-				if(delta > m_highestRtpSeqNumDelta)
+				double seqNumDelta = (double)rtpPacket->m_seqNum - (double)m_lastRtpPacketSide1->m_seqNum;
+				if(DLLCONFIG.m_rtpDiscontinuityDetect)
 				{
-					m_highestRtpSeqNumDelta = delta;
+					double timestampDelta = (double)rtpPacket->m_timestamp - (double)m_lastRtpPacketSide1->m_timestamp;
+					if(	abs(seqNumDelta) > m_minRtpSeqDelta  &&
+						abs(timestampDelta) > m_minRtpTimestampDelta)	
+					{
+						logMsg.Format("[%s] RTP discontinuity s1: before: seq:%u ts:%u after: seq:%u ts:%u", 
+							m_trackingId, m_lastRtpPacketSide1->m_seqNum, m_lastRtpPacketSide1->m_timestamp, 
+							rtpPacket->m_seqNum, rtpPacket->m_timestamp);
+						LOG4CXX_INFO(m_log, logMsg);
+						return false;
+					}
+				}
+				if(seqNumDelta > (double)m_highestRtpSeqNumDelta)
+				{
+					m_highestRtpSeqNumDelta = (unsigned int)seqNumDelta;
 				}
 			}
 			m_lastRtpPacketSide1 = rtpPacket;
@@ -410,10 +424,23 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 				}
 				else
 				{
-					int delta = rtpPacket->m_seqNum - m_lastRtpPacketSide2->m_seqNum;
-					if(delta > m_highestRtpSeqNumDelta)
+					double seqNumDelta = (double)rtpPacket->m_seqNum - (double)m_lastRtpPacketSide2->m_seqNum;
+					if(DLLCONFIG.m_rtpDiscontinuityDetect)
 					{
-						m_highestRtpSeqNumDelta = delta;
+						double timestampDelta = (double)rtpPacket->m_timestamp - (double)m_lastRtpPacketSide2->m_timestamp;
+						if(	abs(seqNumDelta) > m_minRtpSeqDelta  &&
+							abs(timestampDelta) > m_minRtpTimestampDelta)	
+						{
+							logMsg.Format("[%s] RTP discontinuity s2: before: seq:%u ts:%u after: seq:%u ts:%u", 
+								m_trackingId, m_lastRtpPacketSide2->m_seqNum, m_lastRtpPacketSide2->m_timestamp, 
+								rtpPacket->m_seqNum, rtpPacket->m_timestamp);
+							LOG4CXX_INFO(m_log, logMsg);
+							return false;
+						}
+					}
+					if(seqNumDelta > (double)m_highestRtpSeqNumDelta)
+					{
+						m_highestRtpSeqNumDelta = (unsigned int)seqNumDelta;
 					}
 				}
 			}
