@@ -111,8 +111,6 @@ private:
 	CStdString m_capturePort;
 	bool m_started;
 	bool m_stopped;
-	unsigned int m_rtpTimestampCorrectiveDelta;
-	bool m_rtpTimestampCorrectiveSign;
 	time_t m_beginDate;
 	CStdString m_orkUid;
 	bool m_hasDuplicateRtp;
