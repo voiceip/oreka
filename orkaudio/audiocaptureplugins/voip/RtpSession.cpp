@@ -43,7 +43,6 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_numRtpPackets = 0;
 	m_started = false;
 	m_stopped = false;
-	m_rtpTimestampCorrectiveDelta = 0;
 	m_beginDate = 0;
 	m_hasDuplicateRtp = false;
 	m_highestRtpSeqNumDelta = 0;
@@ -326,7 +325,6 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 {
 	CStdString logMsg;
 	unsigned char channel = 0;
-	unsigned int correctedRtpTimestamp = rtpPacket->m_timestamp;
 
 	// Dismiss packets that should not be part of a Skinny session
 	if(m_protocol == ProtSkinny)
@@ -372,7 +370,8 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 	else
 	{
-		if((unsigned int)rtpPacket->m_sourceIp.s_addr == (unsigned int)m_lastRtpPacketSide1->m_sourceIp.s_addr)
+		// Comparing destination IP address to find out if side1, see (1)
+		if((unsigned int)rtpPacket->m_destIp.s_addr == (unsigned int)m_lastRtpPacketSide1->m_destIp.s_addr)
 		{
 			if(rtpPacket->m_timestamp == m_lastRtpPacketSide1->m_timestamp)
 			{
@@ -454,21 +453,9 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	if(m_log->isDebugEnabled())
 	{
 		CStdString debug;
-		debug.Format("[%s] %s: Add RTP packet ts:%u, corrected ts:%u, arrival:%u, channel:%d", m_trackingId, m_capturePort, rtpPacket->m_timestamp, correctedRtpTimestamp, rtpPacket->m_arrivalTimestamp, channel);
+		debug.Format("[%s] %s: Add RTP packet ts:%u  arrival:%u ch:%d", m_trackingId, m_capturePort, rtpPacket->m_timestamp, rtpPacket->m_arrivalTimestamp, channel);
 		LOG4CXX_DEBUG(m_log, debug);
 	}
-
-	// Detect RTP timestamp discontinuity
-	//if(m_protocol == ProtRawRtp)
-	//{
-	//	int delta = rtpPacket->m_timestamp - m_lastRtpPacketSide1->m_timestamp;
-	//	if(delta > (RTP_SESSION_TIMEOUT*8000) || delta < (RTP_SESSION_TIMEOUT*8000*-1))
-	//	{
-	//		logMsg.Format("RTP timestamp discontinuity before:%u after:%u", m_lastRtpPacketSide1->m_timestamp, rtpPacket->m_timestamp);
-	//		LOG4CXX_INFO(m_log, logMsg);
-	//		return false;
-	//	}
-	//}
 
 	if(		(m_protocol == ProtRawRtp && m_numRtpPackets == 50)	||
 			(m_protocol == ProtSkinny && m_numRtpPackets == 2)	||
@@ -485,7 +472,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		AudioChunkDetails details;
 		details.m_arrivalTimestamp = rtpPacket->m_arrivalTimestamp;
 		details.m_numBytes = rtpPacket->m_payloadSize;
-		details.m_timestamp = correctedRtpTimestamp;
+		details.m_timestamp = rtpPacket->m_timestamp;
 		details.m_rtpPayloadType = rtpPacket->m_payloadType;
 		details.m_sequenceNumber = rtpPacket->m_seqNum;
 		details.m_channel = channel;
@@ -1009,7 +996,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		CStdString trackingId = alphaCounter.GetNext();
 		RtpSessionRef session(new RtpSession(trackingId));
 		session->m_protocol = RtpSession::ProtRawRtp;
-		session->m_ipAndPort = ipAndPort;
+		session->m_ipAndPort = ipAndPort;	// (1) In the case of a PSTN Gateway automated answer, This is the destination IP+Port of the first packet which is good, because it is usually the IP+Port of the PSTN Gateway.
 		session->AddRtpPacket(rtpPacket);
 		m_byIpAndPort.insert(std::make_pair(ipAndPort, session));
 
