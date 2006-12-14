@@ -979,6 +979,19 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 				mergeeSession = session1;		
 			}
 		}
+
+		// Previous rules can be overruled by configuration, useful for merging sessions by "PSTN trunks"
+		if(DLLCONFIG.IsRtpTrackingIpAddress(rtpPacket->m_sourceIp))
+		{
+			mergerSession = session1;
+			mergeeSession = session2;	
+		}
+		else if(DLLCONFIG.IsRtpTrackingIpAddress(rtpPacket->m_destIp))
+		{
+			mergerSession = session2;
+			mergeeSession = session1;	
+		}
+
 		if(m_log->isInfoEnabled())
 		{
 			CStdString debug;

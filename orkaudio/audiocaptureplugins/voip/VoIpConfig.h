@@ -36,6 +36,7 @@ public:
 
 	bool IsPartOfLan(struct in_addr);
 	bool IsMediaGateway(struct in_addr);
+	bool IsRtpTrackingIpAddress(struct in_addr addr);
 	bool IsDeviceWanted(CStdString device);
 	bool IsPacketWanted(IpHeaderStruct* ipHeader);
 
@@ -45,6 +46,8 @@ public:
 	std::list<CStdString> m_asciiMediaGateways;
 	std::list<unsigned int> m_lanMasks;
 	std::list<CStdString> m_asciiLanMasks;
+	std::list<unsigned int> m_rtpTrackUsingIpAddresses;
+	std::list<CStdString> m_asciiRtpTrackUsingIpAddresses;
 
 	std::list<CStdString> m_asciiAllowedIpRanges;	// CIDR notation
 	std::list<unsigned int> m_allowedIpRangePrefixes;

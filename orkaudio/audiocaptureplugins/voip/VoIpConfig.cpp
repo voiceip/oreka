@@ -43,6 +43,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->CsvValue("Devices", m_devices);
 	s->CsvValue("LanMasks", m_asciiLanMasks);
 	s->CsvValue("MediaGateways", m_asciiMediaGateways);
+	s->CsvValue("RtpTrackUsingIpAddresses", m_asciiRtpTrackUsingIpAddresses);
 
 	s->CsvValue("BlockedIpRanges", m_asciiBlockedIpRanges);
 	s->CsvValue("AllowedIpRanges", m_asciiAllowedIpRanges);
@@ -91,6 +92,21 @@ void VoIpConfig::Validate()
 		else
 		{
 			throw (CStdString("VoIpConfig: invalid IP address in MediaGateways:" + *it)  + " please fix config.xml");
+		}
+	}
+
+	// iterate over ascii RTP tracking IP addresses and populate the binary IP addresses list
+	m_rtpTrackUsingIpAddresses.clear();
+	for(it = m_asciiRtpTrackUsingIpAddresses.begin(); it != m_asciiRtpTrackUsingIpAddresses.end(); it++)
+	{
+		struct in_addr a;
+		if(ACE_OS::inet_aton((PCSTR)*it, &a))
+		{
+			m_rtpTrackUsingIpAddresses.push_back((unsigned int)a.s_addr);
+		}
+		else
+		{
+			throw (CStdString("VoIpConfig: invalid IP address in RtpTrackUsingIpAddresses:" + *it)  + " please fix config.xml");
 		}
 	}
 
@@ -222,6 +238,18 @@ bool VoIpConfig::IsPartOfLan(struct in_addr addr)
 bool VoIpConfig::IsMediaGateway(struct in_addr addr)
 {
 	for(std::list<unsigned int>::iterator it = m_mediaGateways.begin(); it != m_mediaGateways.end(); it++)
+	{
+		if((unsigned int)addr.s_addr == *it)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool VoIpConfig::IsRtpTrackingIpAddress(struct in_addr addr)
+{
+	for(std::list<unsigned int>::iterator it = m_rtpTrackUsingIpAddresses.begin(); it != m_rtpTrackUsingIpAddresses.end(); it++)
 	{
 		if((unsigned int)addr.s_addr == *it)
 		{
