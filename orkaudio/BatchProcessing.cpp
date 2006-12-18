@@ -240,6 +240,20 @@ void BatchProcessing::ThreadHandler(void *args)
 					}
 				}
 
+				if(voIpSession)
+				{
+					// Flush the RTP mixer
+					AudioChunkRef stopChunk(new AudioChunk());
+					stopChunk->GetDetails()->m_marker = MEDIA_CHUNK_EOS_MARKER;
+					filter->AudioChunkIn(stopChunk);
+					filter->AudioChunkOut(tmpChunkRef);
+					outFileRef->WriteChunk(tmpChunkRef);
+					if(tmpChunkRef.get())
+					{
+						numSamplesOut += tmpChunkRef->GetNumSamples();
+					}
+				}
+
 				fileRef->Close();
 				outFileRef->Close();
 				logMsg.Format("[%s] Th%s stop: num samples: s1:%u s2:%u out:%u", trackingId, threadIdString, numSamplesS1, numSamplesS2, numSamplesOut);

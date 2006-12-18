@@ -56,6 +56,9 @@ private:
 	short* CircularPointerAddOffset(short *ptr, size_t offset);
 	short* CicularPointerSubtractOffset(short *ptr, size_t offset);
 	bool CheckChunkDetails(AudioChunkDetails&);
+	void DoStats(	AudioChunkDetails* details, AudioChunkDetails* lastDetails, 
+					int& seqNumMisses, int& seqMaxGap, int& seqNumOutOfOrder, 
+					int& seqNumDiscontinuities);
 
 	short* m_writePtr;		// pointer after newest RTP data we've received
 	short* m_readPtr;		// where to read from next
@@ -69,6 +72,18 @@ private:
 	bool m_invalidChannelReported;
 	size_t m_numProcessedSamples;
 	bool m_error;
+
+	// Statistics related variables
+	AudioChunkRef m_lastChunkS1;
+	AudioChunkRef m_lastChunkS2;
+	int m_seqNumMissesS1;
+	int m_seqNumMissesS2;
+	int m_seqMaxGapS1;
+	int m_seqMaxGapS2;
+	int m_seqNumOutOfOrderS1;
+	int m_seqNumOutOfOrderS2;
+	int m_seqNumDiscontinuitiesS1;
+	int m_seqNumDiscontinuitiesS2;
 };
 
 RtpMixer::RtpMixer()
@@ -84,6 +99,14 @@ RtpMixer::RtpMixer()
 	m_invalidChannelReported = false;
 	m_numProcessedSamples = 0;
 	m_error = false;
+	m_seqNumMissesS1 = 0;
+	m_seqNumMissesS2 = 0;
+	m_seqMaxGapS1 = 0;
+	m_seqMaxGapS2 = 0;
+	m_seqNumOutOfOrderS1 = 0;
+	m_seqNumOutOfOrderS2 = 0;
+	m_seqNumDiscontinuitiesS1 = 0;
+	m_seqNumDiscontinuitiesS2 = 0;
 }
 
 FilterRef RtpMixer::Instanciate()
@@ -91,6 +114,40 @@ FilterRef RtpMixer::Instanciate()
 	FilterRef Filter(new RtpMixer());
 	return Filter;
 }
+
+void RtpMixer::DoStats(	AudioChunkDetails* details, AudioChunkDetails* lastDetails, 
+						int& seqNumMisses, int& seqMaxGap, int& seqNumOutOfOrder, 
+						int& seqNumDiscontinuities)
+{
+	double seqNumDelta = (double)details->m_sequenceNumber - (double)lastDetails->m_sequenceNumber;
+	double timestampDelta = (double)details->m_timestamp - (double)lastDetails->m_timestamp;
+	if(	abs(seqNumDelta) > 1000.0  &&
+		abs(timestampDelta) > 160000.0)	
+	{
+		seqNumDiscontinuities++;
+		CStdString logMsg;
+		logMsg.Format("RTP discontinuity s%d: before: seq:%u ts:%u after: seq:%u ts:%u", 
+			details->m_channel, lastDetails->m_sequenceNumber, lastDetails->m_timestamp, 
+			details->m_sequenceNumber, details->m_timestamp);
+		LOG4CXX_DEBUG(m_log, logMsg);
+	}
+	else
+	{
+		if(seqNumDelta > (double)seqMaxGap)
+		{
+			seqMaxGap = (unsigned int)seqNumDelta;
+		}
+		if(seqNumDelta < 0.0)
+		{
+			seqNumOutOfOrder++;
+		}
+		if(seqNumDelta != 1.0 && details->m_sequenceNumber != 1)
+		{
+			seqNumMisses++;
+		}
+	}
+}
+
 
 void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 {
@@ -105,6 +162,19 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 		LOG4CXX_DEBUG(m_log, "Null input chunk");
 		return;
 	}
+
+	AudioChunkDetails* details = chunk->GetDetails();
+
+	if(details->m_marker == MEDIA_CHUNK_EOS_MARKER)
+	{
+		logMsg.Format("EOS s1: misses:%d maxgap:%d oo:%d disc:%d  s2: misses:%d maxgap:%d oo:%d disc:%d", 
+			m_seqNumMissesS1, m_seqMaxGapS1, m_seqNumOutOfOrderS1, m_seqNumDiscontinuitiesS1,
+			m_seqNumMissesS2, m_seqMaxGapS2, m_seqNumOutOfOrderS2, m_seqNumDiscontinuitiesS2);
+		LOG4CXX_INFO(m_log, logMsg);
+
+		CreateShipment();	// flush the buffer
+		return;
+	}
 	else if(chunk->GetNumSamples() == 0)
 	{
 		LOG4CXX_DEBUG(m_log, "Empty input chunk");
@@ -116,17 +186,21 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 		LOG4CXX_ERROR(m_log, "RtpMixer: input chunk too big");
 		return;
 	}
-
-	AudioChunkDetails* details = chunk->GetDetails();		
 	if(details->m_encoding != PcmAudio)
 	{
 		throw (CStdString("RtpMixer input audio must be PCM !"));
-	}
+	}	
 
 	unsigned int correctedTimestamp = 0;
 
 	if(details->m_channel == 1)
 	{
+		if(m_lastChunkS1.get())
+		{
+			DoStats(details, m_lastChunkS1->GetDetails(), m_seqNumMissesS1, m_seqMaxGapS1, 
+				m_seqNumOutOfOrderS1, m_seqNumDiscontinuitiesS1);
+		}
+		m_lastChunkS1 = chunk;
 		correctedTimestamp = details->m_timestamp;
 		m_numProcessedSamples += chunk->GetNumSamples();
 		if(m_numProcessedSamples > 115200000)	// arbitrary high number (= 4 hours worth of 8KHz samples)
@@ -138,6 +212,12 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 	}
 	else if(details->m_channel == 2)
 	{
+		if(m_lastChunkS2.get())
+		{
+			DoStats(details, m_lastChunkS2->GetDetails(), m_seqNumMissesS2, m_seqMaxGapS2, 
+				m_seqNumOutOfOrderS2, m_seqNumDiscontinuitiesS2);
+		}
+		m_lastChunkS2 = chunk;
 		// Corrective delta always only applied to side 2.
 		double tmp = (double)details->m_timestamp - m_timestampCorrectiveDelta;
 		if(tmp < 0.0)
