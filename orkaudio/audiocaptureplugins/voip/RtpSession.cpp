@@ -174,9 +174,7 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 
 void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 {
-	bool done = false;
-
-	// work out invitee IP address
+	// work out invitee media IP address
 	if((unsigned int)rtpPacket->m_sourceIp.s_addr == (unsigned int)m_invitorIp.s_addr)
 	{
 		m_inviteeIp = rtpPacket->m_destIp;
@@ -199,12 +197,20 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 	{
 		if(DLLCONFIG.IsMediaGateway(m_inviteeIp))
 		{
-			// dismiss
-		}
-		if(DLLCONFIG.IsPartOfLan(m_inviteeIp))
-		{
+			// Media gateway talking to media gateway, this is probably incoming
 			ProcessMetadataSipIncoming();
-		}	
+		}
+		else if(DLLCONFIG.IsPartOfLan(m_inviteeIp))
+		{
+			// Gateway to LAN, this is pobably incoming
+			ProcessMetadataSipIncoming();
+		}
+		else
+		{
+			// Gateway to outside address, probably outgoing but treat as incoming for now because
+			// It can be due to misconfigured LAN Mask, odds are it's still incoming.
+			ProcessMetadataSipIncoming();
+		}
 	}
 	else if (DLLCONFIG.IsPartOfLan(m_invitorIp))
 	{
@@ -212,10 +218,10 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 	}
 	else
 	{
-		// SIP invitor IP address is an outside IP address
+		// SIP invitor media IP address is an outside IP address
 		if(DLLCONFIG.IsMediaGateway(m_inviteeIp))
 		{
-			// dismiss
+			ProcessMetadataSipIncoming();
 		}
 		else if(DLLCONFIG.IsPartOfLan(m_inviteeIp))
 		{
@@ -223,7 +229,7 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 		}
 		else
 		{
-			// SIP invitee IP address is an outside IP address
+			// SIP invitee media address is an outside IP address
 			ProcessMetadataSipOutgoing();
 		}
 	}
