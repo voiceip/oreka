@@ -132,13 +132,25 @@ char* memFindEOL(char* start, char* limit)
 	return start;
 }
 
+
 // Grabs a string in memory until encountering null char, a space a CR or LF chars
-void GrabToken(char* in, CStdString& out)
+void GrabToken(char* in, char* limit, CStdString& out)
 {
-	for(char* c = in; *c != '\0' && *c != 0x20 && *c != 0x0D && *c != 0x0A; c = c+1)
+	for(char* c = in; *c != '\0' && *c != 0x20 && *c != 0x0D && *c != 0x0A && c<limit; c = c+1)
 	{
 		out += *c;
 	}
+}
+
+// Same as GrabToken but skipping leading whitespaces
+void GrabTokenSkipLeadingWhitespaces(char* in, char* limit, CStdString& out)
+{
+	char* c = in;
+	while(*c == 0x20 && (*c != '\0' && *c != 0x0D && *c != 0x0A) && c<limit)
+	{
+		c = c+1;
+	}
+	GrabToken(c, limit, out);
 }
 
 void GrabAlphaNumToken(char * in, char* limit, CStdString& out)
@@ -158,6 +170,18 @@ void GrabAlphaNumToken(char * in, char* limit, CStdString& out)
 		}
 	}
 }
+
+// Same as GrabAlphaNumToken but skipping leading whitespaces
+void GrabAlphaNumTokenSkipLeadingWhitespaces(char* in, char* limit, CStdString& out)
+{
+	char* c = in;
+	while(*c == 0x20 && (*c != '\0' && *c != 0x0D && *c != 0x0A) && c < limit)
+	{
+		c = c+1;
+	}
+	GrabAlphaNumToken(c, limit, out);
+}
+
 
 void GrabString(char* start, char* stop, CStdString& out)
 {
@@ -250,10 +274,10 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 		int sipLength = ntohs(udpHeader->len);
 		char* sipEnd = (char*)udpPayload + sipLength;
 		SipByeInfo info;
-		char* callIdField = memFindAfter("Call-ID: ", (char*)udpPayload, sipEnd);
+		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
 		if(callIdField)
 		{
-			GrabToken(callIdField, info.m_callId);
+			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info.m_callId);
 		}
 		LOG4CXX_INFO(s_sipPacketLog, "BYE: callid:" + info.m_callId);
 		if(callIdField)
@@ -277,9 +301,9 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 
 		SipInviteInfoRef info(new SipInviteInfo());
 
-		char* fromField = memFindAfter("From: ", (char*)udpPayload, sipEnd);
-		char* toField = memFindAfter("To: ", (char*)udpPayload, sipEnd);
-		char* callIdField = memFindAfter("Call-ID: ", (char*)udpPayload, sipEnd);
+		char* fromField = memFindAfter("From:", (char*)udpPayload, sipEnd);
+		char* toField = memFindAfter("To:", (char*)udpPayload, sipEnd);
+		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
 		char* audioField = NULL;
 		char* connectionAddressField = NULL;
 
@@ -297,11 +321,11 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			char* sipUser = memFindAfter("sip:", fromField, fromFieldEnd);
 			if(sipUser)
 			{
-				GrabAlphaNumToken(sipUser, fromFieldEnd, info->m_from);
+				GrabAlphaNumTokenSkipLeadingWhitespaces(sipUser, fromFieldEnd, info->m_from);
 			}
 			else
 			{
-				GrabAlphaNumToken(fromField, fromFieldEnd, info->m_from);
+				GrabAlphaNumTokenSkipLeadingWhitespaces(fromField, fromFieldEnd, info->m_from);
 			}
 		}
 		if(toField)
@@ -313,27 +337,27 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			char* sipUser = memFindAfter("sip:", toField, toFieldEnd);
 			if(sipUser)
 			{
-				GrabAlphaNumToken(sipUser, toFieldEnd, info->m_to);
+				GrabAlphaNumTokenSkipLeadingWhitespaces(sipUser, toFieldEnd, info->m_to);
 			}
 			else
 			{
-				GrabAlphaNumToken(toField, toFieldEnd, info->m_to);
+				GrabAlphaNumTokenSkipLeadingWhitespaces(toField, toFieldEnd, info->m_to);
 			}
 		}
 		if(callIdField)
 		{
-			GrabToken(callIdField, info->m_callId);
+			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
 			audioField = memFindAfter("m=audio ", callIdField, sipEnd);
 			connectionAddressField = memFindAfter("c=IN IP4 ", callIdField, sipEnd);
 		}
 		if(audioField)
 		{
-			GrabToken(audioField, info->m_fromRtpPort);
+			GrabToken(audioField, sipEnd, info->m_fromRtpPort);
 		}
 		if(connectionAddressField)
 		{
 			CStdString connectionAddress;
-			GrabToken(connectionAddressField, connectionAddress);
+			GrabToken(connectionAddressField, sipEnd, connectionAddress);
 			struct in_addr fromIp;
 			if(connectionAddress.size())
 			{
@@ -441,9 +465,9 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			// Extract Calling and Called number.
 			CStdString callingParty;
 			char* parties = (char*)(&ccm5CallInfo->parties);
-			GrabToken(parties, callingParty);
+			GrabToken(parties, parties+SKINNY_CCM5_PARTIES_BLOCK_SIZE, callingParty);
 			CStdString calledParty;
-			GrabToken(parties+callingParty.size()+1, calledParty);
+			GrabToken(parties+callingParty.size()+1, parties+SKINNY_CCM5_PARTIES_BLOCK_SIZE, calledParty);
 
 			// Emulate a regular CCM CallInfo message
 			SkCallInfoStruct callInfo;
