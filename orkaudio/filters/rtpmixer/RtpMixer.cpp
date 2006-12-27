@@ -172,7 +172,7 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 			m_seqNumMissesS2, m_seqMaxGapS2, m_seqNumOutOfOrderS2, m_seqNumDiscontinuitiesS2);
 		LOG4CXX_INFO(m_log, logMsg);
 
-		CreateShipment();	// flush the buffer
+		CreateShipment(0, true);	// flush the buffer
 		return;
 	}
 	else if(chunk->GetNumSamples() == 0)
@@ -243,7 +243,7 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 
 	if(m_log->isDebugEnabled())
 	{
-		logMsg.Format("New chunk, s%d seq:%u ts:%u corr-ts:%u", details->m_channel, details->m_sequenceNumber, details->m_timestamp, correctedTimestamp);
+		logMsg.Format("New chunk, s%d seq:%u ts:%u corr-ts:%u type:%d", details->m_channel, details->m_sequenceNumber, details->m_timestamp, correctedTimestamp, details->m_rtpPayloadType);
 		LOG4CXX_DEBUG(m_log, logMsg);
 	}
 
