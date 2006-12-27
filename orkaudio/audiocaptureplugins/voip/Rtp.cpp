@@ -23,6 +23,6 @@ void RtpPacketInfo::ToString(CStdString& string)
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_sourceIp, sourceIp, sizeof(sourceIp));
 	char destIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_destIp, destIp, sizeof(destIp));
-	string.Format("%s,%d %s,%d seq:%u ts:%u len:%d type:%x", sourceIp, m_sourcePort, destIp, m_destPort, m_seqNum, m_timestamp, m_payloadSize, m_payloadType);
+	string.Format("%s,%d %s,%d seq:%u ts:%u len:%d type:%d", sourceIp, m_sourcePort, destIp, m_destPort, m_seqNum, m_timestamp, m_payloadSize, m_payloadType);
 }
 
