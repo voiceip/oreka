@@ -38,6 +38,8 @@ typedef enum
 #define MEDIA_CHUNK_MARKER 0x2A2A2A2A // corresponds to "****"
 #define MEDIA_CHUNK_EOS_MARKER 0x454F534D	/// corresponds to "EOSM"
 
+#define RTP_PAYLOAD_TYPE_MAX 127
+
 class DLL_IMPORT_EXPORT_ORKBASE AudioChunkDetails
 {
 public:
