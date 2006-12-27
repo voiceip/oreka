@@ -1,5 +1,6 @@
 #include "Utils.h"
 #include "ace/OS_NS_stdio.h"
+#include "ace/OS_NS_arpa_inet.h"
 
 //========================================================
 // file related stuff
@@ -63,3 +64,46 @@ bool FileCanOpen(CStdString& path)
 	}
 	return false;
 }
+
+//=====================================================
+// Network related stuff
+
+void TcpAddress::ToString(CStdString& string)
+{
+	char szIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&ip, szIp, sizeof(szIp));
+
+	string.Format("%s,%u", szIp, port);
+}
+
+
+void TcpAddressList::AddAddress(struct in_addr ip, unsigned short port)
+{
+	TcpAddress addr;
+	addr.ip = ip;
+	addr.port = port;
+	m_addresses.push_back(addr);
+}
+
+bool TcpAddressList::HasAddress(struct in_addr ip, unsigned short port)
+{
+	for(std::list<TcpAddress>::iterator it = m_addresses.begin(); it != m_addresses.end(); it++)
+	{
+		if ((unsigned int)((*it).ip.s_addr) == (unsigned int)ip.s_addr  && (*it).port == port)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool TcpAddressList::HasAddressOrAdd(struct in_addr ip, unsigned short port)
+{
+	if(HasAddress(ip, port) == false)
+	{
+		AddAddress(ip, port);
+		return false;
+	}
+	return true;
+}
+
