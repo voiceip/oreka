@@ -60,6 +60,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("PcapTest", m_pcapTest);
 	s->BoolValue("RtpDiscontinuityDetect", m_rtpDiscontinuityDetect);
 	s->IntValue("RtpDiscontinuityMinSeqDelta", m_rtpDiscontinuityMinSeqDelta);
+	s->CsvValue("DnisNumbers", m_dnisNumbers);
 }
 
 void VoIpConfig::Validate()

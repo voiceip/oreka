@@ -68,6 +68,8 @@ public:
 	bool m_pcapTest;
 	bool m_rtpDiscontinuityDetect;
 	int  m_rtpDiscontinuityMinSeqDelta;
+
+	std::list<CStdString> m_dnisNumbers;
 };
 
 //========================================
