@@ -14,6 +14,9 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
+#include <vector>
+#include <bitset>
+
 #include "ConfigManager.h"
 #include "BatchProcessing.h"
 #include "ace/OS_NS_unistd.h"
@@ -150,6 +153,18 @@ void BatchProcessing::ThreadHandler(void *args)
 				FilterRef filter;
 				FilterRef decoder1;
 				FilterRef decoder2;
+				FilterRef decoder;
+
+				std::bitset<RTP_PAYLOAD_TYPE_MAX> seenRtpPayloadTypes;
+				std::vector<FilterRef> decoders1;
+				std::vector<FilterRef> decoders2;
+				for(int pt=0; pt<RTP_PAYLOAD_TYPE_MAX; pt++)
+				{
+					decoder1 = FilterRegistry::instance()->GetNewFilter(pt);
+					decoders1.push_back(decoder1);
+					decoder2 = FilterRegistry::instance()->GetNewFilter(pt);
+					decoders2.push_back(decoder2);
+				}
 
 				bool firstChunk = true;
 				bool voIpSession = false;
@@ -167,32 +182,66 @@ void BatchProcessing::ThreadHandler(void *args)
 					// ############ HACK
 
 					AudioChunkDetails details = *chunkRef->GetDetails();
-					if(firstChunk && details.m_rtpPayloadType != -1)
-					{
-						CStdString rtpPayloadType = IntToString(details.m_rtpPayloadType);
-						LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " RTP payload type:" + rtpPayloadType);
+					decoder.reset();
 
-						CStdString filterName("RtpMixer");
-						filter = FilterRegistry::instance()->GetNewFilter(filterName);
-						if(filter.get() == NULL)
-						{
-							debug = "Could not instanciate RTP mixer";
-							throw(debug);
-						}
-						decoder1 = FilterRegistry::instance()->GetNewFilter(details.m_rtpPayloadType);
-						decoder2 = FilterRegistry::instance()->GetNewFilter(details.m_rtpPayloadType);
-						if(decoder1.get() == NULL || decoder2.get() == NULL)
-						{
-							debug.Format("Could not find decoder for RTP payload type:%u", chunkRef->GetDetails()->m_rtpPayloadType);
-							throw(debug);
-						}
-						voIpSession = true;
+					if(details.m_rtpPayloadType < -1 || details.m_rtpPayloadType > RTP_PAYLOAD_TYPE_MAX)
+					{
+						logMsg.Format("RTP payload type out of bound:%d", details.m_rtpPayloadType);
+						throw(logMsg);
 					}
-					if(firstChunk)
+
+					// Instanciate any decoder we might need during a VoIP session
+					if(details.m_rtpPayloadType != -1)
+					{
+						voIpSession = true;
+
+						if(details.m_channel == 2)
+						{
+							decoder2 = decoders2.at(details.m_rtpPayloadType);
+							decoder = decoder2;
+						}
+						else
+						{
+							decoder1 = decoders1.at(details.m_rtpPayloadType);
+							decoder = decoder1;
+						}
+
+						bool ptAlreadySeen = seenRtpPayloadTypes.test(details.m_rtpPayloadType);
+						seenRtpPayloadTypes.set(details.m_rtpPayloadType);
+
+						if(decoder.get() == NULL)
+						{
+							if(ptAlreadySeen == false)
+							{
+								// First time we see a particular unsupported payload type in this session, log it
+								CStdString rtpPayloadType = IntToString(details.m_rtpPayloadType);
+								LOG4CXX_ERROR(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " unsupported RTP payload type:" + rtpPayloadType);
+							}
+							// We cannot decode this chunk due to unknown codec, go to next chunk
+							continue;
+						}
+						else if(ptAlreadySeen == false)
+						{
+							// First time we see a particular supported payload type in this session, log it
+							CStdString rtpPayloadType = IntToString(details.m_rtpPayloadType);
+							LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " RTP payload type:" + rtpPayloadType);
+						}
+					}
+					if(!voIpSession || (firstChunk && decoder.get()))
 					{
 						firstChunk = false;
 
-						// At this point, we know we have the right codec, open the output file
+						// At this point, we know we have a working codec, create an RTP mixer and open the output file
+						if(voIpSession)
+						{
+							CStdString filterName("RtpMixer");
+							filter = FilterRegistry::instance()->GetNewFilter(filterName);
+							if(filter.get() == NULL)
+							{
+								debug = "Could not instanciate RTP mixer";
+								throw(debug);
+							}
+						}
 						CStdString file = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath() + audioTapeRef->GetIdentifier();
 						outFileRef->Open(file, AudioFile::WRITE, false, fileRef->GetSampleRate());
 					}
