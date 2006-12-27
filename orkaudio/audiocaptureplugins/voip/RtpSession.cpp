@@ -10,7 +10,7 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
-
+#pragma warning( disable: 4786 ) // disables truncated symbols in browse-info warning
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
 #include "Utils.h"
@@ -19,6 +19,7 @@
 #include "AudioCapturePlugin.h"
 #include "AudioCapturePluginCommon.h"
 #include <list>
+#include "ConfigManager.h"
 #include "VoIpConfig.h"
 #include "ace/OS_NS_arpa_inet.h"
 
@@ -456,6 +457,16 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	m_numRtpPackets++;
 
+	bool hasSourceAddress = m_rtpAddressList.HasAddressOrAdd(rtpPacket->m_sourceIp, rtpPacket->m_sourcePort);
+	bool hasDestAddress = m_rtpAddressList.HasAddressOrAdd(rtpPacket->m_destIp, rtpPacket->m_destPort);
+	if(	hasSourceAddress == false || hasDestAddress == false )
+	{
+		rtpPacket->ToString(logMsg);
+		logMsg.Format("[%s] new RTP stream s%d: %s", 
+							m_trackingId, channel, logMsg);
+		LOG4CXX_INFO(m_log, logMsg);
+	}
+
 	if(m_log->isDebugEnabled())
 	{
 		CStdString debug;
@@ -542,6 +553,10 @@ CStdString RtpSession::ProtocolToString(int protocolEnum)
 RtpSessions::RtpSessions()
 {
 	m_log = Logger::getLogger("rtpsessions");
+	if(CONFIG.m_debug)
+	{
+		m_alphaCounter.Reset();
+	}
 }
 
 
@@ -552,7 +567,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 
 	CStdString ipAndPort = CStdString(szFromRtpIp) + "," + invite->m_fromRtpPort;
 	std::map<CStdString, RtpSessionRef>::iterator pair;
-	
+
 	pair = m_byIpAndPort.find(ipAndPort);
 	if (pair != m_byIpAndPort.end())
 	{
@@ -566,22 +581,25 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 		RtpSessionRef session = pair->second;
 		if(!session->m_ipAndPort.Equals(ipAndPort))
 		{
-			// The session RTP connection address has changed
-			// Remove session from IP and Port map
-			m_byIpAndPort.erase(session->m_ipAndPort);
-			// ... update
-			session->m_ipAndPort = ipAndPort;
-			session->ReportSipInvite(invite);
-			// ... and reinsert
-			m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
-
-			LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] updated with new INVITE data");
+			//===== The following is disabled because it disrupts valid sessions	====
+			//===== We need to make sure that at least one RTP packet has been		====
+			//===== seen that validates any new INVITE associated with the session	====
+			//// The session RTP connection address has changed
+			//// Remove session from IP and Port map
+			//m_byIpAndPort.erase(session->m_ipAndPort);
+			//// ... update
+			//session->m_ipAndPort = ipAndPort;
+			//session->ReportSipInvite(invite);
+			//// ... and reinsert
+			//m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
+			//
+			//LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] updated with new INVITE data");
 		}
 		return;
 	}
 
 	// create new session and insert into both maps
-	CStdString trackingId = alphaCounter.GetNext();
+	CStdString trackingId = m_alphaCounter.GetNext();
 	RtpSessionRef session(new RtpSession(trackingId));
 	session->m_ipAndPort = ipAndPort;
 	session->m_callId = invite->m_callId;
@@ -621,7 +639,7 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 	}
 
 	// create new session and insert into the callid map
-	CStdString trackingId = alphaCounter.GetNext();
+	CStdString trackingId = m_alphaCounter.GetNext();
 	RtpSessionRef session(new RtpSession(trackingId));
 	session->m_callId = callId;
 	session->m_endPointIp = ipHeader->ip_dest;	// CallInfo message always goes from CM to endpoint 
@@ -1012,7 +1030,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	if(numSessionsFound == 0)
 	{
 		// create new Raw RTP session and insert into IP+Port map
-		CStdString trackingId = alphaCounter.GetNext();
+		CStdString trackingId = m_alphaCounter.GetNext();
 		RtpSessionRef session(new RtpSession(trackingId));
 		session->m_protocol = RtpSession::ProtRawRtp;
 		session->m_ipAndPort = ipAndPort;	// (1) In the case of a PSTN Gateway automated answer, This is the destination IP+Port of the first packet which is good, because it is usually the IP+Port of the PSTN Gateway.

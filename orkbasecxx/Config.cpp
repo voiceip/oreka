@@ -53,6 +53,7 @@ Config::Config()
 
 	m_reportingRetryDelay = 5;
 	m_clientTimeout = 5;
+	m_debug = DEBUG_DEFAULT;
 }
 
 void Config::Define(Serializer* s)
@@ -86,6 +87,7 @@ void Config::Define(Serializer* s)
 	s->CsvValue(CAPTURE_PORT_FILTERS_PARAM, m_capturePortFilters);
 	s->CsvValue(TAPE_PROCESSORS_PARAM, m_tapeProcessors);
 	s->IntValue(CAPTURE_FILE_BATCH_SIZE_KBYTE_PARAM, m_captureFileBatchSizeKByte);
+	s->BoolValue(DEBUG_PARAM, m_debug);
 }
 
 void Config::Validate()

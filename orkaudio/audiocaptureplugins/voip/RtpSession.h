@@ -117,6 +117,7 @@ private:
 	unsigned int m_highestRtpSeqNumDelta;
 	double m_minRtpSeqDelta;
 	double m_minRtpTimestampDelta;
+	TcpAddressList m_rtpAddressList;
 };
 typedef boost::shared_ptr<RtpSession> RtpSessionRef;
 
@@ -147,7 +148,7 @@ private:
 	std::map<CStdString, RtpSessionRef> m_byCallId;
 	std::map<unsigned int, EndpointInfoRef> m_endpoints;
 	LoggerPtr m_log;
-	AlphaCounter alphaCounter;
+	AlphaCounter m_alphaCounter;
 };
 typedef ACE_Singleton<RtpSessions, ACE_Thread_Mutex> RtpSessionsSingleton;
 

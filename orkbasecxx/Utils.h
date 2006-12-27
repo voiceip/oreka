@@ -14,6 +14,8 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
+#include <list>
+
 #include "ace/Guard_T.h"	// For some reason, this include must always come before the StdString include
 							// otherwise it gives the following compile error:
 							//	error C2039: 'TryEnterCriticalSection' : is not a member of '`global namespace''
@@ -80,6 +82,26 @@ typedef ACE_Guard<ACE_Thread_Mutex> MutexSentinel;
 
 
 //=====================================================
+// Network related stuff
+typedef struct 
+{
+	void ToString(CStdString& string);
+
+	in_addr ip;
+	unsigned short port;
+} TcpAddress;
+
+class DLL_IMPORT_EXPORT_ORKBASE TcpAddressList
+{
+public:
+	void AddAddress(struct in_addr ip, unsigned short port);
+	bool HasAddress(struct in_addr ip, unsigned short port);
+	bool HasAddressOrAdd(struct in_addr ip, unsigned short port);
+private:
+	std::list<TcpAddress> m_addresses;
+};
+
+//=====================================================
 // Miscellanous stuff
 
 /** A counter that generates a "counting" 3 character strings, i.e. aaa, aab, ..., zzz 
@@ -90,14 +112,21 @@ typedef ACE_Guard<ACE_Thread_Mutex> MutexSentinel;
 class AlphaCounter
 {
 public:
-	inline AlphaCounter::AlphaCounter()
+	inline AlphaCounter::AlphaCounter(int start = 0)
 	{
-		// Generate pseudo-random number from high resolution time least significant two bytes
-		ACE_hrtime_t hrtime = ACE_OS::gethrtime();
-		unsigned short srandom = (short)hrtime;
-		double drandom = (double)srandom/65536.0; 	// 0 <= random < 1 
+		if(start)
+		{
+			m_counter = start;
+		}
+		else
+		{
+			// Generate pseudo-random number from high resolution time least significant two bytes
+			ACE_hrtime_t hrtime = ACE_OS::gethrtime();
+			unsigned short srandom = (short)hrtime;
+			double drandom = (double)srandom/65536.0; 	// 0 <= random < 1 
 
-		m_counter = (unsigned int)(drandom*(26*26*26));
+			m_counter = (unsigned int)(drandom*(26*26*26));
+		}
 	}
 
 	inline CStdString AlphaCounter::GetNext()
@@ -119,6 +148,11 @@ public:
 		CStdString string;
 		string.Format("%c%c%c", char1val, char2val, char3val);
 		return string;
+	}
+
+	inline void AlphaCounter::Reset()
+	{
+		m_counter = 0;
 	}
 private:
 	unsigned int m_counter;
