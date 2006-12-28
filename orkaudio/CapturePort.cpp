@@ -251,6 +251,11 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			// Now that all metadata has been acquired, we can generate the tape start message
 			Reporting::Instance()->AddAudioTape(audioTapeRef);
 			break;
+		case CaptureEvent::EtUpdate:
+			audioTapeRef->AddCaptureEvent(eventRef, true);
+			// Generate tape update message
+			Reporting::Instance()->AddAudioTape(audioTapeRef);
+			break;
 		case CaptureEvent::EtDirection:
 		case CaptureEvent::EtRemoteParty:
 		case CaptureEvent::EtLocalParty:

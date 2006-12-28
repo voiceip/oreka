@@ -127,6 +127,7 @@ public:
 #define ET_ORKUID "orkuid"
 #define ET_ENDMETADATA "endmetadata"
 #define ET_READY "ready"
+#define ET_UPDATE "update"
 #define ET_INVALID "invalid"
 	typedef enum
 	{
@@ -145,7 +146,8 @@ public:
 		EtOrkUid = 12,
 		EtEndMetadata = 13,
 		EtReady = 14,
-		EtInvalid = 15
+		EtUpdate = 15,
+		EtInvalid = 16
 	} EventTypeEnum;
 	static CStdString EventTypeToString(int eventTypeEnum);
 	static int EventTypeToEnum(CStdString&);

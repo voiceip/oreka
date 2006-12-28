@@ -236,6 +236,8 @@ CStdString CaptureEvent::EventTypeToString(int eventTypeEnum)
 		return ET_ENDMETADATA;
 	case	EtReady:
 		return ET_READY;
+	case	EtUpdate:
+		return ET_UPDATE;
 	}
 	return ET_INVALID;
 }
@@ -298,6 +300,10 @@ int CaptureEvent::EventTypeToEnum(CStdString& eventTypeString)
 	else if (eventTypeString.CompareNoCase(ET_READY) == 0)
 	{
 		eventTypeEnum = EtReady;
+	}
+	else if (eventTypeString.CompareNoCase(ET_UPDATE) == 0)
+	{
+		eventTypeEnum = EtUpdate;
 	}
 	return eventTypeEnum;
 }

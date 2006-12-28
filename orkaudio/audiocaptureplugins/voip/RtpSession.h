@@ -36,6 +36,7 @@ public:
 	CStdString m_from;
 	CStdString m_to;
 	CStdString m_callId;
+	bool m_validated;		// true when an RTP stream has been seen for the INVITE
 };
 typedef boost::shared_ptr<SipInviteInfo> SipInviteInfoRef;
 
@@ -90,6 +91,7 @@ private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
 	void ProcessMetadataSipIncoming();
 	void ProcessMetadataSipOutgoing();
+	void UpdateMetadataSip(RtpPacketInfoRef& rtpPacket, bool);
 	void ProcessMetadataRawRtp(RtpPacketInfoRef&);
 	void ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket);
 	void ReportMetadata();
@@ -118,6 +120,7 @@ private:
 	double m_minRtpSeqDelta;
 	double m_minRtpTimestampDelta;
 	TcpAddressList m_rtpAddressList;
+	std::list<SipInviteInfoRef> m_invites;
 };
 typedef boost::shared_ptr<RtpSession> RtpSessionRef;
 
