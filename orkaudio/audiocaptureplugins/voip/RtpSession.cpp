@@ -90,30 +90,6 @@ void RtpSession::GenerateOrkUid()
 	m_orkUid.Format("%.4d%.2d%.2d_%.2d%.2d%.2d_%s", year, month, date.tm_mday, date.tm_hour, date.tm_min, date.tm_sec, m_trackingId);
 }
 
-void RtpSession::ProcessMetadataSipIncoming()
-{
-	m_remoteParty = m_invite->m_from;
-	m_localParty = m_invite->m_to;
-	m_direction = CaptureEvent::DirIn;
-	char szInviteeIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_inviteeIp, szInviteeIp, sizeof(szInviteeIp));
-	m_capturePort.Format("%s,%d", szInviteeIp, m_inviteeTcpPort);
-	m_localIp = m_inviteeIp;
-	m_remoteIp = m_invitorIp;
-}
-
-void RtpSession::ProcessMetadataSipOutgoing()
-{
-	m_remoteParty = m_invite->m_to;
-	m_localParty = m_invite->m_from;
-	m_direction = CaptureEvent::DirOut;
-	char szInvitorIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_invitorIp, szInvitorIp, sizeof(szInvitorIp));
-	m_capturePort.Format("%s,%d", szInvitorIp, m_invitorTcpPort);
-	m_localIp = m_invitorIp;
-	m_remoteIp = m_inviteeIp;
-}
-
 void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 {
 	bool sourceIsLocal = true;
@@ -170,6 +146,104 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 		m_localIp = rtpPacket->m_destIp;
 		m_remoteIp = rtpPacket->m_sourceIp;
 
+	}
+}
+
+void RtpSession::ProcessMetadataSipIncoming()
+{
+	m_remoteParty = m_invite->m_from;
+	m_localParty = m_invite->m_to;
+	m_direction = CaptureEvent::DirIn;
+	char szInviteeIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_inviteeIp, szInviteeIp, sizeof(szInviteeIp));
+	m_capturePort.Format("%s,%d", szInviteeIp, m_inviteeTcpPort);
+	m_localIp = m_inviteeIp;
+	m_remoteIp = m_invitorIp;
+}
+
+void RtpSession::ProcessMetadataSipOutgoing()
+{
+	m_remoteParty = m_invite->m_to;
+	m_localParty = m_invite->m_from;
+	m_direction = CaptureEvent::DirOut;
+	char szInvitorIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_invitorIp, szInvitorIp, sizeof(szInvitorIp));
+	m_capturePort.Format("%s,%d", szInvitorIp, m_invitorTcpPort);
+	m_localIp = m_invitorIp;
+	m_remoteIp = m_inviteeIp;
+}
+
+void RtpSession::UpdateMetadataSip(RtpPacketInfoRef& rtpPacket, bool sourceRtpAddressIsNew)
+{
+	// Find out if the new RTP packet could match one of the SIP invites associated with the session
+	SipInviteInfoRef invite;
+
+	std::list<SipInviteInfoRef>::iterator it;
+	for(it = m_invites.begin(); it != m_invites.end(); it++)
+	{
+		SipInviteInfoRef tmpInvite = *it;
+		if(tmpInvite->m_validated)
+		{
+			break;
+		}
+		if(sourceRtpAddressIsNew)
+		{
+			if((unsigned int)(rtpPacket->m_sourceIp.s_addr) == (unsigned int)(tmpInvite->m_receiverIp.s_addr))
+			{
+				invite = tmpInvite;
+			}
+		}
+		else
+		{
+			if((unsigned int)(rtpPacket->m_destIp.s_addr) == (unsigned int)(tmpInvite->m_receiverIp.s_addr))
+			{
+				invite = tmpInvite;
+			}
+		}
+	}
+	if(invite.get())
+	{
+		// The INVITE has generated an RTP stream
+		invite->m_validated = true;
+
+		// Update session metadata with INVITE info
+		m_remoteParty = invite->m_from;
+		m_localParty = invite->m_to;
+		m_localIp = invite->m_receiverIp;
+
+		// Do some logging
+		CStdString inviteString;
+		invite->ToString(inviteString);
+		CStdString rtpString;
+		rtpPacket->ToString(rtpString);
+		CStdString logMsg;
+		logMsg.Format("[%s] metadata update: local:%s remote:%s RTP:%s INVITE:%s", m_trackingId, m_localParty, m_remoteParty, rtpString, inviteString);
+		LOG4CXX_INFO(m_log,  logMsg);
+
+		// Report Local party
+		CaptureEventRef event(new CaptureEvent());
+		event->m_type = CaptureEvent::EtLocalParty;
+		event->m_value = m_localParty;
+		g_captureEventCallBack(event, m_capturePort);
+
+		// Report remote party
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtRemoteParty;
+		event->m_value = m_remoteParty;
+		g_captureEventCallBack(event, m_capturePort);
+
+		// Report Local IP
+		char szLocalIp[16];
+		ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtLocalIp;
+		event->m_value = szLocalIp;
+		g_captureEventCallBack(event, m_capturePort);
+
+		// Trigger metadata update
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtUpdate;
+		g_captureEventCallBack(event, m_capturePort);
 	}
 }
 
@@ -457,6 +531,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	m_numRtpPackets++;
 
+	// Detect RTP stream change
 	bool hasSourceAddress = m_rtpAddressList.HasAddressOrAdd(rtpPacket->m_sourceIp, rtpPacket->m_sourcePort);
 	bool hasDestAddress = m_rtpAddressList.HasAddressOrAdd(rtpPacket->m_destIp, rtpPacket->m_destPort);
 	if(	hasSourceAddress == false || hasDestAddress == false )
@@ -465,6 +540,11 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		logMsg.Format("[%s] new RTP stream s%d: %s", 
 							m_trackingId, channel, logMsg);
 		LOG4CXX_INFO(m_log, logMsg);
+
+		if(m_protocol == ProtSip && m_started)	// make sure this only happens if ReportMetadata() already been called for the session
+		{
+			UpdateMetadataSip(rtpPacket, hasDestAddress);
+		}
 	}
 
 	if(m_log->isDebugEnabled())
@@ -507,8 +587,20 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 {
-	m_invite = invite;
-	m_invitorIp = invite->m_fromRtpIp;
+	if(m_invite.get() == NULL)
+	{
+		m_invite = invite;
+		m_invitorIp = invite->m_fromRtpIp;
+	}
+	else
+	{
+		CStdString inviteString;
+		invite->ToString(inviteString);
+		CStdString logMsg;
+		logMsg.Format("[%s] associating INVITE:%s", m_trackingId, inviteString);
+		LOG4CXX_INFO(m_log, logMsg);
+	}
+	m_invites.push_front(invite);
 }
 
 int RtpSession::ProtocolToEnum(CStdString& protocol)
@@ -571,7 +663,9 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	pair = m_byIpAndPort.find(ipAndPort);
 	if (pair != m_byIpAndPort.end())
 	{
-		// The session already exists, do nothing
+		// The session already exists, report the new INVITE
+		RtpSessionRef session = pair->second;
+		session->ReportSipInvite(invite);
 		return;
 	}
 	pair = m_byCallId.find(invite->m_callId);
@@ -579,6 +673,9 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	{
 		// The session already exists
 		RtpSessionRef session = pair->second;
+
+		// For now, do not report new INVITEs that have the same SIP call ID but a different media address
+		// those INVITEs are ignored altogether.
 		if(!session->m_ipAndPort.Equals(ipAndPort))
 		{
 			//===== The following is disabled because it disrupts valid sessions	====
@@ -611,7 +708,9 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	CStdString numSessions = IntToString(m_byIpAndPort.size());
 	LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
 
-	LOG4CXX_INFO(m_log, "[" + trackingId + "] created by SIP INVITE");
+	CStdString inviteString;
+	invite->ToString(inviteString);
+	LOG4CXX_INFO(m_log, "[" + trackingId + "] created by INVITE:" + inviteString);
 }
 
 void RtpSessions::ReportSipBye(SipByeInfo bye)
@@ -1109,6 +1208,7 @@ void RtpSessions::Hoover(time_t now)
 SipInviteInfo::SipInviteInfo()
 {
 	m_fromRtpIp.s_addr = 0;
+	m_validated= false;
 }
 
 void SipInviteInfo::ToString(CStdString& string)

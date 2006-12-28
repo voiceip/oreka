@@ -292,7 +292,7 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 
 	msgRef.reset(new TapeMsg);
 	TapeMsg* pTapeMsg = (TapeMsg*)msgRef.get();
-	if(captureEventRef->m_type == CaptureEvent::EtStop || captureEventRef->m_type == CaptureEvent::EtStart || captureEventRef->m_type == CaptureEvent::EtReady)
+	if(captureEventRef->m_type == CaptureEvent::EtStop || captureEventRef->m_type == CaptureEvent::EtStart || captureEventRef->m_type == CaptureEvent::EtReady || captureEventRef->m_type == CaptureEvent::EtUpdate)
 	{
 		pTapeMsg->m_recId = m_fileIdentifier;
 		pTapeMsg->m_fileName = m_filePath + m_fileIdentifier + m_fileExtension;
