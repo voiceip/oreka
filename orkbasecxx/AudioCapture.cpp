@@ -32,6 +32,13 @@ AudioChunk::~AudioChunk()
 	}
 }
 
+void AudioChunk::ToString(CStdString& string)
+{
+	string.Format("encoding:%d numBytes:%u ts:%u ats:%u seq:%u rtp-pt:%d ch:%u", 
+		m_details.m_encoding, m_details.m_numBytes, m_details.m_timestamp, m_details.m_arrivalTimestamp, 
+		m_details.m_sequenceNumber, m_details.m_rtpPayloadType, m_details.m_channel);
+}
+
 void* AudioChunk::CreateBuffer(AudioChunkDetails& details)
 {
 	if(m_pBuffer)
@@ -88,7 +95,9 @@ int AudioChunk::GetNumSamples()
 	case AlawAudio: case UlawAudio:
 		return m_details.m_numBytes;
 	default:
-		throw(CStdString("AudioChunk::GetNumSamples: unknown encoding"));
+		CStdString msg;
+		ToString(msg);
+		throw(CStdString("AudioChunk::GetNumSamples(): unknown encoding. Chunk:") + msg);
 	}
 }
 
