@@ -66,6 +66,8 @@ public:
 	AudioChunk();
 	~AudioChunk();
 
+	void ToString(CStdString&);
+
 	/** Allocate a new empty buffer (zeroed) */
 	void* CreateBuffer(AudioChunkDetails& details);
 
