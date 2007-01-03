@@ -134,6 +134,7 @@ void Transcode(CStdString &file)
 
 	// Register in-built tape processors and build the processing chain
 	BatchProcessing::Initialize();
+	Reporting::Initialize();
 
 	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(BatchProcessing::ThreadHandler)))
 	{
