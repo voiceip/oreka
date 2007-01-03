@@ -13,6 +13,7 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
+#include "ace/OS_NS_unistd.h"
 #include "Utils.h"
 #include "AudioCapturePlugin.h"
 #include "AudioCapturePluginCommon.h"
