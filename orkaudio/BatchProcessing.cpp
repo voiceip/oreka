@@ -289,7 +289,7 @@ void BatchProcessing::ThreadHandler(void *args)
 					}
 				}
 
-				if(voIpSession)
+				if(voIpSession && !firstChunk)
 				{
 					// Flush the RTP mixer
 					AudioChunkRef stopChunk(new AudioChunk());
