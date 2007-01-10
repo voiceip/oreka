@@ -67,3 +67,4 @@ int AudioFile::GetSampleRate()
 {
 	return m_sampleRate;
 }
+
