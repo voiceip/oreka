@@ -23,6 +23,7 @@
 #include "ace/Thread_Mutex.h"
 #include "ace/OS_NS_stdlib.h"
 #include "ace/OS_NS_time.h"
+#include "ace/OS_NS_arpa_inet.h"
 #include "StdString.h"
 
 #include "OrkBase.h"
