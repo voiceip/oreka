@@ -130,7 +130,7 @@ public:
 		}
 	}
 
-	inline CStdString AlphaCounter::GetNext()
+	inline CStdString GetNext()
 	{
 		m_counter++;
 		if(m_counter >= (26*26*26) )
@@ -151,7 +151,7 @@ public:
 		return string;
 	}
 
-	inline void AlphaCounter::Reset()
+	inline void Reset()
 	{
 		m_counter = 0;
 	}

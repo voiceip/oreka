@@ -40,7 +40,7 @@ void CommandLineServer::run(void* args)
 {
 	s_log = log4cxx::Logger::getLogger("interface.commandlineserver");
 
-	unsigned short tcpPort = (unsigned short)(unsigned int)args;
+	unsigned short tcpPort = (unsigned short)(unsigned long)args;
 	CommandLineAcceptor peer_acceptor;
 	ACE_INET_Addr addr (tcpPort);
 	ACE_Reactor reactor;
@@ -137,7 +137,7 @@ void HttpServer::run(void* args)
 {
 	s_log = log4cxx::Logger::getLogger("interface.httpserver");
 
-	unsigned short tcpPort = (unsigned short)(unsigned int)args;
+	unsigned short tcpPort = (unsigned short)(unsigned long)args;
 	HttpAcceptor peer_acceptor;
 	ACE_INET_Addr addr (tcpPort);
 	ACE_Reactor reactor;
