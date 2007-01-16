@@ -90,6 +90,7 @@ void RtpSession::GenerateOrkUid()
 	m_orkUid.Format("%.4d%.2d%.2d_%.2d%.2d%.2d_%s", year, month, date.tm_mday, date.tm_hour, date.tm_min, date.tm_sec, m_trackingId);
 }
 
+
 void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 {
 	bool sourceIsLocal = true;
@@ -839,7 +840,7 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 		char szEndPointIp[16];
 		ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
 		CStdString logMsg;
-		logMsg.Format("[%s] callId %s media address:%s  endpoint:%s", session->m_trackingId, session->m_callId, ipAndPort, szEndPointIp);
+		logMsg.Format("[%s] media address:%s callId:%s endpoint:%s", session->m_trackingId, ipAndPort, session->m_callId, szEndPointIp);
 		LOG4CXX_INFO(m_log, logMsg);
 	}
 
@@ -1015,6 +1016,8 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	int numSessionsFound = 0;
 	RtpSessionRef session1;
 	RtpSessionRef session2;
+	RtpSessionRef session;
+	CStdString logMsg;
 
 	// Add RTP packet to session with matching source or dest IP+Port. 
 	// On CallManager there might be two sessions with two different CallIDs for one 
@@ -1034,6 +1037,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		if (session1.get() != NULL)
 		{
 			// Found a session give it the RTP packet info
+			session = session1;
 			if(session1->AddRtpPacket(rtpPacket))
 			{
 				numSessionsFound++;
@@ -1059,6 +1063,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		if (session2.get() != NULL)
 		{
 			// Found a session give it the RTP packet info
+			session = session2;
 			if(session2->AddRtpPacket(rtpPacket))
 			{
 				numSessionsFound++;
@@ -1125,8 +1130,34 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		}
 		Stop(mergeeSession);
 	}
+	else if(numSessionsFound == 1 )
+	{
+		if (session->m_numRtpPackets == 1 && session->m_protocol == RtpSession::ProtSip)
+		{
+			// This was the first packet of the session, check whether it is tracked on the right IP address
+			in_addr trackingIp;
+			unsigned short trackingPort = 0;
+			if(DLLCONFIG.IsRtpTrackingIpAddress(rtpPacket->m_destIp))
+			{
+				trackingIp = rtpPacket->m_destIp;
+				trackingPort = rtpPacket->m_destPort;
+			}
+			else if(DLLCONFIG.IsRtpTrackingIpAddress(rtpPacket->m_sourceIp))
+			{
+				trackingIp = rtpPacket->m_sourceIp;
+				trackingPort = rtpPacket->m_sourcePort;
+			}
+			if(trackingPort)
+			{
+				// Remove session from IP+Port index
+				m_byIpAndPort.erase(session->m_ipAndPort);
 
-	if(numSessionsFound == 0)
+				// ... and reinsert
+				SetMediaAddress(session, trackingIp, trackingPort);
+			}
+		}
+	}
+	else if(numSessionsFound == 0)
 	{
 		// create new Raw RTP session and insert into IP+Port map
 		CStdString trackingId = m_alphaCounter.GetNext();
