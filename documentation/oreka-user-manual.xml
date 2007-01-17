@@ -3,15 +3,15 @@
 "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
 <book>
 
-  <title>Oreka 0.5 Open Source User Manual</title>
+  <title>Oreka 0.6 Open Source User Manual</title>
 
-  <subtitle>Revision 1</subtitle>
+  <subtitle>Revision 2</subtitle>
 
   <bookinfo>
     <copyright>
       <holder>OrecX LLC</holder>
 
-      <year>2006</year>
+      <year>2007</year>
     </copyright>
   </bookinfo>
 
@@ -180,12 +180,12 @@
     <section>
       <title>File locations</title>
 
-      <section>
+      <section id="folderscheme">
         <title>Audio Output Files</title>
 
-        <para id="folderscheme">Audio output files are written to the [install
+        <para>Audio output files are written to the [install
         directory]/AudioRecordings under windows and in /var/log/orkaudio
-        under Linux. They are classified according to the following
+        under Linux by default. This can be changed using the <emphasis>AudioOutputPath</emphasis> configuration parameter described in <xref linkend="configuring" />. They are classified according to the following
         scheme:</para>
 
         <para><emphasis>yyyy/MM/dd/hh</emphasis></para>
@@ -266,7 +266,7 @@
       </section>
     </section>
 
-    <section>
+    <section id="configuring">
       <title>Configuring</title>
 
       <para>Configuration of OrkAudio and its plugins is performed by
@@ -291,6 +291,16 @@
             VoIP.dll and SoundDevice.dll (or libvoip.so and libsounddevice.so
             under Linux)</para>
           </listitem>
+	  
+          <listitem>
+            <para><emphasis>AudioOutputPath </emphasis>this parameter controls the root directory where capture and storage audio files are stored. It can be a relative or absolute path.</para>
+          </listitem>
+	  
+          <listitem>
+            <para><emphasis>TapeFileNaming </emphasis>this parameter controls the final transcoded file naming scheme. It is a csv list of elements. If an element matches a keyword, it will be replaced by the corresponding value. If an element does not match any keyword, it will be used verbatim in the file name. Example: <programlisting><![CDATA[<TapeFileNaming>myrecordings-, nativecallid</TapeFileNaming>]]></programlisting>
+with a native call ID of FDBCE@69.13.45.6 will result in the following file name: myrecordings-FDBCE@69.13.45.6.wav. If this parameter is missing, the default naming scheme applies which is a timestamp plus the internal tracking ID. The list of possible keywords for now is limited to nativecallid and trackingid. When this parameter is set, the audio file output directory structure becomes flat, i.e. all files will be stored directly in the directory set by the AudioOutputPath configuration parameter instead of being distributed to the default year/month/day/hour folder tree structure described in <xref linkend="folderscheme" />.</para>
+          </listitem>
+	  
         </itemizedlist></para>
 
       <section>
