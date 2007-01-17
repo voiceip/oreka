@@ -90,11 +90,14 @@ public:
 	CStdString m_localIp;
 	CStdString m_remoteIp;
 	CStdString m_trackingId;
+	CStdString m_nativeCallId;
 
 	TapeResponseRef m_tapeResponse;
 
 private:
-	void GenerateFilePathAndIdentifier();
+	void GenerateCaptureFilePathAndIdentifier();
+	void GenerateFinalFilePathAndIdentifier();
+	void PreventFileIdentifierCollision(CStdString& path, CStdString& identifier, CStdString& extension);
 
 	CStdString m_filePath;
 	CStdString m_fileIdentifier;

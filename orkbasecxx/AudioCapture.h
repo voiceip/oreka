@@ -130,6 +130,7 @@ public:
 #define ET_ENDMETADATA "endmetadata"
 #define ET_READY "ready"
 #define ET_UPDATE "update"
+#define ET_CALLID "callid"
 #define ET_INVALID "invalid"
 	typedef enum
 	{
@@ -149,7 +150,8 @@ public:
 		EtEndMetadata = 13,
 		EtReady = 14,
 		EtUpdate = 15,
-		EtInvalid = 16
+		EtCallId = 16,
+		EtInvalid = 17
 	} EventTypeEnum;
 	static CStdString EventTypeToString(int eventTypeEnum);
 	static int EventTypeToEnum(CStdString&);

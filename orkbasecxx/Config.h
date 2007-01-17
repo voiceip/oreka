@@ -75,6 +75,7 @@
 #define CAPTURE_FILE_BATCH_SIZE_KBYTE_DEFAULT 4
 #define DEBUG_PARAM "Debug"
 #define DEBUG_DEFAULT false
+#define TAPE_FILE_NAMING_PARAM "TapeFileNaming"
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -117,6 +118,7 @@ public:
 	std::list<CStdString> m_tapeProcessors;
 	int m_captureFileBatchSizeKByte;
 	bool m_debug;
+	std::list<CStdString> m_tapeFileNaming;
 
 private:
 	log4cxx::LoggerPtr m_log;
