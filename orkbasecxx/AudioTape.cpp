@@ -153,7 +153,8 @@ void AudioTape::Write()
 
 						// Prevent identifier collision
 						CStdString path = CONFIG.m_audioOutputPath + "/" + m_filePath;
-						PreventFileIdentifierCollision(path, m_fileIdentifier , m_audioFileRef->GetExtension());
+						CStdString extension = m_audioFileRef->GetExtension();
+						PreventFileIdentifierCollision(path, m_fileIdentifier , extension);
 
 						// Open the capture file
 						m_audioFileRef->Open(file, AudioFile::WRITE, false, chunkRef->GetSampleRate());
