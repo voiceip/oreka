@@ -396,6 +396,12 @@ void RtpSession::ReportMetadata()
 	event->m_value = m_orkUid;
 	g_captureEventCallBack(event, m_capturePort);
 
+	// Report native Call ID
+	event.reset(new CaptureEvent());
+	event->m_type = CaptureEvent::EtCallId;
+	event->m_value = m_callId;
+	g_captureEventCallBack(event, m_capturePort);
+
 	// Report end of metadata
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtEndMetadata;

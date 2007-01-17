@@ -81,7 +81,7 @@ AudioTape::AudioTape(CStdString &portId)
 	m_readyForBatchProcessing = false;
 	m_trackingId = portId;	// to make sure this has a value before we get the capture tracking Id.
 
-	GenerateFilePathAndIdentifier();
+	GenerateCaptureFilePathAndIdentifier();
 }
 
 AudioTape::AudioTape(CStdString &portId, CStdString& file)
@@ -150,6 +150,12 @@ void AudioTape::Write()
 					{
 						// A file format was successfully added to the tape, open it
 						CStdString file = CONFIG.m_audioOutputPath + "/" + m_filePath + m_fileIdentifier;
+
+						// Prevent identifier collision
+						CStdString path = CONFIG.m_audioOutputPath + "/" + m_filePath;
+						PreventFileIdentifierCollision(path, m_fileIdentifier , m_audioFileRef->GetExtension());
+
+						// Open the capture file
 						m_audioFileRef->Open(file, AudioFile::WRITE, false, chunkRef->GetSampleRate());
 
 						// determine what final extension the file will have after optional compression
@@ -190,6 +196,7 @@ void AudioTape::Write()
 		if(m_audioFileRef.get())
 		{
 			m_audioFileRef->Close();
+			GenerateFinalFilePathAndIdentifier();
 			m_readyForBatchProcessing = true;
 		}
 	}
@@ -215,7 +222,7 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		{
 			// Media chunk stream not yet started, we can update begin date with the actual capture begin date
 			m_beginDate = eventRef->m_timestamp;
-			GenerateFilePathAndIdentifier();
+			GenerateCaptureFilePathAndIdentifier();
 		}
 		break;
 	case CaptureEvent::EtStop:
@@ -265,6 +272,9 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 			m_fileIdentifier = m_orkUid;
 		}
 		break;
+	case CaptureEvent::EtCallId:
+		m_nativeCallId = eventRef->m_value;
+		break;
 	}
 
 	// Store the capture event locally
@@ -294,7 +304,7 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 	TapeMsg* pTapeMsg = (TapeMsg*)msgRef.get();
 	if(captureEventRef->m_type == CaptureEvent::EtStop || captureEventRef->m_type == CaptureEvent::EtStart || captureEventRef->m_type == CaptureEvent::EtReady || captureEventRef->m_type == CaptureEvent::EtUpdate)
 	{
-		pTapeMsg->m_recId = m_fileIdentifier;
+		pTapeMsg->m_recId = m_orkUid;
 		pTapeMsg->m_fileName = m_filePath + m_fileIdentifier + m_fileExtension;
 		pTapeMsg->m_stage = CaptureEvent::EventTypeToString(captureEventRef->m_type);
 		pTapeMsg->m_capturePort = m_portId;
@@ -313,7 +323,7 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 	}
 }
 
-void AudioTape::GenerateFilePathAndIdentifier()
+void AudioTape::GenerateCaptureFilePathAndIdentifier()
 {
 	struct tm date = {0};
 	ACE_OS::localtime_r(&m_beginDate, &date);
@@ -323,6 +333,70 @@ void AudioTape::GenerateFilePathAndIdentifier()
 	m_fileIdentifier.Format("%.4d%.2d%.2d_%.2d%.2d%.2d_%s", year, month, date.tm_mday, date.tm_hour, date.tm_min, date.tm_sec, m_portId);
 }
 
+void AudioTape::GenerateFinalFilePathAndIdentifier()
+{
+	if(CONFIG.m_tapeFileNaming.size() > 0)
+	{
+		// The config file specifies a naming scheme for the recordings, build the final file identifier
+		CStdString fileIdentifier;
+		std::list<CStdString>::iterator it;
+		for(it = CONFIG.m_tapeFileNaming.begin(); it != CONFIG.m_tapeFileNaming.end(); it++)
+		{
+			CStdString element = *it;
+			if(element.CompareNoCase("nativecallid") == 0)
+			{
+				if(m_nativeCallId.size() > 0)
+				{
+					fileIdentifier += m_nativeCallId;
+				}
+				else
+				{
+					fileIdentifier += "nonativecallid";
+				}
+			}
+			else if (element.CompareNoCase("trackingid") == 0)
+			{
+				if(m_trackingId.size() > 0)
+				{
+					fileIdentifier += m_trackingId;
+				}
+				else
+				{
+					fileIdentifier += "notrackingid";
+				}
+			}
+			else
+			{
+				fileIdentifier += element;
+			}
+		}
+		if(fileIdentifier.size() > 0)
+		{
+			m_fileIdentifier = fileIdentifier;
+		}
+		m_filePath = "";
+		CStdString path = CONFIG.m_audioOutputPath + "/";
+		PreventFileIdentifierCollision(path, m_fileIdentifier , m_fileExtension);
+	}
+}
+
+void AudioTape::PreventFileIdentifierCollision(CStdString& path, CStdString& identifier, CStdString& extension)
+{
+	int fileIndex = 0;
+	CStdString identifierWithIndex;
+	CStdString file = path + identifier + extension;
+	while(FileCanOpen(file) == true)
+	{
+		fileIndex++;
+		identifierWithIndex.Format("%s-%d", identifier, fileIndex);
+		file = path + identifierWithIndex + extension;
+	}
+	if(fileIndex)
+	{
+		//identifier = identifierWithIndex;
+		identifier += "-" + m_orkUid;
+	}
+}
 
 CStdString AudioTape::GetIdentifier()
 {

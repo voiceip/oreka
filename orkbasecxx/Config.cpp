@@ -88,6 +88,7 @@ void Config::Define(Serializer* s)
 	s->CsvValue(TAPE_PROCESSORS_PARAM, m_tapeProcessors);
 	s->IntValue(CAPTURE_FILE_BATCH_SIZE_KBYTE_PARAM, m_captureFileBatchSizeKByte);
 	s->BoolValue(DEBUG_PARAM, m_debug);
+	s->CsvValue(TAPE_FILE_NAMING_PARAM, m_tapeFileNaming);
 }
 
 void Config::Validate()
