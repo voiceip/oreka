@@ -38,6 +38,7 @@
 #include "AudioCapturePlugin.h"
 #include "Filter.h"
 #include "GsmFilters.h"
+#include "IlbcFilters.h"
 #include "TapeProcessor.h"
 #include <list>
 
@@ -131,6 +132,8 @@ void Transcode(CStdString &file)
 	FilterRegistry::instance()->RegisterFilter(filter);
 	filter.reset(new GsmToPcmFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
+	filter.reset(new IlbcToPcmFilter());
+        FilterRegistry::instance()->RegisterFilter(filter);
 
 	// Register in-built tape processors and build the processing chain
 	BatchProcessing::Initialize();
@@ -197,6 +200,8 @@ void MainThread()
 	FilterRegistry::instance()->RegisterFilter(filter);
 	filter.reset(new GsmToPcmFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
+        filter.reset(new IlbcToPcmFilter());
+        FilterRegistry::instance()->RegisterFilter(filter);
 
 	// Register in-built tape processors and build the processing chain
 	BatchProcessing::Initialize();

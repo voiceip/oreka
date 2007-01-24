@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /Zi /O2 /Op /Ob0 /I "." /I "..\OrkBaseCxx" /I "..\OrkBaseCxx\filters\gsm" /I "C:\devExt\libsndfile\src\GSM610" /I "C:\devExt\boost\boost_1_32_0\\" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\libsndfile\src" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /Zi /O2 /Op /Ob0 /I "." /I "..\OrkBaseCxx" /I "..\OrkBaseCxx\filters\gsm" /I "..\OrkBaseCxx\filters\ilbc" /I "C:\devExt\libsndfile\src\GSM610" /I "C:\devExt\boost\boost_1_32_0\\" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\libsndfile\src" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x809 /d "NDEBUG"
 # ADD RSC /l 0x809 /d "NDEBUG"
@@ -66,7 +66,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "." /I "..\OrkBaseCxx" /I "..\OrkBaseCxx\filters\gsm" /I "C:\devExt\libsndfile\src\GSM610" /I "C:\devExt\boost\boost_1_32_0\\" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\libsndfile\src" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "." /I "..\OrkBaseCxx" /I "..\OrkBaseCxx\filters\gsm" /I "..\OrkBaseCxx\filters\ilbc" /I "C:\devExt\libsndfile\src\GSM610" /I "C:\devExt\boost\boost_1_32_0\\" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\libsndfile\src" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR /FD /GZ /c
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
 # ADD RSC /l 0x809 /d "_DEBUG"
 BSC32=bscmake.exe

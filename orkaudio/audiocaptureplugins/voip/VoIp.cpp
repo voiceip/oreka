@@ -215,7 +215,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 		u_short dest = ntohs(udpHeader->dest);
 		if(!(ntohs(udpHeader->source)%2) && !(ntohs(udpHeader->dest)%2))	// udp ports must be even 
 		{
-			if(rtpHeader->pt <= 34 &&  rtpHeader->pt != 13)		// pt=34 is H263 and is the last possible valid codec 
+			if((rtpHeader->pt <= 34 &&  rtpHeader->pt != 13) || rtpHeader->pt == 97 || rtpHeader->pt == 98)		// pt=34 is H263 and is the last possible valid codec 
 			{													// pt=13 is CN (Comfort Noise)
 				result = true;
 				u_char* payload = (u_char *)rtpHeader + sizeof(RtpHeaderStruct);

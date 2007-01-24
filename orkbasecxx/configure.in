@@ -9,4 +9,4 @@ AC_LANG_CPLUSPLUS
 AC_PROG_CXX
 AM_PROG_LIBTOOL
 
-AC_OUTPUT(Makefile messages/Makefile serializers/Makefile audiofile/Makefile filters/Makefile filters/gsm/Makefile filters/gsm/gsm610/Makefile)
+AC_OUTPUT(Makefile messages/Makefile serializers/Makefile audiofile/Makefile filters/Makefile filters/gsm/Makefile filters/gsm/gsm610/Makefile filters/ilbc/Makefile filters/ilbc/ilbc/Makefile)

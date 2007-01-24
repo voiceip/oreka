@@ -1,1 +1,1 @@
-SUBDIRS = gsm
+SUBDIRS = gsm ilbc

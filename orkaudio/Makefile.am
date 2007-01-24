@@ -14,7 +14,7 @@ orkaudio_SOURCES = 	OrkAudio.cpp  \
 			ImmediateProcessing.cpp  \
 			Reporting.cpp
 AM_CPPFLAGS = -D_REENTRANT
-INCLUDES = -I@top_srcdir@ -I../orkbasecxx -I../orkbasecxx/filters/gsm -I../orkbasecxx/filters/gsm/gsm610
+INCLUDES = -I@top_srcdir@ -I../orkbasecxx -I../orkbasecxx/filters/gsm -I../orkbasecxx/filters/gsm/gsm610 -I../orkbasecxx/filters/ilbc -I../orkbasecxx/filters/ilbc/ilbc
 SUBDIRS = audiocaptureplugins filters
 #orkaudio_LDADD = $(top_builddir)/messages/libmessages.la 
 

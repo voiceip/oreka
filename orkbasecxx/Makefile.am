@@ -17,5 +17,8 @@ liborkbase_la_LIBADD = $(top_builddir)/serializers/libserializers.la \
 	$(top_builddir)/messages/libmessages.la \
 	$(top_builddir)/audiofile/libaudiofile.la \
         $(top_builddir)/filters/gsm/libgsm.la \
-        $(top_builddir)/filters/gsm/gsm610/libgsm610.la
+        $(top_builddir)/filters/gsm/gsm610/libgsm610.la \
+	$(top_builddir)/filters/ilbc/libilbc.la \
+	$(top_builddir)/filters/ilbc/ilbc/libilbcrfc.la
+
 AM_CXXFLAGS = -D_REENTRANT
