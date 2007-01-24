@@ -29,7 +29,8 @@ typedef enum
 	AlawAudio = 2,
 	UlawAudio = 3,
 	GsmAudio = 4,
-	InvalidAudio = 5
+	IlbcAudio = 5,
+	InvalidAudio = 6
 } AudioEncodingEnum;
 
 /** 

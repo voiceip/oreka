@@ -113,7 +113,7 @@ private:
 class AlphaCounter
 {
 public:
-	inline AlphaCounter::AlphaCounter(int start = 0)
+	inline AlphaCounter(int start = 0)
 	{
 		if(start)
 		{
