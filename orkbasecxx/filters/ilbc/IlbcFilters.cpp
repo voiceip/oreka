@@ -12,6 +12,8 @@
  */
 #pragma warning( disable: 4786 ) // disables truncated symbols in browse-info warning
 
+#define _WINSOCKAPI_		// prevents the inclusion of winsock.h
+
 #include "IlbcFilters.h"
 
 IlbcToPcmFilter::IlbcToPcmFilter()
