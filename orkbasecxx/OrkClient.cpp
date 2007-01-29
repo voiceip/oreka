@@ -28,7 +28,9 @@ bool OrkHttpClient::ExecuteUrl(CStdString& request, CStdString& response, CStdSt
 	ACE_SOCK_Connector  connector;
 	ACE_SOCK_Stream peer;
 	ACE_INET_Addr peer_addr;
+	if(timeout < 1){timeout = 1;}
 	ACE_Time_Value aceTimeout (timeout);
+	time_t beginRequestTimestamp = time(NULL);
 
 	char szTcpPort[10];
 	sprintf(szTcpPort, "%d", tcpPort);
@@ -72,7 +74,7 @@ bool OrkHttpClient::ExecuteUrl(CStdString& request, CStdString& response, CStdSt
 
 	CStdString header;
 	bool gotHeader = false;
-	while ( (numReceived = peer.recv (buf, BUFSIZE, &aceTimeout))   >   0 )
+	while ( ((numReceived = peer.recv (buf, BUFSIZE, &aceTimeout)) > 0)  && ((time(NULL) - beginRequestTimestamp) <= timeout) )
 	{
 		for(int i=0; i<numReceived; i++)
 		{
