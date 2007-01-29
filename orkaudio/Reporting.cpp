@@ -83,6 +83,9 @@ void Reporting::ThreadHandler(void *args)
 	Reporting* pReporting = (Reporting*)(reporting->Instanciate().get());
 
 	bool stop = false;
+	bool reportError = true;
+	time_t reportErrorLastTime = time(NULL);
+	bool error = false;
 
 	for(;stop == false;)
 	{
@@ -125,13 +128,19 @@ void Reporting::ThreadHandler(void *args)
 					audioTapeRef->m_tapeResponse = tr;
 
 					bool success = false;
-					bool firstError = true;
 
 					while (!success)
 					{
 						if (c.Execute((SyncMessage&)(*msgRef.get()), (AsyncMessage&)(*tr.get()), CONFIG.m_trackerHostname, CONFIG.m_trackerTcpPort, CONFIG.m_trackerServicename, CONFIG.m_clientTimeout))
 						{
 							success = true;
+							reportError = true; // reenable error reporting
+							if(error)
+							{
+								error = false;
+								LOG4CXX_ERROR(LOG.reportingLog, CStdString("Orktrack successfully contacted"));
+							}
+
 							if(tr->m_deleteTape)
 							{
 								CStdString tapeFilename = audioTapeRef->GetFilename();
@@ -158,9 +167,12 @@ void Reporting::ThreadHandler(void *args)
 						}
 						else
 						{
-							if(firstError)
+							error = true;
+
+							if( reportError || ((time(NULL) - reportErrorLastTime) > 60) )	// at worst, one error is reported every minute
 							{
-								firstError = false;
+								reportError = false;
+								reportErrorLastTime = time(NULL);
 								LOG4CXX_ERROR(LOG.reportingLog, CStdString("Could not contact orktrack"));
 							}
 							if(realtimeMessage)
