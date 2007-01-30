@@ -10,8 +10,8 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
-#include "Filter.h"
 #include "LogManager.h"
+#include "Filter.h"
 extern "C"
 {
 #include "iLBC_encode.h"
