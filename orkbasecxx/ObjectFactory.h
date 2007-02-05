@@ -22,18 +22,24 @@
 /** The ObjectFactory can be used to instanciate Objects based on class name.
     All existing Objects must be registered to the ObjectFactory at startup.
 */
+class ObjectFactory;
+
 class DLL_IMPORT_EXPORT_ORKBASE ObjectFactory
 {
 public:
-	void Initialize();
+	static void Initialize();
+	static ObjectFactory* GetSingleton();
+
 	ObjectRef NewInstance(CStdString& className);
 
 	void RegisterObject(ObjectRef&);
 private:
+	ObjectFactory();
+	static ObjectFactory* m_singleton;
 	std::map<CStdString, ObjectRef> m_classes;
 };
 
-typedef ACE_Singleton<ObjectFactory, ACE_Thread_Mutex> ObjectFactorySingleton;
+//typedef ACE_Singleton<ObjectFactory, ACE_Thread_Mutex> ObjectFactorySingleton;
 
 #endif
 

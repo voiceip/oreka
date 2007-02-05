@@ -94,7 +94,7 @@ int CommandLineServer::svc(void)
 						try
 						{
 							CStdString className = SingleLineSerializer::FindClass(command);
-							ObjectRef objRef = ObjectFactorySingleton::instance()->NewInstance(className);
+							ObjectRef objRef = ObjectFactory::GetSingleton()->NewInstance(className);
 							if (objRef.get())
 							{
 								objRef->DeSerializeSingleLine(command);
@@ -186,7 +186,7 @@ int HttpServer::svc(void)
 		
 
 			CStdString className = UrlSerializer::FindClass(url);
-			ObjectRef objRef = ObjectFactorySingleton::instance()->NewInstance(className);
+			ObjectRef objRef = ObjectFactory::GetSingleton()->NewInstance(className);
 			if (objRef.get())
 			{
 				objRef->DeSerializeUrl(url);
