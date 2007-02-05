@@ -15,11 +15,22 @@
 
 #include "ObjectFactory.h"
 
+ObjectFactory* ObjectFactory::m_singleton = NULL;
+
+ObjectFactory::ObjectFactory()
+{
+}
 
 void ObjectFactory::Initialize()
 {
-	;
+	m_singleton = new ObjectFactory();
 }
+
+ObjectFactory* ObjectFactory::GetSingleton()
+{
+	return m_singleton;
+}
+
 
 ObjectRef ObjectFactory::NewInstance(CStdString& className)
 {

@@ -118,7 +118,7 @@ void Transcode(CStdString &file)
 {
 	OrkLogManager::Instance()->Initialize();
 
-	ObjectFactorySingleton::instance()->Initialize();
+	ObjectFactory::GetSingleton()->Initialize();
 
 	ConfigManager::Instance()->Initialize();
 
@@ -170,23 +170,23 @@ void MainThread()
 	LOG4CXX_INFO(LOG.rootLog, CStdString("\n\nOrkAudio service starting\n"));
 
 	// Initialize object factory and register existing objects
-	ObjectFactorySingleton::instance()->Initialize();
+	ObjectFactory::GetSingleton()->Initialize();
 
 	ObjectRef objRef;
 	objRef.reset(new PingMsg);
-	ObjectFactorySingleton::instance()->RegisterObject(objRef);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	objRef.reset(new TapeMsg);
-	ObjectFactorySingleton::instance()->RegisterObject(objRef);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	objRef.reset(new TapeResponse);
-	ObjectFactorySingleton::instance()->RegisterObject(objRef);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	objRef.reset(new SimpleResponseMsg);
-	ObjectFactorySingleton::instance()->RegisterObject(objRef);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	objRef.reset(new DeleteTapeMsg);
-	ObjectFactorySingleton::instance()->RegisterObject(objRef);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	objRef.reset(new CaptureMsg);
-	ObjectFactorySingleton::instance()->RegisterObject(objRef);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	//objRef.reset(new TestMsg);
-	//ObjectFactorySingleton::instance()->RegisterObject(objRef);
+	//ObjectFactory::GetSingleton()->RegisterObject(objRef);
 
 	ConfigManager::Instance()->Initialize();
 
