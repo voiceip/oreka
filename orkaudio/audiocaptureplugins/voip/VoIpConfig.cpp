@@ -35,6 +35,7 @@ VoIpConfig::VoIpConfig()
 	m_pcapTest= false;
 	m_rtpDiscontinuityDetect = false;
 	m_rtpDiscontinuityMinSeqDelta = 1000;
+	m_iax2Support = true; // Enabled by default
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -61,6 +62,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("RtpDiscontinuityDetect", m_rtpDiscontinuityDetect);
 	s->IntValue("RtpDiscontinuityMinSeqDelta", m_rtpDiscontinuityMinSeqDelta);
 	s->CsvValue("DnisNumbers", m_dnisNumbers);
+	s->BoolValue("Iax2Support", m_iax2Support);
 }
 
 void VoIpConfig::Validate()

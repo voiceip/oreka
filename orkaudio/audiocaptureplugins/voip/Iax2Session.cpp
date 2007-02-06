@@ -344,6 +344,7 @@ bool Iax2Session::AddIax2Packet(Iax2PacketInfoRef& iax2Packet)
 		logMsg.Format("[%s] receiving voice packets while in %s state? "
 				"Destroying session...", m_trackingId,
 				iax2_state_to_str(m_iax2_state));
+		LOG4CXX_INFO(m_log, logMsg);
 		return false;
 	}
 
