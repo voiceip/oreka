@@ -448,6 +448,9 @@ bool TryIax2New(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 	char source_ip[16], dest_ip[16];
 	CStdString logmsg;
 
+	if(!DLLCONFIG.m_iax2Support)
+		return false;
+
 	memset(&ies, 0, sizeof(ies));
 	udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
 	if(udp_act_payload_len < sizeof(*fh))
@@ -527,6 +530,9 @@ bool TryIax2Accept(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeade
         int ies_len = 0, udp_act_payload_len = 0;
         Iax2AcceptInfoRef info(new Iax2AcceptInfo());
 
+        if(!DLLCONFIG.m_iax2Support)
+                return false;
+
         memset(&ies, 0, sizeof(ies));
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
         if(udp_act_payload_len < sizeof(*fh))
@@ -573,6 +579,9 @@ bool TryIax2Authreq(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHead
         struct iax2_ies ies;
         int ies_len = 0, udp_act_payload_len = 0;
 	Iax2AuthreqInfoRef info(new Iax2AuthreqInfo());
+
+        if(!DLLCONFIG.m_iax2Support)
+                return false;
 
         memset(&ies, 0, sizeof(ies));
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
@@ -638,6 +647,9 @@ bool TryIax2Hangup(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeade
         int ies_len = 0, udp_act_payload_len = 0;
 	Iax2HangupInfoRef info(new Iax2HangupInfo());
 
+        if(!DLLCONFIG.m_iax2Support)
+                return false;
+
         memset(&ies, 0, sizeof(ies));
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
         if(udp_act_payload_len < sizeof(*fh))
@@ -682,6 +694,9 @@ bool TryIax2ControlHangup(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* 
         Iax2HangupInfoRef info(new Iax2HangupInfo());
 	int udp_act_payload_len = 0;
 
+        if(!DLLCONFIG.m_iax2Support)
+                return false;
+
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
         if(udp_act_payload_len < sizeof(*fh))
                 return false; /* Frame too small */
@@ -717,6 +732,9 @@ bool TryIax2Reject(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeade
         struct iax2_ies ies;
         int ies_len = 0, udp_act_payload_len = 0;
 	Iax2HangupInfoRef info(new Iax2HangupInfo());
+
+        if(!DLLCONFIG.m_iax2Support)
+                return false;
 
         memset(&ies, 0, sizeof(ies));
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
@@ -760,6 +778,9 @@ bool TryIax2FullVoiceFrame(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
         struct Iax2FullHeader *fh = (struct Iax2FullHeader *)udpPayload;
         int data_len = 0, codec = 0, pt = 0, udp_act_payload_len = 0;
 	Iax2PacketInfoRef info(new Iax2PacketInfo());
+
+        if(!DLLCONFIG.m_iax2Support)
+                return false;
 
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
         if(udp_act_payload_len < sizeof(*fh))
@@ -818,6 +839,9 @@ bool TryIax2MetaTrunkFrame(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 	int data_len = 0;
 	int entries = 0, udp_act_payload_len = 0;
 	Iax2PacketInfoRef info(new Iax2PacketInfo());
+
+        if(!DLLCONFIG.m_iax2Support)
+                return false;
 
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
         if(udp_act_payload_len < sizeof(*mh))
@@ -925,6 +949,9 @@ bool TryIax2MiniVoiceFrame(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 	struct Iax2MiniHeader *mini = (struct Iax2MiniHeader *)udpPayload;
         int data_len = 0, udp_act_payload_len = 0;
 	Iax2PacketInfoRef info(new Iax2PacketInfo());
+
+        if(!DLLCONFIG.m_iax2Support)
+                return false;
 
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
         if(udp_act_payload_len < sizeof(*mini))

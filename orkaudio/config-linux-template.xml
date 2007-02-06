@@ -32,6 +32,9 @@
         <TapeProcessors>BatchProcessing</TapeProcessors>
 	
 	<VoIpPlugin>
+                <!-- Set the option below to "false" to disable IAX2 support -->
+                <!-- the default is that IAX2 support is enabled -->
+                <!--<Iax2Support>true</Iax2Support> -->
 		<!-- Use this if you want to force capture from a given list of devices. -->
 		<!-- All available devices are listed in /etc/orkaudio/orkaudio.log when the service is starting -->
 		<!--<Devices>eth1, eth2</Devices>-->
