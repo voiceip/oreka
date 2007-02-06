@@ -124,6 +124,14 @@ SOURCE=.\Rtp.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Iax2Session.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Iax2Session.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\RtpSession.cpp
 # End Source File
 # Begin Source File

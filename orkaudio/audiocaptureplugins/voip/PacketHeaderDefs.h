@@ -215,5 +215,54 @@ typedef enum
 int SkinnyMessageToEnum(CStdString& msg);
 CStdString SkinnyMessageToString(int msgEnum);
 
+/*
+ * IAX2 Packet Headers
+ */
+
+/* XXX No support for encryption */
+
+/* Full frame */
+struct Iax2FullHeader {
+	unsigned short scallno;
+	unsigned short dcallno;
+	unsigned int ts;
+	unsigned char oseqno;
+	unsigned char iseqno;
+	unsigned char type;
+	unsigned char c_sub;
+	unsigned char ie_data[0];
+} __attribute__ ((__packed__));
+
+/* Mini frame for voice */
+struct Iax2MiniHeader {
+	unsigned short scallno;
+	unsigned short ts; /* Low 16 bits from transmitting peer's full 32-bit ts */
+	unsigned char data[0];
+} __attribute__ ((__packed__));
+
+/* Meta trunk frame */
+struct Iax2MetaTrunkHeader {
+	unsigned short meta; /* zero for meta frames */
+	unsigned char metacmd;
+	unsigned char cmddata;
+	unsigned int ts;
+	unsigned char data[0];
+} __attribute__ ((__packed__));
+
+/* Mini trunked frame with timestamps (trunk timestamps
+ * flag is set to 0 */
+struct Iax2MetaTrunkEntry {
+	unsigned short scallno;
+	unsigned short len;
+	unsigned char data[0];
+} __attribute__ ((__packed__));
+
+/* Mini trunked frame with timestamps (trunk timestamps
+ * flag is set to 1 */
+struct Iax2MetaTrunkEntryTs {
+	unsigned short len;
+	struct Iax2MiniHeader mini;
+} __attribute__ ((__packed__));
+
 #endif
 
