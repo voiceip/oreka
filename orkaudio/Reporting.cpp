@@ -109,7 +109,7 @@ void Reporting::ThreadHandler(void *args)
 				//bool startMsg = false;
 				bool realtimeMessage = false;
 
-				if(msgRef.get() /*&& CONFIG.m_enableReporting*/)
+				if(msgRef.get() && CONFIG.m_enableReporting)
 				{
 					//if(ptapeMsg->m_stage.Equals("START"))
 					//{
