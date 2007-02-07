@@ -17,11 +17,8 @@
 	<!-- If you want to keep native audio files as well as compressed, change this to "no" -->
 	<DeleteNativeFile>yes</DeleteNativeFile>	
 
-	<NumBatchThreads></NumBatchThreads>
-
 	<TrackerHostname>localhost</TrackerHostname>
 	<EnableReporting>true</EnableReporting>
-	<ClientTimeout>1000</ClientTimeout>	
 	
 	<AudioSegmentation>false</AudioSegmentation>
 	<AudioSegmentDuration>10</AudioSegmentDuration>
