@@ -14,6 +14,7 @@
 #ifndef __ORKCLIENT_H__
 #define __ORKCLIENT_H__
 
+#include <log4cxx/logger.h>
 #include "messages/SyncMessage.h"
 #include "messages/AsyncMessage.h"
 
@@ -21,7 +22,13 @@
 class DLL_IMPORT_EXPORT_ORKBASE OrkClient
 {
 public:
+	OrkClient();
 	virtual bool Execute(SyncMessage& request, AsyncMessage& response, CStdString& hostname, int tcpPort, CStdString& serviceName, int timeout = 5) = 0;
+protected:
+	LogError(CStdString& errorString);
+
+	log4cxx::LoggerPtr m_log;
+	static time_t s_lastErrorReportedTime;
 };
 
 /** Abstract base class for all clients based on http. */

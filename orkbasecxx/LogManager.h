@@ -40,12 +40,11 @@ public:
 	LoggerPtr configLog;
 	LoggerPtr tapelistLog;
 	LoggerPtr tapeLog;
+	LoggerPtr clientLog;
 
 private:
 	static OrkLogManager m_orkLogManager;
 };
-
-//typedef ACE_Singleton<OrkLogManager, ACE_Thread_Mutex> OrkLogManagerSingleton;
 
 #define LOG (*OrkLogManager::Instance())
 
