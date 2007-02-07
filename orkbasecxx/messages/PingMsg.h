@@ -42,5 +42,19 @@ public:
 	ObjectRef Process();
 };
 
+class DLL_IMPORT_EXPORT_ORKBASE TcpPingMsg : public SyncMessage
+{
+public:
+	void Define(Serializer* s);
+	inline void Validate() {};
+
+	CStdString GetClassName();
+	ObjectRef NewInstance();
+	ObjectRef Process();
+
+	CStdString m_hostname;
+	int m_port;
+};
+
 #endif
 
