@@ -18,10 +18,7 @@
 	
 	<TrackerHostname>localhost</TrackerHostname>
 	<EnableReporting>false</EnableReporting>
-	<ClientTimeout>1000</ClientTimeout>
-	
-	<NumBatchThreads></NumBatchThreads>
-	
+		
 	<AudioSegmentation>false</AudioSegmentation>
 	<AudioSegmentDuration>10</AudioSegmentDuration>
 
