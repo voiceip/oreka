@@ -10,6 +10,7 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
+#pragma warning( disable: 4786 ) // disables truncated symbols in browse-info warning
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
