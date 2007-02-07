@@ -185,6 +185,8 @@ void MainThread()
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	objRef.reset(new CaptureMsg);
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
+	objRef.reset(new TcpPingMsg);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	//objRef.reset(new TestMsg);
 	//ObjectFactory::GetSingleton()->RegisterObject(objRef);
 
