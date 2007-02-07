@@ -16,6 +16,7 @@
 #include "ace/INET_Addr.h"
 #include "ace/SOCK_Connector.h"
 #include "ace/SOCK_Stream.h"
+#include "LogManager.h"
  
 #ifdef WIN32
 	#define IOV_TYPE char*
@@ -23,13 +24,32 @@
 	#define IOV_TYPE void*	
 #endif
 
+time_t OrkClient::s_lastErrorReportedTime = 0;
+
+OrkClient::OrkClient()
+{
+	m_log = OrkLogManager::Instance()->clientLog;
+}
+
+OrkClient::LogError(CStdString& logMsg)
+{
+	if((time(NULL) - s_lastErrorReportedTime) > 60)
+	{
+		s_lastErrorReportedTime = time(NULL);
+		LOG4CXX_ERROR(m_log, logMsg);
+	}
+}
+
 bool OrkHttpClient::ExecuteUrl(CStdString& request, CStdString& response, CStdString& hostname, int tcpPort, int timeout)
 {
+	CStdString logMsg;
 	ACE_SOCK_Connector  connector;
 	ACE_SOCK_Stream peer;
 	ACE_INET_Addr peer_addr;
 	if(timeout < 1){timeout = 1;}
 	ACE_Time_Value aceTimeout (timeout);
+	CStdString requestDetails;
+	requestDetails.Format("timeout:%d http://%s:%d/%s", timeout, hostname, tcpPort, request);
 	time_t beginRequestTimestamp = time(NULL);
 
 	char szTcpPort[10];
@@ -54,6 +74,8 @@ bool OrkHttpClient::ExecuteUrl(CStdString& request, CStdString& response, CStdSt
 
 	if (peer_addr.set (tcpPort, (PCSTR)hostname) == -1)
 	{
+		logMsg.Format("peer_addr.set()  errno=%d %s", errno, requestDetails);
+		LogError(logMsg);
 		return false;
 	}
 	else if (connector.connect (peer, peer_addr, &aceTimeout) == -1)
@@ -61,10 +83,14 @@ bool OrkHttpClient::ExecuteUrl(CStdString& request, CStdString& response, CStdSt
 		if (errno == ETIME)
 		{
 		}
+		logMsg.Format("connector.connect()  errno=%d %s", errno, requestDetails);
+		LogError(logMsg);
 		return false;
 	}
 	else if (peer.sendv_n (iov, 8, &aceTimeout) == -1)
 	{
+		logMsg.Format("peer.sendv_n  errno=%d %s", errno, requestDetails);
+		LogError(logMsg);
 		return false;
 	}
 
@@ -103,10 +129,14 @@ bool OrkHttpClient::ExecuteUrl(CStdString& request, CStdString& response, CStdSt
 
 	if(numReceived < 0)
 	{
+		logMsg.Format("numReceived:%d %s", numReceived, requestDetails);
+		LogError(logMsg);
 		return false;
 	}
 	if(header.size() <= 0 || response.size() <= 0)
 	{
+		logMsg.Format("header size:%d  response size:%d %s", header.size(), response.size(), requestDetails);
+		LogError(logMsg);
 		return false;
 	}
 	if(	header.GetAt(10) != '2' &&
@@ -116,6 +146,8 @@ bool OrkHttpClient::ExecuteUrl(CStdString& request, CStdString& response, CStdSt
 		header.GetAt(14) != 'O' &&
 		header.GetAt(15) != 'K'		)
 	{
+		logMsg.Format("received header != 200 OK   %s", requestDetails);
+		LogError(logMsg);
 		return false;
 	}
 	return true;
