@@ -77,6 +77,7 @@ public:
 	CStdString GetExtension();
 	AudioFileRef GetAudioFileRef();
 	bool IsReadyForBatchProcessing();
+	void GetDetails(TapeMsg* msg);
 
 
 	CStdString m_portId;
@@ -98,6 +99,7 @@ private:
 	void GenerateCaptureFilePathAndIdentifier();
 	void GenerateFinalFilePathAndIdentifier();
 	void PreventFileIdentifierCollision(CStdString& path, CStdString& identifier, CStdString& extension);
+	void PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum eventType);
 
 	CStdString m_filePath;
 	CStdString m_fileIdentifier;
