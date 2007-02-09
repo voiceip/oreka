@@ -161,8 +161,9 @@ int HttpServer::svc(void)
 	char buf[2048];
 	buf[2047] = '\0';	// security
 	ACE_Time_Value timeout;
+	timeout.sec(5);
 
-	ssize_t size = peer().recv(buf, 2040);
+	ssize_t size = peer().recv(buf, 2040, &timeout);
 
 	if (size > 5)
 	{
@@ -192,18 +193,25 @@ int HttpServer::svc(void)
 				objRef->DeSerializeUrl(url);
 				ObjectRef response = objRef->Process();
 
-				DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(XStr("Core").unicodeForm());
-				XERCES_CPP_NAMESPACE::DOMDocument* myDoc;
-				   myDoc = impl->createDocument(
-							   0,                    // root element namespace URI.
-							   XStr("response").unicodeForm(),         // root element name
-							   0);                   // document type object (DTD).
-				response->SerializeDom(myDoc);
-				CStdString pingResponse = DomSerializer::DomNodeToString(myDoc);
+				if(response.get() == NULL)
+				{
+					throw (CStdString("Command does not return a response:") + className);
+				}
+				else
+				{
+					DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(XStr("Core").unicodeForm());
+					XERCES_CPP_NAMESPACE::DOMDocument* myDoc;
+					   myDoc = impl->createDocument(
+								   0,                    // root element namespace URI.
+								   XStr("response").unicodeForm(),         // root element name
+								   0);                   // document type object (DTD).
+					response->SerializeDom(myDoc);
+					CStdString pingResponse = DomSerializer::DomNodeToString(myDoc);
 
-				CStdString httpOk("HTTP/1.0 200 OK\r\nContent-type: text/xml\r\n\r\n");
-				peer().send(httpOk, httpOk.GetLength());
-				peer().send(pingResponse, pingResponse.GetLength());
+					CStdString httpOk("HTTP/1.0 200 OK\r\nContent-type: text/xml\r\n\r\n");
+					peer().send(httpOk, httpOk.GetLength());
+					peer().send(pingResponse, pingResponse.GetLength());
+				}
 			}
 			else
 			{
