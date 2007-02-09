@@ -305,23 +305,34 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 	TapeMsg* pTapeMsg = (TapeMsg*)msgRef.get();
 	if(captureEventRef->m_type == CaptureEvent::EtStop || captureEventRef->m_type == CaptureEvent::EtStart || captureEventRef->m_type == CaptureEvent::EtReady || captureEventRef->m_type == CaptureEvent::EtUpdate)
 	{
-		pTapeMsg->m_recId = m_orkUid;
-		pTapeMsg->m_fileName = m_filePath + m_fileIdentifier + m_fileExtension;
-		pTapeMsg->m_stage = CaptureEvent::EventTypeToString(captureEventRef->m_type);
-		pTapeMsg->m_capturePort = m_portId;
-		pTapeMsg->m_localParty = m_localParty;
-		pTapeMsg->m_localEntryPoint = m_localEntryPoint;
-		pTapeMsg->m_remoteParty = m_remoteParty;
-		pTapeMsg->m_direction = CaptureEvent::DirectionToString(m_direction);
-		pTapeMsg->m_duration = m_duration;
-		pTapeMsg->m_timestamp = m_beginDate;
-		pTapeMsg->m_localIp = m_localIp;
-		pTapeMsg->m_remoteIp = m_remoteIp;
+		PopulateTapeMessage(pTapeMsg, captureEventRef->m_type);
 	}
 	else
 	{
 		// This should be a key-value pair message
 	}
+}
+
+void AudioTape::GetDetails(TapeMsg* msg)
+{
+	PopulateTapeMessage(msg, CaptureEvent::EtStop);
+}
+
+
+void AudioTape::PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum eventType)
+{
+	msg->m_recId = m_orkUid;
+	msg->m_fileName = m_filePath + m_fileIdentifier + m_fileExtension;
+	msg->m_stage = CaptureEvent::EventTypeToString(eventType);
+	msg->m_capturePort = m_portId;
+	msg->m_localParty = m_localParty;
+	msg->m_localEntryPoint = m_localEntryPoint;
+	msg->m_remoteParty = m_remoteParty;
+	msg->m_direction = CaptureEvent::DirectionToString(m_direction);
+	msg->m_duration = m_duration;
+	msg->m_timestamp = m_beginDate;
+	msg->m_localIp = m_localIp;
+	msg->m_remoteIp = m_remoteIp;
 }
 
 void AudioTape::GenerateCaptureFilePathAndIdentifier()
