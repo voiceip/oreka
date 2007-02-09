@@ -10,9 +10,11 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
+#pragma warning( disable: 4786 )
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
+#include "Utils.h"
 #include "ObjectFactory.h"
 
 ObjectFactory* ObjectFactory::m_singleton = NULL;
@@ -34,6 +36,7 @@ ObjectFactory* ObjectFactory::GetSingleton()
 
 ObjectRef ObjectFactory::NewInstance(CStdString& className)
 {
+	MutexSentinel mutexSentinel(m_mutex);
 	std::map<CStdString, ObjectRef>::iterator pair;
 	pair = m_classes.find(className);
 
@@ -43,12 +46,19 @@ ObjectRef ObjectFactory::NewInstance(CStdString& className)
 	}
 	else
 	{
-		return pair->second;
+		ObjectRef ref = pair->second;
+		return ref->NewInstance();
 	}
 }
 
 void ObjectFactory::RegisterObject(ObjectRef& objRef)
 {
+	MutexSentinel mutexSentinel(m_mutex);
+	std::map<CStdString, ObjectRef>::iterator pair = m_classes.find(objRef->GetClassName());
+	if(pair != m_classes.end())
+	{
+		m_classes.erase(pair);
+	}
 	m_classes.insert(std::make_pair(objRef->GetClassName(), objRef));
 }
 
