@@ -14,6 +14,7 @@
 #ifndef __OBJECTFACTORY_H__
 #define __OBJECTFACTORY_H__
 
+#include "ace/Thread_Mutex.h"
 #include "ace/Singleton.h"
 #include <map>
 #include "StdString.h"
@@ -37,9 +38,8 @@ private:
 	ObjectFactory();
 	static ObjectFactory* m_singleton;
 	std::map<CStdString, ObjectRef> m_classes;
+	ACE_Thread_Mutex m_mutex;
 };
-
-//typedef ACE_Singleton<ObjectFactory, ACE_Thread_Mutex> ObjectFactorySingleton;
 
 #endif
 
