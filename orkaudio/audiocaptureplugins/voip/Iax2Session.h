@@ -265,7 +265,7 @@ typedef ACE_Singleton<Iax2Sessions, ACE_Thread_Mutex> Iax2SessionsSingleton;
 /* Miscellaneous */
 static inline unsigned int get_unaligned_uint32(void *p)
 {
-        struct pckd { unsigned int d; } __attribute__((packed));
+        struct pckd { unsigned int d; };
 	struct pckd *pp = (struct pckd *)p;
 
         return pp->d;
