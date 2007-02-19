@@ -25,7 +25,7 @@ public:
 	OrkClient();
 	virtual bool Execute(SyncMessage& request, AsyncMessage& response, CStdString& hostname, int tcpPort, CStdString& serviceName, int timeout = 5) = 0;
 protected:
-	LogError(CStdString& errorString);
+	void LogError(CStdString& errorString);
 
 	log4cxx::LoggerPtr m_log;
 	static time_t s_lastErrorReportedTime;
