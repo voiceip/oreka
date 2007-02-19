@@ -14,6 +14,7 @@
 
 #include "ConfigManager.h"
 #include "MediaChunkFile.h"
+#include "Utils.h"
 
 #define MAX_CHUNK_SIZE 100000
 
@@ -168,7 +169,7 @@ void MediaChunkFile::Open(CStdString& filename, fileOpenModeEnum mode, bool ster
 	}
 	else
 	{
-		RecursiveMkdir(m_filename);
+		FileRecursiveMkdir(m_filename);
 		m_stream = ACE_OS::fopen((PCSTR)m_filename, "wb");
 	}
 	if(!m_stream)

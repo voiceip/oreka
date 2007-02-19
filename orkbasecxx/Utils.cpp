@@ -1,6 +1,7 @@
 #include "Utils.h"
 #include "ace/OS_NS_stdio.h"
 #include "ace/OS_NS_arpa_inet.h"
+#include "ace/OS_NS_sys_stat.h"
 
 //========================================================
 // file related stuff
@@ -63,6 +64,25 @@ bool FileCanOpen(CStdString& path)
 		return true;
 	}
 	return false;
+}
+
+void FileRecursiveMkdir(CStdString& path)
+{
+	int position = 0;
+	bool done = false;
+	while (!done)
+	{
+		position = path.Find('/', position+1);
+		if (position == -1)
+		{
+			done = true;
+		}
+		else
+		{
+			CStdString level = path.Left(position);
+			ACE_OS::mkdir((PCSTR)level);
+		}
+	}
 }
 
 //=====================================================
