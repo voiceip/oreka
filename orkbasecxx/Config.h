@@ -76,6 +76,8 @@
 #define DEBUG_PARAM "Debug"
 #define DEBUG_DEFAULT false
 #define TAPE_FILE_NAMING_PARAM "TapeFileNaming"
+#define REMOTE_PROCESSING_INPUT_PATH_PARAM "RemoteProcessingInputPath"
+#define REMOTE_PROCESSING_OUTPUT_PATH_PARAM "RemoteProcessingOutputPath"
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -119,6 +121,8 @@ public:
 	int m_captureFileBatchSizeKByte;
 	bool m_debug;
 	std::list<CStdString> m_tapeFileNaming;
+	std::list<CStdString> m_remoteProcessingInputPath;
+	CStdString m_remoteProcessingOutputPath;
 
 private:
 	log4cxx::LoggerPtr m_log;
