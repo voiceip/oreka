@@ -19,26 +19,6 @@ void AudioFile::Open(fileOpenModeEnum mode, bool stereo , int sampleRate)
 	Open(m_filename, mode, stereo, sampleRate);
 }
 
-
-void AudioFile::RecursiveMkdir(CStdString& path)
-{
-	int position = 0;
-	bool done = false;
-	while (!done)
-	{
-		position = path.Find('/', position+1);
-		if (position == -1)
-		{
-			done = true;
-		}
-		else
-		{
-			CStdString level = path.Left(position);
-			ACE_OS::mkdir((PCSTR)level);
-		}
-	}
-}
-
 void AudioFile::MoveOrig()
 {
 	CStdString newName = m_filename + ".orig";

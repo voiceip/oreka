@@ -54,7 +54,7 @@ void LibSndFileFile::Open(CStdString& filename, fileOpenModeEnum mode, bool ster
 		throw(CStdString("libsndfile: Selected output format not supported"));
 	}
 
-	RecursiveMkdir(m_filename);
+	FileRecursiveMkdir(m_filename);
 
 	int sndFileMode;
 	mode == READ ? sndFileMode = SFM_READ : sndFileMode = SFM_WRITE;

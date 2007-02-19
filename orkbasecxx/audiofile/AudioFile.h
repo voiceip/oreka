@@ -58,7 +58,6 @@ public:
 	virtual CStdString GetExtension() = 0;
 	virtual int GetSampleRate();
 
-	static void RecursiveMkdir(CStdString& path);
 protected:
 	CStdString m_filename;
 	fileOpenModeEnum m_mode;
