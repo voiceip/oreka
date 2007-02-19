@@ -25,6 +25,11 @@
 
 ImmediateProcessing ImmediateProcessing::m_immediateProcessingSingleton;
 
+ImmediateProcessing::ImmediateProcessing()
+{
+	m_lastQueueFullTime = time(NULL);
+}
+
 ImmediateProcessing* ImmediateProcessing::GetInstance()
 {
 	return &m_immediateProcessingSingleton;
@@ -34,8 +39,11 @@ void ImmediateProcessing::AddAudioTape(AudioTapeRef audioTapeRef)
 {
 	if (!m_audioTapeQueue.push(audioTapeRef))
 	{
-		// Log error
-		LOG4CXX_ERROR(LOG.immediateProcessingLog, CStdString("ImmediateProcessing: queue full"));
+		if( (time(NULL) - m_lastQueueFullTime) > 10 )
+		{
+			m_lastQueueFullTime = time(NULL);
+			LOG4CXX_ERROR(LOG.immediateProcessingLog, CStdString("ImmediateProcessing: queue full"));
+		}
 	}
 }
 

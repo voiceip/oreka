@@ -20,6 +20,7 @@
 class ImmediateProcessing
 {
 public:
+	ImmediateProcessing();
 	static ImmediateProcessing* GetInstance();
 	static void ThreadHandler(void *args);
 
@@ -29,6 +30,7 @@ private:
 	static ImmediateProcessing m_immediateProcessingSingleton;
 	ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
 
+	time_t m_lastQueueFullTime;
 };
 
 #endif
