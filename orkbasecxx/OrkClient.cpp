@@ -31,7 +31,7 @@ OrkClient::OrkClient()
 	m_log = OrkLogManager::Instance()->clientLog;
 }
 
-OrkClient::LogError(CStdString& logMsg)
+void OrkClient::LogError(CStdString& logMsg)
 {
 	if((time(NULL) - s_lastErrorReportedTime) > 60)
 	{
