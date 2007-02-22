@@ -42,7 +42,7 @@ public:
 
 	CStdString GetClassName();
 	ObjectRef NewInstance();
-	inline ObjectRef Process() {return ObjectRef();};
+	ObjectRef Process();
 
 	CStdString m_recId;
 	CStdString m_stage;
@@ -80,6 +80,37 @@ public:
 };
 
 typedef boost::shared_ptr<TapeResponse> TapeResponseRef;
+
+//class DLL_IMPORT_EXPORT_ORKBASE TapeResponseFwd : public TapeResponse
+//{
+//public:
+//	TapeResponseFwd();
+//	void Define(Serializer* s);
+//
+//	ObjectRef NewInstance();
+//
+//	bool m_boolean2;
+//};
+
+
+class DLL_IMPORT_EXPORT_ORKBASE TapeTagMsg : public SyncMessage
+{
+public:
+	TapeTagMsg();
+
+	void Define(Serializer* s);
+	void Validate();
+
+	CStdString GetClassName();
+	ObjectRef NewInstance();
+	inline ObjectRef Process() {return ObjectRef();};
+
+	CStdString m_orkUid;
+	time_t m_timestamp;
+	CStdString m_key;
+	CStdString m_value;
+};
+typedef boost::shared_ptr<TapeTagMsg> TapeTagMsgRef;
 
 #endif
 

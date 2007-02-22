@@ -10,6 +10,9 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
+#pragma warning( disable: 4786 ) // disables truncated symbols in browse-info warning
+
+#define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
 #include "Utils.h"
 #include "TapeMsg.h"
@@ -26,8 +29,6 @@ TapeMsg::TapeMsg()
 
 void TapeMsg::Define(Serializer* s)
 {
-	DefineMessage(s);
-
 	CStdString tapeMessageName(TAPE_MESSAGE_NAME);
 	s->StringValue(OBJECT_TYPE_TAG, tapeMessageName, true);
 	s->StringValue(REC_ID_PARAM, m_recId, true);
@@ -46,6 +47,8 @@ void TapeMsg::Define(Serializer* s)
 	s->StringValue(REMOTE_IP_PARAM, m_remoteIp);
 	//s->StringValue(LOCAL_MAC_PARAM, m_localMac);
 	//s->StringValue(REMOTE_MAC_PARAM, m_remoteMac);
+
+	DefineMessage(s);
 }
 
 void TapeMsg::Validate()
@@ -62,6 +65,10 @@ ObjectRef TapeMsg::NewInstance()
 	return ObjectRef(new TapeMsg);
 }
 
+ObjectRef TapeMsg::Process()
+{
+	return ObjectRef();
+}
 
 //==========================================================
 TapeResponse::TapeResponse()
@@ -86,3 +93,47 @@ ObjectRef TapeResponse::NewInstance()
 	return ObjectRef(new TapeResponse);
 }
 
+//====================================================================
+//TapeResponseFwd::TapeResponseFwd()
+//{
+//	m_boolean2 = false;
+//}
+//
+//
+//void TapeResponseFwd::Define(Serializer* s)
+//{	
+//	TapeResponse::Define(s);
+//	s->BoolValue("boolean2", m_boolean2);
+//}
+//
+//ObjectRef TapeResponseFwd::NewInstance()
+//{
+//	return ObjectRef(new TapeResponseFwd);
+//}
+
+//====================================================================
+TapeTagMsg::TapeTagMsg()
+{
+	// Here is where default values are set
+}
+
+void TapeTagMsg::Define(Serializer* s)
+{
+	CStdString tapeMessageName("tapetagmsg");
+	s->StringValue(OBJECT_TYPE_TAG, tapeMessageName, true);
+	DefineMessage(s);
+}
+
+void TapeTagMsg::Validate()
+{
+}
+
+CStdString TapeTagMsg::GetClassName()
+{
+	return CStdString("tapetagmsg");
+}
+
+ObjectRef TapeTagMsg::NewInstance()
+{
+	return ObjectRef(new TapeTagMsg);
+}
