@@ -68,6 +68,7 @@ public:
 	bool m_pcapTest;
 	bool m_rtpDiscontinuityDetect;
 	int  m_rtpDiscontinuityMinSeqDelta;
+	bool m_rtpDetectOnOddPorts;
 	bool m_iax2Support;
 
 	std::list<CStdString> m_dnisNumbers;

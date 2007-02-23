@@ -399,7 +399,7 @@ void iax2_dump_frame(struct Iax2FullHeader *fh, char *source, char *dest)
 	CStdString tmp;
         const char *cclass;
         const char *subclass;
-        char *dir;
+        //char *dir;
 
         if (fh->type >= (int)sizeof(frames)/(int)sizeof(frames[0])) {
                 snprintf(class2, sizeof(class2), "(%d?)", fh->type);
@@ -445,7 +445,7 @@ bool TryIax2New(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 	struct iax2_ies ies;
 	int ies_len = 0, udp_act_payload_len = 0;
 	Iax2NewInfoRef info(new Iax2NewInfo());
-	char source_ip[16], dest_ip[16];
+	//char source_ip[16], dest_ip[16];
 	CStdString logmsg;
 
 	if(!DLLCONFIG.m_iax2Support)
@@ -995,7 +995,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 	{
 		u_short source = ntohs(udpHeader->source);
 		u_short dest = ntohs(udpHeader->dest);
-		if(!(ntohs(udpHeader->source)%2) && !(ntohs(udpHeader->dest)%2))	// udp ports must be even 
+		if(!(ntohs(udpHeader->source)%2) && !(ntohs(udpHeader->dest)%2) || DLLCONFIG.m_rtpDetectOnOddPorts)	// udp ports usually even 
 		{
 			if((rtpHeader->pt <= 34 &&  rtpHeader->pt != 13) || rtpHeader->pt == 97 || rtpHeader->pt == 98)		// pt=34 is H263 and is the last possible valid codec 
 			{													// pt=13 is CN (Comfort Noise)
