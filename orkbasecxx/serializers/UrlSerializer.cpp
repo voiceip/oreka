@@ -43,7 +43,7 @@ void UrlSerializer::DeSerialize(CStdString& input)
 	CStdString errorDescription;
 
 	input.Trim();
-	input.ToLower();
+	//input.ToLower();
 
 	for(int i=0; i<input.length() && state!= UrlErrorState; i++)
 	{
