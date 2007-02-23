@@ -1025,6 +1025,11 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	RtpSessionRef session;
 	CStdString logMsg;
 
+	if(rtpPacket->m_sourcePort == 1075)
+	{
+		int i=0;
+	}
+
 	// Add RTP packet to session with matching source or dest IP+Port. 
 	// On CallManager there might be two sessions with two different CallIDs for one 
 	// phone call, so this RTP packet can potentially be reported to two sessions.
@@ -1033,10 +1038,10 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	CStdString port = IntToString(rtpPacket->m_sourcePort);
 	char szSourceIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szSourceIp, sizeof(szSourceIp));
-	CStdString ipAndPort = CStdString(szSourceIp) + "," + port;
+	CStdString sourceIpAndPort = CStdString(szSourceIp) + "," + port;
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 
-	pair = m_byIpAndPort.find(ipAndPort);
+	pair = m_byIpAndPort.find(sourceIpAndPort);
 	if (pair != m_byIpAndPort.end())
 	{
 		session1 = pair->second;
@@ -1060,9 +1065,9 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	port = IntToString(rtpPacket->m_destPort);
 	char szDestIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szDestIp, sizeof(szDestIp));
-	ipAndPort = CStdString(szDestIp) + "," + port;
+	CStdString destIpAndPort = CStdString(szDestIp) + "," + port;
 
-	pair = m_byIpAndPort.find(ipAndPort);
+	pair = m_byIpAndPort.find(destIpAndPort);
 	if (pair != m_byIpAndPort.end())
 	{
 		session2 = pair->second;
@@ -1169,7 +1174,19 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		CStdString trackingId = m_alphaCounter.GetNext();
 		RtpSessionRef session(new RtpSession(trackingId));
 		session->m_protocol = RtpSession::ProtRawRtp;
+
+		// Make sure the session is tracked by the right IP address
+		CStdString ipAndPort;
+		if(DLLCONFIG.IsRtpTrackingIpAddress(rtpPacket->m_sourceIp))
+		{
+			ipAndPort = sourceIpAndPort;
+		}
+		else
+		{
+			ipAndPort = destIpAndPort;
+		}
 		session->m_ipAndPort = ipAndPort;	// (1) In the case of a PSTN Gateway automated answer, This is the destination IP+Port of the first packet which is good, because it is usually the IP+Port of the PSTN Gateway.
+
 		session->AddRtpPacket(rtpPacket);
 		m_byIpAndPort.insert(std::make_pair(ipAndPort, session));
 
