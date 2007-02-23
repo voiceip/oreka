@@ -15,6 +15,8 @@
 #ifndef __PACKETHEADERDEFS_H__
 #define __PACKETHEADERDEFS_H__
 
+#pragma warning( disable: 4200 ) // disables warning C4200: nonstandard extension used : zero-sized array in struct/union
+
 #include "ace/OS_NS_arpa_inet.h"
 #include "StdString.h"
 
