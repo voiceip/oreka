@@ -21,7 +21,14 @@ SERVICE_STATUS serviceStatus;
 SERVICE_STATUS_HANDLE serviceStatusHandle = 0;
 HANDLE stopServiceEvent = 0;
 #endif
+#include "ace/OS_NS_signal.h"
 #include "Daemon.h"
+
+void handle_signal(int sig_num)
+{
+        signal(SIGUSR1, handle_signal);
+	DaemonSingleton::instance()->Stop();
+}
 
 #ifdef WIN32
 void WINAPI ServiceControlHandler( DWORD controlCode )
@@ -88,6 +95,7 @@ void Daemon::Start()
 
 	StartServiceCtrlDispatcher( serviceTable );
 #else
+        signal(SIGUSR1, handle_signal);
 	Daemon::Run();
 #endif
 }
