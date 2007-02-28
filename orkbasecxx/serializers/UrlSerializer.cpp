@@ -16,6 +16,10 @@
 #include "UrlSerializer.h"
 
 
+static char url_ok_chars[] = "*-.0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+static char hex_digits[17] = "0123456789ABCDEF";
+
+
 void UrlSerializer::AddString(const char* key, CStdString& value)
 {
 	CStdString pair;
@@ -43,7 +47,6 @@ void UrlSerializer::DeSerialize(CStdString& input)
 	CStdString errorDescription;
 
 	input.Trim();
-	//input.ToLower();
 
 	for(int i=0; i<input.length() && state!= UrlErrorState; i++)
 	{
@@ -119,23 +122,56 @@ void UrlSerializer::DeSerialize(CStdString& input)
 		}
 	}	// for(int i=0; i<input.length() && state!= UrlErrorState; i++)
 
-	m_deSerialize = true;		// Set DeSerialize mode
-	m_object->Define(this);
-	m_object->Validate();
+	Serializer::DeSerialize();
 }
 
-// Escape the space, colon and percent characters for serializing to Key-Value-Pair text
 void UrlSerializer::EscapeUrl(CStdString& in, CStdString& out)
 {
-	//####### fixme, need unescaping
-	out = in;
+	// Translates all the characters that are not in url_ok_chars string into %xx sequences
+	// %xx specifies the character ascii code in hexadecimal
+	out = "";
+	for (int i = 0 ; i<in.size() ; i++)
+	{
+		if (in.GetAt(i) == ' ')
+			out += '+';
+		else if (strchr(url_ok_chars, in.GetAt(i)))
+			out += in.GetAt(i);
+		else
+		{
+			out += '%';
+			out += hex_digits[((unsigned char) in.GetAt(i)) >> 4];
+			out += hex_digits[in.GetAt(i) & 0x0F];
+		}
+	}
 }
 
-// Unescape the space, colon and percent characters for serializing to Key-Value-Pair text
 void UrlSerializer::UnEscapeUrl(CStdString& in, CStdString& out)
 {
-	// ###### fixme, need escaping
-	out = in;
+	// Translates all %xx escaped sequences to corresponding ascii characters
+	out = "";
+	char pchHex[3];
+	for (int i = 0; i<in.size(); i++)
+	{
+		switch (in.GetAt(i))
+		{
+			case '+':
+				out += ' ';
+				break;
+			case '%':
+				if (in.GetAt(++i) == '%')
+				{
+					out += '%';
+					break;
+				}
+				pchHex[0] = in.GetAt(i);
+				pchHex[1] = in.GetAt(++i);
+				pchHex[2] = 0;
+				out += (char)strtol(pchHex, NULL, 16);
+				break;
+			default:
+				out += in.GetAt(i);
+		}
+	}
 }
 
 CStdString UrlSerializer::FindClass(CStdString& input)

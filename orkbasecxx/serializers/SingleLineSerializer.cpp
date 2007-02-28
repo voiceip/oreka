@@ -119,9 +119,7 @@ void SingleLineSerializer::DeSerialize(CStdString& input)
 		}
 	}	// for(int i=0; i<input.length() && state!= SingleLineErrorState; i++)
 
-	m_deSerialize = true;		// Set DeSerialize mode
-	m_object->Define(this);
-	m_object->Validate();
+	Serializer::DeSerialize();
 }
 
 // Escape the space, colon and percent characters for serializing to Key-Value-Pair text

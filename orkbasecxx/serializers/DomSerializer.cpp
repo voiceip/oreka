@@ -162,9 +162,7 @@ void DomSerializer::Serialize(XERCES_CPP_NAMESPACE::DOMDocument* doc)
 void DomSerializer::DeSerialize(DOMNode* node)
 {
 	m_node = node;
-	m_deSerialize = true;		// Set DeSerialize mode
-	m_object->Define(this);
-	m_object->Validate();
+	Serializer::DeSerialize();
 }
 
 CStdString DomSerializer::XMLStringToLocal(const XMLCh* const toTranscode)

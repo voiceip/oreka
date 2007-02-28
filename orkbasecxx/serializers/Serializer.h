@@ -35,6 +35,9 @@ class DLL_IMPORT_EXPORT_ORKBASE Serializer
 {
 public:
 	Serializer(Object* object);
+	void SetObject(Object* object);
+
+	void DeSerialize();
 
 	void IntValue(const char* key, int& value, bool required = false);
 	void DoubleValue(const char* key, double& value, bool required = false);
