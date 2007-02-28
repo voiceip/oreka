@@ -25,6 +25,19 @@ Serializer::Serializer(Object* object)
 	m_object = object;
 }
 
+void Serializer::SetObject(Object* object)
+{
+	m_object = object;
+}
+
+void Serializer::DeSerialize()
+{
+	m_deSerialize = true;		// Set DeSerialize mode
+	m_object->Define(this);
+	m_object->Validate();
+}
+
+
 void Serializer::IntValue(const char* key, int& value, bool required)
 {
 	if (m_deSerialize == true)
