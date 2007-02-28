@@ -45,6 +45,8 @@ public:
 class DLL_IMPORT_EXPORT_ORKBASE TcpPingMsg : public SyncMessage
 {
 public:
+	TcpPingMsg();
+
 	void Define(Serializer* s);
 	inline void Validate() {};
 
