@@ -64,6 +64,12 @@ ObjectRef PingMsg::Process()
 //===============================
 #define TCP_PING_CLASS "tcpping"
 
+TcpPingMsg::TcpPingMsg()
+{
+	m_port = 0;
+}
+
+
 void TcpPingMsg::Define(Serializer* s)
 {
 	CStdString tcpPingClass(TCP_PING_CLASS);
