@@ -54,6 +54,10 @@ Config::Config()
 	m_reportingRetryDelay = 5;
 	m_clientTimeout = 5;
 	m_debug = DEBUG_DEFAULT;
+
+	m_remoteProcessingHostname = REMOTE_PROCESSING_HOSTNAME_DEFAULT;
+	m_remoteProcessingTcpPort = REMOTE_PROCESSING_TCP_PORT_DEFAULT;
+	m_remoteProcessingServiceName = REMOTE_PROCESSING_SERVICE_NAME_DEFAULT;
 }
 
 void Config::Define(Serializer* s)
@@ -91,6 +95,9 @@ void Config::Define(Serializer* s)
 	s->CsvValue(TAPE_FILE_NAMING_PARAM, m_tapeFileNaming);
 	s->CsvValue(REMOTE_PROCESSING_INPUT_PATH_PARAM, m_remoteProcessingInputPath);
 	s->StringValue(REMOTE_PROCESSING_OUTPUT_PATH_PARAM, m_remoteProcessingOutputPath);
+	s->StringValue(REMOTE_PROCESSING_HOSTNAME_PARAM, m_remoteProcessingHostname);
+	s->IntValue(REMOTE_PROCESSING_TCP_PORT_PARAM, m_remoteProcessingTcpPort);
+	s->StringValue(REMOTE_PROCESSING_SERVICE_NAME_PARAM, m_remoteProcessingServiceName);
 }
 
 void Config::Validate()

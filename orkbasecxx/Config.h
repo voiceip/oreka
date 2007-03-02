@@ -78,6 +78,12 @@
 #define TAPE_FILE_NAMING_PARAM "TapeFileNaming"
 #define REMOTE_PROCESSING_INPUT_PATH_PARAM "RemoteProcessingInputPath"
 #define REMOTE_PROCESSING_OUTPUT_PATH_PARAM "RemoteProcessingOutputPath"
+#define REMOTE_PROCESSING_HOSTNAME_PARAM "RemoteProcessingHostname"
+#define REMOTE_PROCESSING_HOSTNAME_DEFAULT "localhost"
+#define REMOTE_PROCESSING_TCP_PORT_PARAM "RemoteProcessingTcpPort"
+#define REMOTE_PROCESSING_TCP_PORT_DEFAULT 20000
+#define REMOTE_PROCESSING_SERVICE_NAME_PARAM "RemoteProcessingServiceName"
+#define REMOTE_PROCESSING_SERVICE_NAME_DEFAULT "orkaudio"
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -123,6 +129,9 @@ public:
 	std::list<CStdString> m_tapeFileNaming;
 	std::list<CStdString> m_remoteProcessingInputPath;
 	CStdString m_remoteProcessingOutputPath;
+	CStdString m_remoteProcessingHostname;
+	int m_remoteProcessingTcpPort;
+	CStdString m_remoteProcessingServiceName;
 
 private:
 	log4cxx::LoggerPtr m_log;
