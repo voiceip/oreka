@@ -40,9 +40,10 @@ RSC=rc.exe
 # PROP Use_Debug_Libraries 0
 # PROP Output_Dir "Release"
 # PROP Intermediate_Dir "Release"
+# PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /Ob0 /I "." /I ".\filters\gsm" /I ".\filters\gsm\gsm610" /I ".\filters\ilbc" /I ".\filters\ilbc\ilbc" /I "C:\devExt\libsndfile\src" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /D "BUILD_ORKBASE" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D inline=__inline /FD /c
+# ADD CPP /nologo /MD /W3 /GX /Zi /O2 /Ob0 /I "." /I ".\filters\gsm" /I ".\filters\gsm\gsm610" /I ".\filters\ilbc" /I ".\filters\ilbc\ilbc" /I "C:\devExt\libsndfile\src" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /D "BUILD_ORKBASE" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D inline=__inline /FD /c
 # SUBTRACT CPP /YX /Yc /Yu
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
@@ -53,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 LIBSNDFILE.lib xerces-c_2.lib log4cxx.lib ace.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386 /libpath:"C:\devExt\libsndfile\Release" /libpath:"C:\devExt\ACE_wrappers\lib" /libpath:"C:\devExt\log4cxx\log4cxx-0.9.7\msvc\Lib\Release" /libpath:"C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\lib"
+# ADD LINK32 LIBSNDFILE.lib xerces-c_2.lib log4cxx.lib ace.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /map /debug /machine:I386 /libpath:"C:\devExt\libsndfile\Release" /libpath:"C:\devExt\ACE_wrappers\lib" /libpath:"C:\devExt\log4cxx\log4cxx-0.9.7\msvc\Lib\Release" /libpath:"C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Cmds=copy Release\OrkBase.dll ..\OrkAudio\OrkBase.dll
@@ -73,7 +74,7 @@ PostBuild_Cmds=copy Release\OrkBase.dll ..\OrkAudio\OrkBase.dll
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "." /I ".\filters\gsm" /I ".\filters\gsm\gsm610" /I ".\filters\ilbc" /I ".\filters\ilbc\ilbc" /I "C:\devExt\libsndfile\src" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /D "BUILD_ORKBASE" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D inline=__inline /FR /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /I "." /I ".\filters\gsm" /I ".\filters\gsm\gsm610" /I ".\filters\ilbc" /I ".\filters\ilbc\ilbc" /I "C:\devExt\libsndfile\src" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /D "BUILD_ORKBASE" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D inline=__inline /FR /FD /GZ /c
 # SUBTRACT CPP /YX /Yc /Yu
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -397,12 +398,10 @@ SOURCE=.\filters\gsm\GsmFilters.cpp
 SOURCE=.\filters\gsm\GsmFilters.h
 # End Source File
 # End Group
-
-# PROP Default_Filter ""
 # Begin Group "ilbc"
 
 # PROP Default_Filter ""
-# Begin Group "ilbc"
+# Begin Group "ilbc No. 1"
 
 # PROP Default_Filter ""
 # Begin Source File
@@ -411,27 +410,7 @@ SOURCE=.\filters\ilbc\ilbc\anaFilter.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\filters\ilbc\ilbc\iCBSearch.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\filters\ilbc\ilbc\packing.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\filters\ilbc\ilbc\constants.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\filters\ilbc\ilbc\gainquant.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\filters\ilbc\ilbc\iLBC_decode.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\filters\ilbc\ilbc\StateConstructW.c
 # End Source File
 # Begin Source File
 
@@ -439,27 +418,7 @@ SOURCE=.\filters\ilbc\ilbc\createCB.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\filters\ilbc\ilbc\getCBvec.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\filters\ilbc\ilbc\iLBC_encode.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\filters\ilbc\ilbc\StateSearchW.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\filters\ilbc\ilbc\doCPLC.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\filters\ilbc\ilbc\helpfun.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\filters\ilbc\ilbc\syntFilter.c
 # End Source File
 # Begin Source File
 
@@ -467,15 +426,23 @@ SOURCE=.\filters\ilbc\ilbc\enhancer.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\filters\ilbc\ilbc\FrameClassify.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\ilbc\ilbc\gainquant.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\ilbc\ilbc\getCBvec.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\ilbc\ilbc\helpfun.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\filters\ilbc\ilbc\hpInput.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\filters\ilbc\ilbc\LPCdecode.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\filters\ilbc\ilbc\iLBC_filter.c
 # End Source File
 # Begin Source File
 
@@ -483,19 +450,51 @@ SOURCE=.\filters\ilbc\ilbc\hpOutput.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\filters\ilbc\ilbc\LPCencode.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\filters\ilbc\ilbc\FrameClassify.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\filters\ilbc\ilbc\iCBConstruct.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\filters\ilbc\ilbc\iCBSearch.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\ilbc\ilbc\iLBC_decode.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\ilbc\ilbc\iLBC_encode.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\ilbc\ilbc\iLBC_filter.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\ilbc\ilbc\LPCdecode.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\ilbc\ilbc\LPCencode.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\filters\ilbc\ilbc\lsf.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\ilbc\ilbc\packing.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\ilbc\ilbc\StateConstructW.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\ilbc\ilbc\StateSearchW.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\ilbc\ilbc\syntFilter.c
 # End Source File
 # End Group
 # Begin Source File
