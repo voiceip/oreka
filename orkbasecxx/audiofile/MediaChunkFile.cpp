@@ -52,6 +52,15 @@ bool MediaChunkFile::FlushToDisk()
 	{
 		AudioChunkRef tmpChunk = m_chunkQueue.front();
 		m_chunkQueue.pop();
+		if(tmpChunk.get() == NULL)
+		{
+			continue;
+		}
+		if(tmpChunk->m_pBuffer == NULL)
+		{
+			continue;
+		}
+
 		int tmp = sizeof(AudioChunkDetails);
 		unsigned int numWritten = ACE_OS::fwrite(tmpChunk->GetDetails(), sizeof(AudioChunkDetails), 1, m_stream);
 		if(numWritten != 1)
