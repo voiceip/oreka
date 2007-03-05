@@ -43,6 +43,7 @@ void OrkClient::LogError(CStdString& logMsg)
 bool OrkHttpClient::ExecuteUrl(CStdString& request, CStdString& response, CStdString& hostname, int tcpPort, int timeout)
 {
 	CStdString logMsg;
+	response = "";
 	ACE_SOCK_Connector  connector;
 	ACE_SOCK_Stream peer;
 	ACE_INET_Addr peer_addr;
@@ -135,7 +136,7 @@ bool OrkHttpClient::ExecuteUrl(CStdString& request, CStdString& response, CStdSt
 	}
 	if(header.size() <= 0 || response.size() <= 0)
 	{
-		logMsg.Format("header size:%d  response size:%d %s", header.size(), response.size(), requestDetails);
+		logMsg.Format("HTTP header:%s ** request:%s ** response:%s ** header size:%d  response size:%d", header, requestDetails, response, header.size(), response.size());
 		LogError(logMsg);
 		return false;
 	}
@@ -146,7 +147,7 @@ bool OrkHttpClient::ExecuteUrl(CStdString& request, CStdString& response, CStdSt
 		header.GetAt(14) != 'O' &&
 		header.GetAt(15) != 'K'		)
 	{
-		logMsg.Format("received header != 200 OK   %s", requestDetails);
+		logMsg.Format("HTTP header:%s ** request:%s", header, requestDetails);
 		LogError(logMsg);
 		return false;
 	}
