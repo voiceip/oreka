@@ -42,6 +42,7 @@ Reporting* Reporting::Instance()
 Reporting::Reporting()
 {
 	m_queueFullError = false;
+	numTapesToSkip = 0;
 }
 
 CStdString __CDECL__ Reporting::GetName()
@@ -52,6 +53,23 @@ CStdString __CDECL__ Reporting::GetName()
 TapeProcessorRef  Reporting::Instanciate()
 {
 	return m_singleton;
+}
+
+void __CDECL__ Reporting::SkipTapes(int number)
+{
+	MutexSentinel sentinel(m_mutex);
+	numTapesToSkip++;
+}
+
+bool Reporting::IsSkip()
+{
+	MutexSentinel sentinel(m_mutex);
+	if(numTapesToSkip)
+	{
+		numTapesToSkip--;
+		return true;
+	}
+	return false;
 }
 
 void Reporting::AddAudioTape(AudioTapeRef& audioTapeRef)
@@ -84,7 +102,7 @@ void Reporting::ThreadHandler(void *args)
 
 	bool stop = false;
 	bool reportError = true;
-	time_t reportErrorLastTime = time(NULL);
+	time_t reportErrorLastTime = 0;
 	bool error = false;
 
 	for(;stop == false;)
@@ -129,7 +147,7 @@ void Reporting::ThreadHandler(void *args)
 
 					bool success = false;
 
-					while (!success)
+					while (!success && !pReporting->IsSkip())
 					{
 						if (c.Execute((SyncMessage&)(*msgRef.get()), (AsyncMessage&)(*tr.get()), CONFIG.m_trackerHostname, CONFIG.m_trackerTcpPort, CONFIG.m_trackerServicename, CONFIG.m_clientTimeout))
 						{
@@ -194,6 +212,51 @@ void Reporting::ThreadHandler(void *args)
 		}
 	}
 	LOG4CXX_INFO(LOG.reportingLog, CStdString("Exiting thread"));
+}
+
+//=======================================================
+#define REPORTING_SKIP_TAPE_CLASS "reportingskiptape"
+
+ReportingSkipTapeMsg::ReportingSkipTapeMsg()
+{
+	m_number = 1;
+}
+
+
+void ReportingSkipTapeMsg::Define(Serializer* s)
+{
+	CStdString thisClass(REPORTING_SKIP_TAPE_CLASS);
+	s->StringValue(OBJECT_TYPE_TAG, thisClass, true);
+	s->IntValue("num", (int&)m_number, false);
+}
+
+
+CStdString ReportingSkipTapeMsg::GetClassName()
+{
+	return  CStdString(REPORTING_SKIP_TAPE_CLASS);
+}
+
+ObjectRef ReportingSkipTapeMsg::NewInstance()
+{
+	return ObjectRef(new ReportingSkipTapeMsg);
+}
+
+ObjectRef ReportingSkipTapeMsg::Process()
+{
+	bool success = true;
+	CStdString logMsg;
+
+	Reporting* reporting = Reporting::Instance();
+	if(reporting)
+	{
+		reporting->SkipTapes(m_number);
+	}
+
+	SimpleResponseMsg* msg = new SimpleResponseMsg;
+	ObjectRef ref(msg);
+	msg->m_success = success;
+	msg->m_comment = logMsg;
+	return ref;
 }
 
 

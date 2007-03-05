@@ -187,6 +187,8 @@ void MainThread()
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	objRef.reset(new TcpPingMsg);
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
+	objRef.reset(new ReportingSkipTapeMsg);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	//objRef.reset(new TestMsg);
 	//ObjectFactory::GetSingleton()->RegisterObject(objRef);
 
