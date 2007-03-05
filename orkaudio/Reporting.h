@@ -27,17 +27,37 @@ public:
 	CStdString __CDECL__ GetName();
 	TapeProcessorRef __CDECL__ Instanciate();
 	void __CDECL__ AddAudioTape(AudioTapeRef& audioTapeRef);
+	void __CDECL__ SkipTapes(int number);
 
 	//static Reporting* GetInstance();
 	static void ThreadHandler(void *args);
 
 private:
 	Reporting();
+	bool IsSkip();
+
 	//static Reporting m_reportingSingleton;
 	static TapeProcessorRef m_singleton;
 
 	ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
 	bool m_queueFullError;
+	int numTapesToSkip;
+	ACE_Thread_Mutex m_mutex;
+};
+
+class ReportingSkipTapeMsg : public SyncMessage
+{
+public:
+	ReportingSkipTapeMsg();
+
+	void Define(Serializer* s);
+	inline void Validate() {};
+
+	CStdString GetClassName();
+	ObjectRef NewInstance();
+	ObjectRef Process();
+
+	int m_number;
 };
 
 #endif
