@@ -250,7 +250,7 @@ public:
 	void ReportIax2Hangup(Iax2HangupInfoRef& hangup);
 	void ReportIax2Accept(Iax2AcceptInfoRef& acceptinfo);
 	void ReportIax2Authreq(Iax2AuthreqInfoRef& authreq);
-	void ReportIax2Packet(Iax2PacketInfoRef& iax2Packet);
+	bool ReportIax2Packet(Iax2PacketInfoRef& iax2Packet);
 	void Hoover(time_t now);
 private:
 	std::map<CStdString, Iax2SessionRef> m_bySrcIpAndCallNo; /* With IAX2 the callnos can easily

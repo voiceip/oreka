@@ -975,11 +975,7 @@ bool TryIax2MiniVoiceFrame(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
         info->m_arrivalTimestamp = time(NULL);
         info->m_frame_type = IAX2_FRAME_MINI;
 
-        Iax2SessionsSingleton::instance()->ReportIax2Packet(info);
-
-        //LOG4CXX_INFO(s_packetLog, "Processed IAX2 Mini Voice packet");
-
-        return true;
+        return Iax2SessionsSingleton::instance()->ReportIax2Packet(info);
 }
 
 bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload)
@@ -1457,7 +1453,21 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 
 			MutexSentinel mutexSentinel(s_mutex); // serialize access for competing pcap threads
 
-			detectedUsefulPacket = TryIax2New(ethernetHeader, ipHeader, udpHeader, udpPayload);
+                        detectedUsefulPacket = TryRtp(ethernetHeader, ipHeader, udpHeader, udpPayload);
+
+                        if(!detectedUsefulPacket) {
+                                detectedUsefulPacket= TrySipInvite(ethernetHeader, ipHeader, udpHeader,
+                                                                udpPayload);
+                        }
+
+                        if(!detectedUsefulPacket) {
+                                detectedUsefulPacket = TrySipBye(ethernetHeader, ipHeader, udpHeader,
+                                                                udpPayload);
+                        }
+
+			if(!detectedUsefulPacket) {
+				 detectedUsefulPacket = TryIax2New(ethernetHeader, ipHeader, udpHeader, udpPayload);
+			}
 
 			if(!detectedUsefulPacket) {
 				detectedUsefulPacket = TryIax2Accept(ethernetHeader, ipHeader, udpHeader,
@@ -1498,20 +1508,6 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
                                 detectedUsefulPacket = TryIax2MiniVoiceFrame(ethernetHeader, ipHeader,
                                                                 udpHeader, udpPayload);
                         }
-
-			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryRtp(ethernetHeader, ipHeader, udpHeader, udpPayload);
-			}
-			
-			if(!detectedUsefulPacket) {
-				detectedUsefulPacket= TrySipInvite(ethernetHeader, ipHeader, udpHeader,
-								udpPayload);
-			}
-
-			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TrySipBye(ethernetHeader, ipHeader, udpHeader,
-								udpPayload);
-			}
 		}
 	}
 	else if(ipHeader->ip_p == IPPROTO_TCP)
