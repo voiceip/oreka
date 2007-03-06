@@ -788,8 +788,8 @@ void Iax2Sessions::Stop(Iax2SessionRef& session)
 	}
 }
 
-
-void Iax2Sessions::ReportIax2Packet(Iax2PacketInfoRef& iax2Packet)
+/* Returns false if there is no matching session */
+bool Iax2Sessions::ReportIax2Packet(Iax2PacketInfoRef& iax2Packet)
 {
 	Iax2SessionRef session;
 	CStdString logMsg, sourcecallno, IpAndCallNo;
@@ -817,10 +817,12 @@ void Iax2Sessions::ReportIax2Packet(Iax2PacketInfoRef& iax2Packet)
 			if(!session->AddIax2Packet(iax2Packet)) {
 				/* Discontinuity detected? */
 				Stop(session);
+			} else {
+				return true;
 			}
 		}
 
-		return;
+		return false;
 	}
 
 	/* Search in the destination IP map */
@@ -832,16 +834,20 @@ void Iax2Sessions::ReportIax2Packet(Iax2PacketInfoRef& iax2Packet)
                         if(!session->AddIax2Packet(iax2Packet)) {
                                 /* Discontinuity detected? */
                                 Stop(session);
-                        }
+                        } else {
+				return true;
+			}
                 }
 
-                return;
+                return false;
         }
 
 	/* XXX Tracking?? */
 	CStdString pktinfo;
 	iax2Packet->ToString(pktinfo);
 	//LOG4CXX_INFO(m_log, "Could not figure out where to place packet from "+IpAndCallNo+": [" + pktinfo +"]");
+
+	return false;
 }
 
 void Iax2Sessions::StopAll()
