@@ -1046,12 +1046,12 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload)
 {
 	bool result = false;
-        int udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
 
-        /* Judgine from the memcmp() below, we need the UDP payload
-         * length to be at least 3 bytes. -- Gerald */
-        if(udp_act_payload_len < 3)
-                return false; /* Frame too small */
+	int udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
+	if(udp_act_payload_len < 3)
+	{
+                return false; // Frame too small
+	}
 
 	if (memcmp("BYE", (void*)udpPayload, 3) == 0)
 	{
@@ -1077,13 +1077,12 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 {
 	bool result = false;
 	bool drop = false;
-        int udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
-
-        /* Judgine from the memcmp() below, we need the UDP payload
-         * length to be at least 3 bytes. -- Gerald */
-        if(udp_act_payload_len < 6)
-                return false; /* Frame too small */
-
+        
+	int udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
+	if(udp_act_payload_len < 6)
+	{
+		return false; // Frame too small
+	}
 	if (memcmp("INVITE", (void*)udpPayload, 6) == 0)
 	{
 		result = true;
@@ -1096,6 +1095,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		char* fromField = memFindAfter("From:", (char*)udpPayload, sipEnd);
 		char* toField = memFindAfter("To:", (char*)udpPayload, sipEnd);
 		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
+		char* localExtensionField = memFindAfter("x-Local-Extension:", (char*)udpPayload, sipEnd);
 		char* audioField = NULL;
 		char* connectionAddressField = NULL;
 
@@ -1141,6 +1141,15 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
 			audioField = memFindAfter("m=audio ", callIdField, sipEnd);
 			connectionAddressField = memFindAfter("c=IN IP4 ", callIdField, sipEnd);
+		}
+		if(localExtensionField)
+		{
+			CStdString localExtension;
+			GrabTokenSkipLeadingWhitespaces(localExtensionField, sipEnd, localExtension);
+			if(localExtension.size() > 0)
+			{
+				info->m_from = localExtension;
+			}
 		}
 		if(audioField)
 		{
