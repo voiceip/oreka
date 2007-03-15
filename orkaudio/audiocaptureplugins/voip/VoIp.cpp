@@ -1462,17 +1462,21 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 
 			MutexSentinel mutexSentinel(s_mutex); // serialize access for competing pcap threads
 
-                        detectedUsefulPacket = TryRtp(ethernetHeader, ipHeader, udpHeader, udpPayload);
+            detectedUsefulPacket = TryRtp(ethernetHeader, ipHeader, udpHeader, udpPayload);
 
-                        if(!detectedUsefulPacket) {
-                                detectedUsefulPacket= TrySipInvite(ethernetHeader, ipHeader, udpHeader,
-                                                                udpPayload);
-                        }
+            if(!detectedUsefulPacket) {
+                    detectedUsefulPacket= TrySipInvite(ethernetHeader, ipHeader, udpHeader,
+                                                    udpPayload);
+            }
 
-                        if(!detectedUsefulPacket) {
-                                detectedUsefulPacket = TrySipBye(ethernetHeader, ipHeader, udpHeader,
-                                                                udpPayload);
-                        }
+            if(!detectedUsefulPacket) {
+                    detectedUsefulPacket = TrySipBye(ethernetHeader, ipHeader, udpHeader,
+                                                    udpPayload);
+            }
+			if(DLLCONFIG.m_iax2Support == false)
+			{
+				detectedUsefulPacket = true;	// Stop trying to detect if this UDP packet could be of interest
+			}
 
 			if(!detectedUsefulPacket) {
 				 detectedUsefulPacket = TryIax2New(ethernetHeader, ipHeader, udpHeader, udpPayload);
@@ -1511,12 +1515,12 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 			if(!detectedUsefulPacket) {
 				detectedUsefulPacket = TryIax2MetaTrunkFrame(ethernetHeader, ipHeader,
                                                                 udpHeader, udpPayload);
-                        }
+			}
 
-                        if(!detectedUsefulPacket) {
-                                detectedUsefulPacket = TryIax2MiniVoiceFrame(ethernetHeader, ipHeader,
-                                                                udpHeader, udpPayload);
-                        }
+            if(!detectedUsefulPacket) {
+                    detectedUsefulPacket = TryIax2MiniVoiceFrame(ethernetHeader, ipHeader,
+                                                    udpHeader, udpPayload);
+            }
 		}
 	}
 	else if(ipHeader->ip_p == IPPROTO_TCP)
