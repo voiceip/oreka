@@ -35,7 +35,7 @@ VoIpConfig::VoIpConfig()
 	m_pcapTest= false;
 	m_rtpDiscontinuityDetect = false;
 	m_rtpDiscontinuityMinSeqDelta = 1000;
-	m_iax2Support = true; // Enabled by default
+	m_iax2Support = false; // Disabled by default
 	m_rtpDetectOnOddPorts = false;
 }
 
