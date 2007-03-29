@@ -26,6 +26,7 @@
 #define CAPTURE_PLUGIN_DEFAULT ""
 #define CAPTURE_PLUGIN_PATH_PARAM "CapturePluginPath"
 #define CAPTURE_PLUGIN_PATH_DEFAULT "AudioCapturePlugins"
+#define PLUGINS_DIRECTORY_PARAM "PluginsDirectory"
 #define STORAGE_AUDIO_FORMAT_PARAM "StorageAudioFormat"
 #define STORAGE_AUDIO_FORMAT_DEFAULT FfGsm
 #define NUM_BATCH_THREADS_PARAM "NumBatchThreads"
@@ -101,6 +102,7 @@ public:
 	bool m_enableReporting;
 	CStdString m_capturePlugin;
 	CStdString m_capturePluginPath;
+	CStdString m_pluginsDirectory;
 	int m_numBatchThreads;
 	bool m_deleteNativeFile;
 	int m_audioChunkDefaultSize;

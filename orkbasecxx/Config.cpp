@@ -67,6 +67,7 @@ void Config::Define(Serializer* s)
 	s->BoolValue(ENABLE_REPORTING_PARAM, m_enableReporting);
 	s->StringValue(CAPTURE_PLUGIN_PARAM, m_capturePlugin);
 	s->StringValue(CAPTURE_PLUGIN_PATH_PARAM, m_capturePluginPath);
+	s->StringValue(PLUGINS_DIRECTORY_PARAM, m_pluginsDirectory);
 	s->EnumValue(STORAGE_AUDIO_FORMAT_PARAM, (int&)m_storageAudioFormat, FileFormatToEnum, FileFormatToString);
 	s->IntValue(NUM_BATCH_THREADS_PARAM, m_numBatchThreads);
 	s->BoolValue(DELETE_NATIVE_FILE_PARAM, m_deleteNativeFile);
