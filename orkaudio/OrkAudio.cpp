@@ -59,20 +59,29 @@ long ExceptionFilter(struct _EXCEPTION_POINTERS *ptr)
 
 void LoadPlugins(std::list<ACE_DLL>& pluginDlls)
 {
+	CStdString pluginsDirectory = CONFIG.m_pluginsDirectory;
 #ifdef WIN32
-	CStdString pluginDirectory = "./plugins/";
+	if(pluginsDirectory.size() == 0)
+	{
+		// default windows plugins directory
+		pluginsDirectory = "./plugins/";
+	}
 	CStdString pluginExtension = ".dll";
 #else
-	CStdString pluginDirectory = "/usr/lib/orkaudio/plugins/";
+	if(pluginsDirectory.size() == 0)
+	{
+		// default unix plugins directory
+		pluginsDirectory = "/usr/lib/orkaudio/plugins/";
+	}
 	CStdString pluginExtension = ".so";
 #endif
 	CStdString pluginPath;
 	ACE_DLL dll;
 
-	ACE_DIR* dir = ACE_OS::opendir((PCSTR)pluginDirectory);
+	ACE_DIR* dir = ACE_OS::opendir((PCSTR)pluginsDirectory);
 	if (!dir)
 	{
-		LOG4CXX_ERROR(LOG.rootLog, CStdString("Plugin directory could not be found:" + pluginDirectory));
+		LOG4CXX_ERROR(LOG.rootLog, CStdString("Plugins directory could not be found:" + pluginsDirectory + " check your config.xml"));
 	}
 	else
 	{
@@ -84,7 +93,7 @@ void LoadPlugins(std::list<ACE_DLL>& pluginDlls)
 
 			if ( extensionPos != -1 && (dirEntryFilename.size() - extensionPos) == pluginExtension.size() )
 			{
-				pluginPath = pluginDirectory + dirEntry->d_name;
+				pluginPath = pluginsDirectory + "/" + dirEntry->d_name;
 				dll.open((PCSTR)pluginPath);
 				ACE_TCHAR* error = dll.error();
 				if(error)
