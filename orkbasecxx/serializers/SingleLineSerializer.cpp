@@ -140,6 +140,10 @@ void SingleLineSerializer::EscapeSingleLine(CStdString& in, CStdString& out)
 		{
 			out+= "%p";
 		}
+		else if (c == '=')
+		{
+			out+= "%e";
+		}
 		else
 		{
 			out+= c;
@@ -168,6 +172,8 @@ void SingleLineSerializer::UnEscapeSingleLine(CStdString& in, CStdString& out)
 				break;
 			case 'p':
 				out += '%';
+			case 'e':
+				out += '=';
 				break;
 			}
 		}
