@@ -122,7 +122,7 @@ void SingleLineSerializer::DeSerialize(CStdString& input)
 	Serializer::DeSerialize();
 }
 
-// Escape the space, colon and percent characters for serializing to Key-Value-Pair text
+// Escape the space, equals and percent characters for serializing to Key-Value-Pair text
 void SingleLineSerializer::EscapeSingleLine(CStdString& in, CStdString& out)
 {
 	for(int i=0; i<in.length();i++)
@@ -131,10 +131,6 @@ void SingleLineSerializer::EscapeSingleLine(CStdString& in, CStdString& out)
 		if (c == ' ')
 		{
 			out+= "%s";
-		}
-		else if (c == ':')
-		{
-			out+= "%c";
 		}
 		else if (c == '%')
 		{
@@ -151,7 +147,7 @@ void SingleLineSerializer::EscapeSingleLine(CStdString& in, CStdString& out)
 	}
 }
 
-// Unescape the space, colon and percent characters for serializing to Key-Value-Pair text
+// Unescape the space, equals and percent characters for serializing to Key-Value-Pair text
 void SingleLineSerializer::UnEscapeSingleLine(CStdString& in, CStdString& out)
 {
 	int iin = 0;
@@ -167,11 +163,9 @@ void SingleLineSerializer::UnEscapeSingleLine(CStdString& in, CStdString& out)
 			case 's':
 				out += ' ';
 				break;
-			case 'c':
-				out += ':';
-				break;
 			case 'p':
 				out += '%';
+				break;
 			case 'e':
 				out += '=';
 				break;
