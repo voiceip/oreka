@@ -110,6 +110,18 @@ void Serializer::CsvValue(const char* key, std::list<CStdString>& value, bool re
 	}
 }
 
+void Serializer::CsvMapValue(const char* key, std::map<CStdString, CStdString>& value, bool required)
+{
+	if (m_deSerialize == true)
+	{
+		GetCsvMap(key, value, required);
+	}
+	else
+	{
+		AddCsvMap(key, value);
+	}
+}
+
 void Serializer::DateValue(const char* key, time_t& value, bool required)
 {
 	if (m_deSerialize == true)
@@ -174,9 +186,38 @@ void Serializer::AddCsv(const char* key,  std::list<CStdString>& value)
 			csvString += ",";
 		}
 		first = false;
-		csvString += *it;
+		CStdString escapedValue;
+		EscapeCsv(*it, escapedValue);
+		csvString += escapedValue;
 	}
 	AddString(key, csvString);
+}
+
+void Serializer::AddCsvMap(const char* key,  std::map<CStdString, CStdString>& value)
+{
+	CStdString csvMapString;
+	bool first = true;
+	for(std::map<CStdString, CStdString>::iterator pair = value.begin(); pair!=value.end(); pair++)
+	{
+		if(!first)
+		{
+			csvMapString += ",";
+		}
+		first = false;
+
+		CStdString pairKey = pair->first;
+		CStdString escapedPairKey;
+		EscapePair(pairKey, escapedPairKey);
+		CStdString pairVal = pair->second;
+		CStdString escapedPairVal;
+		EscapePair(pairVal, escapedPairVal);
+
+		CStdString csvElement = escapedPairKey + ":" + escapedPairVal;
+		CStdString escapedCsvElement;
+		EscapeCsv(csvElement, escapedCsvElement);
+		csvMapString += escapedCsvElement;
+	}
+	AddString(key, csvMapString);
 }
 
 void Serializer::AddDate(const char* key, time_t value)
@@ -271,7 +312,9 @@ void Serializer::GetCsv(const char* key,  std::list<CStdString>& value, bool req
 				value.clear();
 			}
 			element.Trim();
-			value.push_back(element);
+			CStdString unescapedElement;
+			UnEscapeCsv(element, unescapedElement);
+			value.push_back(unescapedElement);
 			element.Empty();
 		}
 		else
@@ -287,7 +330,37 @@ void Serializer::GetCsv(const char* key,  std::list<CStdString>& value, bool req
 			value.clear();
 		}
 		element.Trim();
-		value.push_back(element);
+		CStdString unescapedElement;
+		UnEscapeCsv(element, unescapedElement);
+		value.push_back(unescapedElement);
+	}
+}
+
+void Serializer::GetCsvMap(const char* key, std::map<CStdString, CStdString>& value, bool required)
+{
+	std::list<CStdString> cvsList;
+	GetCsv(key, cvsList, required);
+
+	for(std::list<CStdString>::iterator it = cvsList.begin(); it != cvsList.end(); it++)
+	{
+		CStdString keyValuePair = *it;
+		int colonPos = keyValuePair.Find(':');
+		if(colonPos != -1)
+		{
+			CStdString key = keyValuePair.Left(colonPos);
+			CStdString val = keyValuePair.Right(keyValuePair.size() - colonPos - 1);
+
+			CStdString unescapedKey;
+			UnEscapePair(key, unescapedKey);
+			CStdString unescapedVal;
+			UnEscapePair(val, unescapedVal);
+
+			value.insert(std::make_pair(unescapedKey, unescapedVal));
+		}
+		else
+		{
+			throw(CStdString("DeSerializer: GetCsvMap: missing colon in map element"));
+		}
 	}
 }
 
@@ -300,6 +373,108 @@ void Serializer::GetDate(const char* key, time_t& value, bool required)
 	if(!stringValue.IsEmpty())
 	{
 		//value = ;
+	}
+}
+
+//-------------------------------------------------------------------------
+// Escape the comma and percent characters for adding string to csv list
+void Serializer::EscapeCsv(CStdString& in, CStdString& out)
+{
+	for(int i=0; i<in.length();i++)
+	{
+		TCHAR c = in[i];
+		if (c == ',')
+		{
+			out+= "%c";
+		}
+		else if (c == '%')
+		{
+			out+= "%p";
+		}
+		else
+		{
+			out+= c;
+		}
+	}
+}
+
+// Unescape the comma and percent characters when retrieving from csv list
+void Serializer::UnEscapeCsv(CStdString& in, CStdString& out)
+{
+	int iin = 0;
+
+	while(iin<in.length())
+	{ 
+		if ( in[iin] == '%')
+		{
+			iin++;
+
+			switch (in[iin])
+			{
+			case 'c':
+				out += ',';
+				break;
+			case 'p':
+				out += '%';
+				break;
+			}
+		}
+		else
+		{
+			out += in[iin];
+		}
+		iin++;
+	}
+}
+
+//--------------------------------------------------------------------------------------------
+// Escape the colon and percent characters for adding string to a pair of the form "key:value"
+void Serializer::EscapePair(CStdString& in, CStdString& out)
+{
+	for(int i=0; i<in.length();i++)
+	{
+		TCHAR c = in[i];
+		if (c == ':')
+		{
+			out+= "%k";
+		}
+		else if (c == '%')
+		{
+			out+= "%p";
+		}
+		else
+		{
+			out+= c;
+		}
+	}
+}
+
+// UnEscape the colon and percent characters after retrieving a key or value from a pair of the form "key:value"
+void Serializer::UnEscapePair(CStdString& in, CStdString& out)
+{
+	int iin = 0;
+
+	while(iin<in.length())
+	{ 
+		if ( in[iin] == '%')
+		{
+			iin++;
+
+			switch (in[iin])
+			{
+			case 'k':
+				out += ':';
+				break;
+			case 'p':
+				out += '%';
+				break;
+			}
+		}
+		else
+		{
+			out += in[iin];
+		}
+		iin++;
 	}
 }
 

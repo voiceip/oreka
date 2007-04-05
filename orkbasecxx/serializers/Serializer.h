@@ -46,6 +46,7 @@ public:
 	void EnumValue(const char* key, int& value, StringToEnumFunction, EnumToStringFunction, bool required = false);
 	virtual void ObjectValue(const char* key, Object& value, bool required = false) = 0;
 	void CsvValue(const char* key, std::list<CStdString>& value, bool required = false);
+	void CsvMapValue(const char* key, std::map<CStdString, CStdString>& value, bool required = false);
 	void DateValue(const char* key, time_t& value, bool required = false);
 	virtual void ListValue(const char* key, std::list<ObjectRef>& value, Object& model, bool required = false) = 0;
 
@@ -54,6 +55,7 @@ public:
 	void AddBool(const char* key, bool value);
 	void AddEnum(const char* key, int value, EnumToStringFunction);
 	void AddCsv(const char* key,  std::list<CStdString>& value);
+	void AddCsvMap(const char* key,  std::map<CStdString, CStdString>& value);
 	void AddDate(const char* key, time_t value);
 	virtual void AddString(const char* key, CStdString& value) = 0;
 
@@ -62,8 +64,14 @@ public:
 	void GetBool(const char* key, bool& value, bool required = false);
 	void GetEnum(const char* key, int& value, StringToEnumFunction, bool required = false);
 	void GetCsv(const char* key,  std::list<CStdString>& value, bool required = false);
+	void GetCsvMap(const char* key,  std::map<CStdString, CStdString>& value, bool required = false);
 	void GetDate(const char* key, time_t& value, bool required = false);
 	virtual void GetString(const char* key, CStdString& value, bool required = false) = 0;
+
+	void Serializer::EscapeCsv(CStdString& in, CStdString& out);
+	void Serializer::UnEscapeCsv(CStdString& in, CStdString& out);
+	void Serializer::EscapePair(CStdString& in, CStdString& out);
+	void Serializer::UnEscapePair(CStdString& in, CStdString& out);
 
 protected:
 
