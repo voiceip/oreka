@@ -278,13 +278,18 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		break;
 	}
 
-	// Store the capture event locally
 	{
 		MutexSentinel sentinel(m_mutex);
+		// Store the capture event locally
 		m_eventQueue.push(eventRef);
 		if (send)
 		{
 			m_toSendEventQueue.push(eventRef);
+		}
+		// Store the tags
+		if(eventRef->m_type == CaptureEvent::EtKeyValue && eventRef->m_value.size() > 0 && eventRef->m_key.size() > 0)
+		{
+			m_tags.insert(std::make_pair(eventRef->m_key, eventRef->m_value));
 		}
 	}
 }
@@ -333,6 +338,9 @@ void AudioTape::PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum ev
 	msg->m_timestamp = m_beginDate;
 	msg->m_localIp = m_localIp;
 	msg->m_remoteIp = m_remoteIp;
+
+	MutexSentinel sentinel(m_mutex);;
+	std::copy(m_tags.begin(), m_tags.end(), std::inserter(msg->m_tags, msg->m_tags.begin()));
 }
 
 void AudioTape::GenerateCaptureFilePathAndIdentifier()

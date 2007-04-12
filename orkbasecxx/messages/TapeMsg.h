@@ -31,6 +31,7 @@
 #define REMOTE_IP_PARAM "remoteip"
 #define LOCAL_MAC_PARAM "localmac"
 #define REMOTE_MAC_PARAM "remotemac"
+#define TAGS_PARAM "tags"
 
 class DLL_IMPORT_EXPORT_ORKBASE TapeMsg : public SyncMessage
 {
@@ -59,6 +60,8 @@ public:
 	CStdString m_remoteIp;
 	CStdString m_localMac;
 	CStdString m_remoteMac;
+
+	std::map<CStdString, CStdString> m_tags;
 };
 
 typedef boost::shared_ptr<TapeMsg> TapeMsgRef;
