@@ -116,6 +116,8 @@ private:
 	bool m_shouldStop;
 	bool m_readyForBatchProcessing;
 	CStdString m_orkUid;
+
+	std::map<CStdString, CStdString> m_tags;
 };
 
 typedef boost::shared_ptr<AudioTape> AudioTapeRef;

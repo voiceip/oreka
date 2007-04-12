@@ -48,6 +48,8 @@ void TapeMsg::Define(Serializer* s)
 	//s->StringValue(LOCAL_MAC_PARAM, m_localMac);
 	//s->StringValue(REMOTE_MAC_PARAM, m_remoteMac);
 
+	s->CsvMapValue(TAGS_PARAM, m_tags);
+
 	DefineMessage(s);
 }
 
