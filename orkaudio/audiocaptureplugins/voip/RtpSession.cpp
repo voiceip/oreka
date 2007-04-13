@@ -402,6 +402,16 @@ void RtpSession::ReportMetadata()
 	event->m_value = m_callId;
 	g_captureEventCallBack(event, m_capturePort);
 
+	// Report extracted fields
+	for(std::map<CStdString, CStdString>::iterator pair = m_tags.begin(); pair != m_tags.end(); pair++)
+	{
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtKeyValue;
+		event->m_key = pair->first;
+		event->m_value = pair->second;
+		g_captureEventCallBack(event, m_capturePort);
+	}
+
 	// Report end of metadata
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtEndMetadata;
@@ -608,6 +618,9 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 		LOG4CXX_INFO(m_log, logMsg);
 	}
 	m_invites.push_front(invite);
+
+	// Gather extracted fields
+	std::copy(invite->m_extractedFields.begin(), invite->m_extractedFields.end(), std::inserter(m_tags, m_tags.begin()));
 }
 
 int RtpSession::ProtocolToEnum(CStdString& protocol)

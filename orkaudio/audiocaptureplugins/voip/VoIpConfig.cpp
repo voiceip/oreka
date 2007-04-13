@@ -65,6 +65,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->CsvValue("DnisNumbers", m_dnisNumbers);
 	s->BoolValue("Iax2Support", m_iax2Support);
 	s->BoolValue("RtpDetectOnOddPorts", m_rtpDetectOnOddPorts);
+	s->CsvValue("SipExtractFields", m_sipExtractFields);
 }
 
 void VoIpConfig::Validate()

@@ -72,6 +72,7 @@ public:
 	bool m_iax2Support;
 
 	std::list<CStdString> m_dnisNumbers;
+	std::list<CStdString> m_sipExtractFields;
 };
 
 //========================================
