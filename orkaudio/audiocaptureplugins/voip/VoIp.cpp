@@ -10,7 +10,7 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
-
+#pragma warning( disable: 4786 ) // disables truncated symbols in browse-info warning
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
 #ifndef WIN32
@@ -1177,6 +1177,19 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 				}
 			}
 		}
+		// SIP fields extraction
+		for(std::list<CStdString>::iterator it = DLLCONFIG.m_sipExtractFields.begin(); it != DLLCONFIG.m_sipExtractFields.end(); it++)
+		{
+			CStdString fieldName = *it + ":";
+			char* szField = memFindAfter((PSTR)(PCSTR)fieldName, (char*)udpPayload, sipEnd);
+			if(szField)
+			{
+				CStdString field;
+				GrabLine(szField, sipEnd, field);
+				info->m_extractedFields.insert(std::make_pair(*it, field));
+			}
+		}
+
 		if((unsigned int)info->m_fromRtpIp.s_addr == 0)
 		{
 			// In case connection address could not be extracted, use SIP invite sender IP address
