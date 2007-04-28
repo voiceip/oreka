@@ -38,6 +38,7 @@
 #include "Rtp.h"
 #include "RtpSession.h"
 #include "Iax2Session.h"
+#include "SipTcp.h"
 
 extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;
@@ -49,6 +50,7 @@ static LoggerPtr s_packetLog;
 static LoggerPtr s_packetStatsLog;
 static LoggerPtr s_rtpPacketLog;
 static LoggerPtr s_sipPacketLog;
+static LoggerPtr s_sipTcpPacketLog;
 static LoggerPtr s_skinnyPacketLog;
 static LoggerPtr s_sipExtractionLog;
 static LoggerPtr s_voipPluginLog;
@@ -65,6 +67,7 @@ static unsigned int s_numPackets;
 static unsigned int s_numPacketsPerSecond;
 static unsigned int s_minPacketsPerSecond;
 static unsigned int s_maxPacketsPerSecond;
+static std::list<SipTcpStreamRef> s_SipTcpStreams;
 
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
@@ -1073,6 +1076,158 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 	return result;
 }
 
+bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload);
+bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload);
+
+static bool SipByeTcpToUdp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,TcpHeaderStruct* tcpHeader, u_char *pBuffer, int bLength)
+{
+        UdpHeaderStruct udpHeader;
+
+        udpHeader.source = tcpHeader->source;
+        udpHeader.dest = tcpHeader->dest;
+        udpHeader.len = htons(bLength+sizeof(UdpHeaderStruct));
+
+        return TrySipBye(ethernetHeader, ipHeader, &udpHeader, pBuffer);
+}
+
+static bool SipInviteTcpToUdp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader, u_char *pBuffer, int bLength)
+{
+	UdpHeaderStruct udpHeader;
+
+	udpHeader.source = tcpHeader->source;
+	udpHeader.dest = tcpHeader->dest;
+	udpHeader.len = htons(bLength+sizeof(UdpHeaderStruct));
+
+	return TrySipInvite(ethernetHeader, ipHeader, &udpHeader, pBuffer);
+}
+
+bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
+{
+	int tcpLengthPayloadLength = 0;
+	bool result = false;
+	std::list<SipTcpStreamRef> toErase;
+
+	if(ntohs(tcpHeader->source) != 5060 && ntohs(tcpHeader->dest) != 5060)
+		return false;
+
+	u_char* startTcpPayload = (u_char*)tcpHeader + TCP_HEADER_LENGTH;
+	tcpLengthPayloadLength = ((u_char*)ipHeader+ntohs(ipHeader->ip_len)) - startTcpPayload;
+
+	if(tcpLengthPayloadLength < 6)
+	{
+		return false;
+	}
+
+	if((memcmp("INVITE", (void*)startTcpPayload, 6) == 0) ||
+	   (memcmp("BYE", (void*)startTcpPayload, 3) == 0))
+	{
+		SipTcpStreamRef tcpstream(new SipTcpStream());
+		int exists = 0;
+
+		tcpstream->m_senderIp = ipHeader->ip_src;
+		tcpstream->m_receiverIp = ipHeader->ip_dest;
+		tcpstream->m_senderPort = ntohs(tcpHeader->source);
+		tcpstream->m_receiverPort = ntohs(tcpHeader->dest);
+		tcpstream->m_expectingSeqNo = ntohl(tcpHeader->seq)+tcpLengthPayloadLength;
+		tcpstream->m_lastSeqNo = ntohl(tcpHeader->seq);
+		tcpstream->AddTcpPacket(startTcpPayload, tcpLengthPayloadLength);
+
+		// Ensure this is not a duplicate
+	        for(std::list<SipTcpStreamRef>::iterator it = s_SipTcpStreams.begin(); it != s_SipTcpStreams.end(); it++)
+        	{
+               		SipTcpStreamRef tcpStreamList = *it;
+
+	                if(((unsigned int)(tcpstream->m_senderIp.s_addr) == (unsigned int)(tcpStreamList->m_senderIp.s_addr)) &&
+        	           ((unsigned int)(tcpstream->m_receiverIp.s_addr) == (unsigned int)(tcpStreamList->m_receiverIp.s_addr)) &&
+                	   (tcpstream->m_senderPort == tcpStreamList->m_senderPort) &&
+	                   (tcpstream->m_receiverPort == tcpStreamList->m_receiverPort) &&
+        	           (tcpstream->m_expectingSeqNo == tcpStreamList->m_expectingSeqNo) &&
+			   (tcpstream->m_lastSeqNo == tcpStreamList->m_lastSeqNo))
+                	{
+				exists = 1;
+				break;
+			}
+		}
+
+		if(exists == 1) {
+			CStdString logMsg;
+
+			logMsg.Format("Dropped duplicate TCP packet");
+			LOG4CXX_INFO(s_sipTcpPacketLog, logMsg);
+			return true;
+		}
+
+		if(tcpstream->SipRequestIsComplete()) {
+			/* Hmm.. Lucky us */
+			SafeBufferRef buffer = tcpstream->GetCompleteSipRequest();
+			CStdString tcpStream;
+
+			tcpstream->ToString(tcpStream);
+			LOG4CXX_INFO(s_sipTcpPacketLog, "Obtained complete TCP Stream: " + tcpStream);
+
+			if(memcmp("INVITE", (void*)buffer->GetBuffer(), 6)  == 0)
+				return SipInviteTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+
+			return SipByeTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+		}
+
+		s_SipTcpStreams.push_back(tcpstream);
+
+		CStdString tcpStream;
+		
+                tcpstream->ToString(tcpStream);
+		LOG4CXX_INFO(s_sipTcpPacketLog, "Obtained incomplete TCP Stream: " + tcpStream);
+
+		return true;
+	}
+
+	for(std::list<SipTcpStreamRef>::iterator it = s_SipTcpStreams.begin(); it != s_SipTcpStreams.end(); it++)
+	{
+		SipTcpStreamRef tcpstream = *it;
+		int found = 0;
+
+		if(((unsigned int)(tcpstream->m_senderIp.s_addr) == (unsigned int)(ipHeader->ip_src.s_addr)) &&
+		   ((unsigned int)(tcpstream->m_receiverIp.s_addr) == (unsigned int)(ipHeader->ip_dest.s_addr)) &&
+		   (tcpstream->m_senderPort == ntohs(tcpHeader->source)) &&
+		   (tcpstream->m_receiverPort == ntohs(tcpHeader->dest)) &&
+		   (tcpstream->m_expectingSeqNo == ntohl(tcpHeader->seq)) && !found)
+		{
+			result = true;
+			found = 1;
+
+			tcpstream->AddTcpPacket(startTcpPayload, tcpLengthPayloadLength);
+
+			if(tcpstream->SipRequestIsComplete()) {
+				SafeBufferRef buffer = tcpstream->GetCompleteSipRequest();
+	                        CStdString tcpStream;
+	
+        	                tcpstream->ToString(tcpStream);
+                	        LOG4CXX_INFO(s_sipTcpPacketLog, "TCP Stream updated to completion: " + tcpStream);
+
+				if(memcmp("INVITE", (void*)buffer->GetBuffer(), 6)  == 0) {
+					SipInviteTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+				} else {
+					SipByeTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+				}
+
+				toErase.push_back(tcpstream);
+			}
+		} else {
+			if((time(NULL) - tcpstream->m_entryTime) >= 60)
+				toErase.push_back(tcpstream);
+		}
+	}
+
+	for(std::list<SipTcpStreamRef>::iterator it = toErase.begin(); it != toErase.end(); it++)
+        {
+		SipTcpStreamRef tcpstream = *it;
+
+		s_SipTcpStreams.remove(tcpstream);
+	}
+
+	return result;
+}
+
 bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload)
 {
 	bool result = false;
@@ -1539,7 +1694,12 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	else if(ipHeader->ip_p == IPPROTO_TCP)
 	{
 		TcpHeaderStruct* tcpHeader = (TcpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
-		
+		CStdString tcpSeq;
+
+		memToHex((unsigned char *)&tcpHeader->seq, 4, tcpSeq);
+
+		TrySipTcp(ethernetHeader, ipHeader, tcpHeader);
+
 		if(ntohs(tcpHeader->source) == SKINNY_CTRL_PORT || ntohs(tcpHeader->dest) == SKINNY_CTRL_PORT)
 		{
 			u_char* startTcpPayload = (u_char*)tcpHeader + TCP_HEADER_LENGTH;
@@ -1836,11 +1996,13 @@ void VoIp::OpenDevices()
 void VoIp::Initialize()
 {
 	m_pcapHandles.clear();
+	s_SipTcpStreams.clear();
 
 	s_packetLog = Logger::getLogger("packet");
 	s_packetStatsLog = Logger::getLogger("packet.pcapstats");
 	s_rtpPacketLog = Logger::getLogger("packet.rtp");
 	s_sipPacketLog = Logger::getLogger("packet.sip");
+	s_sipTcpPacketLog = Logger::getLogger("packet.tcpsip");
 	s_skinnyPacketLog = Logger::getLogger("packet.skinny");
 	s_sipExtractionLog = Logger::getLogger("sipextraction");
 
