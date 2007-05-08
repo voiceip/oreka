@@ -140,6 +140,14 @@ SOURCE=.\RtpSession.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\SipTcp.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SipTcp.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VoIp.cpp
 # End Source File
 # Begin Source File

@@ -37,6 +37,7 @@ VoIpConfig::VoIpConfig()
 	m_rtpDiscontinuityMinSeqDelta = 1000;
 	m_iax2Support = false; // Disabled by default
 	m_rtpDetectOnOddPorts = false;
+	m_sipOverTcpSupport = false;  // Disabled by default
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -66,6 +67,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("Iax2Support", m_iax2Support);
 	s->BoolValue("RtpDetectOnOddPorts", m_rtpDetectOnOddPorts);
 	s->CsvValue("SipExtractFields", m_sipExtractFields);
+	s->BoolValue("SipOverTcpSupport", m_sipOverTcpSupport);
 }
 
 void VoIpConfig::Validate()
