@@ -1218,9 +1218,9 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 		}
 	}
 
-	for(std::list<SipTcpStreamRef>::iterator it = toErase.begin(); it != toErase.end(); it++)
+	for(std::list<SipTcpStreamRef>::iterator it2 = toErase.begin(); it2 != toErase.end(); it2++)
         {
-		SipTcpStreamRef tcpstream = *it;
+		SipTcpStreamRef tcpstream = *it2;
 
 		s_SipTcpStreams.remove(tcpstream);
 	}
@@ -1694,11 +1694,6 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	else if(ipHeader->ip_p == IPPROTO_TCP)
 	{
 		TcpHeaderStruct* tcpHeader = (TcpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
-		CStdString tcpSeq;
-
-		memToHex((unsigned char *)&tcpHeader->seq, 4, tcpSeq);
-
-		TrySipTcp(ethernetHeader, ipHeader, tcpHeader);
 
 		if(ntohs(tcpHeader->source) == SKINNY_CTRL_PORT || ntohs(tcpHeader->dest) == SKINNY_CTRL_PORT)
 		{
@@ -1726,6 +1721,12 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 				// Point to next skinny message within this TCP packet
 				skinnyHeader = (SkinnyHeaderStruct*)((u_char*)skinnyHeader + SKINNY_HEADER_LENGTH + skinnyHeader->len);
 			}
+		}
+		else if(DLLCONFIG.m_sipOverTcpSupport) 
+		{
+			//CStdString tcpSeq;
+			//memToHex((unsigned char *)&tcpHeader->seq, 4, tcpSeq);
+			TrySipTcp(ethernetHeader, ipHeader, tcpHeader);
 		}
 	}
 

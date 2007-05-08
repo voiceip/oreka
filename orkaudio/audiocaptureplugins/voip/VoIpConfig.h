@@ -70,6 +70,7 @@ public:
 	int  m_rtpDiscontinuityMinSeqDelta;
 	bool m_rtpDetectOnOddPorts;
 	bool m_iax2Support;
+	bool m_sipOverTcpSupport;
 
 	std::list<CStdString> m_dnisNumbers;
 	std::list<CStdString> m_sipExtractFields;

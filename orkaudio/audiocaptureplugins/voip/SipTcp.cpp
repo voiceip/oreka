@@ -224,6 +224,8 @@ bool SipTcpStream::SipRequestIsComplete()
 
 	if(strlen(eol) == cLength)
 		return true;
+
+	return false;
 }
 
 SafeBufferRef SipTcpStream::GetCompleteSipRequest()
