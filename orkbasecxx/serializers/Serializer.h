@@ -68,10 +68,10 @@ public:
 	void GetDate(const char* key, time_t& value, bool required = false);
 	virtual void GetString(const char* key, CStdString& value, bool required = false) = 0;
 
-	void Serializer::EscapeCsv(CStdString& in, CStdString& out);
-	void Serializer::UnEscapeCsv(CStdString& in, CStdString& out);
-	void Serializer::EscapePair(CStdString& in, CStdString& out);
-	void Serializer::UnEscapePair(CStdString& in, CStdString& out);
+	void EscapeCsv(CStdString& in, CStdString& out);
+	void UnEscapeCsv(CStdString& in, CStdString& out);
+	void EscapePair(CStdString& in, CStdString& out);
+	void UnEscapePair(CStdString& in, CStdString& out);
 
 protected:
 
