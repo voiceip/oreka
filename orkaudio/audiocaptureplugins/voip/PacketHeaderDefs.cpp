@@ -31,6 +31,10 @@ int SkinnyMessageToEnum(CStdString& msg)
 	{
 		msgEnum = SkCcm5CallInfoMessage;
 	}
+	else if (msg.CompareNoCase(SKINNY_MSG_SOFT_KEY_EVENT_MESSAGE) == 0)
+	{
+		msgEnum = SkSoftKeyEventMessage;
+	}
 	return msgEnum;
 }
 
@@ -59,6 +63,9 @@ CStdString SkinnyMessageToString(int msgEnum)
 		break;
 	case SkCcm5CallInfoMessage:
 		msgString = SKINNY_MSG_CCM5_CALL_INFO_MESSAGE;
+		break;
+	case SkSoftKeyEventMessage:
+		msgString = SKINNY_MSG_SOFT_KEY_EVENT_MESSAGE;
 		break;
 	default:
 		msgString = SKINNY_MSG_UNKN;
@@ -176,3 +183,175 @@ bool SkinnyValidateLineStat(SkLineStatStruct* lineStat)
 	return valid;
 }
 
+bool SkinnyValidateSoftKeyEvent(SkSoftKeyEventMessageStruct* softKeyEvent)
+{
+	bool valid = true;
+
+	if(softKeyEvent->soft_key_event > SKINNY_SOFTKEY_MAX_EVENT ||
+		softKeyEvent->soft_key_event < SKINNY_SOFTKEY_MIN_EVENT)
+	{
+		valid = false;
+	}
+
+	return valid;
+}
+
+//===================================================================
+int SoftKeyEvent::SoftKeyEventToEnum(CStdString& event)
+{
+	int skEnum = SkSoftKeyUnkn;
+
+	if(event.CompareNoCase(SKINNY_SOFTKEY_REDIAL) == 0)
+	{
+		skEnum = SkSoftKeyRedial;
+	}
+	else if(event.CompareNoCase(SKINNY_SOFTKEY_NEWCALL) == 0)
+        {
+                skEnum = SkSoftKeyNewCall;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_HOLD) == 0)
+        {
+                skEnum = SkSoftKeyHold;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_TRNSFER) == 0)
+        {
+                skEnum = SkSoftKeyTrnsfer;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_CFWDALL) == 0)
+        {
+                skEnum = SkSoftKeyCFwdAll;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_CFWDBUSY) == 0)
+        {
+                skEnum = SkSoftKeyCFwdBusy;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_CFWDNOANSWER) == 0)
+        {
+                skEnum = SkSoftKeyCFwdNoAnswer;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_BACKSPACE) == 0)
+        {
+                skEnum = SkSoftKeyBackSpace;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_ENDCALL) == 0)
+        {
+                skEnum = SkSoftKeyEndCall;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_RESUME) == 0)
+        {
+                skEnum = SkSoftKeyResume;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_ANSWER) == 0)
+        {
+                skEnum = SkSoftKeyAnswer;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_INFO) == 0)
+        {
+                skEnum = SkSoftKeyInfo;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_CONFRN) == 0)
+        {
+                skEnum = SkSoftKeyConfrn;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_PARK) == 0)
+        {
+                skEnum = SkSoftKeyPark;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_JOIN) == 0)
+        {
+                skEnum = SkSoftKeyJoin;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_MEETMECONFRN) == 0)
+        {
+                skEnum = SkSoftKeyConfrn;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_PARK) == 0)
+        {
+                skEnum = SkSoftKeyPark;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_JOIN) == 0)
+        {
+                skEnum = SkSoftKeyJoin;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_MEETMECONFRN) == 0)
+        {
+                skEnum = SkSoftKeyMeetMeConfrn;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_CALLPICKUP) == 0)
+        {
+                skEnum = SkSoftKeyCallPickUp;
+        }
+        else if(event.CompareNoCase(SKINNY_SOFTKEY_GRPCALLPICKUP) == 0)
+        {
+                skEnum = SkSoftKeyGrpCallPickUp;
+        }
+
+	return skEnum;
+}
+
+CStdString SoftKeyEvent::SoftKeyEventToString(int event)
+{
+	CStdString msgString;
+
+	switch(event) {
+	case SkSoftKeyRedial:
+		msgString = SKINNY_SOFTKEY_REDIAL;
+		break;
+	case SkSoftKeyNewCall:
+		msgString = SKINNY_SOFTKEY_NEWCALL;
+                break;
+        case SkSoftKeyHold:
+                msgString = SKINNY_SOFTKEY_HOLD;
+                break;
+        case SkSoftKeyTrnsfer:
+                msgString = SKINNY_SOFTKEY_TRNSFER;
+                break;
+        case SkSoftKeyCFwdAll:
+                msgString = SKINNY_SOFTKEY_CFWDALL;
+                break;
+        case SkSoftKeyCFwdBusy:
+                msgString = SKINNY_SOFTKEY_CFWDBUSY;
+                break;
+        case SkSoftKeyCFwdNoAnswer:
+                msgString = SKINNY_SOFTKEY_CFWDNOANSWER;
+                break;
+        case SkSoftKeyBackSpace:
+                msgString = SKINNY_SOFTKEY_BACKSPACE;
+                break;
+        case SkSoftKeyEndCall:
+                msgString = SKINNY_SOFTKEY_ENDCALL;
+                break;
+        case SkSoftKeyResume:
+                msgString = SKINNY_SOFTKEY_RESUME;
+                break;
+        case SkSoftKeyAnswer:
+                msgString = SKINNY_SOFTKEY_ANSWER;
+                break;
+        case SkSoftKeyInfo:
+                msgString = SKINNY_SOFTKEY_INFO;
+                break;
+        case SkSoftKeyConfrn:
+                msgString = SKINNY_SOFTKEY_CONFRN;
+                break;
+        case SkSoftKeyPark:
+                msgString = SKINNY_SOFTKEY_PARK;
+                break;
+        case SkSoftKeyJoin:
+                msgString = SKINNY_SOFTKEY_JOIN;
+                break;
+        case SkSoftKeyMeetMeConfrn:
+                msgString = SKINNY_SOFTKEY_MEETMECONFRN;
+                break;
+        case SkSoftKeyCallPickUp:
+                msgString = SKINNY_SOFTKEY_CALLPICKUP;
+                break;
+        case SkSoftKeyGrpCallPickUp:
+                msgString = SKINNY_SOFTKEY_GRPCALLPICKUP;
+                break;
+	default:
+		msgString = SKINNY_SOFTKEY_UNKN;
+		break;
+	}
+
+	return msgString;
+}

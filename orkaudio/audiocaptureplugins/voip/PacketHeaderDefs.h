@@ -185,6 +185,15 @@ typedef struct
 
 bool SkinnyValidateOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct *);
 
+typedef struct
+{
+	SkinnyHeaderStruct header;
+	unsigned long soft_key_event;
+	unsigned long line_instance;
+	unsigned long call_identifier;
+} SkSoftKeyEventMessageStruct;
+
+bool SkinnyValidateSoftKeyEvent(SkSoftKeyEventMessageStruct *);
 
 #define SKINNY_CTRL_PORT 2000
 #define SKINNY_MIN_MESSAGE_SIZE 12
@@ -198,6 +207,7 @@ bool SkinnyValidateOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct *);
 #define SKINNY_MSG_OPEN_RECEIVE_CHANNEL_ACK "OpenReceiveChannelAck"
 #define SKINNY_MSG_LINE_STAT_MESSAGE "LineStatMessage"
 #define SKINNY_MSG_CCM5_CALL_INFO_MESSAGE "Ccm5CallInfoMessage"
+#define SKINNY_MSG_SOFT_KEY_EVENT_MESSAGE "SoftKeyEventMessage"
 
 #define SKINNY_CALL_TYPE_INBOUND 1
 #define SKINNY_CALL_TYPE_OUTBOUND 2
@@ -212,11 +222,66 @@ typedef enum
 	SkLineStatMessage = 0x0092,
 	SkCloseReceiveChannel = 0x0106,
 	SkCcm5CallInfoMessage = 0x14A,
+	SkSoftKeyEventMessage = 0x0026,
 	SkUnkn = 0x0
 } SkinnyMessageEnum;
 int SkinnyMessageToEnum(CStdString& msg);
 CStdString SkinnyMessageToString(int msgEnum);
 
+#define SKINNY_SOFTKEY_MAX_EVENT	18
+#define SKINNY_SOFTKEY_MIN_EVENT	1
+
+class SoftKeyEvent
+{
+public:
+#define SKINNY_SOFTKEY_REDIAL "Redial"
+#define SKINNY_SOFTKEY_NEWCALL "NewCall"
+#define SKINNY_SOFTKEY_HOLD "Hold"
+#define SKINNY_SOFTKEY_TRNSFER "Trnsfer"
+#define SKINNY_SOFTKEY_CFWDALL "CFwdAll"
+#define SKINNY_SOFTKEY_CFWDBUSY "CFwdBusy"
+#define SKINNY_SOFTKEY_CFWDNOANSWER "CFwdNoAnswer"
+#define SKINNY_SOFTKEY_BACKSPACE "BackSpace"
+#define SKINNY_SOFTKEY_ENDCALL "EndCall"
+#define SKINNY_SOFTKEY_RESUME "Resume"
+#define SKINNY_SOFTKEY_ANSWER "Answer"
+#define SKINNY_SOFTKEY_INFO "Info"
+#define SKINNY_SOFTKEY_CONFRN "Confrn"
+#define SKINNY_SOFTKEY_PARK "Park"
+#define SKINNY_SOFTKEY_JOIN "Join"
+#define SKINNY_SOFTKEY_MEETMECONFRN "MeetMeConfrn"
+#define SKINNY_SOFTKEY_CALLPICKUP "CallPickUp"
+#define SKINNY_SOFTKEY_GRPCALLPICKUP "GrpCallPickUp"
+#define SKINNY_SOFTKEY_UNKN "Unknown"
+
+	typedef enum {
+		SkSoftKeyRedial = 1,
+		SkSoftKeyNewCall = 2,
+		SkSoftKeyHold = 3,
+		SkSoftKeyTrnsfer = 4,
+		SkSoftKeyCFwdAll = 5,
+		SkSoftKeyCFwdBusy = 6,
+		SkSoftKeyCFwdNoAnswer = 7,
+		SkSoftKeyBackSpace = 8,
+		SkSoftKeyEndCall = 9,
+                SkSoftKeyResume = 10,
+		SkSoftKeyAnswer = 11,
+		SkSoftKeyInfo = 12,
+                SkSoftKeyConfrn = 13,
+                SkSoftKeyPark = 14,
+                SkSoftKeyJoin = 15,
+                SkSoftKeyMeetMeConfrn = 16,
+                SkSoftKeyCallPickUp = 17,
+                SkSoftKeyGrpCallPickUp = 18,
+		SkSoftKeyUnkn = 0
+	} SoftKeyEventEnum;
+
+	static int SoftKeyEventToEnum(CStdString& event);
+	static CStdString SoftKeyEventToString(int event);
+};
+
+
+//===================================================================
 /*
  * IAX2 Packet Headers
  */

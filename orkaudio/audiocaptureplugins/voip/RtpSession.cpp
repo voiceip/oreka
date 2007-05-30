@@ -44,6 +44,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_numRtpPackets = 0;
 	m_started = false;
 	m_stopped = false;
+	m_onHold = false;
 	m_beginDate = 0;
 	m_hasDuplicateRtp = false;
 	m_highestRtpSeqNumDelta = 0;
@@ -434,6 +435,13 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		}
 	}
 
+	// If we are on hold, unmark this
+	if(m_onHold)
+	{
+		logMsg =  "[" + m_trackingId + "] Going off hold due to RTP activity";
+		m_onHold = false;
+	}
+
 	if(m_lastRtpPacket.get() == NULL)
 	{
 		// Until now, we knew the remote IP and port for RTP (at best, as given by SIP invite or Skinny StartMediaTransmission)
@@ -757,6 +765,14 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 		return; // CM can resend the same message more than once in a session, so do nothing in this case
 	}
 
+	/* For the case where we are simply going off hold, we need to check */
+	RtpSessionRef sess;
+	sess = findByEndpointIpUsingIpAndPort(ipHeader->ip_dest);
+	if(sess.get())
+	{
+		return; // We are simply going off hold
+	}
+
 	// create new session and insert into the callid map
 	CStdString trackingId = m_alphaCounter.GetNext();
 	RtpSessionRef session(new RtpSession(trackingId));
@@ -800,6 +816,28 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 
 }
 
+RtpSessionRef RtpSessions::findByEndpointIpUsingIpAndPort(struct in_addr endpointIpAddr)
+{
+	RtpSessionRef session;
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+
+        // Scan all sessions and try to find a session on the same IP endpoint
+	// This function uses the m_byIpAndPort mapping unlike findByEndpointIp()
+
+        for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end(); pair++)
+        {
+                RtpSessionRef tmpSession = pair->second;
+
+		if((unsigned int)tmpSession->m_endPointIp.s_addr == (unsigned int)endpointIpAddr.s_addr)
+                {
+                        session = tmpSession;
+                        break;
+                }
+	}
+
+	return session;
+}
+
 RtpSessionRef RtpSessions::findByEndpointIp(struct in_addr endpointIpAddr)
 {
 	RtpSessionRef session;
@@ -816,6 +854,7 @@ RtpSessionRef RtpSessions::findByEndpointIp(struct in_addr endpointIpAddr)
 			break;
 		}
 	}
+
 	return session;
 }
 
@@ -905,6 +944,17 @@ void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruc
 void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct* startMedia, IpHeaderStruct* ipHeader)
 {
 	RtpSessionRef session = findByEndpointIp(ipHeader->ip_dest);
+
+	if(!session.get())
+	{
+		/* Could be due to disappearance of CallId mapping
+		 * (See notes on Trac Ticket 168) */
+		session = findByEndpointIpUsingIpAndPort(ipHeader->ip_dest);
+		if(session.get())
+		{
+			session->m_ipAndPort = "";
+		}
+	}
 	if(session.get())
 	{
 		if(session->m_ipAndPort.size() == 0)
@@ -957,14 +1007,26 @@ void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruc
 	}
 	if(session.get())
 	{
-		if(m_log->isInfoEnabled())
+		if(session->m_onHold)
 		{
-			CStdString logMsg;
-			logMsg.Format("[%s] Skinny StopMedia conferenceId:%s passThruPartyId:%s", session->m_trackingId, conferenceId, passThruPartyId);
-			LOG4CXX_INFO(m_log, logMsg);
+			if(m_log->isInfoEnabled())
+			{
+                                CStdString logMsg;
+                                logMsg.Format("[%s] Ignoring Skinny StopMedia conferenceId:%s passThruPartyId:%s because we are on hold", session->m_trackingId, conferenceId, passThruPartyId);
+                                LOG4CXX_INFO(m_log, logMsg);
+                        }
 		}
+		else
+		{
+			if(m_log->isInfoEnabled())
+			{
+				CStdString logMsg;
+				logMsg.Format("[%s] Skinny StopMedia conferenceId:%s passThruPartyId:%s", session->m_trackingId, conferenceId, passThruPartyId);
+				LOG4CXX_INFO(m_log, logMsg);
+			}
 
-		Stop(session);
+			Stop(session);
+		}
 	}
 }
 
@@ -999,6 +1061,54 @@ void RtpSessions::ReportSkinnyLineStat(SkLineStatStruct* lineStat, IpHeaderStruc
 			LOG4CXX_INFO(m_log, logMsg);
 		}
 	}
+}
+
+void RtpSessions::ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader)
+{
+	RtpSessionRef session;
+	CStdString logMsg;
+
+	session = findByEndpointIpUsingIpAndPort(ipHeader->ip_src);
+	if(session.get())
+	{
+		session->m_onHold = true;
+		logMsg.Format("[%s] Going on hold due to SoftKeyEvent: HOLD", session->m_trackingId);
+		LOG4CXX_INFO(m_log, logMsg);
+	}
+	else
+	{
+		char szEndpointIp[16];
+
+		ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, szEndpointIp, sizeof(szEndpointIp));
+		logMsg.Format("Received HOLD notification from endpoint %s but couldn't find any valid RTP Session",
+				szEndpointIp);
+
+		LOG4CXX_WARN(m_log, logMsg);
+	}
+}
+
+void RtpSessions::ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader)
+{
+        RtpSessionRef session;
+	CStdString logMsg;
+
+	session = findByEndpointIpUsingIpAndPort(ipHeader->ip_src);
+        if(session.get())
+        {
+                session->m_onHold = false;
+		logMsg.Format("[%s] Going off hold due to SoftKeyEvent: RESUME", session->m_trackingId);
+		LOG4CXX_INFO(m_log, logMsg);
+        }
+        else
+        {
+                char szEndpointIp[16];
+
+                ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, szEndpointIp, sizeof(szEndpointIp));
+                logMsg.Format("Received RESUME notification from endpoint %s but couldn't find any valid RTP Session",
+                                szEndpointIp);
+
+                LOG4CXX_WARN(m_log, logMsg);
+        }
 }
 
 EndpointInfoRef RtpSessions::GetEndpointInfo(struct in_addr endpointIp)
@@ -1235,7 +1345,11 @@ void RtpSessions::Hoover(time_t now)
 		}
 		else
 		{
-			timeoutSeconds = DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec;
+			if(session->m_onHold) {
+				timeoutSeconds = DLLCONFIG.m_rtpSessionOnHoldTimeOutSec;
+			} else {
+				timeoutSeconds = DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec;
+			}
 		}
 		if((now - session->m_lastUpdated) > timeoutSeconds)
 		{
@@ -1256,9 +1370,17 @@ void RtpSessions::Hoover(time_t now)
 	for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
 	{
 		RtpSessionRef session = pair->second;
-		if((now - session->m_lastUpdated) > DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec)
-		{
-			toDismiss.push_back(session);
+
+		if(session->m_onHold) {
+			if((now - session->m_lastUpdated) > DLLCONFIG.m_rtpSessionOnHoldTimeOutSec)
+	                {
+        	                toDismiss.push_back(session);
+                	}
+		} else {
+			if((now - session->m_lastUpdated) > DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec)
+			{
+				toDismiss.push_back(session);
+			}
 		}
 	}
 

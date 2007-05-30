@@ -1377,6 +1377,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 	SkOpenReceiveChannelAckStruct* openReceiveAck;
 	SkLineStatStruct* lineStat;
 	SkCcm5CallInfoStruct* ccm5CallInfo;
+	SkSoftKeyEventMessageStruct* softKeyEvent;
 
 	char szEndpointIp[16];
 	struct in_addr endpointIp = ipHeader->ip_dest;	// most of the interesting skinny messages are CCM -> phone
@@ -1490,6 +1491,43 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			LOG4CXX_WARN(s_skinnyPacketLog, "Invalid LineStatMessage.");
 		}
 
+		break;
+	case SkSoftKeyEventMessage:
+		softKeyEvent = (SkSoftKeyEventMessageStruct*)skinnyHeader;
+		if(SkinnyValidateSoftKeyEvent(softKeyEvent))
+		{
+			useful = true;
+			logMsg.Format(" eventString:%s eventNumber:%d line_instance:%lu call_identifier:%lu",
+					SoftKeyEvent::SoftKeyEventToString(softKeyEvent->soft_key_event),
+					softKeyEvent->soft_key_event,
+					softKeyEvent->line_instance,
+					softKeyEvent->call_identifier);
+
+			endpointIp = ipHeader->ip_src;  // this skinny message is phone -> CCM
+
+			switch(softKeyEvent->soft_key_event)
+			{
+			case SoftKeyEvent::SkSoftKeyHold:
+				RtpSessionsSingleton::instance()->ReportSkinnySoftKeyHold(softKeyEvent, ipHeader);
+				break;
+			case SoftKeyEvent::SkSoftKeyResume:
+				RtpSessionsSingleton::instance()->ReportSkinnySoftKeyResume(softKeyEvent, ipHeader);
+				break;
+			default:
+				CStdString logSoftKey;
+
+				logSoftKey.Format("Ignoring unsupported event %s (%d)",
+					SoftKeyEvent::SoftKeyEventToString(softKeyEvent->soft_key_event),
+					softKeyEvent->soft_key_event);
+				LOG4CXX_INFO(s_skinnyPacketLog, logSoftKey);
+				break;
+			}
+		}
+		else
+		{
+			useful = false;
+			LOG4CXX_WARN(s_skinnyPacketLog, "Invalid SoftKeyEventMessage.");
+		}
 		break;
 	default:
 		useful = false;
