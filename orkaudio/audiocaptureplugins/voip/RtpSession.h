@@ -88,6 +88,8 @@ public:
 	int m_numRtpPackets;
 	struct in_addr m_endPointIp;		// only used for Skinny
 
+	bool m_onHold;
+
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
 	void ProcessMetadataSipIncoming();
@@ -140,11 +142,14 @@ public:
 	void ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
 	void ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct*);
 	void ReportSkinnyLineStat(SkLineStatStruct*, IpHeaderStruct* ipHeader);
+	void ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader);
+	void ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader);
 	void ReportRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void Hoover(time_t now);
 	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp);
 private:
 	RtpSessionRef findByEndpointIp(struct in_addr);
+	RtpSessionRef findByEndpointIpUsingIpAndPort(struct in_addr endpointIpAddr);
 	void ChangeCallId(RtpSessionRef& session, unsigned int newId);
 	void SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort);
 	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId);

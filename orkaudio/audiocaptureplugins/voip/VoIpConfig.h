@@ -65,6 +65,7 @@ public:
 	int m_pcapFastReplaySleepUsPerSec;
 	int m_rtpSessionTimeoutSec;
 	int m_rtpSessionWithSignallingTimeoutSec;
+	int m_rtpSessionOnHoldTimeOutSec;
 	bool m_pcapTest;
 	bool m_rtpDiscontinuityDetect;
 	int  m_rtpDiscontinuityMinSeqDelta;
