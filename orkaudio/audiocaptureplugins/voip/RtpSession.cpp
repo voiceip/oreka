@@ -765,14 +765,6 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 		return; // CM can resend the same message more than once in a session, so do nothing in this case
 	}
 
-	/* For the case where we are simply going off hold, we need to check */
-	RtpSessionRef sess;
-	sess = findByEndpointIpUsingIpAndPort(ipHeader->ip_dest);
-	if(sess.get())
-	{
-		return; // We are simply going off hold
-	}
-
 	// create new session and insert into the callid map
 	CStdString trackingId = m_alphaCounter.GetNext();
 	RtpSessionRef session(new RtpSession(trackingId));
@@ -858,23 +850,36 @@ RtpSessionRef RtpSessions::findByEndpointIp(struct in_addr endpointIpAddr)
 	return session;
 }
 
-void RtpSessions::ChangeCallId(RtpSessionRef& session, unsigned int newId)
+bool RtpSessions::ChangeCallId(RtpSessionRef& session, unsigned int newId)
 {
+	bool result = false;
 	if(newId)
 	{
 		CStdString newCallId = GenerateSkinnyCallId(session->m_endPointIp, newId);
-		CStdString oldCallId = session->m_callId;
-		m_byCallId.erase(oldCallId);
-		session->m_callId = newCallId;
-		m_byCallId.insert(std::make_pair(newCallId, session));
 
-		if(m_log->isInfoEnabled())
+		std::map<CStdString, RtpSessionRef>::iterator pair = m_byCallId.find(newCallId);
+		if (pair == m_byCallId.end())
 		{
-			CStdString logMsg;
-			logMsg.Format("[%s] callId %s becomes %s", session->m_trackingId, oldCallId, newCallId);
-			LOG4CXX_INFO(m_log, logMsg);
+			// Ok, no session exists with the new Call ID, go ahead
+			result = true;
+			CStdString oldCallId = session->m_callId;
+			m_byCallId.erase(oldCallId);
+			session->m_callId = newCallId;
+			m_byCallId.insert(std::make_pair(newCallId, session));
+
+			if(m_log->isInfoEnabled())
+			{
+				CStdString logMsg;
+				logMsg.Format("[%s] callId %s becomes %s", session->m_trackingId, oldCallId, newCallId);
+				LOG4CXX_INFO(m_log, logMsg);
+			}
+		}
+		else
+		{
+			// a session already exists with the new Call ID, ignore
 		}
 	}
+	return result;
 }
 
 
@@ -888,7 +893,7 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 	std::map<CStdString, RtpSessionRef>::iterator pair = m_byIpAndPort.find(ipAndPort);
 	if (pair != m_byIpAndPort.end())
 	{
-		// A session exists on the same IP+port, stop old session
+		// A session exists on the same IP+port, stop old session (e.g. stop raw RTP session and have a Skinny session instead)
 		RtpSessionRef session = pair->second;
 		Stop(session);
 	}
@@ -925,8 +930,14 @@ void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruc
 	{
 		if(session->m_ipAndPort.size() == 0)
 		{
-			ChangeCallId(session, openReceive->passThruPartyId);
-			SetMediaAddress(session, openReceive->endpointIpAddr, openReceive->endpointTcpPort);
+			if(ChangeCallId(session, openReceive->passThruPartyId))
+			{
+				SetMediaAddress(session, openReceive->endpointIpAddr, openReceive->endpointTcpPort);
+			}
+			else
+			{
+				Stop(session);	// Most probably a repeat CallInfo
+			}
 		}
 		else
 		{
@@ -945,22 +956,18 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 {
 	RtpSessionRef session = findByEndpointIp(ipHeader->ip_dest);
 
-	if(!session.get())
-	{
-		/* Could be due to disappearance of CallId mapping
-		 * (See notes on Trac Ticket 168) */
-		session = findByEndpointIpUsingIpAndPort(ipHeader->ip_dest);
-		if(session.get())
-		{
-			session->m_ipAndPort = "";
-		}
-	}
 	if(session.get())
 	{
 		if(session->m_ipAndPort.size() == 0)
 		{
-			ChangeCallId(session, startMedia->passThruPartyId);
-			SetMediaAddress(session, startMedia->remoteIpAddr, startMedia->remoteTcpPort);
+			if(ChangeCallId(session, startMedia->passThruPartyId))
+			{
+				SetMediaAddress(session, startMedia->remoteIpAddr, startMedia->remoteTcpPort);
+			}
+			else
+			{
+				Stop(session);	// Most probably a repeat CallInfo
+			}
 		}
 		else
 		{
@@ -1068,7 +1075,7 @@ void RtpSessions::ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, 
 	RtpSessionRef session;
 	CStdString logMsg;
 
-	session = findByEndpointIpUsingIpAndPort(ipHeader->ip_src);
+	session = findByEndpointIp(ipHeader->ip_src);
 	if(session.get())
 	{
 		session->m_onHold = true;
@@ -1092,7 +1099,7 @@ void RtpSessions::ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent
         RtpSessionRef session;
 	CStdString logMsg;
 
-	session = findByEndpointIpUsingIpAndPort(ipHeader->ip_src);
+	session = findByEndpointIp(ipHeader->ip_src);
         if(session.get())
         {
                 session->m_onHold = false;
@@ -1230,7 +1237,17 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		}
 		else
 		{
-			if(session1->m_direction == CaptureEvent::DirOut)
+			if(session1->m_numRtpPackets < session2->m_numRtpPackets && session1->m_numRtpPackets < 5)
+			{
+				mergerSession = session2;
+				mergeeSession = session1;
+			}
+			else if(session2->m_numRtpPackets < session1->m_numRtpPackets && session2->m_numRtpPackets < 5)
+			{
+				mergerSession = session1;
+				mergeeSession = session2;
+			}
+			else if(session1->m_direction == CaptureEvent::DirOut)
 			{
 				mergerSession = session1;
 				mergeeSession = session2;

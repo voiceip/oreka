@@ -150,7 +150,7 @@ public:
 private:
 	RtpSessionRef findByEndpointIp(struct in_addr);
 	RtpSessionRef findByEndpointIpUsingIpAndPort(struct in_addr endpointIpAddr);
-	void ChangeCallId(RtpSessionRef& session, unsigned int newId);
+	bool ChangeCallId(RtpSessionRef& session, unsigned int newId);
 	void SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort);
 	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId);
 
