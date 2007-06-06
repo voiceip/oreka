@@ -98,12 +98,20 @@ public:
 private:
 	void GenerateCaptureFilePathAndIdentifier();
 	void GenerateFinalFilePathAndIdentifier();
+	void GenerateFinalFilePath();
 	void PreventFileIdentifierCollision(CStdString& path, CStdString& identifier, CStdString& extension);
 	void PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum eventType);
 
 	CStdString m_filePath;
 	CStdString m_fileIdentifier;
 	CStdString m_fileExtension;	//Corresponds to the extension the tape will have after compression
+
+	CStdString m_year;
+	CStdString m_day;
+	CStdString m_month;
+	CStdString m_hour;
+	CStdString m_min;
+	CStdString m_sec;
 
 	std::queue<AudioChunkRef> m_chunkQueue;
 
@@ -121,6 +129,52 @@ private:
 };
 
 typedef boost::shared_ptr<AudioTape> AudioTapeRef;
+
+//==========================================================
+
+class TapeAttributes
+{
+public:
+#define TA_NATIVECALLID "[nativecallid]"
+#define TA_TRACKINGID "[trackingid]"
+#define TA_DIRECTION "[direction]"
+#define TA_SHORTDIRECTION "[shortdirection]"
+#define TA_REMOTEPARTY "[remoteparty]"
+#define TA_LOCALPARTY "[localparty]"
+#define TA_LOCALENTRYPOINT "[localentrypoint]"
+#define TA_LOCALIP "[localip]"
+#define TA_REMOTEIP "[remoteip]"
+#define TA_HOSTNAME "[hostname]"
+#define TA_YEAR "[year]"
+#define TA_DAY "[day]"
+#define TA_MONTH "[month]"
+#define TA_HOUR "[hour]"
+#define TA_MIN "[min]"
+#define TA_SEC "[sec]"
+
+	typedef enum {
+		TaUnknown = 0,
+		TaNativeCallId = 1,
+		TaTrackingId = 2,
+		TaDirection = 3,
+		TaShortDirection = 4,
+		TaRemoteParty = 5,
+		TaLocalParty = 6,
+		TaLocalEntryPoint = 7,
+		TaLocalIp = 8,
+		TaRemoteIp = 9,
+		TaHostname = 10,
+		TaYear = 11,
+		TaDay = 12,
+		TaMonth = 13,
+		TaHour = 14,
+		TaMin = 15,
+		TaSec = 16
+	} TapeAttributeEnum;
+
+	static int TapeAttributeToEnum(CStdString& ta);
+	static CStdString TapeAttributeToString(int ta);
+};
 
 #endif
 
