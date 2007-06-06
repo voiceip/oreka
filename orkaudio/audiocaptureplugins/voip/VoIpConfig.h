@@ -73,6 +73,9 @@ public:
 	bool m_iax2Support;
 	bool m_sipOverTcpSupport;
 
+	bool m_skinnyIgnoreStopMediaTransmission;
+	bool m_skinnyIgnoreOpenReceiveChannelAck;
+
 	std::list<CStdString> m_dnisNumbers;
 	std::list<CStdString> m_sipExtractFields;
 };

@@ -925,6 +925,10 @@ CStdString RtpSessions::GenerateSkinnyCallId(struct in_addr endpointIp, unsigned
 
 void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct* openReceive)
 {
+	if(DLLCONFIG.m_skinnyIgnoreOpenReceiveChannelAck)
+	{
+		return;
+	}
 	RtpSessionRef session = findByEndpointIp(openReceive->endpointIpAddr);
 	if(session.get())
 	{
@@ -983,6 +987,10 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 
 void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct* stopMedia, IpHeaderStruct* ipHeader)
 {
+	if(DLLCONFIG.m_skinnyIgnoreStopMediaTransmission)
+	{
+		return;
+	}
 	CStdString conferenceId;
 	CStdString passThruPartyId;
 	CStdString skinnyCallId;
