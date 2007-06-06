@@ -21,7 +21,7 @@
 Config::Config()
 {
 	m_log = log4cxx::Logger::getLogger("config");
-
+	m_serviceStartedTime = time(NULL);
 	m_logMessages = LOG_MESSAGES_DEFAULT;
 	m_logRms = LOG_RMS_DEFAULT;
 	m_enableReporting = ENABLE_REPORTING_DEFAULT;
@@ -94,6 +94,7 @@ void Config::Define(Serializer* s)
 	s->IntValue(CAPTURE_FILE_BATCH_SIZE_KBYTE_PARAM, m_captureFileBatchSizeKByte);
 	s->BoolValue(DEBUG_PARAM, m_debug);
 	s->CsvValue(TAPE_FILE_NAMING_PARAM, m_tapeFileNaming);
+	s->CsvValue(TAPE_PATH_NAMING_PARAM, m_tapePathNaming);
 	s->CsvValue(REMOTE_PROCESSING_INPUT_PATH_PARAM, m_remoteProcessingInputPath);
 	s->StringValue(REMOTE_PROCESSING_OUTPUT_PATH_PARAM, m_remoteProcessingOutputPath);
 	s->StringValue(REMOTE_PROCESSING_HOSTNAME_PARAM, m_remoteProcessingHostname);

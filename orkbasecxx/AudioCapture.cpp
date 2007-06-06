@@ -186,6 +186,18 @@ CaptureEvent::CaptureEvent()
 	m_type = EtUnknown;
 }
 
+CStdString CaptureEvent::DirectionToShortString(int direction)
+{
+        switch(direction)
+        {
+        case DirIn:
+                return DIR_IN_SHORT;
+        case DirOut:
+                return DIR_OUT_SHORT;
+        }
+        return DIR_UNKN_SHORT;
+}
+
 CStdString CaptureEvent::DirectionToString(int direction)
 {
 	switch(direction)

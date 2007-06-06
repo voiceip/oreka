@@ -77,6 +77,7 @@
 #define DEBUG_PARAM "Debug"
 #define DEBUG_DEFAULT false
 #define TAPE_FILE_NAMING_PARAM "TapeFileNaming"
+#define TAPE_PATH_NAMING_PARAM "TapePathNaming"
 #define REMOTE_PROCESSING_INPUT_PATH_PARAM "RemoteProcessingInputPath"
 #define REMOTE_PROCESSING_OUTPUT_PATH_PARAM "RemoteProcessingOutputPath"
 #define REMOTE_PROCESSING_HOSTNAME_PARAM "RemoteProcessingHostname"
@@ -96,7 +97,7 @@ public:
 	CStdString GetClassName();
 	ObjectRef NewInstance();
 	inline ObjectRef Process() {return ObjectRef();};
-
+	time_t m_serviceStartedTime;
 	bool m_logMessages;
 	bool m_logRms;
 	bool m_enableReporting;
@@ -129,6 +130,7 @@ public:
 	int m_captureFileBatchSizeKByte;
 	bool m_debug;
 	std::list<CStdString> m_tapeFileNaming;
+	std::list<CStdString> m_tapePathNaming;
 	std::list<CStdString> m_remoteProcessingInputPath;
 	CStdString m_remoteProcessingOutputPath;
 	CStdString m_remoteProcessingHostname;

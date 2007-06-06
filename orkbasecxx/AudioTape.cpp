@@ -346,11 +346,191 @@ void AudioTape::PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum ev
 void AudioTape::GenerateCaptureFilePathAndIdentifier()
 {
 	struct tm date = {0};
+
 	ACE_OS::localtime_r(&m_beginDate, &date);
 	int month = date.tm_mon + 1;				// january=0, decembre=11
 	int year = date.tm_year + 1900;
+
 	m_filePath.Format("%.4d/%.2d/%.2d/%.2d/", year, month, date.tm_mday, date.tm_hour);
+
 	m_fileIdentifier.Format("%.4d%.2d%.2d_%.2d%.2d%.2d_%s", year, month, date.tm_mday, date.tm_hour, date.tm_min, date.tm_sec, m_portId);
+
+	m_year.Format("%.4d", year);
+	m_day.Format("%.2d", date.tm_mday);
+	m_month.Format("%.2d", month);
+	m_hour.Format("%.2d", date.tm_hour);
+	m_min.Format("%.2d", date.tm_min);
+	m_sec.Format("%.2d", date.tm_sec);
+}
+
+void AudioTape::GenerateFinalFilePath()
+{
+	if(CONFIG.m_tapePathNaming.size() > 0)
+	{
+		CStdString pathIdentifier;
+		std::list<CStdString>::iterator it;
+
+		for(it = CONFIG.m_tapePathNaming.begin(); it != CONFIG.m_tapePathNaming.end(); it++)
+                {
+			CStdString element = *it;
+			int tapeAttributeEnum = TapeAttributes::TapeAttributeToEnum(element);
+
+			switch(tapeAttributeEnum) {
+                        case TapeAttributes::TaNativeCallId:
+                        {
+                                if(m_nativeCallId.size() > 0)
+                                {
+                                        pathIdentifier += m_nativeCallId;
+                                }
+                                else
+                                {
+                                        pathIdentifier += "nonativecallid";
+                                }
+                                break;
+                        }
+                        case TapeAttributes::TaTrackingId:
+                        {
+                                if(m_trackingId.size() > 0)
+                                {
+                                        pathIdentifier += m_trackingId;
+                                }
+                                else
+                                {
+                                        pathIdentifier += "notrackingid";
+                                }
+                                break;
+                        }
+                        case TapeAttributes::TaDirection:
+                        {
+                                pathIdentifier += CaptureEvent::DirectionToString(m_direction);
+                                break;
+                        }
+                        case TapeAttributes::TaShortDirection:
+                        {
+                                pathIdentifier += CaptureEvent::DirectionToShortString(m_direction);
+                                break;
+                        }
+                        case TapeAttributes::TaRemoteParty:
+                        {
+                                if(m_remoteParty.size() > 0)
+                                {
+                                        pathIdentifier += m_remoteParty;
+                                }
+                                else
+                                {
+                                        pathIdentifier += "noremoteparty";
+                                }
+                                break;
+                        }
+                        case TapeAttributes::TaLocalParty:
+                        {
+                                if(m_localParty.size() > 0)
+                                {
+                                        pathIdentifier += m_localParty;
+                                }
+                                else
+                                {
+                                        pathIdentifier += "nolocalparty";
+                                }
+                                break;
+                        }
+                        case TapeAttributes::TaLocalEntryPoint:
+                        {
+                                if(m_localEntryPoint.size() > 0)
+                                {
+                                        pathIdentifier += m_localEntryPoint;
+                                }
+                                else
+                                {
+                                        pathIdentifier += "nolocalentrypoint";
+                                }
+                                break;
+                        }
+                        case TapeAttributes::TaLocalIp:
+                        {
+                                if(m_localIp.size() > 0)
+                                {
+                                        pathIdentifier += m_localIp;
+                                }
+                                else
+                                {
+                                        pathIdentifier += "nolocalip";
+                                }
+                                break;
+                        }
+                        case TapeAttributes::TaRemoteIp:
+                        {
+                                if(m_remoteIp.size() > 0)
+                                {
+                                        pathIdentifier += m_remoteIp;
+                                }
+                                else
+                                {
+                                        pathIdentifier += "noremoteip";
+                                }
+                                break;
+                        }
+                        case TapeAttributes::TaHostname:
+                        {
+                                char host_name[255];
+
+                                memset(host_name, 0, sizeof(host_name));
+                                ACE_OS::hostname(host_name, sizeof(host_name));
+
+                                if(strlen(host_name))
+                                {
+                                        pathIdentifier += host_name;
+                                }
+                                else
+                                {
+                                        pathIdentifier += "nohostname";
+                                }
+
+                                break;
+                        }
+                        case TapeAttributes::TaYear:
+                        {
+                                pathIdentifier += m_year;
+                                break;
+                        }
+                        case TapeAttributes::TaDay:
+                        {
+                                pathIdentifier += m_day;
+                                break;
+                        }
+                        case TapeAttributes::TaMonth:
+                        {
+                                pathIdentifier += m_month;
+                                break;
+                        }
+                        case TapeAttributes::TaHour:
+                        {
+                                pathIdentifier += m_hour;
+                                break;
+                        }
+                        case TapeAttributes::TaMin:
+                        {
+                                pathIdentifier += m_min;
+                                break;
+                        }
+                        case TapeAttributes::TaSec:
+                        {
+                                pathIdentifier += m_sec;
+                                break;
+                        }
+                        case TapeAttributes::TaUnknown:
+                        {
+                                pathIdentifier += element;
+                                break;
+                        }
+			}
+		}
+
+        if(pathIdentifier.size() > 0)
+        {
+            m_filePath = pathIdentifier;
+        }
+	}
 }
 
 void AudioTape::GenerateFinalFilePathAndIdentifier()
@@ -360,21 +540,26 @@ void AudioTape::GenerateFinalFilePathAndIdentifier()
 		// The config file specifies a naming scheme for the recordings, build the final file identifier
 		CStdString fileIdentifier;
 		std::list<CStdString>::iterator it;
+
 		for(it = CONFIG.m_tapeFileNaming.begin(); it != CONFIG.m_tapeFileNaming.end(); it++)
 		{
 			CStdString element = *it;
-			if(element.CompareNoCase("nativecallid") == 0)
+			int tapeAttributeEnum = TapeAttributes::TapeAttributeToEnum(element);
+
+			switch(tapeAttributeEnum) {
+			case TapeAttributes::TaNativeCallId:
 			{
 				if(m_nativeCallId.size() > 0)
-				{
-					fileIdentifier += m_nativeCallId;
-				}
-				else
-				{
-					fileIdentifier += "nonativecallid";
-				}
+                                {
+                                        fileIdentifier += m_nativeCallId;
+                                }
+                                else
+                                {
+                                        fileIdentifier += "nonativecallid";
+                                }
+				break;
 			}
-			else if (element.CompareNoCase("trackingid") == 0)
+			case TapeAttributes::TaTrackingId:
 			{
 				if(m_trackingId.size() > 0)
 				{
@@ -384,18 +569,155 @@ void AudioTape::GenerateFinalFilePathAndIdentifier()
 				{
 					fileIdentifier += "notrackingid";
 				}
+				break;
 			}
-			else
+			case TapeAttributes::TaDirection:
+                        {
+				fileIdentifier += CaptureEvent::DirectionToString(m_direction);
+				break;
+			}
+			case TapeAttributes::TaShortDirection:
 			{
-				fileIdentifier += element;
+				fileIdentifier += CaptureEvent::DirectionToShortString(m_direction);
+				break;
+			}
+			case TapeAttributes::TaRemoteParty:
+			{
+				if(m_remoteParty.size() > 0)
+				{
+					fileIdentifier += m_remoteParty;
+				}
+				else
+				{
+					fileIdentifier += "noremoteparty";
+				}
+				break;
+			}
+			case TapeAttributes::TaLocalParty:
+			{
+				if(m_localParty.size() > 0)
+                                {
+                                        fileIdentifier += m_localParty;
+                                }
+                                else
+                                {
+                                        fileIdentifier += "nolocalparty";
+                                }
+                                break;
+                        }
+                        case TapeAttributes::TaLocalEntryPoint:
+                        {
+                                if(m_localEntryPoint.size() > 0)
+                                {
+                                        fileIdentifier += m_localEntryPoint;
+                                }
+                                else
+                                {
+                                        fileIdentifier += "nolocalentrypoint";
+                                }
+                                break;
+                        }
+                        case TapeAttributes::TaLocalIp:
+                        {
+                                if(m_localIp.size() > 0)
+                                {
+                                        fileIdentifier += m_localIp;
+                                }
+                                else
+                                {
+                                        fileIdentifier += "nolocalip";
+                                }
+                                break;
+                        }
+                        case TapeAttributes::TaRemoteIp:
+                        {
+                                if(m_remoteIp.size() > 0)
+                                {
+                                        fileIdentifier += m_remoteIp;
+                                }
+                                else
+                                {
+                                        fileIdentifier += "noremoteip";
+                                }
+                                break;
+                        }
+                        case TapeAttributes::TaHostname:
+			{
+				char host_name[255];
+
+				memset(host_name, 0, sizeof(host_name));
+				ACE_OS::hostname(host_name, sizeof(host_name));
+
+				if(strlen(host_name))
+				{
+					fileIdentifier += host_name;
+				}
+				else
+				{
+					fileIdentifier += "nohostname";
+				}
+
+				break;
+			}
+			case TapeAttributes::TaYear:
+			{
+				fileIdentifier += m_year;
+				break;
+			}
+			case TapeAttributes::TaDay:
+                        {
+                                fileIdentifier += m_day;
+				break;
+			}
+			case TapeAttributes::TaMonth:
+                        {
+                                fileIdentifier += m_month;
+                                break;
+                        }
+                        case TapeAttributes::TaHour:
+                        {
+                                fileIdentifier += m_hour;
+				break;
+                        }
+                        case TapeAttributes::TaMin:
+                        {
+                                fileIdentifier += m_min;
+                                break;
+                        }
+                        case TapeAttributes::TaSec:
+                        {
+                                fileIdentifier += m_sec;
+                                break;
+                        }
+			case TapeAttributes::TaUnknown:
+			{
+				std::map<CStdString, CStdString>::iterator pair;
+				CStdString correctKey, mTagsValue;
+
+				// Remove the []
+				correctKey = element.substr(1, element.size()-2);
+				pair = m_tags.find(correctKey);
+
+				if(pair != m_tags.end()) {
+					mTagsValue = pair->second;
+					fileIdentifier += mTagsValue;
+				} else {
+					fileIdentifier += element;
+				}
+
+				break;
+			}
 			}
 		}
+
 		if(fileIdentifier.size() > 0)
 		{
 			m_fileIdentifier = fileIdentifier;
 		}
-		m_filePath = "";
-		CStdString path = CONFIG.m_audioOutputPath + "/";
+
+		GenerateFinalFilePath();
+
+		CStdString path = CONFIG.m_audioOutputPath + "/" + m_filePath + "/";
 		PreventFileIdentifierCollision(path, m_fileIdentifier , m_fileExtension);
 	}
 }
@@ -466,4 +788,129 @@ bool AudioTape::IsReadyForBatchProcessing()
 	return false;
 }
 
+//=================================
 
+CStdString TapeAttributes::TapeAttributeToString(int ta)
+{
+	switch(ta) {
+	case TaNativeCallId:
+		return TA_NATIVECALLID;
+	case TaTrackingId:
+		return TA_TRACKINGID;
+	case TaDirection:
+		return TA_DIRECTION;
+	case TaShortDirection:
+		return TA_SHORTDIRECTION;
+	case TaRemoteParty:
+		return TA_REMOTEPARTY;
+	case TaLocalParty:
+		return TA_LOCALPARTY;
+	case TaLocalEntryPoint:
+		return TA_LOCALENTRYPOINT;
+	case TaLocalIp:
+		return TA_LOCALIP;
+	case TaRemoteIp:
+		return TA_REMOTEIP;
+	case TaHostname:
+		return TA_HOSTNAME;
+	case TaYear:
+		return TA_YEAR;
+	case TaDay:
+                return TA_DAY;
+        case TaMonth:
+                return TA_MONTH;
+        case TaHour:
+                return TA_HOUR;
+        case TaMin:
+                return TA_MIN;
+        case TaSec:
+                return TA_SEC;
+	}
+
+	return "[UnknownAttribute]";
+}
+
+int TapeAttributes::TapeAttributeToEnum(CStdString& ta)
+{
+	if(ta.CompareNoCase(TA_NATIVECALLID) == 0)
+        {
+		return TaNativeCallId;
+	}
+
+	if(ta.CompareNoCase(TA_TRACKINGID) == 0)
+        {
+                return TaTrackingId;
+        }
+
+        if(ta.CompareNoCase(TA_DIRECTION) == 0)
+        {
+                return TaDirection;
+        }
+
+        if(ta.CompareNoCase(TA_SHORTDIRECTION) == 0)
+        {
+                return TaShortDirection;
+        }
+
+        if(ta.CompareNoCase(TA_REMOTEPARTY) == 0)
+        {
+                return TaRemoteParty;
+        }
+
+        if(ta.CompareNoCase(TA_LOCALPARTY) == 0)
+        {
+                return TaLocalParty;
+        }
+
+        if(ta.CompareNoCase(TA_LOCALENTRYPOINT) == 0)
+        {
+                return TaLocalEntryPoint;
+        }
+
+        if(ta.CompareNoCase(TA_LOCALIP) == 0)
+        {
+                return TaLocalIp;
+        }
+
+        if(ta.CompareNoCase(TA_REMOTEIP) == 0)
+        {
+                return TaRemoteIp;
+        }
+
+        if(ta.CompareNoCase(TA_HOSTNAME) == 0)
+        {
+                return TaHostname;
+        }
+
+	if(ta.CompareNoCase(TA_YEAR) == 0)
+        {
+                return TaYear;
+        }
+
+        if(ta.CompareNoCase(TA_DAY) == 0)
+        {
+                return TaDay;
+        }
+
+        if(ta.CompareNoCase(TA_MONTH) == 0)
+        {
+                return TaMonth;
+        }
+
+        if(ta.CompareNoCase(TA_HOUR) == 0)
+        {
+                return TaHour;
+        }
+
+        if(ta.CompareNoCase(TA_MIN) == 0)
+        {
+		return TaMin;
+        }
+
+        if(ta.CompareNoCase(TA_SEC) == 0)
+        {
+                return TaSec;
+        }
+
+	return TaUnknown;
+}

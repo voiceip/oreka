@@ -107,12 +107,16 @@ public:
 #define DIR_IN "in"
 #define DIR_OUT "out"
 #define DIR_UNKN "unkn"
+#define DIR_IN_SHORT "I"
+#define DIR_OUT_SHORT "O"
+#define DIR_UNKN_SHORT "U"
 	typedef enum {	
 		DirIn = 0, 
 		DirOut = 1, 
 		DirUnkn = 2
 	} DirectionEnum;
 	static CStdString DirectionToString(int);
+	static CStdString DirectionToShortString(int direction);
 	static int DirectionToEnum(CStdString& dir);
 
 #define ET_UNKNOWN "unknown"

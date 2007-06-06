@@ -242,7 +242,11 @@ void BatchProcessing::ThreadHandler(void *args)
 								throw(debug);
 							}
 						}
-						CStdString file = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath() + audioTapeRef->GetIdentifier();
+
+						CStdString path = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath();
+						FileRecursiveMkdir(path);
+
+						CStdString file = path + "/" + audioTapeRef->GetIdentifier();
 						outFileRef->Open(file, AudioFile::WRITE, false, fileRef->GetSampleRate());
 					}
 					if(voIpSession)
