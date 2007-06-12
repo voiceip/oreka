@@ -136,7 +136,6 @@ char* memFindEOL(char* start, char* limit)
 	return start;
 }
 
-
 // Grabs a string in memory until encountering null char, a space a CR or LF chars
 void GrabToken(char* in, char* limit, CStdString& out)
 {
@@ -1014,6 +1013,8 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 				rtpInfo->m_timestamp = ntohl(rtpHeader->ts);
 				rtpInfo->m_payload = payload;
 				rtpInfo->m_arrivalTimestamp = time(NULL);
+				memcpy(rtpInfo->m_sourceMac, ethernetHeader->sourceMac, sizeof(rtpInfo->m_sourceMac));
+				memcpy(rtpInfo->m_destMac, ethernetHeader->destinationMac, sizeof(rtpInfo->m_destMac));
 
 				if(s_rtpPacketLog->isDebugEnabled())
 				{
@@ -1352,6 +1353,8 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		}
 		info->m_senderIp = ipHeader->ip_src;
 		info->m_receiverIp = ipHeader->ip_dest;
+		memcpy(info->m_senderMac, ethernetHeader->sourceMac, sizeof(info->m_senderMac));
+		memcpy(info->m_receiverMac, ethernetHeader->destinationMac, sizeof(info->m_receiverMac));
 
 		CStdString logMsg;
 		info->ToString(logMsg);

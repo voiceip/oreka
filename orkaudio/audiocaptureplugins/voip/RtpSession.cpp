@@ -22,13 +22,13 @@
 #include "ConfigManager.h"
 #include "VoIpConfig.h"
 #include "ace/OS_NS_arpa_inet.h"
+#include "MemUtils.h"
 
 extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;
 
 extern VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
-
 
 RtpSession::RtpSession(CStdString& trackingId)
 {
@@ -50,6 +50,8 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_highestRtpSeqNumDelta = 0;
 	m_minRtpSeqDelta = (double)DLLCONFIG.m_rtpDiscontinuityMinSeqDelta;
 	m_minRtpTimestampDelta = (double)DLLCONFIG.m_rtpDiscontinuityMinSeqDelta * 160;		// arbitrarily based on 160 samples per packet (does not need to be precise)
+	memset(m_localMac, 0, sizeof(m_localMac));
+	memset(m_remoteMac, 0, sizeof(m_remoteMac));
 }
 
 void RtpSession::Stop()
@@ -134,20 +136,43 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 
 	if(sourceIsLocal)
 	{
-		m_localParty = szSourceIp;
+                /* With Raw RTP, the local party is not obtained through any intelligent
+                 * signalling so we should probably do this check here? */
+                if(DLLCONFIG.m_useMacIfNoLocalParty)
+                {
+                        MemMacToHumanReadable((unsigned char*)rtpPacket->m_sourceMac, m_localParty);
+                }
+                else
+                {
+                        m_localParty = szSourceIp;
+                }
+
 		m_remoteParty = szDestIp;
 		//m_capturePort.Format("%s,%d", szSourceIp, rtpPacket->m_sourcePort);
 		m_localIp = rtpPacket->m_sourceIp;
 		m_remoteIp = rtpPacket->m_destIp;
+		memcpy(m_localMac, rtpPacket->m_sourceMac, sizeof(m_localMac));
+		memcpy(m_remoteMac, rtpPacket->m_destMac, sizeof(m_remoteMac));
 	}
 	else
 	{
-		m_localParty = szDestIp;
+                /* With Raw RTP, the local party is not obtained through any intelligent
+                 * signalling so we should probably do this check here? */
+		if(DLLCONFIG.m_useMacIfNoLocalParty)
+                {
+                        MemMacToHumanReadable((unsigned char*)rtpPacket->m_destMac, m_localParty);
+		}
+		else
+		{
+			m_localParty = szDestIp;
+		}
+
 		m_remoteParty = szSourceIp;
 		//m_capturePort.Format("%s,%d", szDestIp, rtpPacket->m_destPort);
 		m_localIp = rtpPacket->m_destIp;
 		m_remoteIp = rtpPacket->m_sourceIp;
-
+                memcpy(m_localMac, rtpPacket->m_destMac, sizeof(m_localMac));
+                memcpy(m_remoteMac, rtpPacket->m_sourceMac, sizeof(m_remoteMac));
 	}
 }
 
@@ -161,6 +186,8 @@ void RtpSession::ProcessMetadataSipIncoming()
 	m_capturePort.Format("%s,%d", szInviteeIp, m_inviteeTcpPort);
 	m_localIp = m_inviteeIp;
 	m_remoteIp = m_invitorIp;
+	memcpy(m_localMac, m_inviteeMac, sizeof(m_localMac));
+	memcpy(m_remoteMac, m_invitorMac, sizeof(m_remoteMac));
 }
 
 void RtpSession::ProcessMetadataSipOutgoing()
@@ -173,6 +200,8 @@ void RtpSession::ProcessMetadataSipOutgoing()
 	m_capturePort.Format("%s,%d", szInvitorIp, m_invitorTcpPort);
 	m_localIp = m_invitorIp;
 	m_remoteIp = m_inviteeIp;
+        memcpy(m_localMac, m_invitorMac, sizeof(m_localMac));
+	memcpy(m_remoteMac, m_inviteeMac, sizeof(m_remoteMac));
 }
 
 void RtpSession::UpdateMetadataSip(RtpPacketInfoRef& rtpPacket, bool sourceRtpAddressIsNew)
@@ -212,6 +241,7 @@ void RtpSession::UpdateMetadataSip(RtpPacketInfoRef& rtpPacket, bool sourceRtpAd
 		m_remoteParty = invite->m_from;
 		m_localParty = invite->m_to;
 		m_localIp = invite->m_receiverIp;
+		memcpy(m_localMac, invite->m_receiverMac, sizeof(m_localMac));
 
 		// Do some logging
 		CStdString inviteString;
@@ -257,12 +287,14 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 		m_inviteeIp = rtpPacket->m_destIp;
 		m_inviteeTcpPort = rtpPacket->m_destPort;
 		m_invitorTcpPort = rtpPacket->m_sourcePort;
+		memcpy(m_inviteeMac, rtpPacket->m_destMac, sizeof(m_inviteeMac));
 	}
 	else if((unsigned int)rtpPacket->m_destIp.s_addr == (unsigned int)m_invitorIp.s_addr)
 	{
 		m_inviteeIp = rtpPacket->m_sourceIp;
 		m_inviteeTcpPort = rtpPacket->m_sourcePort;
 		m_invitorTcpPort = rtpPacket->m_destPort;
+		memcpy(m_inviteeMac, rtpPacket->m_sourceMac, sizeof(m_inviteeMac));
 	}
 	else
 	{
@@ -324,6 +356,8 @@ void RtpSession::ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket)
 
 		m_localIp = rtpPacket->m_destIp;
 		m_remoteIp = rtpPacket->m_sourceIp;
+                memcpy(m_localMac, rtpPacket->m_destMac, sizeof(m_localMac));
+                memcpy(m_remoteMac, rtpPacket->m_sourceMac, sizeof(m_remoteMac));
 	}
 	else
 	{
@@ -331,6 +365,8 @@ void RtpSession::ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket)
 
 		m_localIp = rtpPacket->m_sourceIp;
 		m_remoteIp = rtpPacket->m_destIp;
+                memcpy(m_localMac, rtpPacket->m_sourceMac, sizeof(m_localMac));
+                memcpy(m_remoteMac, rtpPacket->m_destMac, sizeof(m_remoteMac));
 	}
 }
 
@@ -358,7 +394,14 @@ void RtpSession::ReportMetadata()
 	// Make sure Local Party is always reported
 	if(m_localParty.IsEmpty())
 	{
-		m_localParty = szLocalIp;
+		if(DLLCONFIG.m_useMacIfNoLocalParty)
+		{
+			MemMacToHumanReadable((unsigned char*)m_localMac, m_localParty);
+		}
+		else
+		{
+			m_localParty = szLocalIp;
+		}
 	}
 
 	// Report Local party
@@ -616,6 +659,7 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	{
 		m_invite = invite;
 		m_invitorIp = invite->m_fromRtpIp;
+		memcpy(m_invitorMac, invite->m_senderMac, sizeof(m_invitorMac));
 	}
 	else
 	{
