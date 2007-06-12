@@ -102,3 +102,17 @@ char* MemGrabLine(char* start, char* limit, CStdString& out)
 	}
 	return c;
 }
+
+void MemMacToHumanReadable(unsigned char* macAddress, CStdString&output)
+{
+        char byteAsHex[10];
+
+        for(int i=0; i<6; i++)
+        {
+                snprintf(byteAsHex, sizeof(byteAsHex), "%.2x", macAddress[i]);
+		if(output.size())
+			output += ":";
+
+                output += byteAsHex;
+        }
+}

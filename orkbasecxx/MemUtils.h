@@ -24,6 +24,7 @@ void DLL_IMPORT_EXPORT_ORKBASE	MemGrabToken(char* in, CStdString& out);
 void DLL_IMPORT_EXPORT_ORKBASE	MemGrabAlphaNumToken(char * in, char* limit, CStdString& out);
 void DLL_IMPORT_EXPORT_ORKBASE	MemGrabString(char* start, char* stop, CStdString& out);
 DLL_IMPORT_EXPORT_ORKBASE char* MemGrabLine(char* start, char* limit, CStdString& out);
+void DLL_IMPORT_EXPORT_ORKBASE  MemMacToHumanReadable(unsigned char* macAddress, CStdString&output);
 
 
 #endif
