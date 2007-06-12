@@ -32,6 +32,8 @@ public:
 	struct in_addr m_senderIp;
 	struct in_addr m_receiverIp;
 	struct in_addr m_fromRtpIp;
+	char m_senderMac[6];
+	char m_receiverMac[6];
 	CStdString m_fromRtpPort;
 	CStdString m_from;
 	CStdString m_to;
@@ -108,8 +110,12 @@ private:
 	int m_invitorTcpPort;
 	struct in_addr m_inviteeIp;
 	int m_inviteeTcpPort;
+	char m_invitorMac[6];
+	char m_inviteeMac[6];
 	struct in_addr m_localIp;
 	struct in_addr m_remoteIp;
+	char m_localMac[6];
+	char m_remoteMac[6];
 	//struct in_addr m_localMac;
 	//struct in_addr m_remoteMac;
 	LoggerPtr m_log;

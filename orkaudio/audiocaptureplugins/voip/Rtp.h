@@ -27,6 +27,9 @@ public:
 
 	//CStdString m_sourceMac;
 	//CStdString m_destMac;
+	char m_sourceMac[6];
+	char m_destMac[6];
+
 	struct in_addr m_sourceIp;
 	struct in_addr m_destIp;
 	unsigned short m_sourcePort;
