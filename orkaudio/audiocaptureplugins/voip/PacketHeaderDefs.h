@@ -188,9 +188,9 @@ bool SkinnyValidateOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct *);
 typedef struct
 {
 	SkinnyHeaderStruct header;
-	unsigned long soft_key_event;
-	unsigned long line_instance;
-	unsigned long call_identifier;
+	unsigned long softKeyEvent;
+	unsigned long lineInstance;
+	unsigned long callIdentifier;
 } SkSoftKeyEventMessageStruct;
 
 bool SkinnyValidateSoftKeyEvent(SkSoftKeyEventMessageStruct *);
