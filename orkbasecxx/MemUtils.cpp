@@ -11,6 +11,7 @@
  *
  */
 
+#include "ace/OS_NS_stdio.h"
 #include "ace/OS_NS_stdlib.h"
 #include "ace/OS_NS_strings.h"
 #include "ace/OS_NS_ctype.h"
@@ -105,14 +106,15 @@ char* MemGrabLine(char* start, char* limit, CStdString& out)
 
 void MemMacToHumanReadable(unsigned char* macAddress, CStdString&output)
 {
-        char byteAsHex[10];
+	char byteAsHex[10];
 
-        for(int i=0; i<6; i++)
-        {
-                snprintf(byteAsHex, sizeof(byteAsHex), "%.2x", macAddress[i]);
+	for(int i=0; i<6; i++)
+	{
+		ACE_OS::snprintf(byteAsHex, sizeof(byteAsHex), "%.2x", macAddress[i]);
 		if(output.size())
+		{
 			output += ":";
-
-                output += byteAsHex;
-        }
+		}
+		output += byteAsHex;
+	}
 }
