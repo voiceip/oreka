@@ -187,8 +187,8 @@ bool SkinnyValidateSoftKeyEvent(SkSoftKeyEventMessageStruct* softKeyEvent)
 {
 	bool valid = true;
 
-	if(softKeyEvent->soft_key_event > SKINNY_SOFTKEY_MAX_EVENT ||
-		softKeyEvent->soft_key_event < SKINNY_SOFTKEY_MIN_EVENT)
+	if(softKeyEvent->softKeyEvent > SKINNY_SOFTKEY_MAX_EVENT ||
+		softKeyEvent->softKeyEvent < SKINNY_SOFTKEY_MIN_EVENT)
 	{
 		valid = false;
 	}

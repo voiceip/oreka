@@ -1500,15 +1500,15 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		if(SkinnyValidateSoftKeyEvent(softKeyEvent))
 		{
 			useful = true;
-			logMsg.Format(" eventString:%s eventNumber:%d line_instance:%lu call_identifier:%lu",
-					SoftKeyEvent::SoftKeyEventToString(softKeyEvent->soft_key_event),
-					softKeyEvent->soft_key_event,
-					softKeyEvent->line_instance,
-					softKeyEvent->call_identifier);
+			logMsg.Format(" eventString:%s eventNum:%d lineInstance:%lu callId:%lu",
+					SoftKeyEvent::SoftKeyEventToString(softKeyEvent->softKeyEvent),
+					softKeyEvent->softKeyEvent,
+					softKeyEvent->lineInstance,
+					softKeyEvent->callIdentifier);
 
 			endpointIp = ipHeader->ip_src;  // this skinny message is phone -> CCM
 
-			switch(softKeyEvent->soft_key_event)
+			switch(softKeyEvent->softKeyEvent)
 			{
 			case SoftKeyEvent::SkSoftKeyHold:
 				RtpSessionsSingleton::instance()->ReportSkinnySoftKeyHold(softKeyEvent, ipHeader);
@@ -1520,8 +1520,8 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 				CStdString logSoftKey;
 
 				logSoftKey.Format("Ignoring unsupported event %s (%d)",
-					SoftKeyEvent::SoftKeyEventToString(softKeyEvent->soft_key_event),
-					softKeyEvent->soft_key_event);
+					SoftKeyEvent::SoftKeyEventToString(softKeyEvent->softKeyEvent),
+					softKeyEvent->softKeyEvent);
 				LOG4CXX_INFO(s_skinnyPacketLog, logSoftKey);
 				break;
 			}

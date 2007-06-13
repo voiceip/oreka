@@ -18,6 +18,7 @@
 #include "RtpSession.h"
 #include "Rtp.h"
 #include <map>
+#include "ace/OS_NS_sys_time.h"
 #include "ace/Singleton.h"
 #include "PacketHeaderDefs.h"
 
@@ -82,6 +83,8 @@ public:
 	CStdString m_ipAndPort;	// IP address and TCP port of one side of the session, serves as a key for session storage and retrieval. Not necessarily the same as the capturePort (capturePort is usually the client (phone) IP+port)
 	CStdString m_callId;
 	SipInviteInfoRef m_invite;
+	ACE_Time_Value m_creationDate;		// When the session is first created
+	time_t m_beginDate;			// When the session has seen a few RTP packets
 	time_t m_lastUpdated;
 	ProtocolEnum m_protocol;
 	CStdString m_localParty;
@@ -89,7 +92,8 @@ public:
 	CaptureEvent::DirectionEnum m_direction;
 	int m_numRtpPackets;
 	struct in_addr m_endPointIp;		// only used for Skinny
-
+	int m_skinnyPassThruPartyId;
+	ACE_Time_Value m_skinnyLastCallInfoTime;
 	bool m_onHold;
 
 private:
@@ -122,7 +126,6 @@ private:
 	CStdString m_capturePort;
 	bool m_started;
 	bool m_stopped;
-	time_t m_beginDate;
 	CStdString m_orkUid;
 	bool m_hasDuplicateRtp;
 	unsigned int m_highestRtpSeqNumDelta;
@@ -154,7 +157,8 @@ public:
 	void Hoover(time_t now);
 	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp);
 private:
-	RtpSessionRef findByEndpointIp(struct in_addr);
+	RtpSessionRef findByEndpointIp(struct in_addr, int passThruPartyId = 0);
+	RtpSessionRef findNewestByEndpointIp(struct in_addr endpointIpAddr);
 	RtpSessionRef findByEndpointIpUsingIpAndPort(struct in_addr endpointIpAddr);
 	bool ChangeCallId(RtpSessionRef& session, unsigned int newId);
 	void SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort);
