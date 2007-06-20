@@ -163,6 +163,7 @@ private:
 	bool ChangeCallId(RtpSessionRef& session, unsigned int newId);
 	void SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort);
 	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId);
+	void UpdateSessionWithCallInfo(SkCallInfoStruct*, RtpSessionRef&);
 
 	std::map<CStdString, RtpSessionRef> m_byIpAndPort;
 	std::map<CStdString, RtpSessionRef> m_byCallId;

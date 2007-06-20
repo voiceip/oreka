@@ -801,27 +801,8 @@ void RtpSessions::ReportSipBye(SipByeInfo bye)
 	}
 }
 
-void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader)
+void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessionRef& session)
 {
-	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, callInfo->callId);
-	std::map<CStdString, RtpSessionRef>::iterator pair;
-	pair = m_byCallId.find(callId);
-
-	if (pair != m_byCallId.end())
-	{
-		// CM can resend the same message more than once in a session, 
-		// just update timestamp
-		RtpSessionRef existingSession = pair->second;
-		existingSession->m_skinnyLastCallInfoTime = ACE_OS::gettimeofday();
-		return;
-	}
-
-	// create new session and insert into the callid map
-	CStdString trackingId = m_alphaCounter.GetNext();
-	RtpSessionRef session(new RtpSession(trackingId));
-	session->m_callId = callId;
-	session->m_endPointIp = ipHeader->ip_dest;	// CallInfo message always goes from CM to endpoint 
-	session->m_protocol = RtpSession::ProtSkinny;
 	switch(callInfo->callType)
 	{
 	case SKINNY_CALL_TYPE_INBOUND:
@@ -839,6 +820,35 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 		session->m_localParty = callInfo->calledParty;
 		session->m_remoteParty = callInfo->callingParty;		
 	}
+}
+
+
+void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader)
+{
+	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, callInfo->callId);
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	pair = m_byCallId.find(callId);
+
+	if (pair != m_byCallId.end())
+	{
+		// CM can resend the same message more than once in a session, 
+		// just update timestamp
+		RtpSessionRef existingSession = pair->second;
+		existingSession->m_skinnyLastCallInfoTime = ACE_OS::gettimeofday();
+		if(DLLCONFIG.m_skinnyAllowCallInfoUpdate)
+		{
+			UpdateSessionWithCallInfo(callInfo, existingSession);
+		}
+		return;
+	}
+
+	// create new session and insert into the callid map
+	CStdString trackingId = m_alphaCounter.GetNext();
+	RtpSessionRef session(new RtpSession(trackingId));
+	session->m_callId = callId;
+	session->m_endPointIp = ipHeader->ip_dest;	// CallInfo message always goes from CM to endpoint 
+	session->m_protocol = RtpSession::ProtSkinny;
+	UpdateSessionWithCallInfo(callInfo, session);
 
 	if(m_log->isInfoEnabled())
 	{

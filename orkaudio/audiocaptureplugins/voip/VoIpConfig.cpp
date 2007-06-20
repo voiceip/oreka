@@ -44,6 +44,7 @@ VoIpConfig::VoIpConfig()
 	m_skinnyIgnoreStopMediaTransmission = false;
 	m_skinnyIgnoreOpenReceiveChannelAck = false;
 	m_skinnyDynamicMediaAddress = false;
+	m_skinnyAllowCallInfoUpdate = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -80,6 +81,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SkinnyIgnoreStopMediaTransmission", m_skinnyIgnoreStopMediaTransmission);
 	s->BoolValue("SkinnyIgnoreOpenReceiveChannelAck", m_skinnyIgnoreOpenReceiveChannelAck);
 	s->BoolValue("SkinnyDynamicMediaAddress", m_skinnyDynamicMediaAddress);
+	s->BoolValue("SkinnyAllowCallInfoUpdate", m_skinnyAllowCallInfoUpdate);
 }
 
 void VoIpConfig::Validate()

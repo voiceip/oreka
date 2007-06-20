@@ -77,6 +77,7 @@ public:
 	bool m_skinnyIgnoreStopMediaTransmission;
 	bool m_skinnyIgnoreOpenReceiveChannelAck;
 	bool m_skinnyDynamicMediaAddress;
+	bool m_skinnyAllowCallInfoUpdate;
 
 	std::list<CStdString> m_dnisNumbers;
 	std::list<CStdString> m_sipExtractFields;
