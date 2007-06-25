@@ -93,13 +93,11 @@ void MediaChunkFile::WriteChunk(AudioChunkRef chunkRef)
 
 	bool writeError = false;
 
-	if(m_chunkQueueDataSize < (CONFIG.m_captureFileBatchSizeKByte*1024))
-	{
-		AudioChunk* pChunk = chunkRef.get();
-		m_chunkQueueDataSize += pChunk->GetNumBytes();
-		m_chunkQueue.push(chunkRef);
-	}
-	else
+	AudioChunk* pChunk = chunkRef.get();
+	m_chunkQueueDataSize += pChunk->GetNumBytes();
+	m_chunkQueue.push(chunkRef);
+
+	if(m_chunkQueueDataSize > (CONFIG.m_captureFileBatchSizeKByte*1024))
 	{
 		if (m_stream)
 		{
