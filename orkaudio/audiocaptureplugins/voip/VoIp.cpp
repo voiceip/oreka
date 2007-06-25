@@ -1022,7 +1022,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 					rtpInfo->ToString(logMsg);
 					LOG4CXX_DEBUG(s_rtpPacketLog, logMsg);
 				}
-				if(payloadLength < 800)		// sanity check, speech RTP payload should always be smaller
+				if(payloadLength < 900)		// sanity check, speech RTP payload should always be smaller
 				{
 					RtpSessionsSingleton::instance()->ReportRtpPacket(rtpInfo);
 				}
