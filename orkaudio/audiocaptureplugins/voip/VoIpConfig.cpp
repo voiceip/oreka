@@ -45,6 +45,10 @@ VoIpConfig::VoIpConfig()
 	m_skinnyIgnoreOpenReceiveChannelAck = false;
 	m_skinnyDynamicMediaAddress = false;
 	m_skinnyAllowCallInfoUpdate = false;
+
+	m_sangomaEnable = false;
+	m_sangomaRxTcpPortStart = 0;
+	m_sangomaTxTcpPortStart = 0;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -82,6 +86,9 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SkinnyIgnoreOpenReceiveChannelAck", m_skinnyIgnoreOpenReceiveChannelAck);
 	s->BoolValue("SkinnyDynamicMediaAddress", m_skinnyDynamicMediaAddress);
 	s->BoolValue("SkinnyAllowCallInfoUpdate", m_skinnyAllowCallInfoUpdate);
+
+	s->IntValue("SangomaRxTcpPortStart", m_sangomaRxTcpPortStart);
+	s->IntValue("SangomaTxTcpPortStart", m_sangomaTxTcpPortStart);
 }
 
 void VoIpConfig::Validate()
@@ -248,6 +255,38 @@ void VoIpConfig::Validate()
 		CStdString exception;
                 exception.Format("VoIpConfig: RtpSessionOnHoldTimeOutSec must be > 0 (currently:%d) please fix config.xml", m_rtpSessionWithSignallingTimeoutSec);
                 throw (exception);
+	}
+
+	if(m_sangomaRxTcpPortStart == 0)
+	{
+	}
+	else if(m_sangomaRxTcpPortStart > 65000 || m_sangomaRxTcpPortStart < 2000 || ((m_sangomaRxTcpPortStart%1000) != 0) )
+	{
+		CStdString exception;
+		exception.Format("VoIpConfig: SangomaRxTcpPort must be between 2000 and 65000 and be a multiple of 1000 (currently:%d) please fix config.xml", m_sangomaRxTcpPortStart);
+		throw (exception);
+	}
+	if(m_sangomaTxTcpPortStart == 0)
+	{
+	}
+	else if(m_sangomaTxTcpPortStart > 65000 || m_sangomaTxTcpPortStart < 2000 || ((m_sangomaTxTcpPortStart%1000) != 0) )
+	{
+		CStdString exception;
+		exception.Format("VoIpConfig: SangomaTxTcpPort must be between 2000 and 65000 and be a multiple of 1000 (currently:%d) please fix config.xml", m_sangomaTxTcpPortStart);
+		throw (exception);
+	}
+
+	if(m_sangomaRxTcpPortStart > m_sangomaTxTcpPortStart)
+	{
+		CStdString exception;
+		exception.Format("VoIpConfig: SangomaTxTcpPort should always be bigger than SangomaRxTcpPort please fix config.xml");
+		throw (exception);
+	}
+	else if(m_sangomaRxTcpPortStart > 0 && m_sangomaTxTcpPortStart>0)
+	{
+		m_sangomaTcpPortDelta = m_sangomaTxTcpPortStart - m_sangomaRxTcpPortStart;
+		m_sangomaEnable = true;
+		m_rtpDetectOnOddPorts = true;
 	}
 }
 

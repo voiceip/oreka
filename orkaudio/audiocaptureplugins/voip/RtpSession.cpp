@@ -135,7 +135,14 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 	char szDestIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szDestIp, sizeof(szDestIp));
 
-	m_capturePort = m_ipAndPort;
+	if(DLLCONFIG.m_sangomaEnable)
+	{
+		m_capturePort = IntToString(rtpPacket->m_sourcePort % 1000);
+	}
+	else
+	{
+		m_capturePort = m_ipAndPort;
+	}
 
 	if(sourceIsLocal)
 	{
@@ -621,7 +628,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	if(m_log->isDebugEnabled())
 	{
 		CStdString debug;
-		debug.Format("[%s] %s: Add RTP packet ts:%u  arrival:%u ch:%d", m_trackingId, m_capturePort, rtpPacket->m_timestamp, rtpPacket->m_arrivalTimestamp, channel);
+		debug.Format("[%s] %s: Add RTP packet srcPort:%u dstPort:%u seq:%u ts:%u  arrival:%u ch:%d", m_trackingId, m_capturePort, rtpPacket->m_sourcePort, rtpPacket->m_destPort, rtpPacket->m_seqNum, rtpPacket->m_timestamp, rtpPacket->m_arrivalTimestamp, channel);
 		LOG4CXX_DEBUG(m_log, debug);
 	}
 
@@ -1267,9 +1274,27 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	RtpSessionRef session;
 	CStdString logMsg;
 
-	if(rtpPacket->m_sourcePort == 1075)
+	int sourcePort = rtpPacket->m_sourcePort;
+	int destPort = rtpPacket->m_destPort;
+
+	if(DLLCONFIG.m_sangomaEnable && sourcePort == destPort)
 	{
-		int i=0;
+		if(sourcePort > DLLCONFIG.m_sangomaTxTcpPortStart)
+		{
+			// This is a TX packet
+			sourcePort = sourcePort - DLLCONFIG.m_sangomaTcpPortDelta;
+			rtpPacket->m_sourcePort = sourcePort;
+			// flip the least significant bit of the most significant byte
+			rtpPacket->m_sourceIp.s_addr ^= 0x00000001;
+		}
+		else
+		{
+			// This is an RX packet
+			sourcePort = sourcePort + DLLCONFIG.m_sangomaTcpPortDelta;
+			rtpPacket->m_sourcePort = sourcePort;
+			// flip the least significant bit of the most significant byte
+			rtpPacket->m_destIp.s_addr ^= 0x00000001;
+		}
 	}
 
 	// Add RTP packet to session with matching source or dest IP+Port. 
@@ -1277,7 +1302,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	// phone call, so this RTP packet can potentially be reported to two sessions.
 
 	// Does a session exist with this source Ip+Port
-	CStdString port = IntToString(rtpPacket->m_sourcePort);
+	CStdString port = IntToString(sourcePort);
 	char szSourceIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szSourceIp, sizeof(szSourceIp));
 	CStdString sourceIpAndPort = CStdString(szSourceIp) + "," + port;
@@ -1304,7 +1329,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 
 	// Does a session exist with this destination Ip+Port
-	port = IntToString(rtpPacket->m_destPort);
+	port = IntToString(destPort);
 	char szDestIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szDestIp, sizeof(szDestIp));
 	CStdString destIpAndPort = CStdString(szDestIp) + "," + port;
@@ -1329,7 +1354,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		}
 	}
 
-	if(numSessionsFound == 2)
+	if(numSessionsFound == 2 && session1.get() != session2.get())
 	{
 		// Need to "merge" the two sessions (ie discard one of them)
 		// Can happen when RTP stream detected before skinny StartMediaTransmission
@@ -1430,6 +1455,10 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		// Make sure the session is tracked by the right IP address
 		CStdString ipAndPort;
 		if(DLLCONFIG.IsRtpTrackingIpAddress(rtpPacket->m_sourceIp))
+		{
+			ipAndPort = sourceIpAndPort;
+		}
+		else if(DLLCONFIG.m_sangomaEnable)
 		{
 			ipAndPort = sourceIpAndPort;
 		}
