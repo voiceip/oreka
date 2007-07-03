@@ -111,7 +111,7 @@ typedef struct
 	// and some more fields
 } SkStartMediaTransmissionStruct;
 
-bool SkinnyValidateStartMediaTransmission(SkStartMediaTransmissionStruct *);
+bool SkinnyValidateStartMediaTransmission(SkStartMediaTransmissionStruct *, u_char* packetEnd);
 
 
 typedef struct
@@ -121,6 +121,7 @@ typedef struct
 	unsigned long passThruPartyId;
 } SkStopMediaTransmissionStruct;
 
+bool SkinnyValidateStopMediaTransmission(SkStopMediaTransmissionStruct*, u_char* packetEnd);
 
 typedef struct
 {
@@ -145,7 +146,7 @@ typedef struct
 	unsigned long callType;
 } SkCallInfoStruct;
 
-bool SkinnyValidateCallInfo(SkCallInfoStruct *);
+bool SkinnyValidateCallInfo(SkCallInfoStruct *, u_char* packetEnd);
 
 
 #define SKINNY_CCM5_PARTIES_BLOCK_SIZE 76
@@ -159,7 +160,7 @@ typedef struct
 	char parties[SKINNY_CCM5_PARTIES_BLOCK_SIZE];
 } SkCcm5CallInfoStruct;
 
-bool SkinnyValidateCcm5CallInfo(SkCcm5CallInfoStruct *);
+bool SkinnyValidateCcm5CallInfo(SkCcm5CallInfoStruct *, u_char* packetEnd);
 
 #define SKINNY_LINE_DIR_NUMBER_SIZE 24
 #define SKINNY_DISPLAY_NAME_SIZE 40
@@ -171,7 +172,7 @@ typedef struct
 	char displayName[SKINNY_DISPLAY_NAME_SIZE];
 } SkLineStatStruct;
 
-bool SkinnyValidateLineStat(SkLineStatStruct*);
+bool SkinnyValidateLineStat(SkLineStatStruct*, u_char* packetEnd);
 
 // Endpoint -> Cisco Callmanager messages
 typedef struct
@@ -183,7 +184,7 @@ typedef struct
 	unsigned long passThruPartyId;
 } SkOpenReceiveChannelAckStruct;
 
-bool SkinnyValidateOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct *);
+bool SkinnyValidateOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct *, u_char* packetEnd);
 
 typedef struct
 {
@@ -193,7 +194,7 @@ typedef struct
 	unsigned long callIdentifier;
 } SkSoftKeyEventMessageStruct;
 
-bool SkinnyValidateSoftKeyEvent(SkSoftKeyEventMessageStruct *);
+bool SkinnyValidateSoftKeyEvent(SkSoftKeyEventMessageStruct *, u_char* packetEnd);
 
 #define SKINNY_CTRL_PORT 2000
 #define SKINNY_MIN_MESSAGE_SIZE 12
@@ -331,5 +332,15 @@ struct Iax2MetaTrunkEntryTs {
 	struct Iax2MiniHeader mini;
 };
 
+//==============================================
+// SIP
+
+#define SIP_METHOD_INVITE_SIZE 6
+#define SIP_METHOD_BYE_SIZE 3
+#define SIP_METHOD_INVITE "INVITE"
+#define SIP_METHOD_BYE "BYE"
+
 #endif
+
+
 

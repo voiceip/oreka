@@ -74,10 +74,24 @@ CStdString SkinnyMessageToString(int msgEnum)
 }
 
 
-bool SkinnyValidateStartMediaTransmission(SkStartMediaTransmissionStruct* smt)
+bool SkinnyValidateStartMediaTransmission(SkStartMediaTransmissionStruct* smt, u_char* packetEnd)
 {
 	bool valid = true;
-	if (smt->remoteTcpPort > 65535)
+	if(((u_char*)smt + sizeof(SkStartMediaTransmissionStruct)) > packetEnd)
+	{
+		valid = false;
+	}
+	else if (smt->remoteTcpPort > 65535)
+	{
+		valid = false;
+	}
+	return valid;
+}
+
+bool SkinnyValidateStopMediaTransmission(SkStopMediaTransmissionStruct* smt, u_char* packetEnd)
+{
+	bool valid = true;
+	if(((u_char*)smt + sizeof(SkStopMediaTransmissionStruct)) > packetEnd)
 	{
 		valid = false;
 	}
@@ -107,10 +121,14 @@ bool checkPartyString(char* string, int size)
 	return valid;
 }
 
-bool SkinnyValidateCallInfo(SkCallInfoStruct* sci)
+bool SkinnyValidateCallInfo(SkCallInfoStruct* sci, u_char* packetEnd)
 {
 	bool valid = true;
-	if (sci->callType > SKINNY_CALL_TYPE_FORWARD)
+	if(((u_char*)sci + sizeof(SkCallInfoStruct)) > packetEnd)
+	{
+		valid = false;
+	}
+	else if (sci->callType > SKINNY_CALL_TYPE_FORWARD)
 	{
 		valid = false;
 	}
@@ -134,10 +152,14 @@ bool SkinnyValidateCallInfo(SkCallInfoStruct* sci)
 }
 
 
-bool SkinnyValidateCcm5CallInfo(SkCcm5CallInfoStruct *sci)
+bool SkinnyValidateCcm5CallInfo(SkCcm5CallInfoStruct *sci, u_char* packetEnd)
 {
 	bool valid = true;
-	if (sci->callType > SKINNY_CALL_TYPE_FORWARD)
+	if(((u_char*)sci + sizeof(SkCcm5CallInfoStruct)) > packetEnd)
+	{
+		valid = false;
+	}
+	else if (sci->callType > SKINNY_CALL_TYPE_FORWARD)
 	{
 		valid = false;
 	}
@@ -159,19 +181,27 @@ bool SkinnyValidateCcm5CallInfo(SkCcm5CallInfoStruct *sci)
 }
 
 
-bool SkinnyValidateOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct* orca)
+bool SkinnyValidateOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct* orca, u_char* packetEnd)
 {
 	bool valid = true;
-	if (orca->endpointTcpPort > 65535)
+	if(((u_char*)orca + sizeof(SkOpenReceiveChannelAckStruct)) > packetEnd)
+	{
+		valid = false;
+	}
+	else if (orca->endpointTcpPort > 65535)
 	{
 		valid = false;
 	}
 	return valid;
 }
 
-bool SkinnyValidateLineStat(SkLineStatStruct* lineStat)
+bool SkinnyValidateLineStat(SkLineStatStruct* lineStat, u_char* packetEnd)
 {
 	bool valid = true;
+	if(((u_char*)lineStat + sizeof(SkLineStatStruct)) > packetEnd)
+	{
+		valid = false;
+	}
 	if(valid)
 	{
 		valid = checkPartyString(lineStat->displayName, SKINNY_DISPLAY_NAME_SIZE);
@@ -183,11 +213,14 @@ bool SkinnyValidateLineStat(SkLineStatStruct* lineStat)
 	return valid;
 }
 
-bool SkinnyValidateSoftKeyEvent(SkSoftKeyEventMessageStruct* softKeyEvent)
+bool SkinnyValidateSoftKeyEvent(SkSoftKeyEventMessageStruct* softKeyEvent, u_char* packetEnd)
 {
 	bool valid = true;
-
-	if(softKeyEvent->softKeyEvent > SKINNY_SOFTKEY_MAX_EVENT ||
+	if(((u_char*)softKeyEvent + sizeof(SkSoftKeyEventMessageStruct)) > packetEnd)
+	{
+		valid = false;
+	}
+	else if(softKeyEvent->softKeyEvent > SKINNY_SOFTKEY_MAX_EVENT ||
 		softKeyEvent->softKeyEvent < SKINNY_SOFTKEY_MIN_EVENT)
 	{
 		valid = false;
