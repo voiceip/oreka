@@ -1047,17 +1047,18 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 }
 
 
-bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload)
+bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
 	bool result = false;
 
-	int udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
-	if(udp_act_payload_len < 3)
+	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
+	char* sipEnd = (char*)udpPayload + sipLength;
+	if(sipLength < sizeof(SIP_METHOD_BYE) || sipEnd > (char*)packetEnd)
 	{
-                return false; // Frame too small
+		return false;
 	}
 
-	if (memcmp("BYE", (void*)udpPayload, 3) == 0)
+	if (memcmp(SIP_METHOD_BYE, (void*)udpPayload, SIP_METHOD_BYE_SIZE) == 0)
 	{
 		result = true;
 		int sipLength = ntohs(udpHeader->len);
@@ -1077,8 +1078,8 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 	return result;
 }
 
-bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload);
-bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload);
+bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd);
+bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd);
 
 static bool SipByeTcpToUdp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,TcpHeaderStruct* tcpHeader, u_char *pBuffer, int bLength)
 {
@@ -1088,7 +1089,7 @@ static bool SipByeTcpToUdp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
         udpHeader.dest = tcpHeader->dest;
         udpHeader.len = htons(bLength+sizeof(UdpHeaderStruct));
 
-        return TrySipBye(ethernetHeader, ipHeader, &udpHeader, pBuffer);
+        return TrySipBye(ethernetHeader, ipHeader, &udpHeader, pBuffer, pBuffer+bLength);
 }
 
 static bool SipInviteTcpToUdp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader, u_char *pBuffer, int bLength)
@@ -1099,7 +1100,7 @@ static bool SipInviteTcpToUdp(EthernetHeaderStruct* ethernetHeader, IpHeaderStru
 	udpHeader.dest = tcpHeader->dest;
 	udpHeader.len = htons(bLength+sizeof(UdpHeaderStruct));
 
-	return TrySipInvite(ethernetHeader, ipHeader, &udpHeader, pBuffer);
+	return TrySipInvite(ethernetHeader, ipHeader, &udpHeader, pBuffer, pBuffer+bLength);
 }
 
 bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
@@ -1114,13 +1115,13 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 	u_char* startTcpPayload = (u_char*)tcpHeader + TCP_HEADER_LENGTH;
 	tcpLengthPayloadLength = ((u_char*)ipHeader+ntohs(ipHeader->ip_len)) - startTcpPayload;
 
-	if(tcpLengthPayloadLength < 6)
+	if(tcpLengthPayloadLength < SIP_METHOD_INVITE_SIZE)
 	{
 		return false;
 	}
 
-	if((memcmp("INVITE", (void*)startTcpPayload, 6) == 0) ||
-	   (memcmp("BYE", (void*)startTcpPayload, 3) == 0))
+	if((memcmp(SIP_METHOD_INVITE, (void*)startTcpPayload, SIP_METHOD_INVITE_SIZE) == 0) ||
+	   (memcmp(SIP_METHOD_BYE, (void*)startTcpPayload, SIP_METHOD_BYE_SIZE) == 0))
 	{
 		SipTcpStreamRef tcpstream(new SipTcpStream());
 		int exists = 0;
@@ -1166,7 +1167,7 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 			tcpstream->ToString(tcpStream);
 			LOG4CXX_INFO(s_sipTcpPacketLog, "Obtained complete TCP Stream: " + tcpStream);
 
-			if(memcmp("INVITE", (void*)buffer->GetBuffer(), 6)  == 0)
+			if(memcmp(SIP_METHOD_INVITE, (void*)buffer->GetBuffer(), SIP_METHOD_INVITE_SIZE)  == 0)
 				return SipInviteTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
 
 			return SipByeTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
@@ -1205,7 +1206,7 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
         	                tcpstream->ToString(tcpStream);
                 	        LOG4CXX_INFO(s_sipTcpPacketLog, "TCP Stream updated to completion: " + tcpStream);
 
-				if(memcmp("INVITE", (void*)buffer->GetBuffer(), 6)  == 0) {
+				if(memcmp(SIP_METHOD_INVITE, (void*)buffer->GetBuffer(), SIP_METHOD_INVITE_SIZE)  == 0) {
 					SipInviteTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
 				} else {
 					SipByeTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
@@ -1229,22 +1230,21 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 	return result;
 }
 
-bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload)
+bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
 	bool result = false;
 	bool drop = false;
         
-	int udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
-	if(udp_act_payload_len < 6)
+	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
+	char* sipEnd = (char*)udpPayload + sipLength;
+	if(sipLength < sizeof(SIP_METHOD_INVITE) || sipEnd > (char*)packetEnd)
 	{
-		return false; // Frame too small
+		return false;
 	}
-	if (memcmp("INVITE", (void*)udpPayload, 6) == 0)
+
+	if (memcmp(SIP_METHOD_INVITE, (void*)udpPayload, SIP_METHOD_INVITE_SIZE) == 0)
 	{
 		result = true;
-
-		int sipLength = ntohs(udpHeader->len);
-		char* sipEnd = (char*)udpPayload + sipLength;
 
 		SipInviteInfoRef info(new SipInviteInfo());
 
@@ -1369,7 +1369,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 	return result;
 }
 
-void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHeader)
+void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHeader, u_char* packetEnd)
 {
 	bool useful = true;
 	CStdString logMsg;
@@ -1389,7 +1389,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 	{
 	case SkStartMediaTransmission:
 		startMedia = (SkStartMediaTransmissionStruct*)skinnyHeader;
-		if(SkinnyValidateStartMediaTransmission(startMedia))
+		if(SkinnyValidateStartMediaTransmission(startMedia, packetEnd))
 		{
 			if(s_skinnyPacketLog->isInfoEnabled())
 			{
@@ -1409,15 +1409,23 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 	case SkCloseReceiveChannel:
 		// StopMediaTransmission and CloseReceiveChannel have the same definition, treat them the same for now.
 		stopMedia = (SkStopMediaTransmissionStruct*)skinnyHeader;
-		if(s_skinnyPacketLog->isInfoEnabled())
+		if(SkinnyValidateStopMediaTransmission(stopMedia, packetEnd))
 		{
-			logMsg.Format(" ConferenceId:%u PassThruPartyId:%u", stopMedia->conferenceId, stopMedia->passThruPartyId);
+			if(s_skinnyPacketLog->isInfoEnabled())
+			{
+				logMsg.Format(" ConferenceId:%u PassThruPartyId:%u", stopMedia->conferenceId, stopMedia->passThruPartyId);
+			}
+			RtpSessionsSingleton::instance()->ReportSkinnyStopMediaTransmission(stopMedia, ipHeader);
 		}
-		RtpSessionsSingleton::instance()->ReportSkinnyStopMediaTransmission(stopMedia, ipHeader);
+		else
+		{
+			useful = false;
+			LOG4CXX_WARN(s_skinnyPacketLog, "Invalid StopMediaTransmission or CloseReceiveChannel.");
+		}
 		break;
 	case SkCallInfoMessage:
 		callInfo = (SkCallInfoStruct*)skinnyHeader;
-		if(SkinnyValidateCallInfo(callInfo))
+		if(SkinnyValidateCallInfo(callInfo, packetEnd))
 		{
 			if(s_skinnyPacketLog->isInfoEnabled())
 			{
@@ -1433,7 +1441,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		break;
 	case SkCcm5CallInfoMessage:
 		ccm5CallInfo = (SkCcm5CallInfoStruct*)skinnyHeader;
-		if(SkinnyValidateCcm5CallInfo(ccm5CallInfo))
+		if(SkinnyValidateCcm5CallInfo(ccm5CallInfo, packetEnd))
 		{
 			// Extract Calling and Called number.
 			CStdString callingParty;
@@ -1460,7 +1468,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		break;
 	case SkOpenReceiveChannelAck:
 		openReceiveAck = (SkOpenReceiveChannelAckStruct*)skinnyHeader;
-		if(SkinnyValidateOpenReceiveChannelAck(openReceiveAck))
+		if(SkinnyValidateOpenReceiveChannelAck(openReceiveAck, packetEnd))
 		{
 			if(s_skinnyPacketLog->isInfoEnabled())
 			{
@@ -1479,7 +1487,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		break;
 	case SkLineStatMessage:
 		lineStat = (SkLineStatStruct*)skinnyHeader;
-		if(SkinnyValidateLineStat(lineStat))
+		if(SkinnyValidateLineStat(lineStat, packetEnd))
 		{
 			if(s_skinnyPacketLog->isInfoEnabled())
 			{
@@ -1497,7 +1505,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		break;
 	case SkSoftKeyEventMessage:
 		softKeyEvent = (SkSoftKeyEventMessageStruct*)skinnyHeader;
-		if(SkinnyValidateSoftKeyEvent(softKeyEvent))
+		if(SkinnyValidateSoftKeyEvent(softKeyEvent, packetEnd))
 		{
 			useful = true;
 			logMsg.Format(" eventString:%s eventNum:%d lineInstance:%lu callId:%lu",
@@ -1610,6 +1618,12 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	}
 	int ipHeaderLength = ipHeader->ip_hl*4;
 	u_char* ipPacketEnd = (u_char*)ipHeader + ntohs(ipHeader->ip_len);
+	u_char* captureEnd = (u_char*)pkt_data + header->caplen; 
+	if( captureEnd < (u_char*)ipPacketEnd  || (u_char*)ipPacketEnd <= ((u_char*)ipHeader + ipHeaderLength + TCP_HEADER_LENGTH))
+	{
+		// The packet has been snipped or has not enough payload, drop it,
+		return;
+	}
 
 #ifdef WIN32
 	if(!s_liveCapture)
@@ -1675,12 +1689,12 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 
             if(!detectedUsefulPacket) {
                     detectedUsefulPacket= TrySipInvite(ethernetHeader, ipHeader, udpHeader,
-                                                    udpPayload);
+                                                    udpPayload, ipPacketEnd);
             }
 
             if(!detectedUsefulPacket) {
                     detectedUsefulPacket = TrySipBye(ethernetHeader, ipHeader, udpHeader,
-                                                    udpPayload);
+                                                    udpPayload, ipPacketEnd);
             }
 			if(DLLCONFIG.m_iax2Support == false)
 			{
@@ -1757,7 +1771,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 				}
 				MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
 
-				HandleSkinnyMessage(skinnyHeader, ipHeader);
+				HandleSkinnyMessage(skinnyHeader, ipHeader, ipPacketEnd);
 
 				// Point to next skinny message within this TCP packet
 				skinnyHeader = (SkinnyHeaderStruct*)((u_char*)skinnyHeader + SKINNY_HEADER_LENGTH + skinnyHeader->len);
