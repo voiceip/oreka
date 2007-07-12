@@ -90,6 +90,7 @@ private:
 	void OpenPcapFile(CStdString& filename);
 	void OpenPcapDirectory(CStdString& path);
 	void SetPcapSocketBufferSize(pcap_t* pcapHandle);
+	char* ApplyPcapFilter();
 
 	pcap_t* m_pcapHandle;
 	std::list<pcap_t*> m_pcapHandles;
@@ -1907,6 +1908,31 @@ void VoIp::OpenPcapDirectory(CStdString& path)
 
 }
 
+char* VoIp::ApplyPcapFilter()
+{
+	struct bpf_program fp;
+	char* error = NULL;
+	CStdString logMsg;
+
+	if(DLLCONFIG.m_pcapFilter.size())
+	{
+		if(pcap_compile(m_pcapHandle,&fp, (PSTR)(PCSTR)DLLCONFIG.m_pcapFilter,1,0) == -1)
+		{
+			error = pcap_geterr(m_pcapHandle);
+			logMsg.Format("pcap_compile: Please check your PcapFilter in config.xml; pcap handle:%x", m_pcapHandle);
+			LOG4CXX_ERROR(s_packetLog, logMsg);
+
+		} 
+		if(error == NULL && pcap_setfilter(m_pcapHandle,&fp) == -1)
+		{ 
+			error = pcap_geterr(m_pcapHandle);
+			logMsg.Format("pcap_setfilter: Please check your PcapFilter in config.xml; pcap handle:%x", m_pcapHandle);
+			LOG4CXX_ERROR(s_packetLog, logMsg);
+		}
+	}
+	return error;
+}
+
 void VoIp::OpenPcapFile(CStdString& filename)
 {
 	CStdString logMsg;
@@ -1916,15 +1942,20 @@ void VoIp::OpenPcapFile(CStdString& filename)
 	// Open device
 	char * error = NULL;
 
-	if ((m_pcapHandle = pcap_open_offline((PCSTR)filename , error)) == NULL)
+	m_pcapHandle = pcap_open_offline((PCSTR)filename , error);
+
+	if(error == NULL)
 	{
-		LOG4CXX_ERROR(s_packetLog, "pcap error when opening file:" + filename + "; error message:" + error);
+		error = ApplyPcapFilter();
+	}
+	if(error)
+	{
+		LOG4CXX_ERROR(s_packetLog, "pcap error when opening file:" + filename + "; pcap error:" + error);
 	}
 	else
 	{
 		logMsg.Format("Successfully opened file. pcap handle:%x", m_pcapHandle);
 		LOG4CXX_INFO(s_packetLog, logMsg);
-
 		m_pcapHandles.push_back(m_pcapHandle);
 	}
 }
@@ -1994,8 +2025,13 @@ void VoIp::OpenDevices()
 				if(DLLCONFIG.IsDeviceWanted(device->name))
 				{
 					// Open device
-					if ((m_pcapHandle = pcap_open_live(device->name, 1500, PROMISCUOUS,
-							500, error)) == NULL)
+					m_pcapHandle = pcap_open_live(device->name, 1500, PROMISCUOUS, 500, error);
+					
+					if(error == NULL)
+					{
+						error = ApplyPcapFilter();
+					}
+					if(error)
 					{
 						LOG4CXX_ERROR(s_packetLog, CStdString("pcap error when opening device; error message:") + error);
 					}
@@ -2020,8 +2056,13 @@ void VoIp::OpenDevices()
 				// Let's open the default device
 				if(defaultDevice)
 				{
-					if ((m_pcapHandle = pcap_open_live(defaultDevice->name, 1500, PROMISCUOUS,
-							500, error)) == NULL)
+					m_pcapHandle = pcap_open_live(defaultDevice->name, 1500, PROMISCUOUS, 500, error);
+
+					if(error == NULL)
+					{
+						error = ApplyPcapFilter();
+					}
+					if(error)
 					{
 						logMsg.Format("pcap error when opening default device:%s", defaultDevice->name);
 						LOG4CXX_ERROR(s_packetLog, logMsg);
