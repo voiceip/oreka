@@ -1626,7 +1626,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 		return;
 	}
 
-#ifdef WIN32
+//#ifdef WIN32
 	if(!s_liveCapture)
 	{
 		// This is a pcap file replay
@@ -1669,7 +1669,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 			}
 		}
 	}
-#endif
+//#endif
 
 	if(DLLCONFIG.IsPacketWanted(ipHeader) == false)
 	{
