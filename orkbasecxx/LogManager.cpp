@@ -13,6 +13,7 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
+#include "ace/OS_NS_dirent.h"
 #include "LogManager.h"
 #include <log4cxx/propertyconfigurator.h>
 #include <log4cxx/basicconfigurator.h>
@@ -29,22 +30,50 @@ void OrkLogManager::Initialize()
 {
 	BasicConfigurator::configure();
 
-	char* logCfgFilename = ""; 
-	FILE* file = ACE_OS::fopen("logging.properties", "r");
-	if(file)
-	{
-		// logging.properties exists in the current directory
-		logCfgFilename = "logging.properties";
-		fclose(file);
-	}
-	else
-	{
-		// logging.properties could not be found in the current directory, try to find it in system configuration directory
-		logCfgFilename = "/etc/orkaudio/logging.properties";
+	char* logCfgFilename = "";
+        char* cfgEnvPath = "";
+        int cfgAlloc = 0;
+
+        cfgEnvPath = ACE_OS::getenv("ORKAUDIO_CONFIG_PATH");
+        if(cfgEnvPath) {
+                ACE_DIR* dir = ACE_OS::opendir(cfgEnvPath);
+                if(dir) {
+                        int len = 0;
+
+                        ACE_OS::closedir(dir);
+                        len = strlen(cfgEnvPath)+1+strlen("logging.properties")+1;
+                        logCfgFilename = (char*)malloc(len);
+
+                        if(logCfgFilename) {
+                                cfgAlloc = 1;
+                                snprintf(logCfgFilename, len, "%s/%s", cfgEnvPath, "logging.properties");
+                        }
+                }
+        }
+
+	if(!logCfgFilename || !strlen(logCfgFilename)) {
+		FILE* file = ACE_OS::fopen("logging.properties", "r");
+		if(file)
+		{
+			// logging.properties exists in the current directory
+			logCfgFilename = "logging.properties";
+			fclose(file);
+		}
+		else
+		{
+			// logging.properties could not be found in the current
+			// directory, try to find it in system configuration directory
+			logCfgFilename = "/etc/orkaudio/logging.properties";
+		}
 	}
 
 	// If this one fails, the above default configuration stays valid
 	PropertyConfigurator::configure(logCfgFilename);
+
+	// XXX should we free this here?
+	if(cfgAlloc) {
+		free(logCfgFilename);
+	}
 
 	rootLog  = Logger::getLogger("root");
 	topLog = Logger::getLogger("top");

@@ -41,17 +41,20 @@ void CommandLineServer::run(void* args)
 	s_log = log4cxx::Logger::getLogger("interface.commandlineserver");
 
 	unsigned short tcpPort = (unsigned short)(unsigned long)args;
+	//unsigned short tcpPort = (unsigned short)*(int*)args;
+
 	CommandLineAcceptor peer_acceptor;
 	ACE_INET_Addr addr (tcpPort);
 	ACE_Reactor reactor;
+	CStdString tcpPortString = IntToString(tcpPort);
 
 	if (peer_acceptor.open (addr, &reactor) == -1)
 	{
-		CStdString tcpPortString = IntToString(tcpPort);
 		LOG4CXX_ERROR(s_log, CStdString("Failed to start command line server on port:") + tcpPortString);
 	}
 	else
 	{
+		LOG4CXX_INFO(s_log, CStdString("Started command line server on port:")+tcpPortString);
 		for(;;)
 		{
 			reactor.handle_events();
@@ -138,17 +141,20 @@ void HttpServer::run(void* args)
 	s_log = log4cxx::Logger::getLogger("interface.httpserver");
 
 	unsigned short tcpPort = (unsigned short)(unsigned long)args;
+	//unsigned short tcpPort = (unsigned short)*(int*)args;
+
 	HttpAcceptor peer_acceptor;
 	ACE_INET_Addr addr (tcpPort);
 	ACE_Reactor reactor;
+	CStdString tcpPortString = IntToString(tcpPort);
 
 	if (peer_acceptor.open (addr, &reactor) == -1)
 	{
-		CStdString tcpPortString = IntToString(tcpPort);
 		LOG4CXX_ERROR(s_log, CStdString("Failed to start http server on port:") + tcpPortString);
 	}
 	else
 	{
+		LOG4CXX_INFO(s_log, CStdString("Started HTTP server on port:")+tcpPortString);
 		for(;;)
 		{
 			reactor.handle_events();
