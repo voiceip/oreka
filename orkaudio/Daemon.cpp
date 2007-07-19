@@ -13,6 +13,7 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
+#include "ace/OS_NS_dirent.h"
 #include "Utils.h"
 #ifdef WIN32
 #include <windows.h>
@@ -141,7 +142,25 @@ void Daemon::Run()
 	i=open("/dev/null",O_RDWR); dup(i); dup(i); /* handle standart I/O */
 	umask(027); /* set newly created file permissions */
 	//chdir(RUNNING_DIR); /* change running directory */
-	lfp=open("/var/log/orkaudio/orkaudio.lock",O_RDWR|O_CREAT,0640);
+
+	char *loggingPath = NULL;
+	CStdString lockFile = CStdString("");
+
+	loggingPath = ACE_OS::getenv("ORKAUDIO_LOGGING_PATH");
+	if(loggingPath) {
+                ACE_DIR* dir = ACE_OS::opendir(loggingPath);
+                if(dir) {
+			ACE_OS::closedir(dir);
+			lockFile.Format("%s/orkaudio.lock", loggingPath);
+		}
+	}
+
+	if(!lockFile.size()) {
+		lfp=open("/var/log/orkaudio/orkaudio.lock",O_RDWR|O_CREAT,0640);
+	} else {
+		lfp=open(lockFile.c_str(),O_RDWR|O_CREAT,0640);
+	}
+
 	if (lfp<0)
 	{
 		lfp=open("orkaudio.lock",O_RDWR|O_CREAT,0640);
