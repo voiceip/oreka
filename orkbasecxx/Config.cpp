@@ -14,6 +14,7 @@
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
 #include "ace/OS_NS_unistd.h"
+#include "ace/OS_NS_dirent.h"
 #include "Utils.h"
 #include "serializers/Serializer.h"
 #include "Config.h"
@@ -58,6 +59,9 @@ Config::Config()
 	m_remoteProcessingHostname = REMOTE_PROCESSING_HOSTNAME_DEFAULT;
 	m_remoteProcessingTcpPort = REMOTE_PROCESSING_TCP_PORT_DEFAULT;
 	m_remoteProcessingServiceName = REMOTE_PROCESSING_SERVICE_NAME_DEFAULT;
+
+	m_commandLineServerPort = COMMAND_LINE_SERVER_PORT_DEFAULT;
+	m_httpServerPort = HTTP_SERVER_PORT_DEFAULT;
 }
 
 void Config::Define(Serializer* s)
@@ -84,7 +88,26 @@ void Config::Define(Serializer* s)
 	s->StringValue(SERVICE_NAME_PARAM, m_serviceName);
 	s->IntValue(REPORTING_RETRY_DELAY_PARAM, m_reportingRetryDelay);
 	s->IntValue(CLIENT_TIMEOUT_PARAM, m_clientTimeout);
-	s->StringValue(AUDIO_OUTPUT_PATH_PARAM, m_audioOutputPath);
+
+	/* As per Ticket 174, with reference to 
+	 * http://wush.net/trac/grinob/wiki/MultipleOrkaudioPerServer
+         */
+        char *loggingPath = NULL;
+	int pathSet = 0;
+
+        loggingPath = ACE_OS::getenv("ORKAUDIO_LOGGING_PATH");
+        if(loggingPath) {
+                ACE_DIR* dir = ACE_OS::opendir(loggingPath);
+                if(dir) {
+                        ACE_OS::closedir(dir);
+			m_audioOutputPath.Format("%s", loggingPath);
+			pathSet = 1;
+                }
+        }
+
+	if(!pathSet)
+		s->StringValue(AUDIO_OUTPUT_PATH_PARAM, m_audioOutputPath);
+
 	s->IntValue(IMMEDIATE_PROCESSING_QUEUE_SIZE_PARAM, m_immediateProcessingQueueSize);
 	s->IntValue(BATCH_PROCESSING_QUEUE_SIZE_PARAM, m_batchProcessingQueueSize);
 	s->BoolValue(BATCH_PROCESSING_ENHANCE_PRIORITY_PARAM, m_batchProcessingEnhancePriority);
@@ -100,6 +123,8 @@ void Config::Define(Serializer* s)
 	s->StringValue(REMOTE_PROCESSING_HOSTNAME_PARAM, m_remoteProcessingHostname);
 	s->IntValue(REMOTE_PROCESSING_TCP_PORT_PARAM, m_remoteProcessingTcpPort);
 	s->StringValue(REMOTE_PROCESSING_SERVICE_NAME_PARAM, m_remoteProcessingServiceName);
+	s->IntValue(COMMAND_LINE_SERVER_PORT_PARAM, m_commandLineServerPort);
+	s->IntValue(HTTP_SERVER_PORT_PARAM, m_httpServerPort);
 }
 
 void Config::Validate()
