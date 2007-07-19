@@ -46,7 +46,7 @@ void OrkLogManager::Initialize()
 
                         if(logCfgFilename) {
                                 cfgAlloc = 1;
-                                snprintf(logCfgFilename, len, "%s/%s", cfgEnvPath, "logging.properties");
+								ACE_OS::snprintf(logCfgFilename, len, "%s/%s", cfgEnvPath, "logging.properties");
                         }
                 }
         }
