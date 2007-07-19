@@ -49,7 +49,6 @@ Config::Config()
 
 	char hostname[40];
 	ACE_OS::hostname(hostname, 40);
-	//ACE_OS::hostname(hostname, HOSTNAME_BUF_LEN);
 	m_serviceName = CStdString("orkaudio-") + hostname;
 
 	m_reportingRetryDelay = 5;
@@ -89,21 +88,18 @@ void Config::Define(Serializer* s)
 	s->IntValue(REPORTING_RETRY_DELAY_PARAM, m_reportingRetryDelay);
 	s->IntValue(CLIENT_TIMEOUT_PARAM, m_clientTimeout);
 
-	/* As per Ticket 174, with reference to 
-	 * http://wush.net/trac/grinob/wiki/MultipleOrkaudioPerServer
-         */
-        char *loggingPath = NULL;
+	char *loggingPath = NULL;
 	int pathSet = 0;
 
-        loggingPath = ACE_OS::getenv("ORKAUDIO_LOGGING_PATH");
-        if(loggingPath) {
-                ACE_DIR* dir = ACE_OS::opendir(loggingPath);
-                if(dir) {
-                        ACE_OS::closedir(dir);
+	loggingPath = ACE_OS::getenv("ORKAUDIO_LOGGING_PATH");
+	if(loggingPath) {
+		ACE_DIR* dir = ACE_OS::opendir(loggingPath);
+		if(dir) {
+			ACE_OS::closedir(dir);
 			m_audioOutputPath.Format("%s", loggingPath);
 			pathSet = 1;
-                }
         }
+	}
 
 	if(!pathSet)
 		s->StringValue(AUDIO_OUTPUT_PATH_PARAM, m_audioOutputPath);
