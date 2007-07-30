@@ -91,59 +91,11 @@ SOURCE=.\App.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\BatchProcessing.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\BatchProcessing.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CapturePluginProxy.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\CapturePluginProxy.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CapturePort.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\CapturePort.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\Daemon.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\Daemon.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ImmediateProcessing.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\ImmediateProcessing.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\OrkAudio.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\OrkAudio.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\Reporting.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\Reporting.h
 # End Source File
 # End Group
 # Begin Group "Header Files"

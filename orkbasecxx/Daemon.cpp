@@ -28,7 +28,7 @@ HANDLE stopServiceEvent = 0;
 void handle_signal(int sig_num)
 {
         signal(SIGUSR1, handle_signal);
-	DaemonSingleton::instance()->Stop();
+	Daemon::Singleton()->Stop();
 }
 
 #ifdef WIN32
@@ -43,7 +43,7 @@ void WINAPI ServiceControlHandler( DWORD controlCode )
 		case SERVICE_CONTROL_STOP:
 			serviceStatus.dwCurrentState = SERVICE_STOP_PENDING;
 			SetServiceStatus( serviceStatusHandle, &serviceStatus );
-			DaemonSingleton::instance()->Stop();
+			Daemon::Singleton()->Stop();
 			return;
 
 		case SERVICE_CONTROL_PAUSE:
@@ -60,14 +60,27 @@ void WINAPI ServiceControlHandler( DWORD controlCode )
 }
 #endif
 
+Daemon* Daemon::m_singleton;
+
+Daemon::Daemon()
+{
+}
+
+Daemon* Daemon::Singleton()
+{
+	return m_singleton;
+}
+
 void Daemon::Initialize(CStdString serviceName, DaemonHandler runHandler, DaemonHandler stopHandler)
 {
-	m_runHandler = runHandler;
-	m_stopHandler = stopHandler;
-	m_serviceName = serviceName;
+	m_singleton = new Daemon();
 
-	m_stopping = false;
-	m_shortLived = false;
+	m_singleton->m_runHandler = runHandler;
+	m_singleton->m_stopHandler = stopHandler;
+	m_singleton->m_serviceName = serviceName;
+
+	m_singleton->m_stopping = false;
+	m_singleton->m_shortLived = false;
 }
 
 void Daemon::Start()
@@ -117,7 +130,7 @@ void Daemon::Run()
 	serviceStatus.dwCheckPoint = 0;
 	serviceStatus.dwWaitHint = 0;
 
-	serviceStatusHandle = RegisterServiceCtrlHandler( (PCSTR)DaemonSingleton::instance()->m_serviceName, ServiceControlHandler );
+	serviceStatusHandle = RegisterServiceCtrlHandler( (PCSTR)Daemon::Singleton()->m_serviceName, ServiceControlHandler );
 	if ( serviceStatusHandle )
 	{
 		// service is starting
@@ -181,7 +194,7 @@ void Daemon::Run()
 	//signal(SIGHUP,signal_handler); /* catch hangup signal */
 #endif
 
-	DaemonSingleton::instance()->m_runHandler();
+	Daemon::Singleton()->m_runHandler();
 
 #ifdef WIN32
 	// service was stopped

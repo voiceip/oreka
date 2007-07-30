@@ -110,13 +110,13 @@ void BatchProcessing::ThreadHandler(void *args)
 			audioTapeRef = pBatchProcessing->m_audioTapeQueue.pop();
 			if(audioTapeRef.get() == NULL)
 			{
-				if(DaemonSingleton::instance()->IsStopping())
+				if(Daemon::Singleton()->IsStopping())
 				{
 					stop = true;
 				}
-				if(DaemonSingleton::instance()->GetShortLived())
+				if(Daemon::Singleton()->GetShortLived())
 				{
-					DaemonSingleton::instance()->Stop();
+					Daemon::Singleton()->Stop();
 				}
 			}
 			else

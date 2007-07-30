@@ -11,53 +11,44 @@
  *
  */
 
-#ifndef __REPORTING_H__
-#define __REPORTING_H__
+#ifndef __BATCHPROCESSING_H__
+#define __BATCHPROCESSING_H__
 
 #include "ThreadSafeQueue.h"
 #include "TapeProcessor.h"
 #include "AudioTape.h"
+#include "ace/Thread_Mutex.h"
+#include <map>
 
-class Reporting : public TapeProcessor
+class  BatchProcessing;
+typedef boost::shared_ptr<BatchProcessing> BatchProcessingRef;
+
+/**
+ * This tape processor handles the audio transcoding
+ */
+class DLL_IMPORT_EXPORT_ORKBASE BatchProcessing : public TapeProcessor
 {
 public:
 	static void Initialize();
-	static Reporting* Instance();
 
 	CStdString __CDECL__ GetName();
 	TapeProcessorRef __CDECL__ Instanciate();
 	void __CDECL__ AddAudioTape(AudioTapeRef& audioTapeRef);
-	void __CDECL__ SkipTapes(int number);
 
-	//static Reporting* GetInstance();
+
 	static void ThreadHandler(void *args);
 
-private:
-	Reporting();
-	bool IsSkip();
+	void SetQueueSize(int size);
 
-	//static Reporting m_reportingSingleton;
+private:
+	BatchProcessing();
 	static TapeProcessorRef m_singleton;
 
 	ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
-	bool m_queueFullError;
-	int numTapesToSkip;
+
+	size_t m_threadCount;
 	ACE_Thread_Mutex m_mutex;
-};
-
-class ReportingSkipTapeMsg : public SyncMessage
-{
-public:
-	ReportingSkipTapeMsg();
-
-	void Define(Serializer* s);
-	inline void Validate() {};
-
-	CStdString GetClassName();
-	ObjectRef NewInstance();
-	ObjectRef Process();
-
-	int m_number;
+	int m_currentDay;
 };
 
 #endif

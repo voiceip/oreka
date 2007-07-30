@@ -73,7 +73,7 @@ void ImmediateProcessing::ThreadHandler(void *args)
 
 			if(audioTapeRef.get() == NULL)
 			{
-				if(DaemonSingleton::instance()->IsStopping())
+				if(Daemon::Singleton()->IsStopping())
 				{
 					stop = true;
 				}

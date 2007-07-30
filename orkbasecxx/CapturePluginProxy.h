@@ -20,19 +20,24 @@
 #include "AudioCapture.h"
 #include "AudioCapturePlugin.h"
 
-class CapturePluginProxy
+class DLL_IMPORT_EXPORT_ORKBASE CapturePluginProxy
 {
 public:
-	CapturePluginProxy();
-	bool Initialize();
+	static bool Initialize();
+	static CapturePluginProxy* Singleton();
+
 	void Run();
 	void Shutdown();
-	void StartCapture(CStdString& capturePort);
-	void StopCapture(CStdString& capturePort);
+	void StartCapture(CStdString& party);
+	void StopCapture(CStdString& party);
 
 	static void __CDECL__  AudioChunkCallBack(AudioChunkRef chunkRef, CStdString& capturePort);
 	static void __CDECL__ CaptureEventCallBack(CaptureEventRef eventRef, CStdString& capturePort);
 private:
+	CapturePluginProxy();
+	static CapturePluginProxy* m_singleton;	
+	bool Init();
+
 	ConfigureFunction m_configureFunction;
 	RegisterCallBacksFunction m_registerCallBacksFunction;
 	InitializeFunction m_initializeFunction;
@@ -44,7 +49,7 @@ private:
 	bool m_loaded;
 };
 
-typedef ACE_Singleton<CapturePluginProxy, ACE_Thread_Mutex> CapturePluginProxySingleton;
+//typedef ACE_Singleton<CapturePluginProxy, ACE_Thread_Mutex> CapturePluginProxySingleton;
 
 #endif
 

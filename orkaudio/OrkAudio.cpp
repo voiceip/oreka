@@ -26,6 +26,7 @@
 #include "messages/DeleteTapeMsg.h"
 #include "messages/CaptureMsg.h"
 #include "messages/TestMsg.h"
+#include "messages/RecordMsg.h"
 #include "Config.h"
 #include "LogManager.h"
 #include "ImmediateProcessing.h"
@@ -167,7 +168,7 @@ void Transcode(CStdString &file)
 	bp->AddAudioTape(tape);
 
 	// Wait for completion
-	while(!DaemonSingleton::instance()->IsStopping())
+	while(!Daemon::Singleton()->IsStopping())
 	{
 		ACE_OS::sleep(1);
 	}
@@ -198,10 +199,18 @@ void MainThread()
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	objRef.reset(new ReportingSkipTapeMsg);
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
+	objRef.reset(new RecordMsg);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	//objRef.reset(new TestMsg);
 	//ObjectFactory::GetSingleton()->RegisterObject(objRef);
 
 	ConfigManager::Instance()->Initialize();
+
+	bool capturePluginOk = false;
+	if(CapturePluginProxy::Singleton()->Initialize())
+	{
+		capturePluginOk = true;
+	}
 
 	std::list<ACE_DLL> pluginDlls;
 	LoadPlugins(pluginDlls);
@@ -213,8 +222,8 @@ void MainThread()
 	FilterRegistry::instance()->RegisterFilter(filter);
 	filter.reset(new GsmToPcmFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
-        filter.reset(new IlbcToPcmFilter());
-        FilterRegistry::instance()->RegisterFilter(filter);
+	filter.reset(new IlbcToPcmFilter());
+	FilterRegistry::instance()->RegisterFilter(filter);
 
 	// Register in-built tape processors and build the processing chain
 	BatchProcessing::Initialize();
@@ -250,18 +259,19 @@ void MainThread()
 		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create Http server"));
 	}
 
-	if(CapturePluginProxySingleton::instance()->Initialize())
+	if(capturePluginOk)
 	{
-		CapturePluginProxySingleton::instance()->Run();
+		CapturePluginProxy::Singleton()->Run();
 	}
 
+
 	//ACE_Thread_Manager::instance ()->wait ();
-	while(!DaemonSingleton::instance()->IsStopping())
+	while(!Daemon::Singleton()->IsStopping())
 	{
 		ACE_OS::sleep(1);
 	}
 
-	CapturePluginProxySingleton::instance()->Shutdown();
+	CapturePluginProxy::Singleton()->Shutdown();
 
 	// Wait that all ACE threads have returned
 	//ACE_Thread_Manager::instance ()->wait ();
@@ -292,7 +302,7 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
-	DaemonSingleton::instance()->Initialize(serviceName, MainThread, StopHandler);
+	Daemon::Initialize(serviceName, MainThread, StopHandler);
 	CStdString argument = argv[1];
 
 	if (argc>1)
@@ -305,7 +315,7 @@ int main(int argc, char* argv[])
 		{
 			if(argc == 3)
 			{
-				DaemonSingleton::instance()->SetShortLived();
+				Daemon::Singleton()->SetShortLived();
 				CStdString file = argv[2];
 				Transcode(file);
 			}
@@ -316,11 +326,11 @@ int main(int argc, char* argv[])
 		}
 		else if (argument.CompareNoCase("install") == 0)
 		{
-			DaemonSingleton::instance()->Install();
+			Daemon::Singleton()->Install();
 		}
 		else if  (argument.CompareNoCase("uninstall") == 0)
 		{
-			DaemonSingleton::instance()->Uninstall();
+			Daemon::Singleton()->Uninstall();
 		}
 		else
 		{
@@ -335,7 +345,7 @@ int main(int argc, char* argv[])
 	{
 		// No arguments, launch the daemon
 		printf("Starting orkaudio daemon ... (type 'orkaudio debug' if you prefer running attached to tty)\n");
-		DaemonSingleton::instance()->Start();		
+		Daemon::Singleton()->Start();		
 	}
 	return 0;
 }

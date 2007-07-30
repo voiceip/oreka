@@ -45,6 +45,7 @@ VoIpConfig::VoIpConfig()
 	m_skinnyIgnoreOpenReceiveChannelAck = false;
 	m_skinnyDynamicMediaAddress = false;
 	m_skinnyAllowCallInfoUpdate = false;
+	m_lookBackRecording = true;
 
 	m_sangomaEnable = false;
 	m_sangomaRxTcpPortStart = 0;
@@ -87,6 +88,8 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SkinnyIgnoreOpenReceiveChannelAck", m_skinnyIgnoreOpenReceiveChannelAck);
 	s->BoolValue("SkinnyDynamicMediaAddress", m_skinnyDynamicMediaAddress);
 	s->BoolValue("SkinnyAllowCallInfoUpdate", m_skinnyAllowCallInfoUpdate);
+
+	s->BoolValue("LookBackRecording", m_lookBackRecording);
 
 	s->IntValue("SangomaRxTcpPortStart", m_sangomaRxTcpPortStart);
 	s->IntValue("SangomaTxTcpPortStart", m_sangomaTxTcpPortStart);

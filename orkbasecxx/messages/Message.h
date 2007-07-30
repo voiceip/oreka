@@ -32,6 +32,8 @@
 #define TIMESTAMP_PARAM "timestamp"
 #define CAPTURE_PORT_PARAM "captureport"
 #define FILENAME_PARAM "filename"
+#define ORKUID_PARAM "orkuid"
+#define PARTY_PARAM "party"
 
 #define SUCCESS_PARAM "sucess"
 #define SUCCESS_DEFAULT true
