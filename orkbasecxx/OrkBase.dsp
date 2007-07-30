@@ -243,6 +243,14 @@ SOURCE=.\messages\PingMsg.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\messages\RecordMsg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\messages\RecordMsg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Messages\SyncMessage.cpp
 
 !IF  "$(CFG)" == "OrkBase - Win32 Release"
@@ -529,6 +537,30 @@ SOURCE=.\AudioTape.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\BatchProcessing.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BatchProcessing.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CapturePluginProxy.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CapturePluginProxy.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CapturePort.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CapturePort.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Config.cpp
 # End Source File
 # Begin Source File
@@ -542,6 +574,14 @@ SOURCE=.\ConfigManager.cpp
 # Begin Source File
 
 SOURCE=.\ConfigManager.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Daemon.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Daemon.h
 # End Source File
 # Begin Source File
 
@@ -562,6 +602,14 @@ SOURCE=.\g711.c
 # Begin Source File
 
 SOURCE=.\g711.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ImmediateProcessing.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ImmediateProcessing.h
 # End Source File
 # Begin Source File
 
@@ -645,6 +693,14 @@ SOURCE=.\OrkClient.cpp
 # Begin Source File
 
 SOURCE=.\OrkClient.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Reporting.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Reporting.h
 # End Source File
 # Begin Source File
 

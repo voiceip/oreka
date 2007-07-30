@@ -20,11 +20,11 @@
 
 typedef void (*DaemonHandler)(void);
 
-class Daemon
+class DLL_IMPORT_EXPORT_ORKBASE Daemon
 {
 public:
-	//void Initialize(CStdString serviceName, void (*RunHandler)(void), void(*StopHandler)(void));
-	void Initialize(CStdString serviceName, DaemonHandler runHandler, DaemonHandler stopHandler);
+	static void Initialize(CStdString serviceName, DaemonHandler runHandler, DaemonHandler stopHandler);
+	static Daemon* Singleton();
 	void Start();
 	void Stop();
 	void Install();
@@ -33,7 +33,11 @@ public:
 
 	void SetShortLived();
 	bool GetShortLived();
+
 private:
+	Daemon();
+	static Daemon* m_singleton;
+
 #ifdef WIN32
 	static void WINAPI Run( DWORD /*argc*/, TCHAR* /*argv*/[] );
 #else
@@ -48,7 +52,7 @@ private:
 	bool m_shortLived;
 };
 
-typedef ACE_Singleton<Daemon, ACE_Thread_Mutex> DaemonSingleton;
+//typedef ACE_Singleton<Daemon, ACE_Thread_Mutex> DaemonSingleton;
 
 #endif
 

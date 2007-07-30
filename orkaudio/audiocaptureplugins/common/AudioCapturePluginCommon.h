@@ -30,8 +30,8 @@ DLL_EXPORT void __CDECL__  Run();
 DLL_EXPORT void __CDECL__  Initialize();
 DLL_EXPORT void __CDECL__  Shutdown();
 DLL_EXPORT void __CDECL__  Configure(DOMNode*);
-DLL_EXPORT void __CDECL__  StartCapture(CStdString& capturePort);
-DLL_EXPORT void __CDECL__  StopCapture(CStdString& capturePort);
+DLL_EXPORT void __CDECL__  StartCapture(CStdString& party);
+DLL_EXPORT void __CDECL__  StopCapture(CStdString& party);
 }
 
 #endif

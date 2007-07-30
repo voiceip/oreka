@@ -78,6 +78,8 @@ public:
 	void Start();
 	bool AddRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void ReportSipInvite(SipInviteInfoRef& invite);
+	bool OrkUidMatches(CStdString &oUid);
+	bool PartyMatches(CStdString &party);
 
 	CStdString m_trackingId;
 	CStdString m_ipAndPort;	// IP address and TCP port of one side of the session, serves as a key for session storage and retrieval. Not necessarily the same as the capturePort (capturePort is usually the client (phone) IP+port)
@@ -95,6 +97,8 @@ public:
 	int m_skinnyPassThruPartyId;
 	ACE_Time_Value m_skinnyLastCallInfoTime;
 	bool m_onHold;
+	bool m_keep;
+	bool m_nonLookBackSessionStarted;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
@@ -156,6 +160,8 @@ public:
 	void ReportRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void Hoover(time_t now);
 	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp);
+	void StartCapture(CStdString& party);
+
 private:
 	RtpSessionRef findByEndpointIp(struct in_addr, int passThruPartyId = 0);
 	RtpSessionRef findNewestByEndpointIp(struct in_addr endpointIpAddr);

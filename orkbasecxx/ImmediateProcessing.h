@@ -17,7 +17,7 @@
 #include "ThreadSafeQueue.h"
 #include "AudioTape.h"
 
-class ImmediateProcessing
+class DLL_IMPORT_EXPORT_ORKBASE ImmediateProcessing
 {
 public:
 	ImmediateProcessing();

@@ -18,6 +18,8 @@
 #include "ConfigManager.h"
 #include "CapturePort.h"
 
+CapturePluginProxy* CapturePluginProxy::m_singleton;	
+
 CapturePluginProxy::CapturePluginProxy()
 {
 	m_configureFunction = NULL;
@@ -30,7 +32,18 @@ CapturePluginProxy::CapturePluginProxy()
 	m_loaded = false;
 }
 
+CapturePluginProxy* CapturePluginProxy::Singleton()
+{
+	return m_singleton;
+}
+
 bool CapturePluginProxy::Initialize()
+{
+	m_singleton = new CapturePluginProxy();
+	return m_singleton->Init();
+}
+
+bool CapturePluginProxy::Init()
 {
 	// Get the desired capture plugin from the config file, or else, use the first dll encountered.
 	CStdString pluginDirectory = CONFIG.m_capturePluginPath + "/";
@@ -167,11 +180,11 @@ void CapturePluginProxy::Shutdown()
 	}
 }
 
-void CapturePluginProxy::StartCapture(CStdString& capturePort)
+void CapturePluginProxy::StartCapture(CStdString& party)
 {
 	if(m_loaded)
 	{
-		m_startCaptureFunction(capturePort);
+		m_startCaptureFunction(party);
 	}
 	else
 	{
@@ -179,11 +192,11 @@ void CapturePluginProxy::StartCapture(CStdString& capturePort)
 	}
 }
 
-void CapturePluginProxy::StopCapture(CStdString& capturePort)
+void CapturePluginProxy::StopCapture(CStdString& party)
 {
 	if(m_loaded)
 	{
-		m_stopCaptureFunction(capturePort);
+		m_stopCaptureFunction(party);
 	}
 	else
 	{

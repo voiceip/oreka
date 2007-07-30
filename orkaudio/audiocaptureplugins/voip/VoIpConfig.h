@@ -80,6 +80,8 @@ public:
 	bool m_skinnyDynamicMediaAddress;
 	bool m_skinnyAllowCallInfoUpdate;
 
+	bool m_lookBackRecording;
+
 	std::list<CStdString> m_dnisNumbers;
 	std::list<CStdString> m_sipExtractFields;
 

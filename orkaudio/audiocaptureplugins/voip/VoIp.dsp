@@ -96,10 +96,6 @@ PostBuild_Cmds=copy Debug\voip.dll ..
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\..\AudioCapturePlugin.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\Common\AudioCapturePluginCommon.cpp
 # End Source File
 # Begin Source File

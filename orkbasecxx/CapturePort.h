@@ -30,7 +30,7 @@
 
 
 /** Base class for all types of capture ports. */ 
-class CapturePort
+class DLL_IMPORT_EXPORT_ORKBASE CapturePort
 {
 public:
 	CapturePort(CStdString& Id);
@@ -58,7 +58,7 @@ private:
 typedef boost::shared_ptr<CapturePort> CapturePortRef;
 
 /** This singleton holds all dynamically created capture ports and allows convenient access. */
-class CapturePorts
+class DLL_IMPORT_EXPORT_ORKBASE CapturePorts
 {
 public:
 	CapturePorts();

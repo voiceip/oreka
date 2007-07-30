@@ -2197,12 +2197,18 @@ void __CDECL__ Shutdown()
 	VoIpSingleton::instance()->Shutdown();
 }
 
-void __CDECL__ StartCapture(CStdString& capturePort)
+void __CDECL__ StartCapture(CStdString& party)
 {
-	;
+	CStdString logMsg;
+
+	//logMsg.Format("StartCapture:%s", party);
+	//LOG4CXX_INFO(s_voipPluginLog, logMsg);
+
+	MutexSentinel mutexSentinel(s_mutex);
+	RtpSessionsSingleton::instance()->StartCapture(party);
 }
 
-void __CDECL__ StopCapture(CStdString& capturePort)
+void __CDECL__ StopCapture(CStdString& party)
 {
 	;
 }

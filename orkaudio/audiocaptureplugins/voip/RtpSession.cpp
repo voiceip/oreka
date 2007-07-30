@@ -47,6 +47,8 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_started = false;
 	m_stopped = false;
 	m_onHold = false;
+	m_keep = false;
+	m_nonLookBackSessionStarted = false;
 	m_beginDate = 0;
 	m_hasDuplicateRtp = false;
 	m_highestRtpSeqNumDelta = 0;
@@ -478,6 +480,22 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	CStdString logMsg;
 	unsigned char channel = 0;
 
+	if((DLLCONFIG.m_lookBackRecording == false) && (m_numRtpPackets > 0))
+	{
+		if(m_numRtpPackets == 1 && !m_nonLookBackSessionStarted)
+		{
+			Start();
+			ReportMetadata();
+			m_nonLookBackSessionStarted = true;
+		}
+
+		if(!m_keep)
+		{
+			m_lastUpdated = time(NULL);
+			return true;
+		}
+	}
+
 	// Dismiss packets that should not be part of a Skinny session
 	if(m_protocol == ProtSkinny)
 	{
@@ -638,8 +656,10 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	{
 		// We've got enough packets to start the session.
 		// For Raw RTP, the high number is to make sure we have a "real" raw RTP session, not a leftover from a SIP/Skinny session
-		Start();
-		ReportMetadata();
+		if(DLLCONFIG.m_lookBackRecording == true) {
+			Start();
+			ReportMetadata();
+		}
 	}
 
 	if(m_started)
@@ -721,6 +741,25 @@ CStdString RtpSession::ProtocolToString(int protocolEnum)
 		protocolString = PROT_UNKN;
 	}
 	return protocolString;
+}
+
+bool RtpSession::OrkUidMatches(CStdString &oUid)
+{
+	if(m_orkUid.CompareNoCase(oUid) == 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool RtpSession::PartyMatches(CStdString &party)
+{
+	if(m_localParty.CompareNoCase(party) == 0 || m_remoteParty.CompareNoCase(party) == 0)
+	{
+		return true;
+	}
+	return false;
 }
 
 //=====================================================================
@@ -1445,7 +1484,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 			}
 		}
 	}
-	else if(numSessionsFound == 0)
+	else if((numSessionsFound == 0) && (DLLCONFIG.m_lookBackRecording == true))
 	{
 		// create new Raw RTP session and insert into IP+Port map
 		CStdString trackingId = m_alphaCounter.GetNext();
@@ -1549,6 +1588,36 @@ void RtpSessions::Hoover(time_t now)
 		LOG4CXX_INFO(m_log,  "[" + session->m_trackingId + "] " + session->m_ipAndPort + " Expired");
 		Stop(session);
 	}
+}
+
+void RtpSessions::StartCapture(CStdString& party)
+{
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	bool found = false;
+	CStdString logMsg;
+	RtpSessionRef session;
+
+	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
+	{
+		session = pair->second;
+
+		if (session->PartyMatches(party))
+		{
+			session->m_keep = true;
+			found = true;
+		}
+	}
+
+	if(found)
+	{
+		logMsg.Format("[%s] Started capture, party:%s", session->m_trackingId, party);
+	}	
+	else
+	{
+		logMsg.Format("No session has party %s", party);
+	}
+	
+	LOG4CXX_INFO(m_log, logMsg);
 }
 
 //==========================================================
