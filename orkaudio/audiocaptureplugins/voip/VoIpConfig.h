@@ -73,6 +73,7 @@ public:
 	bool m_rtpDetectOnOddPorts;
 	bool m_iax2Support;
 	bool m_sipOverTcpSupport;
+	bool m_sipLogFailedCalls;
 	bool m_useMacIfNoLocalParty;
 
 	bool m_skinnyIgnoreStopMediaTransmission;

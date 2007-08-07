@@ -111,6 +111,20 @@ static char* memFindAfter(char* toFind, char* start, char* stop)
         return NULL;
 }
 
+// Implementation of strcasestr() - works like strstr() but
+// is case insensitive
+char* memFindStr(char* toFind, char* start, char* stop)
+{
+        for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop - start)))
+        {
+                if(ACE_OS::strncasecmp(toFind, ptr, strlen(toFind)) == 0)
+                {
+                        return (ptr);
+                }
+        }
+        return NULL;
+}
+
 static char* memFindEOL(char* start, char* limit)
 {
         char* c = start;
@@ -200,7 +214,7 @@ bool SipTcpStream::SipRequestIsComplete()
 		
 	char *pBufStart = (char*)m_sipRequest->GetBuffer();
 	char *pBufEnd = pBufStart+m_sipRequest->Size();
-	char *contentLengthHeader = ACE_OS::strstr(pBufStart, "Content-Length: ");
+	char *contentLengthHeader = memFindStr("Content-Length: ", pBufStart, pBufEnd);
 	char *contentLength = memFindAfter("Content-Length: ", pBufStart, pBufEnd);
 	int cLength = 0;
 
@@ -208,19 +222,58 @@ bool SipTcpStream::SipRequestIsComplete()
 		return false;
 
         char *eol = memFindEOL(contentLengthHeader, pBufEnd);
+
 	if(eol == contentLengthHeader)
 		return false;
 
 	cLength = ACE_OS::atoi(contentLength);
-	if(!cLength)
-		return true;
 
-	/* Step over newlines */
-	while(*eol && (*eol == '\r' || *eol == '\n'))
-		eol++;
+	/* Step over headers */
+	bool lnl = false, headerEndLocated = false;
+	while(eol < pBufEnd) {
+		if(*eol == '\r' && ((eol+1) < pBufEnd) && (*(eol+1) == '\n')) {
+			if(lnl == true) {
+				eol += 2;
+				headerEndLocated = true;
+				break;
+			}
 
-	if(!*eol)
+			eol += 2;
+			lnl = true;
+			continue;
+		}
+
+		if(*eol == '\n') {
+			if(lnl == true) {
+                                eol += 1;
+				headerEndLocated = true;
+                                break;
+                        }
+
+                        eol += 1;
+                        lnl = true;
+                        continue;
+		}
+
+		eol += 1;
+		lnl = false;
+		continue;
+	}
+
+	if(!headerEndLocated)
 		return false;
+
+	if(eol >= pBufEnd)
+	{
+		if(cLength == 0)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 
 	if(strlen(eol) == cLength)
 		return true;
