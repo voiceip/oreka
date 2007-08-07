@@ -88,21 +88,20 @@ void Config::Define(Serializer* s)
 	s->IntValue(REPORTING_RETRY_DELAY_PARAM, m_reportingRetryDelay);
 	s->IntValue(CLIENT_TIMEOUT_PARAM, m_clientTimeout);
 
-	char *loggingPath = NULL;
-	int pathSet = 0;
+	s->StringValue(AUDIO_OUTPUT_PATH_PARAM, m_audioOutputPath);
 
-	loggingPath = ACE_OS::getenv("ORKAUDIO_LOGGING_PATH");
-	if(loggingPath) {
-		ACE_DIR* dir = ACE_OS::opendir(loggingPath);
-		if(dir) {
-			ACE_OS::closedir(dir);
-			m_audioOutputPath.Format("%s", loggingPath);
-			pathSet = 1;
-        }
+	if(!m_audioOutputPath.size()) {
+		char *loggingPath = NULL;
+
+		loggingPath = ACE_OS::getenv("ORKAUDIO_LOGGING_PATH");
+		if(loggingPath) {
+			ACE_DIR* dir = ACE_OS::opendir(loggingPath);
+			if(dir) {
+				ACE_OS::closedir(dir);
+				m_audioOutputPath.Format("%s", loggingPath);
+		        }
+		}
 	}
-
-	if(!pathSet)
-		s->StringValue(AUDIO_OUTPUT_PATH_PARAM, m_audioOutputPath);
 
 	s->IntValue(IMMEDIATE_PROCESSING_QUEUE_SIZE_PARAM, m_immediateProcessingQueueSize);
 	s->IntValue(BATCH_PROCESSING_QUEUE_SIZE_PARAM, m_batchProcessingQueueSize);
