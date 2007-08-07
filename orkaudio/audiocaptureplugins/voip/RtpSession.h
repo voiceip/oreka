@@ -41,6 +41,8 @@ public:
 	CStdString m_callId;
 	bool m_validated;		// true when an RTP stream has been seen for the INVITE
 	std::map<CStdString, CStdString> m_extractedFields;
+
+	time_t m_recvTime;
 };
 typedef boost::shared_ptr<SipInviteInfo> SipInviteInfoRef;
 

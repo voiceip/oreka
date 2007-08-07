@@ -68,6 +68,7 @@ static unsigned int s_numPacketsPerSecond;
 static unsigned int s_minPacketsPerSecond;
 static unsigned int s_maxPacketsPerSecond;
 static std::list<SipTcpStreamRef> s_SipTcpStreams;
+static std::list<SipInviteInfoRef> s_SipInvites;
 
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
@@ -1082,6 +1083,82 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd);
 bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd);
 
+bool TryLogFailedSip(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
+{
+	if(DLLCONFIG.m_sipLogFailedCalls == false)
+	{
+		return false;
+	}
+
+	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
+	char* sipEnd = (char*)udpPayload + sipLength;
+	CStdString callId, errorCode, logMsg;
+	std::list<SipInviteInfoRef> toErase;
+	bool result = false;
+
+	if(sipLength < 9 || sipEnd > (char*)packetEnd)
+	{
+			return false;
+	}
+
+	if((memcmp("SIP/2.0 4", (void*)udpPayload, 9) == 0) ||
+	   (memcmp("SIP/2.0 5", (void*)udpPayload, 9) == 0) ||
+	   (memcmp("SIP/2.0 6", (void*)udpPayload, 9) == 0) ||
+	   (memcmp("CANCEL ", (void*)udpPayload, 7) == 0))
+	{
+		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
+		char* eCode = memFindAfter("SIP/2.0 ", (char*)udpPayload, sipEnd);
+
+		if(callIdField)
+		{
+			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, callId);
+		}
+
+		if((memcmp("CANCEL ", (void*)udpPayload, 7) == 0))
+		{
+			errorCode.Format("CANCEL");
+		}
+		else
+		{
+			if(eCode)
+			{
+				GrabLine(eCode, sipEnd, errorCode);
+			}
+		}
+	}
+
+	if(callId.size() && errorCode.size())
+	{
+		result = true;
+	}
+
+	int found = 0;
+
+	for(std::list<SipInviteInfoRef>::iterator it = s_SipInvites.begin(); it != s_SipInvites.end(); it++)
+	{
+		SipInviteInfoRef inviteInfo = *it;
+
+		if(callId.size() && (inviteInfo->m_callId.CompareNoCase(callId) == 0) && !found) {
+			found = 1;
+			logMsg.Format("SIP INVITE (call-id:%s) failed (\"%s\")",
+					inviteInfo->m_callId, errorCode);
+			LOG4CXX_INFO(s_sipPacketLog, logMsg);
+			toErase.push_back(inviteInfo);
+		} else {
+			if((time(NULL) - inviteInfo->m_recvTime) >= 60)
+				toErase.push_back(inviteInfo);
+		}
+	}
+
+	for(std::list<SipInviteInfoRef>::iterator it2 =  toErase.begin(); it2 != toErase.end(); it2++)
+        {
+		SipInviteInfoRef inviteInfo = *it2;
+		s_SipInvites.remove(inviteInfo);
+	}
+
+	return result;
+}
+
 static bool SipByeTcpToUdp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,TcpHeaderStruct* tcpHeader, u_char *pBuffer, int bLength)
 {
         UdpHeaderStruct udpHeader;
@@ -1104,25 +1181,42 @@ static bool SipInviteTcpToUdp(EthernetHeaderStruct* ethernetHeader, IpHeaderStru
 	return TrySipInvite(ethernetHeader, ipHeader, &udpHeader, pBuffer, pBuffer+bLength);
 }
 
+static bool SipFailedTcpToUdp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader, u_char *pBuffer, int bLength)
+{
+	UdpHeaderStruct udpHeader;
+
+        udpHeader.source = tcpHeader->source;
+        udpHeader.dest = tcpHeader->dest;
+        udpHeader.len = htons(bLength+sizeof(UdpHeaderStruct));
+
+        return TryLogFailedSip(ethernetHeader, ipHeader, &udpHeader, pBuffer, pBuffer+bLength);
+}
+
 bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	int tcpLengthPayloadLength = 0;
 	bool result = false;
 	std::list<SipTcpStreamRef> toErase;
+	u_char* startTcpPayload;
 
 	if(ntohs(tcpHeader->source) != 5060 && ntohs(tcpHeader->dest) != 5060)
 		return false;
 
-	u_char* startTcpPayload = (u_char*)tcpHeader + TCP_HEADER_LENGTH;
+	startTcpPayload = (u_char*)tcpHeader + (tcpHeader->off * 4);
 	tcpLengthPayloadLength = ((u_char*)ipHeader+ntohs(ipHeader->ip_len)) - startTcpPayload;
 
-	if(tcpLengthPayloadLength < SIP_METHOD_INVITE_SIZE)
-	{
-		return false;
-	}
+        if(tcpLengthPayloadLength < SIP_METHOD_INVITE_SIZE+3)
+        {
+		LOG4CXX_INFO(s_sipTcpPacketLog, "Payload shorter");
+                return false;
+        }
 
 	if((memcmp(SIP_METHOD_INVITE, (void*)startTcpPayload, SIP_METHOD_INVITE_SIZE) == 0) ||
-	   (memcmp(SIP_METHOD_BYE, (void*)startTcpPayload, SIP_METHOD_BYE_SIZE) == 0))
+	   (memcmp(SIP_METHOD_BYE, (void*)startTcpPayload, SIP_METHOD_BYE_SIZE) == 0) ||
+	   (memcmp("SIP/2.0 4", (void*)startTcpPayload, 9) == 0) ||
+	   (memcmp("SIP/2.0 5", (void*)startTcpPayload, 9) == 0) ||
+	   (memcmp("SIP/2.0 6", (void*)startTcpPayload, 9) == 0) ||
+	   (memcmp("CANCEL ", (void*)startTcpPayload, 7) == 0))
 	{
 		SipTcpStreamRef tcpstream(new SipTcpStream());
 		int exists = 0;
@@ -1166,12 +1260,23 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 			CStdString tcpStream;
 
 			tcpstream->ToString(tcpStream);
-			LOG4CXX_INFO(s_sipTcpPacketLog, "Obtained complete TCP Stream: " + tcpStream);
+			LOG4CXX_DEBUG(s_sipTcpPacketLog, "Obtained complete TCP Stream: " + tcpStream);
 
-			if(memcmp(SIP_METHOD_INVITE, (void*)buffer->GetBuffer(), SIP_METHOD_INVITE_SIZE)  == 0)
-				return SipInviteTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+			bool usefulPacket = false;
 
-			return SipByeTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+			usefulPacket = SipInviteTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+
+			if(!usefulPacket)
+			{
+				usefulPacket = SipByeTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+			}
+
+			if(!usefulPacket)
+			{
+				usefulPacket = SipFailedTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+			}
+
+			return usefulPacket;
 		}
 
 		s_SipTcpStreams.push_back(tcpstream);
@@ -1207,10 +1312,18 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
         	                tcpstream->ToString(tcpStream);
                 	        LOG4CXX_INFO(s_sipTcpPacketLog, "TCP Stream updated to completion: " + tcpStream);
 
-				if(memcmp(SIP_METHOD_INVITE, (void*)buffer->GetBuffer(), SIP_METHOD_INVITE_SIZE)  == 0) {
-					SipInviteTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
-				} else {
-					SipByeTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+				bool usefulPacket = false;
+
+				usefulPacket = SipInviteTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+
+				if(!usefulPacket)
+				{
+					usefulPacket = SipByeTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+				}
+
+				if(!usefulPacket)
+				{
+					usefulPacket = SipFailedTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
 				}
 
 				toErase.push_back(tcpstream);
@@ -1354,6 +1467,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		}
 		info->m_senderIp = ipHeader->ip_src;
 		info->m_receiverIp = ipHeader->ip_dest;
+		info->m_recvTime = time(NULL);
 		memcpy(info->m_senderMac, ethernetHeader->sourceMac, sizeof(info->m_senderMac));
 		memcpy(info->m_receiverMac, ethernetHeader->destinationMac, sizeof(info->m_receiverMac));
 
@@ -1365,6 +1479,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		if(drop == false && info->m_fromRtpPort.size() && info->m_from.size() && info->m_to.size() && info->m_callId.size())
 		{
 			RtpSessionsSingleton::instance()->ReportSipInvite(info);
+			s_SipInvites.push_back(info);
 		}
 	}
 	return result;
@@ -1686,17 +1801,20 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 
 			MutexSentinel mutexSentinel(s_mutex); // serialize access for competing pcap threads
 
-            detectedUsefulPacket = TryRtp(ethernetHeader, ipHeader, udpHeader, udpPayload);
+			detectedUsefulPacket = TryRtp(ethernetHeader, ipHeader, udpHeader, udpPayload);
 
-            if(!detectedUsefulPacket) {
-                    detectedUsefulPacket= TrySipInvite(ethernetHeader, ipHeader, udpHeader,
-                                                    udpPayload, ipPacketEnd);
-            }
+			if(!detectedUsefulPacket) {
+				detectedUsefulPacket= TrySipInvite(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+			}
 
-            if(!detectedUsefulPacket) {
-                    detectedUsefulPacket = TrySipBye(ethernetHeader, ipHeader, udpHeader,
-                                                    udpPayload, ipPacketEnd);
-            }
+			if(!detectedUsefulPacket) {
+				detectedUsefulPacket = TrySipBye(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+			}
+
+			if(!detectedUsefulPacket) {
+				detectedUsefulPacket = TryLogFailedSip(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+			}
+
 			if(DLLCONFIG.m_iax2Support == false)
 			{
 				detectedUsefulPacket = true;	// Stop trying to detect if this UDP packet could be of interest
@@ -1707,44 +1825,36 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 			}
 
 			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryIax2Accept(ethernetHeader, ipHeader, udpHeader,
-								udpPayload);
+				detectedUsefulPacket = TryIax2Accept(ethernetHeader, ipHeader, udpHeader, udpPayload);
 			}
 
 			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryIax2Authreq(ethernetHeader, ipHeader, udpHeader,
-                                                                udpPayload);
+				detectedUsefulPacket = TryIax2Authreq(ethernetHeader, ipHeader, udpHeader, udpPayload);
 			}
 
 			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryIax2Hangup(ethernetHeader, ipHeader, udpHeader,
-                                                                udpPayload);
+				detectedUsefulPacket = TryIax2Hangup(ethernetHeader, ipHeader, udpHeader, udpPayload);
 			}
 
 			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryIax2ControlHangup(ethernetHeader, ipHeader, udpHeader,
-                                                                udpPayload);
+				detectedUsefulPacket = TryIax2ControlHangup(ethernetHeader, ipHeader, udpHeader, udpPayload);
 			}
 
 			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryIax2Reject(ethernetHeader, ipHeader, udpHeader,
-                                                                udpPayload);
+				detectedUsefulPacket = TryIax2Reject(ethernetHeader, ipHeader, udpHeader, udpPayload);
 			}
 
 			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryIax2FullVoiceFrame(ethernetHeader, ipHeader,
-								udpHeader, udpPayload);
+				detectedUsefulPacket = TryIax2FullVoiceFrame(ethernetHeader, ipHeader, udpHeader, udpPayload);
 			}
 
 			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryIax2MetaTrunkFrame(ethernetHeader, ipHeader,
-                                                                udpHeader, udpPayload);
+				detectedUsefulPacket = TryIax2MetaTrunkFrame(ethernetHeader, ipHeader, udpHeader, udpPayload);
 			}
 
-            if(!detectedUsefulPacket) {
-                    detectedUsefulPacket = TryIax2MiniVoiceFrame(ethernetHeader, ipHeader,
-                                                    udpHeader, udpPayload);
-            }
+			if(!detectedUsefulPacket) {
+				detectedUsefulPacket = TryIax2MiniVoiceFrame(ethernetHeader, ipHeader, udpHeader, udpPayload);
+			}
 		}
 	}
 	else if(ipHeader->ip_p == IPPROTO_TCP)

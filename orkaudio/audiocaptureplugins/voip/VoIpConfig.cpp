@@ -39,6 +39,7 @@ VoIpConfig::VoIpConfig()
 	m_iax2Support = false; // Disabled by default
 	m_rtpDetectOnOddPorts = false;
 	m_sipOverTcpSupport = false;  // Disabled by default
+	m_sipLogFailedCalls = false;
 	m_useMacIfNoLocalParty = false; // Uses IP address by default
 
 	m_skinnyIgnoreStopMediaTransmission = false;
@@ -82,6 +83,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("RtpDetectOnOddPorts", m_rtpDetectOnOddPorts);
 	s->CsvValue("SipExtractFields", m_sipExtractFields);
 	s->BoolValue("SipOverTcpSupport", m_sipOverTcpSupport);
+	s->BoolValue("SipLogFailedCalls", m_sipLogFailedCalls);
 	s->BoolValue("UseMacIfNoLocalParty", m_useMacIfNoLocalParty);
 
 	s->BoolValue("SkinnyIgnoreStopMediaTransmission", m_skinnyIgnoreStopMediaTransmission);
