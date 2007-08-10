@@ -16,6 +16,21 @@
 #include "ace/OS_NS_arpa_inet.h"
 #include "Rtp.h"
 
+RtpPacketInfo::RtpPacketInfo()
+{
+	memset(m_sourceMac, 0, sizeof(m_sourceMac));
+	memset(m_destMac, 0, sizeof(m_destMac));
+	m_sourceIp.s_addr = 0;
+	m_destIp.s_addr = 0;
+	m_sourcePort = 0;
+	m_destPort = 0;
+	m_payloadSize = 0;
+	m_payloadType = 0;
+	m_payload = NULL;
+	m_seqNum = 0;
+	m_timestamp = 0;
+	m_arrivalTimestamp = 0;
+}
 
 void RtpPacketInfo::ToString(CStdString& string)
 {

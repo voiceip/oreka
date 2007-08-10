@@ -24,6 +24,7 @@ class RtpPacketInfo
 {
 public:
 	void ToString(CStdString& string);
+	RtpPacketInfo();
 
 	//CStdString m_sourceMac;
 	//CStdString m_destMac;
