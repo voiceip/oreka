@@ -46,6 +46,23 @@ public:
 };
 typedef boost::shared_ptr<SipInviteInfo> SipInviteInfoRef;
 
+class SipFailureMessageInfo
+{
+public:
+	SipFailureMessageInfo();
+	void ToString(CStdString& string);
+
+	struct in_addr m_senderIp;
+	struct in_addr m_receiverIp;
+	char m_senderMac[6];
+	char m_receiverMac[6];
+	CStdString m_callId;
+
+	CStdString m_errorCode;
+	CStdString m_errorString;
+};
+typedef boost::shared_ptr<SipFailureMessageInfo> SipFailureMessageInfoRef;
+
 class SipByeInfo
 {
 public:
@@ -80,6 +97,7 @@ public:
 	void Start();
 	bool AddRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void ReportSipInvite(SipInviteInfoRef& invite);
+	void ReportSipErrorPacket(SipFailureMessageInfoRef& info);
 	bool OrkUidMatches(CStdString &oUid);
 	bool PartyMatches(CStdString &party);
 
@@ -160,6 +178,7 @@ public:
 	void ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader);
 	void ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader);
 	void ReportRtpPacket(RtpPacketInfoRef& rtpPacket);
+	void ReportSipErrorPacket(SipFailureMessageInfoRef& sipError);
 	void Hoover(time_t now);
 	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp);
 	void StartCapture(CStdString& party);

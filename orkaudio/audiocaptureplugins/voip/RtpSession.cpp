@@ -705,6 +705,49 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	std::copy(invite->m_extractedFields.begin(), invite->m_extractedFields.end(), std::inserter(m_tags, m_tags.begin()));
 }
 
+void RtpSession::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
+{
+	if(!DLLCONFIG.m_sipReportZeroDurationWhenFailed)
+	{
+		return;
+	}
+
+	/*
+         * We make sure that before we set the duration to 0,
+	 * the session has already reported its meta data. If
+	 * it hasn't then we do not attempt to report anything
+	 * beyond the plugin.
+	 */
+
+	if(!((DLLCONFIG.m_lookBackRecording == false) && (m_numRtpPackets > 0)))
+	{
+		// Not reported
+		return;
+	}
+
+	if(	(	((m_protocol == ProtRawRtp) && m_numRtpPackets < 50) ||
+			((m_protocol == ProtSkinny) && m_numRtpPackets < 2) ||
+			((m_protocol == ProtSip) && m_numRtpPackets < 2)) &&
+		DLLCONFIG.m_lookBackRecording == true)
+	{
+		// Not reported
+		return;
+	}
+
+	CaptureEventRef event(new CaptureEvent());
+	event->m_type = CaptureEvent::EtKeyValue;
+	event->m_key = CStdString("duration");
+	event->m_value = CStdString("0");
+	g_captureEventCallBack(event, m_capturePort);
+
+	// Trigger metadata update
+	event.reset(new CaptureEvent());
+	event->m_type = CaptureEvent::EtUpdate;
+	g_captureEventCallBack(event, m_capturePort);
+
+	ReportMetadata();
+}
+
 int RtpSession::ProtocolToEnum(CStdString& protocol)
 {
 	int protocolEnum = ProtUnkn;
@@ -832,6 +875,30 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	CStdString inviteString;
 	invite->ToString(inviteString);
 	LOG4CXX_INFO(m_log, "[" + trackingId + "] created by INVITE:" + inviteString);
+}
+
+void RtpSessions::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
+{
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+
+	pair = m_byCallId.find(info->m_callId);
+	if (pair != m_byCallId.end())
+	{
+		RtpSessionRef session = pair->second;
+
+		session->ReportSipErrorPacket(info);
+		LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] stopped by SIP \"" + info->m_errorCode + " " + info->m_errorString + "\"");
+		Stop(session);
+
+		return;
+	}
+
+	CStdString errorString;
+
+	info->ToString(errorString);
+	LOG4CXX_INFO(m_log, "Could not associate SIP error packet [" + errorString + "] with any RTP session");
+
+	return;
 }
 
 void RtpSessions::ReportSipBye(SipByeInfo bye)
@@ -1638,7 +1705,33 @@ void SipInviteInfo::ToString(CStdString& string)
 	char receiverIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
-	string.Format("sender:%s from:%s RTP:%s,%s to:%s rcvr:%s callid:%s", senderIp, m_from, fromRtpIp, m_fromRtpPort, m_to, receiverIp, m_callId);
+	CStdString senderMac, receiverMac;
+
+	MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
+	MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
+
+	string.Format("sender:%s from:%s RTP:%s,%s to:%s rcvr:%s callid:%s smac:%s rmac:%s", senderIp, m_from, fromRtpIp, m_fromRtpPort, m_to, receiverIp, m_callId, senderMac, receiverMac);
 }
 
+//==========================================================
+SipFailureMessageInfo::SipFailureMessageInfo()
+{
+	m_senderIp.s_addr = 0;
+	m_receiverIp.s_addr = 0;
+	memset(m_senderMac, 0, sizeof(m_senderMac));
+	memset(m_receiverMac, 0, sizeof(m_receiverMac));
+}
+
+void SipFailureMessageInfo::ToString(CStdString& string)
+{
+	char senderIp[16], receiverIp[16];
+	CStdString senderMac, receiverMac;
+
+	MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
+	MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+
+	string.Format("sender:%s rcvr:%s smac:%s rmac:%s callid:%s errorcode:%s errorstr:\"%s\"", senderIp, receiverIp, senderMac, receiverMac, m_callId, m_errorCode, m_errorString);
+}
 

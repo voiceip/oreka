@@ -68,7 +68,6 @@ static unsigned int s_numPacketsPerSecond;
 static unsigned int s_minPacketsPerSecond;
 static unsigned int s_maxPacketsPerSecond;
 static std::list<SipTcpStreamRef> s_SipTcpStreams;
-static std::list<SipInviteInfoRef> s_SipInvites;
 
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
@@ -1092,13 +1091,11 @@ bool TryLogFailedSip(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHea
 
 	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
 	char* sipEnd = (char*)udpPayload + sipLength;
-	CStdString callId, errorCode, logMsg;
-	std::list<SipInviteInfoRef> toErase;
-	bool result = false;
+	CStdString callId, errorCode, logMsg, errorString;
 
 	if(sipLength < 9 || sipEnd > (char*)packetEnd)
 	{
-			return false;
+		return false;
 	}
 
 	if((memcmp("SIP/2.0 4", (void*)udpPayload, 9) == 0) ||
@@ -1117,46 +1114,40 @@ bool TryLogFailedSip(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHea
 		if((memcmp("CANCEL ", (void*)udpPayload, 7) == 0))
 		{
 			errorCode.Format("CANCEL");
+			errorString.Format("User Agent CANCEL");
 		}
 		else
 		{
 			if(eCode)
 			{
-				GrabLine(eCode, sipEnd, errorCode);
+				GrabTokenSkipLeadingWhitespaces(eCode, sipEnd, errorCode);
+				GrabLine((eCode+errorCode.size()+1), sipEnd, errorString);
 			}
 		}
 	}
 
-	if(callId.size() && errorCode.size())
+	if(!(callId.size() && errorCode.size()))
 	{
-		result = true;
+		return false;
 	}
 
-	int found = 0;
+	SipFailureMessageInfoRef info(new SipFailureMessageInfo());
+	info->m_senderIp = ipHeader->ip_src;
+	info->m_receiverIp = ipHeader->ip_dest;
+	memcpy(info->m_senderMac, ethernetHeader->sourceMac, sizeof(info->m_senderMac));
+	memcpy(info->m_receiverMac, ethernetHeader->destinationMac, sizeof(info->m_receiverMac));
+	info->m_callId = callId;
+	info->m_errorCode = errorCode;
+	info->m_errorString = errorString;
 
-	for(std::list<SipInviteInfoRef>::iterator it = s_SipInvites.begin(); it != s_SipInvites.end(); it++)
-	{
-		SipInviteInfoRef inviteInfo = *it;
+	CStdString sipError;
 
-		if(callId.size() && (inviteInfo->m_callId.CompareNoCase(callId) == 0) && !found) {
-			found = 1;
-			logMsg.Format("SIP INVITE (call-id:%s) failed (\"%s\")",
-					inviteInfo->m_callId, errorCode);
-			LOG4CXX_INFO(s_sipPacketLog, logMsg);
-			toErase.push_back(inviteInfo);
-		} else {
-			if((time(NULL) - inviteInfo->m_recvTime) >= 60)
-				toErase.push_back(inviteInfo);
-		}
-	}
+	info->ToString(sipError);
+	LOG4CXX_INFO(s_sipPacketLog, "SIP Error packet: " + sipError);
 
-	for(std::list<SipInviteInfoRef>::iterator it2 =  toErase.begin(); it2 != toErase.end(); it2++)
-        {
-		SipInviteInfoRef inviteInfo = *it2;
-		s_SipInvites.remove(inviteInfo);
-	}
+	RtpSessionsSingleton::instance()->ReportSipErrorPacket(info);
 
-	return result;
+	return true;
 }
 
 static bool SipByeTcpToUdp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,TcpHeaderStruct* tcpHeader, u_char *pBuffer, int bLength)
@@ -1479,7 +1470,6 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		if(drop == false && info->m_fromRtpPort.size() && info->m_from.size() && info->m_to.size() && info->m_callId.size())
 		{
 			RtpSessionsSingleton::instance()->ReportSipInvite(info);
-			s_SipInvites.push_back(info);
 		}
 	}
 	return result;
