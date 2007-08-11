@@ -707,45 +707,11 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 
 void RtpSession::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
 {
-	if(!DLLCONFIG.m_sipReportZeroDurationWhenFailed)
-	{
-		return;
-	}
-
-	/*
-         * We make sure that before we set the duration to 0,
-	 * the session has already reported its meta data. If
-	 * it hasn't then we do not attempt to report anything
-	 * beyond the plugin.
-	 */
-
-	if(!((DLLCONFIG.m_lookBackRecording == false) && (m_numRtpPackets > 0)))
-	{
-		// Not reported
-		return;
-	}
-
-	if(	(	((m_protocol == ProtRawRtp) && m_numRtpPackets < 50) ||
-			((m_protocol == ProtSkinny) && m_numRtpPackets < 2) ||
-			((m_protocol == ProtSip) && m_numRtpPackets < 2)) &&
-		DLLCONFIG.m_lookBackRecording == true)
-	{
-		// Not reported
-		return;
-	}
-
 	CaptureEventRef event(new CaptureEvent());
 	event->m_type = CaptureEvent::EtKeyValue;
-	event->m_key = CStdString("duration");
-	event->m_value = CStdString("0");
+	event->m_key = CStdString("failed");
+	event->m_value = CStdString("true");
 	g_captureEventCallBack(event, m_capturePort);
-
-	// Trigger metadata update
-	event.reset(new CaptureEvent());
-	event->m_type = CaptureEvent::EtUpdate;
-	g_captureEventCallBack(event, m_capturePort);
-
-	ReportMetadata();
 }
 
 int RtpSession::ProtocolToEnum(CStdString& protocol)
