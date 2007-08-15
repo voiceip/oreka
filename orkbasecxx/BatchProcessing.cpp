@@ -25,6 +25,11 @@
 #include "Filter.h"
 #include "Reporting.h"
 
+#ifndef WIN32
+#include <pwd.h>
+#include <grp.h>
+#endif
+
 TapeProcessorRef BatchProcessing::m_singleton;
 
 void BatchProcessing::Initialize()
@@ -312,6 +317,78 @@ void BatchProcessing::ThreadHandler(void *args)
 				logMsg.Format("[%s] Th%s stop: num samples: s1:%u s2:%u out:%u", trackingId, threadIdString, numSamplesS1, numSamplesS2, numSamplesOut);
 				LOG4CXX_INFO(LOG.batchProcessingLog, logMsg);
 
+				CStdString audioFilePath = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath();
+				CStdString audioFileName, mcfFileName;
+
+				audioFileName = audioFilePath + "/" + audioTapeRef->GetIdentifier() + outFileRef->GetExtension();
+				mcfFileName = audioFilePath + "/" + audioTapeRef->GetIdentifier() + fileRef->GetExtension();
+
+				//LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " audioFileName: " + audioFileName + " mcfFileName: " + mcfFileName);
+
+#ifndef WIN32
+				if(chmod(audioFileName.c_str(), CONFIG.m_audioFilePermissions))
+				{
+					CStdString logMsg;
+
+					logMsg.Format("Error setting permissions of %s to %o: %s", audioFileName.c_str(), CONFIG.m_audioFilePermissions, strerror(errno));
+					LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + logMsg);
+				}
+
+				if(chmod(mcfFileName.c_str(), CONFIG.m_audioFilePermissions))
+				{
+					CStdString logMsg;
+
+					logMsg.Format("Error setting permissions of %s to %o: %s", mcfFileName.c_str(), CONFIG.m_audioFilePermissions, strerror(errno));
+					LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + logMsg);
+				}
+
+				struct group fileGroup, *fgP = NULL;
+				struct passwd fileUser, *fuP = NULL;
+				char infoGroupBuf[4096], infoUserBuf[4096];
+
+				memset(infoGroupBuf, 0, sizeof(infoGroupBuf));
+				memset(infoUserBuf, 0, sizeof(infoUserBuf));
+				memset(&fileGroup, 0, sizeof(fileGroup));
+				memset(&fileUser, 0, sizeof(fileUser));
+
+				if(!getgrnam_r(CONFIG.m_audioFileGroup.c_str(), &fileGroup, infoGroupBuf, sizeof(infoGroupBuf), &fgP))
+				{
+					if(!getpwnam_r(CONFIG.m_audioFileOwner.c_str(), &fileUser, infoUserBuf, sizeof(infoUserBuf), &fuP))
+					{
+
+						if(chown(audioFileName.c_str(), fileUser.pw_uid, fileGroup.gr_gid))
+						{
+							CStdString logMsg;
+
+							logMsg.Format("Error setting ownership and group of %s to %s:%s: %s", audioFileName.c_str(), CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, strerror(errno));
+							LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + logMsg);
+						}
+
+						if(chown(mcfFileName.c_str(), fileUser.pw_uid, fileGroup.gr_gid))
+						{
+							CStdString logMsg;
+
+							logMsg.Format("Error setting ownership and group of %s to %s:%s: %s", mcfFileName.c_str(), CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, strerror(errno));
+							LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + logMsg);
+						}
+					}
+					else
+					{
+						CStdString logMsg;
+
+						logMsg.Format("Failed to get user information for user %s, please check the AudioFileOwner parameter in config.xml", CONFIG.m_audioFileOwner);
+						LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + logMsg);
+					}
+				}
+				else
+				{
+					CStdString logMsg;
+
+					logMsg.Format("Failed to get group information for group %s, please check the AudioFileGroup parameter in config.xml", CONFIG.m_audioFileGroup);
+					LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + logMsg);
+				}
+				
+#endif
 				if(CONFIG.m_deleteNativeFile)
 				{
 					fileRef->Delete();
