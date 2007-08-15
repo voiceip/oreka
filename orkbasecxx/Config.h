@@ -62,6 +62,12 @@
 #define CLIENT_TIMEOUT_PARAM "ClientTimeout"
 #define AUDIO_OUTPUT_PATH_PARAM "AudioOutputPath"
 #define AUDIO_OUTPUT_PATH_DEFAULT "."
+#define AUDIO_FILE_PERMISSIONS_PARAM "AudioFilePermissions"
+#define AUDIO_FILE_PERMISSIONS_DEFAULT "0644"
+#define AUDIO_FILE_OWNER_PARAM "AudioFileOwner"
+#define AUDIO_FILE_OWNER_DEFAULT "root"
+#define AUDIO_FILE_GROUP_PARAM "AudioFileGroup"
+#define AUDIO_FILE_GROUP_DEFAULT "root"
 #define IMMEDIATE_PROCESSING_QUEUE_SIZE_PARAM "ImmediateProcessingQueueSize"
 #define IMMEDIATE_PROCESSING_QUEUE_SIZE_DEFAULT 10000
 #define BATCH_PROCESSING_QUEUE_SIZE_PARAM "BatchProcessingQueueSize"
@@ -125,6 +131,9 @@ public:
 	int m_reportingRetryDelay;
 	int m_clientTimeout;
 	CStdString m_audioOutputPath;
+	int m_audioFilePermissions;
+	CStdString m_audioFileOwner;
+	CStdString m_audioFileGroup;
 	int m_immediateProcessingQueueSize;
 	int m_batchProcessingQueueSize;
 	bool m_batchProcessingEnhancePriority;
@@ -145,6 +154,7 @@ public:
 
 private:
 	log4cxx::LoggerPtr m_log;
+	CStdString m_audioFilePermissionsStr;
 };
 
 

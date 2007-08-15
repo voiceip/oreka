@@ -41,6 +41,9 @@ Config::Config()
 	m_trackerTcpPort = TRACKER_TCP_PORT_DEFAULT;
 	m_trackerServicename = TRACKER_SERVICENAME_DEFAULT;
 	m_audioOutputPath = AUDIO_OUTPUT_PATH_DEFAULT;
+	m_audioFilePermissions = strtol(AUDIO_FILE_PERMISSIONS_DEFAULT, NULL, 8);
+	m_audioFileOwner = AUDIO_FILE_OWNER_DEFAULT;
+	m_audioFileGroup = AUDIO_FILE_GROUP_DEFAULT;
 	m_immediateProcessingQueueSize = IMMEDIATE_PROCESSING_QUEUE_SIZE_DEFAULT;
 	m_batchProcessingQueueSize = BATCH_PROCESSING_QUEUE_SIZE_DEFAULT;
 	m_batchProcessingEnhancePriority = BATCH_PROCESSING_ENHANCE_PRIORITY_DEFAULT;
@@ -103,6 +106,14 @@ void Config::Define(Serializer* s)
 		}
 	}
 
+	s->StringValue(AUDIO_FILE_PERMISSIONS_PARAM, m_audioFilePermissionsStr);
+	if(m_audioFilePermissionsStr.size())
+	{
+		m_audioFilePermissions = strtoul(m_audioFilePermissionsStr.c_str(), NULL, 8);
+	}
+
+	s->StringValue(AUDIO_FILE_OWNER_PARAM, m_audioFileOwner);
+	s->StringValue(AUDIO_FILE_GROUP_PARAM, m_audioFileGroup);
 	s->IntValue(IMMEDIATE_PROCESSING_QUEUE_SIZE_PARAM, m_immediateProcessingQueueSize);
 	s->IntValue(BATCH_PROCESSING_QUEUE_SIZE_PARAM, m_batchProcessingQueueSize);
 	s->BoolValue(BATCH_PROCESSING_ENHANCE_PRIORITY_PARAM, m_batchProcessingEnhancePriority);
@@ -147,6 +158,21 @@ void Config::Validate()
 	if (m_vad && m_audioSegmentation)
 	{
 		throw CStdString(CStdString("Config::Validate: please choose between audio segmentation and VAD ! Both cannot be true at the same time"));
+	}
+
+	if(m_audioFilePermissions == 0)
+	{
+		int perm10;
+
+		perm10 = strtoul(m_audioFilePermissionsStr.c_str(), NULL, 10);
+		if(perm10 < 0 || perm10 > 511)
+		{
+			CStdString exc;
+
+			exc.Format("Config::Validate: please set valid permissions the AudioFilePermissions paramiter in config.xml - %s is not a valid file permission", m_audioFilePermissionsStr);
+
+			throw(CStdString(exc));
+		}
 	}
 }
 
