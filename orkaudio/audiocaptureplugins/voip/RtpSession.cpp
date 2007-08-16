@@ -851,9 +851,11 @@ void RtpSessions::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
 	if (pair != m_byCallId.end())
 	{
 		RtpSessionRef session = pair->second;
-
 		session->ReportSipErrorPacket(info);
-		LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] stopped by SIP \"" + info->m_errorCode + " " + info->m_errorString + "\"");
+
+		CStdString InviteInfoString;
+		session->m_invite->ToString(InviteInfoString);
+		LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] stopped by SIP \"" + info->m_errorCode + " " + info->m_errorString + "\" " + InviteInfoString);
 		Stop(session);
 
 		return;
