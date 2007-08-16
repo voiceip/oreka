@@ -186,6 +186,31 @@ void GrabAlphaNumTokenSkipLeadingWhitespaces(char* in, char* limit, CStdString& 
 	GrabAlphaNumToken(c, limit, out);
 }
 
+char* SkipWhitespaces(char* in, char* limit)
+{
+	char* c = in;
+	while(*c == 0x20 && (*c != '\0' && *c != 0x0D && *c != 0x0A) && c < limit)
+	{
+		c = c+1;
+	}
+	return c;
+}
+
+void GrabSipUriUser(char* in, char* limit, CStdString& out)
+{
+	char* userStart = SkipWhitespaces(in, limit);
+	if(userStart>=limit)
+	{
+		return;
+	}
+	// What stops a SIP URI user is a ':' (separating user from pwd) or an '@' (separating user from hostname)
+	// but no need to test for these as we only allow alphanums and '#'
+	for(char* c = userStart; (ACE_OS::ace_isalnum(*c) || *c == '#') && c < limit ; c = c+1)
+	{
+		out += *c;
+	}
+}
+
 
 void GrabString(char* start, char* stop, CStdString& out)
 {
@@ -1374,11 +1399,11 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			char* sipUser = memFindAfter("sip:", fromField, fromFieldEnd);
 			if(sipUser)
 			{
-				GrabAlphaNumTokenSkipLeadingWhitespaces(sipUser, fromFieldEnd, info->m_from);
+				GrabSipUriUser(sipUser, fromFieldEnd, info->m_from);
 			}
 			else
 			{
-				GrabAlphaNumTokenSkipLeadingWhitespaces(fromField, fromFieldEnd, info->m_from);
+				GrabSipUriUser(fromField, fromFieldEnd, info->m_from);
 			}
 		}
 		if(toField)
@@ -1390,11 +1415,11 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			char* sipUser = memFindAfter("sip:", toField, toFieldEnd);
 			if(sipUser)
 			{
-				GrabAlphaNumTokenSkipLeadingWhitespaces(sipUser, toFieldEnd, info->m_to);
+				GrabSipUriUser(sipUser, toFieldEnd, info->m_to);
 			}
 			else
 			{
-				GrabAlphaNumTokenSkipLeadingWhitespaces(toField, toFieldEnd, info->m_to);
+				GrabSipUriUser(toField, toFieldEnd, info->m_to);
 			}
 		}
 		if(callIdField)
@@ -2312,4 +2337,5 @@ void __CDECL__ StopCapture(CStdString& party)
 {
 	;
 }
+
 
