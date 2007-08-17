@@ -41,9 +41,12 @@ Config::Config()
 	m_trackerTcpPort = TRACKER_TCP_PORT_DEFAULT;
 	m_trackerServicename = TRACKER_SERVICENAME_DEFAULT;
 	m_audioOutputPath = AUDIO_OUTPUT_PATH_DEFAULT;
-	m_audioFilePermissions = strtol(AUDIO_FILE_PERMISSIONS_DEFAULT, NULL, 8);
-	m_audioFileOwner = AUDIO_FILE_OWNER_DEFAULT;
-	m_audioFileGroup = AUDIO_FILE_GROUP_DEFAULT;
+	//m_audioFilePermissions = strtol(AUDIO_FILE_PERMISSIONS_DEFAULT, NULL, 8);
+	//m_audioFileOwner = AUDIO_FILE_OWNER_DEFAULT;
+	//m_audioFileGroup = AUDIO_FILE_GROUP_DEFAULT;
+
+	m_audioFilePermissions = 0;
+
 	m_immediateProcessingQueueSize = IMMEDIATE_PROCESSING_QUEUE_SIZE_DEFAULT;
 	m_batchProcessingQueueSize = BATCH_PROCESSING_QUEUE_SIZE_DEFAULT;
 	m_batchProcessingEnhancePriority = BATCH_PROCESSING_ENHANCE_PRIORITY_DEFAULT;
