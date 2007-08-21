@@ -96,6 +96,8 @@
 #define COMMAND_LINE_SERVER_PORT_DEFAULT 59130
 #define HTTP_SERVER_PORT_PARAM "HttpServerPort"
 #define HTTP_SERVER_PORT_DEFAULT 59140
+#define LOOKBACK_RECORDING_PARAM "LookBackRecording"
+#define LOOKBACK_RECORDING_DEFAULT true
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -151,6 +153,7 @@ public:
 	CStdString m_remoteProcessingServiceName;
 	int m_commandLineServerPort;
 	int m_httpServerPort;
+	bool m_lookBackRecording;
 
 private:
 	log4cxx::LoggerPtr m_log;

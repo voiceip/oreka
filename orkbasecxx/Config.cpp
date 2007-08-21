@@ -67,6 +67,7 @@ Config::Config()
 
 	m_commandLineServerPort = COMMAND_LINE_SERVER_PORT_DEFAULT;
 	m_httpServerPort = HTTP_SERVER_PORT_DEFAULT;
+	m_lookBackRecording = LOOKBACK_RECORDING_DEFAULT;
 }
 
 void Config::Define(Serializer* s)
@@ -134,6 +135,7 @@ void Config::Define(Serializer* s)
 	s->StringValue(REMOTE_PROCESSING_SERVICE_NAME_PARAM, m_remoteProcessingServiceName);
 	s->IntValue(COMMAND_LINE_SERVER_PORT_PARAM, m_commandLineServerPort);
 	s->IntValue(HTTP_SERVER_PORT_PARAM, m_httpServerPort);
+	s->BoolValue(LOOKBACK_RECORDING_PARAM, m_lookBackRecording);
 }
 
 void Config::Validate()

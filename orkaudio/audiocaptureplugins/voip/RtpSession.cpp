@@ -480,7 +480,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	CStdString logMsg;
 	unsigned char channel = 0;
 
-	if((DLLCONFIG.m_lookBackRecording == false) && (m_numRtpPackets > 0))
+	if((CONFIG.m_lookBackRecording == false) && (m_numRtpPackets > 0))
 	{
 		if(m_numRtpPackets == 1 && !m_nonLookBackSessionStarted)
 		{
@@ -656,7 +656,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	{
 		// We've got enough packets to start the session.
 		// For Raw RTP, the high number is to make sure we have a "real" raw RTP session, not a leftover from a SIP/Skinny session
-		if(DLLCONFIG.m_lookBackRecording == true) {
+		if(CONFIG.m_lookBackRecording == true) {
 			Start();
 			ReportMetadata();
 		}
@@ -764,9 +764,12 @@ bool RtpSession::OrkUidMatches(CStdString &oUid)
 
 bool RtpSession::PartyMatches(CStdString &party)
 {
-	if(m_localParty.CompareNoCase(party) == 0 || m_remoteParty.CompareNoCase(party) == 0)
+	if(party.size() > 0)
 	{
-		return true;
+		if(m_localParty.CompareNoCase(party) == 0 || m_remoteParty.CompareNoCase(party) == 0)
+		{
+			return true;
+		}
 	}
 	return false;
 }
@@ -1519,7 +1522,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 			}
 		}
 	}
-	else if((numSessionsFound == 0) && (DLLCONFIG.m_lookBackRecording == true))
+	else if((numSessionsFound == 0) && (CONFIG.m_lookBackRecording == true))
 	{
 		// create new Raw RTP session and insert into IP+Port map
 		CStdString trackingId = m_alphaCounter.GetNext();
