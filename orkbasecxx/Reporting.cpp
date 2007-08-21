@@ -21,6 +21,7 @@
 #include "messages/TapeMsg.h"
 #include "OrkClient.h"
 #include "Daemon.h"
+#include "CapturePluginProxy.h"
 
 
 TapeProcessorRef Reporting::m_singleton;
@@ -173,6 +174,15 @@ void Reporting::ThreadHandler(void *args)
 									LOG4CXX_DEBUG(LOG.reportingLog, "Could not delete tape: " + tapeFilename);
 								}
 
+							}
+							else 
+							{
+								// Tape is wanted
+								if(CONFIG.m_lookBackRecording == false && ptapeMsg->m_stage.Equals("start"))
+								{
+									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_localParty);
+									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_remoteParty);
+								}
 							}
 							//else
 							//{
