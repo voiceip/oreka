@@ -176,7 +176,7 @@ void Config::Validate()
 
 			exc.Format("Config::Validate: please set valid permissions the AudioFilePermissions paramiter in config.xml - %s is not a valid file permission", m_audioFilePermissionsStr);
 
-			throw(CStdString(exc));
+			throw(exc);
 		}
 	}
 }
