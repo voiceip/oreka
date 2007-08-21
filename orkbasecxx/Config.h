@@ -98,6 +98,8 @@
 #define HTTP_SERVER_PORT_DEFAULT 59140
 #define LOOKBACK_RECORDING_PARAM "LookBackRecording"
 #define LOOKBACK_RECORDING_DEFAULT true
+#define ALLOW_AUTOMATIC_RECORDING_PARAM "AllowAutomaticRecording"
+#define ALLOW_AUTOMATIC_RECORDING_DEFAULT true
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -154,6 +156,7 @@ public:
 	int m_commandLineServerPort;
 	int m_httpServerPort;
 	bool m_lookBackRecording;
+	bool m_allowAutomaticRecording;
 
 private:
 	log4cxx::LoggerPtr m_log;

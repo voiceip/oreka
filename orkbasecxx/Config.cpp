@@ -41,9 +41,6 @@ Config::Config()
 	m_trackerTcpPort = TRACKER_TCP_PORT_DEFAULT;
 	m_trackerServicename = TRACKER_SERVICENAME_DEFAULT;
 	m_audioOutputPath = AUDIO_OUTPUT_PATH_DEFAULT;
-	//m_audioFilePermissions = strtol(AUDIO_FILE_PERMISSIONS_DEFAULT, NULL, 8);
-	//m_audioFileOwner = AUDIO_FILE_OWNER_DEFAULT;
-	//m_audioFileGroup = AUDIO_FILE_GROUP_DEFAULT;
 
 	m_audioFilePermissions = 0;
 
@@ -68,6 +65,7 @@ Config::Config()
 	m_commandLineServerPort = COMMAND_LINE_SERVER_PORT_DEFAULT;
 	m_httpServerPort = HTTP_SERVER_PORT_DEFAULT;
 	m_lookBackRecording = LOOKBACK_RECORDING_DEFAULT;
+	m_allowAutomaticRecording = ALLOW_AUTOMATIC_RECORDING_DEFAULT;
 }
 
 void Config::Define(Serializer* s)
@@ -136,6 +134,7 @@ void Config::Define(Serializer* s)
 	s->IntValue(COMMAND_LINE_SERVER_PORT_PARAM, m_commandLineServerPort);
 	s->IntValue(HTTP_SERVER_PORT_PARAM, m_httpServerPort);
 	s->BoolValue(LOOKBACK_RECORDING_PARAM, m_lookBackRecording);
+	s->BoolValue(ALLOW_AUTOMATIC_RECORDING_PARAM, m_allowAutomaticRecording);	// only valid in non-lookback mode
 }
 
 void Config::Validate()

@@ -178,7 +178,7 @@ void Reporting::ThreadHandler(void *args)
 							else 
 							{
 								// Tape is wanted
-								if(CONFIG.m_lookBackRecording == false && ptapeMsg->m_stage.Equals("start"))
+								if(CONFIG.m_lookBackRecording == false && CONFIG.m_allowAutomaticRecording && ptapeMsg->m_stage.Equals("start"))
 								{
 									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_localParty);
 									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_remoteParty);
