@@ -509,7 +509,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	// If we are on hold, unmark this
 	if(m_onHold)
 	{
-		logMsg =  "[" + m_trackingId + "] Going off hold due to RTP activity";
+		logMsg =  "[" + m_trackingId + "] Session going off hold due to RTP activity";
 		m_onHold = false;
 	}
 
@@ -797,7 +797,29 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	if (pair != m_byIpAndPort.end())
 	{
 		// The session already exists, report the new INVITE
+
+		/*
+		 * If the sendonly attribute is present then our call is
+		 * going on hold.
+		 */
 		RtpSessionRef session = pair->second;
+
+		if(invite->m_attrSendonly)
+		{
+			session->m_onHold = true;
+			LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going on hold");
+			return;
+		}
+		else
+		{
+			if(session->m_onHold)
+			{
+				session->m_onHold = false;
+				LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going off hold");
+				return;
+			}
+		}
+
 		session->ReportSipInvite(invite);
 		return;
 	}
@@ -806,6 +828,28 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	{
 		// The session already exists
 		RtpSessionRef session = pair->second;
+
+		/*
+		 * If the sendonly attribute is present then our call is
+		 * going on hold.
+		 */
+		if(invite->m_attrSendonly)
+		{
+			session->m_onHold = true;
+			LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going on hold");
+			return;
+		}
+		else
+		{
+			/* If we're already on hold and sendonly is not present
+			 * then we go off hold */
+			if(session->m_onHold)
+			{
+				session->m_onHold = false;
+				LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going off hold");
+				return;
+			}
+		}
 
 		// For now, do not report new INVITEs that have the same SIP call ID but a different media address
 		// those INVITEs are ignored altogether.
@@ -1662,7 +1706,8 @@ void RtpSessions::StartCapture(CStdString& party)
 SipInviteInfo::SipInviteInfo()
 {
 	m_fromRtpIp.s_addr = 0;
-	m_validated= false;
+	m_validated = false;
+	m_attrSendonly = false;
 }
 
 void SipInviteInfo::ToString(CStdString& string)

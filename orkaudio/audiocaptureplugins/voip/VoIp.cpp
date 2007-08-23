@@ -1384,6 +1384,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		char* localExtensionField = memFindAfter("x-Local-Extension:", (char*)udpPayload, sipEnd);
 		char* audioField = NULL;
 		char* connectionAddressField = NULL;
+		char* attribSendonly = memFindAfter("a=sendonly", (char*)udpPayload, sipEnd);
 
 		if(fromField)
 		{
@@ -1440,6 +1441,10 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		if(audioField)
 		{
 			GrabToken(audioField, sipEnd, info->m_fromRtpPort);
+		}
+		if(attribSendonly)
+		{
+			info->m_attrSendonly = true;
 		}
 		if(connectionAddressField)
 		{
