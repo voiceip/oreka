@@ -40,6 +40,7 @@ public:
 	CStdString m_to;
 	CStdString m_callId;
 	bool m_validated;		// true when an RTP stream has been seen for the INVITE
+	bool m_attrSendonly;		// true if the SDP has a:sendonly
 	std::map<CStdString, CStdString> m_extractedFields;
 
 	time_t m_recvTime;
