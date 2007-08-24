@@ -697,6 +697,7 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 		invite->ToString(inviteString);
 		CStdString logMsg;
 		logMsg.Format("[%s] associating INVITE:%s", m_trackingId, inviteString);
+		m_fromRtpIp = invite->m_fromRtpIp;
 		LOG4CXX_INFO(m_log, logMsg);
 	}
 	m_invites.push_front(invite);
@@ -914,6 +915,41 @@ void RtpSessions::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
 	LOG4CXX_INFO(m_log, "Could not associate SIP error packet [" + errorString + "] with any RTP session");
 
 	return;
+}
+
+void RtpSessions::ReportSip200Ok(Sip200OkInfoRef info)
+{
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+
+	pair = m_byCallId.find(info->m_callId);
+	if (pair != m_byCallId.end())
+	{
+		RtpSessionRef session = pair->second;
+
+		if(info->m_hasSdp && DLLCONFIG.IsPartOfLan(session->m_fromRtpIp) && !DLLCONFIG.IsPartOfLan(info->m_fromRtpIp) && !session->m_numRtpPackets)
+		{
+			char szFromRtpIp[16];
+
+			ACE_OS::inet_ntop(AF_INET, (void*)&info->m_fromRtpIp, szFromRtpIp, sizeof(szFromRtpIp));
+			m_byIpAndPort.erase(session->m_ipAndPort);
+			session->m_ipAndPort = CStdString(szFromRtpIp) + "," + info->m_fromRtpPort;
+
+			pair = m_byIpAndPort.find(session->m_ipAndPort);
+			if (pair != m_byIpAndPort.end())
+			{
+				RtpSessionRef session2 = pair->second;
+
+				if(session2->m_protocol == RtpSession::ProtRawRtp)
+				{
+					Stop(session2);
+				}
+			}
+
+			m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
+
+			LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] updated RTP address: " + session->m_ipAndPort);
+		}
+	}
 }
 
 void RtpSessions::ReportSipBye(SipByeInfo bye)
@@ -1749,5 +1785,11 @@ void SipFailureMessageInfo::ToString(CStdString& string)
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
 	string.Format("sender:%s rcvr:%s smac:%s rmac:%s callid:%s errorcode:%s errorstr:\"%s\"", senderIp, receiverIp, senderMac, receiverMac, m_callId, m_errorCode, m_errorString);
+}
+
+Sip200OkInfo::Sip200OkInfo()
+{
+	m_fromRtpIp.s_addr = 0;
+	m_hasSdp = false;
 }
 

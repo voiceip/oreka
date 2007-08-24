@@ -1360,6 +1360,55 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 	return result;
 }
 
+bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
+{
+	bool result = false;
+
+	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
+	char* sipEnd = (char*)udpPayload + sipLength;
+	if(sipLength < SIP_RESPONSE_200_OK_SIZE || sipEnd > (char*)packetEnd)
+	{
+		;	// packet too short
+	}
+	else if (memcmp(SIP_RESPONSE_200_OK, (void*)udpPayload, SIP_RESPONSE_200_OK_SIZE) == 0)
+	{
+		result = true;
+
+		Sip200OkInfoRef info(new Sip200OkInfo());
+
+		char* callIdField = memFindAfter("\r\ni:", (char*)udpPayload, sipEnd);
+		char* audioField = NULL;
+		char* connectionAddressField = NULL;
+
+		if(callIdField)
+		{
+			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
+			audioField = memFindAfter("m=audio ", callIdField, sipEnd);
+			connectionAddressField = memFindAfter("c=IN IP4 ", callIdField, sipEnd);
+		}
+		if(audioField && connectionAddressField)
+		{
+			info->m_hasSdp = true;
+
+			GrabToken(audioField, sipEnd, info->m_fromRtpPort);
+
+			CStdString connectionAddress;
+			GrabToken(connectionAddressField, sipEnd, connectionAddress);
+			struct in_addr fromIp;
+			if(connectionAddress.size())
+			{
+				if(ACE_OS::inet_aton((PCSTR)connectionAddress, &fromIp))
+				{
+					info->m_fromRtpIp = fromIp;
+				}
+			}
+		}
+
+		RtpSessionsSingleton::instance()->ReportSip200Ok(info);
+	}
+	return result;
+}
+
 bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
 	bool result = false;
@@ -1367,12 +1416,11 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
         
 	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
 	char* sipEnd = (char*)udpPayload + sipLength;
-	if(sipLength < sizeof(SIP_METHOD_INVITE) || sipEnd > (char*)packetEnd)
+	if(sipLength < SIP_METHOD_INVITE_SIZE || sipEnd > (char*)packetEnd)
 	{
-		return false;
+		;	// packet too short
 	}
-
-	if (memcmp(SIP_METHOD_INVITE, (void*)udpPayload, SIP_METHOD_INVITE_SIZE) == 0)
+	else if (memcmp(SIP_METHOD_INVITE, (void*)udpPayload, SIP_METHOD_INVITE_SIZE) == 0)
 	{
 		result = true;
 
@@ -1825,6 +1873,10 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 
 			if(!detectedUsefulPacket) {
 				detectedUsefulPacket= TrySipInvite(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+			}
+
+			if(!detectedUsefulPacket) {
+				detectedUsefulPacket= TrySip200Ok(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
 			}
 
 			if(!detectedUsefulPacket) {
