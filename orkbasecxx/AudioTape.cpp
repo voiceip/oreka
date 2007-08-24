@@ -90,6 +90,10 @@ AudioTape::AudioTape(CStdString &portId, CStdString& file)
 
 	// Extract Path and Identifier
 	m_filePath = FilePath(file);
+	if(m_filePath.Find(CONFIG.m_audioOutputPath) >= 0) {
+		m_filePath = (m_filePath.Right(m_filePath.size() - 1 - CONFIG.m_audioOutputPath.size()));
+	}
+
 	CStdString basename = FileBaseName(file);
 	m_fileIdentifier = FileStripExtension(basename);
 
