@@ -337,8 +337,10 @@ struct Iax2MetaTrunkEntryTs {
 
 #define SIP_METHOD_INVITE_SIZE 6
 #define SIP_METHOD_BYE_SIZE 3
+#define SIP_RESPONSE_200_OK_SIZE 11
 #define SIP_METHOD_INVITE "INVITE"
 #define SIP_METHOD_BYE "BYE"
+#define SIP_RESPONSE_200_OK "SIP/2.0 200"
 
 #endif
 

@@ -70,6 +70,20 @@ public:
 	CStdString m_callId;
 };
 
+
+class Sip200OkInfo
+{
+public:
+	Sip200OkInfo();
+	CStdString m_callId;
+	bool m_hasSdp;
+	struct in_addr m_fromRtpIp;
+	CStdString m_fromRtpPort;
+};
+
+typedef boost::shared_ptr<Sip200OkInfo> Sip200OkInfoRef;
+
+
 //=============================================================
 
 class EndpointInfo
@@ -104,6 +118,7 @@ public:
 
 	CStdString m_trackingId;
 	CStdString m_ipAndPort;	// IP address and TCP port of one side of the session, serves as a key for session storage and retrieval. Not necessarily the same as the capturePort (capturePort is usually the client (phone) IP+port)
+	struct in_addr m_fromRtpIp;
 	CStdString m_callId;
 	SipInviteInfoRef m_invite;
 	ACE_Time_Value m_creationDate;		// When the session is first created
@@ -180,6 +195,7 @@ public:
 	void ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader);
 	void ReportRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void ReportSipErrorPacket(SipFailureMessageInfoRef& sipError);
+	void ReportSip200Ok(Sip200OkInfoRef info);
 	void Hoover(time_t now);
 	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp);
 	void StartCapture(CStdString& party);
