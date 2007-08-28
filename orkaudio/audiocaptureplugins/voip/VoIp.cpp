@@ -1091,6 +1091,12 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 		char* sipEnd = (char*)udpPayload + sipLength;
 		SipByeInfo info;
 		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
+
+		if(!callIdField)
+		{
+			callIdField = memFindAfter("\ni:", (char*)udpPayload, sipEnd);
+		}
+
 		if(callIdField)
 		{
 			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info.m_callId);
