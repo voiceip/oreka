@@ -1135,6 +1135,10 @@ bool TryLogFailedSip(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHea
 	   (memcmp("CANCEL ", (void*)udpPayload, 7) == 0))
 	{
 		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
+		if(!callIdField)
+		{
+			callIdField = memFindAfter("\ni:", (char*)udpPayload, sipEnd);
+		}
 		char* eCode = memFindAfter("SIP/2.0 ", (char*)udpPayload, sipEnd);
 
 		if(callIdField)
@@ -1433,8 +1437,20 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		SipInviteInfoRef info(new SipInviteInfo());
 
 		char* fromField = memFindAfter("From:", (char*)udpPayload, sipEnd);
+		if(!fromField)
+		{
+			fromField = memFindAfter("\nf:", (char*)udpPayload, sipEnd);
+		}
 		char* toField = memFindAfter("To:", (char*)udpPayload, sipEnd);
+		if(!toField)
+		{
+			toField = memFindAfter("\nt:", (char*)udpPayload, sipEnd);
+		}
 		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
+		if(!callIdField)
+		{
+			callIdField = memFindAfter("\ni:", (char*)udpPayload, sipEnd);
+		}
 		char* localExtensionField = memFindAfter("x-Local-Extension:", (char*)udpPayload, sipEnd);
 		char* audioField = NULL;
 		char* connectionAddressField = NULL;

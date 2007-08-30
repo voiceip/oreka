@@ -905,15 +905,13 @@ void RtpSessions::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
 		session->m_invite->ToString(InviteInfoString);
 		LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] stopped by SIP \"" + info->m_errorCode + " " + info->m_errorString + "\" " + InviteInfoString);
 		Stop(session);
-
-		return;
 	}
-
-	CStdString errorString;
-
-	info->ToString(errorString);
-	LOG4CXX_INFO(m_log, "Could not associate SIP error packet [" + errorString + "] with any RTP session");
-
+	else
+	{
+		CStdString errorString;
+		info->ToString(errorString);
+		LOG4CXX_INFO(m_log, "Could not associate SIP error packet [" + errorString + "] with any RTP session");
+	}
 	return;
 }
 
