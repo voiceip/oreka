@@ -1816,8 +1816,13 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 				ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+2);
 				if(ipHeader->ip_v != 4)
 				{
-					// Still not an IP packet V4, drop it
-					return;
+					// If not, the IP packet might be on 802.11
+					ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+12);
+					if(ipHeader->ip_v != 4)
+					{
+						// Still not an IP packet V4, drop it
+						return;
+					}
 				}
 			}
 		}
