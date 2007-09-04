@@ -178,6 +178,16 @@ void MediaChunkFile::Open(CStdString& filename, fileOpenModeEnum mode, bool ster
 	{
 		FileRecursiveMkdir(m_filename);
 		m_stream = ACE_OS::fopen((PCSTR)m_filename, "wb");
+
+		if(CONFIG.m_audioFilePermissions)
+		{
+			FileSetPermissions(m_filename, CONFIG.m_audioFilePermissions);
+		}
+
+		if(CONFIG.m_audioFileGroup.size() && CONFIG.m_audioFileOwner.size())
+		{
+			FileSetOwnership(m_filename, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup);
+		}
 	}
 	if(!m_stream)
 	{

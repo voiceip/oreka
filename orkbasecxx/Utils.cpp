@@ -3,6 +3,11 @@
 #include "ace/OS_NS_arpa_inet.h"
 #include "ace/OS_NS_sys_stat.h"
 
+#ifndef WIN32
+#include <pwd.h>
+#include <grp.h>
+#endif
+
 //========================================================
 // file related stuff
 
@@ -84,6 +89,55 @@ void FileRecursiveMkdir(CStdString& path)
 		}
 	}
 }
+
+int FileSetPermissions(CStdString filename, int permissions)
+{
+	int res = 0;
+
+#ifndef WIN32
+	res = chmod(filename.c_str(), permissions);
+#endif
+
+	return res;
+}
+
+int FileSetOwnership(CStdString filename, CStdString owner, CStdString group)
+{
+	int res = 0;
+
+#ifndef WIN32
+	struct group fileGroup, *fgP = NULL;
+	struct passwd fileUser, *fuP = NULL;
+	char infoGroupBuf[4096], infoUserBuf[4096];
+
+	memset(infoGroupBuf, 0, sizeof(infoGroupBuf));
+	memset(infoUserBuf, 0, sizeof(infoUserBuf));
+	memset(&fileGroup, 0, sizeof(fileGroup));
+	memset(&fileUser, 0, sizeof(fileUser));
+
+	if(!getgrnam_r(group.c_str(), &fileGroup, infoGroupBuf, sizeof(infoGroupBuf), &fgP))
+	{
+		if(!getpwnam_r(owner.c_str(), &fileUser, infoUserBuf, sizeof(infoUserBuf), &fuP))
+		{
+			if(chown(filename.c_str(), fileUser.pw_uid, fileGroup.gr_gid))
+			{
+				res = -1;
+			}
+		}
+		else
+		{
+			res = -1;
+		}
+	}
+	else
+	{
+		res = -1;
+	}
+#endif
+
+	return res;
+}
+
 
 //=====================================================
 // Network related stuff
