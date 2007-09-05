@@ -899,12 +899,21 @@ void RtpSessions::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
 	if (pair != m_byCallId.end())
 	{
 		RtpSessionRef session = pair->second;
-		session->ReportSipErrorPacket(info);
 
-		CStdString InviteInfoString;
-		session->m_invite->ToString(InviteInfoString);
-		LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] stopped by SIP \"" + info->m_errorCode + " " + info->m_errorString + "\" " + InviteInfoString);
-		Stop(session);
+		if(info->m_errorCode == "407")
+		{
+			// authentication needed
+		}
+		else
+		{
+			// Other error, stop the session
+			session->ReportSipErrorPacket(info);
+
+			CStdString InviteInfoString;
+			session->m_invite->ToString(InviteInfoString);
+			LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] stopped by SIP \"" + info->m_errorCode + " " + info->m_errorString + "\" " + InviteInfoString);
+			Stop(session);
+		}
 	}
 	else
 	{
