@@ -15,6 +15,7 @@
 
 #include "Utils.h"
 #include "LibSndFileFile.h"
+#include "ConfigManager.h"
 
 LibSndFileFile::LibSndFileFile(int fileFormat)
 {
@@ -54,7 +55,7 @@ void LibSndFileFile::Open(CStdString& filename, fileOpenModeEnum mode, bool ster
 		throw(CStdString("libsndfile: Selected output format not supported"));
 	}
 
-	FileRecursiveMkdir(m_filename);
+	FileRecursiveMkdir(m_filename, CONFIG.m_audioFilePermissions, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, CONFIG.m_audioOutputPath);
 
 	int sndFileMode;
 	mode == READ ? sndFileMode = SFM_READ : sndFileMode = SFM_WRITE;

@@ -13,6 +13,7 @@
 
 #include "Utils.h"
 #include "PcmFile.h"
+#include "ConfigManager.h"
 
 PcmFile::PcmFile()
 {
@@ -104,7 +105,7 @@ void PcmFile::Open(CStdString& filename, fileOpenModeEnum mode, bool stereo, int
 	}
 	else
 	{
-		FileRecursiveMkdir(m_filename);
+		FileRecursiveMkdir(m_filename, CONFIG.m_audioFilePermissions, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, CONFIG.m_audioOutputPath);
 		m_stream = ACE_OS::fopen((PCSTR)m_filename, "wb");
 	}
 	if(!m_stream)

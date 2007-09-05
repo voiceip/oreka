@@ -176,7 +176,7 @@ void MediaChunkFile::Open(CStdString& filename, fileOpenModeEnum mode, bool ster
 	}
 	else
 	{
-		FileRecursiveMkdir(m_filename);
+		FileRecursiveMkdir(m_filename, CONFIG.m_audioFilePermissions, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, CONFIG.m_audioOutputPath);
 		m_stream = ACE_OS::fopen((PCSTR)m_filename, "wb");
 
 		if(CONFIG.m_audioFilePermissions)
