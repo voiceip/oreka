@@ -71,10 +71,16 @@ bool FileCanOpen(CStdString& path)
 	return false;
 }
 
-void FileRecursiveMkdir(CStdString& path)
+void FileRecursiveMkdir(CStdString& path, int permissions, CStdString owner, CStdString group, CStdString rootDirectory)
 {
-	int position = 0;
+	int position = 0, newPermissions = permissions;
 	bool done = false;
+
+	/*
+	 * Create the directories first. We have separated this because
+	 * we do not want the introduction of rootDirectory to break
+	 * any old functionality.
+	 */
 	while (!done)
 	{
 		position = path.Find('/', position+1);
@@ -86,6 +92,54 @@ void FileRecursiveMkdir(CStdString& path)
 		{
 			CStdString level = path.Left(position);
 			ACE_OS::mkdir((PCSTR)level);
+		}
+	}
+
+	done = false;
+	position = 0;
+	if(rootDirectory.size())
+	{
+	        if(path.Find(rootDirectory) >= 0)
+		{
+			position = 1 + rootDirectory.size();
+	        }
+	}
+
+	if(newPermissions & S_IRUSR)
+	{
+		newPermissions |= S_IXUSR;
+	}
+
+	if(newPermissions & S_IRGRP)
+	{
+		newPermissions |= S_IXGRP;
+	}
+
+	if(newPermissions & S_IROTH)
+	{
+		newPermissions |= S_IXOTH;
+	}
+
+	while (!done)
+	{
+		position = path.Find('/', position+1);
+		if (position == -1)
+		{
+			done = true;
+		}
+		else
+		{
+			CStdString level = path.Left(position);
+
+			if(owner.size() && group.size())
+			{
+				FileSetOwnership(level, owner, group);
+			}
+
+			if(newPermissions)
+			{
+				FileSetPermissions(level, newPermissions);
+			}
 		}
 	}
 }

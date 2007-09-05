@@ -249,7 +249,7 @@ void BatchProcessing::ThreadHandler(void *args)
 						}
 
 						CStdString path = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath();
-						FileRecursiveMkdir(path);
+						FileRecursiveMkdir(path, CONFIG.m_audioFilePermissions, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, CONFIG.m_audioOutputPath);
 
 						CStdString file = path + "/" + audioTapeRef->GetIdentifier();
 						outFileRef->Open(file, AudioFile::WRITE, false, fileRef->GetSampleRate());

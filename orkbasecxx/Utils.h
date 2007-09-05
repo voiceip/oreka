@@ -73,7 +73,7 @@ CStdString DLL_IMPORT_EXPORT_ORKBASE FileBaseName(CStdString& path);
 CStdString DLL_IMPORT_EXPORT_ORKBASE FilePath(CStdString& path);
 CStdString DLL_IMPORT_EXPORT_ORKBASE FileStripExtension(CStdString& filename);
 bool DLL_IMPORT_EXPORT_ORKBASE FileCanOpen(CStdString& path);
-void DLL_IMPORT_EXPORT_ORKBASE FileRecursiveMkdir(CStdString& path);
+void DLL_IMPORT_EXPORT_ORKBASE FileRecursiveMkdir(CStdString& path, int permissions, CStdString owner, CStdString group, CStdString rootDirectory);
 int DLL_IMPORT_EXPORT_ORKBASE FileSetPermissions(CStdString filename, int permissions);
 int DLL_IMPORT_EXPORT_ORKBASE FileSetOwnership(CStdString filename, CStdString owner, CStdString group);
 
