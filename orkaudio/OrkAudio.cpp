@@ -32,6 +32,7 @@
 #include "ImmediateProcessing.h"
 #include "BatchProcessing.h"
 #include "Reporting.h"
+#include "TapeFileNaming.h"
 #include "ConfigManager.h"
 #include "Daemon.h"
 #include "ObjectFactory.h"
@@ -148,6 +149,7 @@ void Transcode(CStdString &file)
 	// Register in-built tape processors and build the processing chain
 	BatchProcessing::Initialize();
 	Reporting::Initialize();
+	TapeFileNaming::Initialize();
 
 	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(BatchProcessing::ThreadHandler)))
 	{
@@ -228,6 +230,7 @@ void MainThread()
 	// Register in-built tape processors and build the processing chain
 	BatchProcessing::Initialize();
 	Reporting::Initialize();
+	TapeFileNaming::Initialize();
 	TapeProcessorRegistry::instance()->CreateProcessingChain();
 
 	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(ImmediateProcessing::ThreadHandler)))
@@ -245,6 +248,10 @@ void MainThread()
 	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(Reporting::ThreadHandler)))
 	{
 		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create reporting thread"));
+	}
+	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(TapeFileNaming::ThreadHandler)))
+	{
+		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create tape file naming thread"));
 	}
 
 	// Create command line server on port 10000
