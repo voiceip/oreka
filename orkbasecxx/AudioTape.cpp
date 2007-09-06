@@ -201,7 +201,11 @@ void AudioTape::Write()
 		if(m_audioFileRef.get())
 		{
 			m_audioFileRef->Close();
-			GenerateFinalFilePathAndIdentifier();
+			/*
+			 * This function is now called in the TapeFileNaming
+			 * tape processor.
+			 */
+			//GenerateFinalFilePathAndIdentifier();
 			m_readyForBatchProcessing = true;
 		}
 	}
@@ -532,7 +536,12 @@ void AudioTape::GenerateFinalFilePath()
 
         if(pathIdentifier.size() > 0)
         {
-            m_filePath = pathIdentifier;
+		m_filePath = pathIdentifier;
+
+		CStdString mkdirPath;
+
+		mkdirPath.Format("%s/%s", CONFIG.m_audioOutputPath, m_filePath);
+		FileRecursiveMkdir(mkdirPath, CONFIG.m_audioFilePermissions, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, CONFIG.m_audioOutputPath);
         }
 	}
 }
