@@ -95,9 +95,15 @@ public:
 
 	TapeResponseRef m_tapeResponse;
 
+	/*
+	 * This function has been made public in order to allow the TapeFileNaming
+	 * tape processor to do its work in the easiest way, with as little as possible
+	 * access to the internal variables of the AudioTape class.
+	 */
+	void GenerateFinalFilePathAndIdentifier();
+
 private:
 	void GenerateCaptureFilePathAndIdentifier();
-	void GenerateFinalFilePathAndIdentifier();
 	void GenerateFinalFilePath();
 	void PreventFileIdentifierCollision(CStdString& path, CStdString& identifier, CStdString& extension);
 	void PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum eventType);

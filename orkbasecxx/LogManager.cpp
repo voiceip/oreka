@@ -79,6 +79,7 @@ void OrkLogManager::Initialize()
 	topLog = Logger::getLogger("top");
 	immediateProcessingLog = Logger::getLogger("immediateProcessing");
 	batchProcessingLog = Logger::getLogger("batchProcessing");
+	tapeFileNamingLog = Logger::getLogger("tapeFileNamingLog");
 	portLog =  Logger::getLogger("port");
 	fileLog = Logger::getLogger("file");
 	reportingLog = Logger::getLogger("reporting");

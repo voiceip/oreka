@@ -14,7 +14,7 @@ liborkbase_la_SOURCES = Filter.cpp g711.c \
 			MemUtils.cpp BatchProcessing.cpp \
 			CapturePluginProxy.cpp CapturePort.cpp \
 			Daemon.cpp ImmediateProcessing.cpp \
-			Reporting.cpp
+			Reporting.cpp TapeFileNaming.cpp
 #INCLUDES = -I/projects/ext/xmlrpc++/xmlrpc++0.7/src
 SUBDIRS = messages serializers audiofile filters
 liborkbase_la_LIBADD = $(top_builddir)/serializers/libserializers.la \

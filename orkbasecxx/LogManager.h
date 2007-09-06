@@ -34,6 +34,7 @@ public:
 	LoggerPtr topLog;
 	LoggerPtr immediateProcessingLog;
 	LoggerPtr batchProcessingLog;
+	LoggerPtr tapeFileNamingLog;
 	LoggerPtr portLog;
 	LoggerPtr fileLog;
 	LoggerPtr reportingLog;
