@@ -528,9 +528,25 @@ void AudioTape::GenerateFinalFilePath()
                         }
                         case TapeAttributes::TaUnknown:
                         {
-                                pathIdentifier += element;
-                                break;
-                        }
+				std::map<CStdString, CStdString>::iterator pair;
+				CStdString correctKey, mTagsValue;
+
+				// Remove the []
+				correctKey = element.substr(1, element.size()-2);
+				pair = m_tags.find(correctKey);
+
+				if(pair != m_tags.end())
+				{
+					mTagsValue = pair->second;
+					pathIdentifier += mTagsValue;
+				}
+				else
+				{
+					pathIdentifier += element;
+				}
+
+				break;
+			}
 			}
 		}
 
@@ -711,10 +727,13 @@ void AudioTape::GenerateFinalFilePathAndIdentifier()
 				correctKey = element.substr(1, element.size()-2);
 				pair = m_tags.find(correctKey);
 
-				if(pair != m_tags.end()) {
+				if(pair != m_tags.end())
+				{
 					mTagsValue = pair->second;
 					fileIdentifier += mTagsValue;
-				} else {
+				}
+				else
+				{
 					fileIdentifier += element;
 				}
 
