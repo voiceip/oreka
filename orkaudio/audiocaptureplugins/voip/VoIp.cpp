@@ -233,6 +233,20 @@ char* GrabLine(char* start, char* limit, CStdString& out)
 	return c;
 }
 
+// Grabs a line of characters in memory skipping any leading
+// whitespaces.  This is intended for use in the case of SIP
+// headers, ref RFC 3261, section 7.3.1
+char* GrabLineSkipLeadingWhitespace(char* start, char* limit, CStdString& out)
+{
+	char* c = start;
+	while(*c == 0x20 && (*c != '\0' && *c != 0x0D && *c != 0x0A) && c<limit)
+	{
+		c = c+1;
+	}
+
+	GrabLine(c, limit, out);
+}
+
 static int iax2_codec_to_rtp_payloadtype(int codec)
 {
 	switch(codec) {
@@ -1546,7 +1560,24 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			if(szField)
 			{
 				CStdString field;
-				GrabLine(szField, sipEnd, field);
+
+				// XXX
+				// The line below was replaced because I experienced
+				// cases where we would have a leading whitespace in the
+				// tag which has been extracted.  However, since we are
+				// dealing with SIP, RFC 3261, section 7.3.1 illustrates
+				// that any leading whitespaces after the colon is not
+				// in fact part of the header value.  Therefore, I
+				// created the GrabLineSkipLeadingWhitespace() function
+				// which I use in this particular case.
+				//
+				// Hope this is ok.
+				//
+				// --Gerald
+				//
+				//GrabLine(szField, sipEnd, field);
+
+				GrabLineSkipLeadingWhitespace(szField, sipEnd, field);
 				info->m_extractedFields.insert(std::make_pair(*it, field));
 			}
 		}
