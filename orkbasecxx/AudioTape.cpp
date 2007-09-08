@@ -550,15 +550,15 @@ void AudioTape::GenerateFinalFilePath()
 			}
 		}
 
-        if(pathIdentifier.size() > 0)
-        {
-		m_filePath = pathIdentifier;
+        	if(pathIdentifier.size() > 0)
+	        {
+			m_filePath = pathIdentifier;
 
-		CStdString mkdirPath;
+			CStdString mkdirPath;
 
-		mkdirPath.Format("%s/%s", CONFIG.m_audioOutputPath, m_filePath);
-		FileRecursiveMkdir(mkdirPath, CONFIG.m_audioFilePermissions, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, CONFIG.m_audioOutputPath);
-        }
+			mkdirPath.Format("%s/%s", CONFIG.m_audioOutputPath, m_filePath);
+			FileRecursiveMkdir(mkdirPath, CONFIG.m_audioFilePermissions, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, CONFIG.m_audioOutputPath);
+	        }
 	}
 }
 
@@ -746,9 +746,15 @@ void AudioTape::GenerateFinalFilePathAndIdentifier()
 		{
 			m_fileIdentifier = fileIdentifier;
 		}
+	}
 
+	if(CONFIG.m_tapePathNaming.size() > 0)
+	{
 		GenerateFinalFilePath();
+	}
 
+	if(CONFIG.m_tapePathNaming.size() > 0 || CONFIG.m_tapeFileNaming.size() > 0)
+	{
 		CStdString path = CONFIG.m_audioOutputPath + "/" + m_filePath + "/";
 		PreventFileIdentifierCollision(path, m_fileIdentifier , m_fileExtension);
 	}

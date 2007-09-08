@@ -138,7 +138,7 @@ typedef boost::shared_ptr<AudioTape> AudioTapeRef;
 
 //==========================================================
 
-class TapeAttributes
+class DLL_IMPORT_EXPORT_ORKBASE TapeAttributes
 {
 public:
 #define TA_NATIVECALLID "[nativecallid]"
