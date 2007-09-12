@@ -181,6 +181,8 @@ void MainThread()
 	OrkLogManager::Instance()->Initialize();
 	LOG4CXX_INFO(LOG.rootLog, CStdString("\n\nOrkAudio service starting\n"));
 
+	ConfigManager::Instance()->Initialize();
+
 	// Initialize object factory and register existing objects
 	ObjectFactory::GetSingleton()->Initialize();
 
@@ -205,8 +207,6 @@ void MainThread()
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	//objRef.reset(new TestMsg);
 	//ObjectFactory::GetSingleton()->RegisterObject(objRef);
-
-	ConfigManager::Instance()->Initialize();
 
 	bool capturePluginOk = false;
 	if(CapturePluginProxy::Singleton()->Initialize())

@@ -31,7 +31,7 @@ public:
 
 	Config m_config;
 private:
-	static ConfigManager m_singleton;
+	static ConfigManager* m_singleton;
 	std::list<ConfigureFunction> m_configureFunctions;
 	DOMNode* m_configTopNode;
 	XercesDOMParser *m_parser;
