@@ -345,13 +345,6 @@ void BatchProcessing::ThreadHandler(void *args)
 					LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " deleting native: " + audioTapeRef->GetIdentifier());
 				}
 
-				// Report tape ready message to orktrack
-				CaptureEventRef readyEvent(new CaptureEvent);
-				readyEvent->m_type = CaptureEvent::EtReady;
-				readyEvent->m_timestamp = time(NULL);
-				audioTapeRef->AddCaptureEvent(readyEvent, true);
-				Reporting::Instance()->AddAudioTape(audioTapeRef);
-
 				// Finished processing the tape, pass on to next processor
 				pBatchProcessing->RunNextProcessor(audioTapeRef);
 			}

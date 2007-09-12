@@ -316,7 +316,12 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 
 	msgRef.reset(new TapeMsg);
 	TapeMsg* pTapeMsg = (TapeMsg*)msgRef.get();
-	if(captureEventRef->m_type == CaptureEvent::EtStop || captureEventRef->m_type == CaptureEvent::EtStart || captureEventRef->m_type == CaptureEvent::EtReady || captureEventRef->m_type == CaptureEvent::EtUpdate)
+	if(captureEventRef.get() == 0)
+	{
+		// No more events, the tape is ready
+		PopulateTapeMessage(pTapeMsg, CaptureEvent::EtReady);
+	}
+	else if(captureEventRef->m_type == CaptureEvent::EtStop || captureEventRef->m_type == CaptureEvent::EtStart || captureEventRef->m_type == CaptureEvent::EtUpdate)
 	{
 		PopulateTapeMessage(pTapeMsg, captureEventRef->m_type);
 	}
