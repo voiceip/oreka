@@ -30,11 +30,15 @@
 # define snprintf _snprintf
 #endif
 
-ConfigManager ConfigManager::m_singleton;
+ConfigManager* ConfigManager::m_singleton = NULL;
 
 ConfigManager* ConfigManager::Instance()
 {
-	return &m_singleton;
+	if(m_singleton == NULL)
+	{
+		m_singleton = new ConfigManager();
+	}
+	return m_singleton;
 }
 
 void ConfigManager::Initialize()
