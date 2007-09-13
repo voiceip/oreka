@@ -47,6 +47,7 @@ void TapeMsg::Define(Serializer* s)
 	s->StringValue(REMOTE_IP_PARAM, m_remoteIp);
 	//s->StringValue(LOCAL_MAC_PARAM, m_localMac);
 	//s->StringValue(REMOTE_MAC_PARAM, m_remoteMac);
+	s->StringValue(NATIVE_CALLID_PARAM, m_nativeCallId);
 
 	s->CsvMapValue(TAGS_PARAM, m_tags);
 
