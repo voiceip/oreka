@@ -708,6 +708,14 @@ SOURCE=.\StdString.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\TapeFileNaming.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\TapeFileNaming.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\TapeProcessor.cpp
 # End Source File
 # Begin Source File
