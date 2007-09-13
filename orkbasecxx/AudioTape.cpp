@@ -351,6 +351,7 @@ void AudioTape::PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum ev
 	msg->m_timestamp = m_beginDate;
 	msg->m_localIp = m_localIp;
 	msg->m_remoteIp = m_remoteIp;
+	msg->m_nativeCallId = m_nativeCallId;
 
 	MutexSentinel sentinel(m_mutex);;
 	std::copy(m_tags.begin(), m_tags.end(), std::inserter(msg->m_tags, msg->m_tags.begin()));
