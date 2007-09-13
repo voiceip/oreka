@@ -236,13 +236,9 @@ char* GrabLine(char* start, char* limit, CStdString& out)
 // Grabs a line of characters in memory skipping any leading
 // whitespaces.  This is intended for use in the case of SIP
 // headers, ref RFC 3261, section 7.3.1
-char* GrabLineSkipLeadingWhitespace(char* start, char* limit, CStdString& out)
+void GrabLineSkipLeadingWhitespace(char* start, char* limit, CStdString& out)
 {
-	char* c = start;
-	while(*c == 0x20 && (*c != '\0' && *c != 0x0D && *c != 0x0A) && c<limit)
-	{
-		c = c+1;
-	}
+	char* c = SkipWhitespaces(start, limit);
 
 	GrabLine(c, limit, out);
 }
