@@ -17,7 +17,7 @@
 	<DeleteNativeFile>yes</DeleteNativeFile>
 	
 	<TrackerHostname>localhost</TrackerHostname>
-	<EnableReporting>false</EnableReporting>
+	<EnableReporting>true</EnableReporting>
 	<ClientTimeout>1000</ClientTimeout>
 	
 	<NumBatchThreads></NumBatchThreads>
