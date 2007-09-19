@@ -310,7 +310,11 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 	}
 	else
 	{
-		LOG4CXX_ERROR(m_log,  "[" + m_trackingId + "] " + m_ipAndPort + " alien RTP packet");
+		m_inviteeIp = rtpPacket->m_sourceIp;
+		m_inviteeTcpPort = rtpPacket->m_sourcePort;
+		m_invitorTcpPort = rtpPacket->m_destPort;
+		memcpy(m_inviteeMac, rtpPacket->m_sourceMac, sizeof(m_inviteeMac));
+		LOG4CXX_WARN(m_log,  "[" + m_trackingId + "] " + m_ipAndPort + " alien RTP packet");
 	}
 
 	// work out capture port and direction
@@ -933,30 +937,23 @@ void RtpSessions::ReportSip200Ok(Sip200OkInfoRef info)
 	{
 		RtpSessionRef session = pair->second;
 
-		if(info->m_hasSdp && DLLCONFIG.IsPartOfLan(session->m_fromRtpIp) && !DLLCONFIG.IsPartOfLan(info->m_fromRtpIp) && !session->m_numRtpPackets)
+		//if(info->m_hasSdp && DLLCONFIG.IsPartOfLan(session->m_fromRtpIp) && !DLLCONFIG.IsPartOfLan(info->m_fromRtpIp) && !session->m_numRtpPackets)
+		if(info->m_hasSdp && DLLCONFIG.m_sipUse200OkMediaAddress && !session->m_numRtpPackets) 
 		{
-			char szFromRtpIp[16];
-
-			ACE_OS::inet_ntop(AF_INET, (void*)&info->m_fromRtpIp, szFromRtpIp, sizeof(szFromRtpIp));
-			m_byIpAndPort.erase(session->m_ipAndPort);
-			session->m_ipAndPort = CStdString(szFromRtpIp) + "," + info->m_fromRtpPort;
-
-			pair = m_byIpAndPort.find(session->m_ipAndPort);
-			if (pair != m_byIpAndPort.end())
-			{
-				RtpSessionRef session2 = pair->second;
-
-				if(session2->m_protocol == RtpSession::ProtRawRtp)
-				{
-					Stop(session2);
-				}
-			}
-
-			m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
-
-			LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] updated RTP address: " + session->m_ipAndPort);
+			unsigned short mediaPort = ACE_OS::atoi(info->m_mediaPort);
+			SetMediaAddress(session, info->m_mediaIp, mediaPort);
 		}
+		//else
+		//{
+		//	CStdString logString;
+		//	logString.Format("hasSDP:%d use200:%d numRtpPkts:%d callId:%s", info->m_hasSdp, DLLCONFIG.m_sipUse200OkMediaAddress, session->m_numRtpPackets, info->m_callId);
+		//	LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] 200Ok RTP address not updated: " + session->m_ipAndPort + " " + logString );
+		//}
 	}
+	//else
+	//{
+	//	LOG4CXX_INFO(m_log, "200OK Did not find " + info->m_callId);
+	//}
 }
 
 void RtpSessions::ReportSipBye(SipByeInfo bye)
@@ -1796,7 +1793,7 @@ void SipFailureMessageInfo::ToString(CStdString& string)
 
 Sip200OkInfo::Sip200OkInfo()
 {
-	m_fromRtpIp.s_addr = 0;
+	m_mediaIp.s_addr = 0;
 	m_hasSdp = false;
 }
 
