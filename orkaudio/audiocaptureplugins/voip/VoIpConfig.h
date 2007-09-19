@@ -74,6 +74,7 @@ public:
 	bool m_iax2Support;
 	bool m_sipOverTcpSupport;
 	bool m_sipLogFailedCalls;
+	bool m_sipUse200OkMediaAddress;
 	bool m_useMacIfNoLocalParty;
 
 	bool m_skinnyIgnoreStopMediaTransmission;

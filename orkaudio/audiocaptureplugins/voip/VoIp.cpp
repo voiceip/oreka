@@ -1396,7 +1396,12 @@ bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 
 		Sip200OkInfoRef info(new Sip200OkInfo());
 
-		char* callIdField = memFindAfter("\r\ni:", (char*)udpPayload, sipEnd);
+		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
+		if(!callIdField)
+		{
+			callIdField = memFindAfter("\ni:", (char*)udpPayload, sipEnd);
+		}
+
 		char* audioField = NULL;
 		char* connectionAddressField = NULL;
 
@@ -1410,16 +1415,16 @@ bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 		{
 			info->m_hasSdp = true;
 
-			GrabToken(audioField, sipEnd, info->m_fromRtpPort);
+			GrabToken(audioField, sipEnd, info->m_mediaPort);
 
 			CStdString connectionAddress;
 			GrabToken(connectionAddressField, sipEnd, connectionAddress);
-			struct in_addr fromIp;
+			struct in_addr mediaIp;
 			if(connectionAddress.size())
 			{
-				if(ACE_OS::inet_aton((PCSTR)connectionAddress, &fromIp))
+				if(ACE_OS::inet_aton((PCSTR)connectionAddress, &mediaIp))
 				{
-					info->m_fromRtpIp = fromIp;
+					info->m_mediaIp = mediaIp;
 				}
 			}
 		}

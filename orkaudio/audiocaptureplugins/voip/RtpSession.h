@@ -77,8 +77,8 @@ public:
 	Sip200OkInfo();
 	CStdString m_callId;
 	bool m_hasSdp;
-	struct in_addr m_fromRtpIp;
-	CStdString m_fromRtpPort;
+	struct in_addr m_mediaIp;
+	CStdString m_mediaPort;
 };
 
 typedef boost::shared_ptr<Sip200OkInfo> Sip200OkInfoRef;
