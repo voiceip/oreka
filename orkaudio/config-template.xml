@@ -17,13 +17,13 @@
 	<DeleteNativeFile>yes</DeleteNativeFile>
 	
 	<TrackerHostname>localhost</TrackerHostname>
-	<EnableReporting>false</EnableReporting>
+	<EnableReporting>true</EnableReporting>
 		
 	<AudioSegmentation>false</AudioSegmentation>
 	<AudioSegmentDuration>10</AudioSegmentDuration>
 
 	<CapturePortFilters>LiveMonitoring</CapturePortFilters>
-	<TapeProcessors>BatchProcessing</TapeProcessors>
+	<TapeProcessors>BatchProcessing, Reporting</TapeProcessors>
 	
 	<VoIpPlugin>
                 <!-- Set the option below to "false" to disable IAX2 support -->
