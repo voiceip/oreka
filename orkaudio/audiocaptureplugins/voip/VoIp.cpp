@@ -1031,7 +1031,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 		u_short dest = ntohs(udpHeader->dest);
 		if(!(ntohs(udpHeader->source)%2) && !(ntohs(udpHeader->dest)%2) || DLLCONFIG.m_rtpDetectOnOddPorts)	// udp ports usually even 
 		{
-			if((rtpHeader->pt <= 34 &&  rtpHeader->pt != 13) || rtpHeader->pt == 97 || rtpHeader->pt == 98)		// pt=34 is H263 and is the last possible valid codec 
+			if((rtpHeader->pt <= 34 &&  rtpHeader->pt != 13) || rtpHeader->pt == 97 || rtpHeader->pt == 98 || rtpHeader->pt > 98)		// pt=34 is H263 and is the last possible valid codec, pt > 98 is for the case of SIP telephone-event
 			{													// pt=13 is CN (Comfort Noise)
 				result = true;
 				u_char* payload = (u_char *)rtpHeader + sizeof(RtpHeaderStruct);
@@ -1470,6 +1470,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		char* audioField = NULL;
 		char* connectionAddressField = NULL;
 		char* attribSendonly = memFindAfter("a=sendonly", (char*)udpPayload, sipEnd);
+		char* rtpmapAttribute = memFindAfter("\na=rtpmap:", (char*)udpPayload, sipEnd);
 
 		if(fromField)
 		{
@@ -1580,6 +1581,34 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 
 				GrabLineSkipLeadingWhitespace(szField, sipEnd, field);
 				info->m_extractedFields.insert(std::make_pair(*it, field));
+			}
+		}
+
+		if(rtpmapAttribute)
+		{
+			CStdString rtpPayloadType, nextToken;
+			char *nextStep = NULL;
+
+			while(rtpmapAttribute && rtpmapAttribute < sipEnd)
+			{
+				GrabTokenSkipLeadingWhitespaces(rtpmapAttribute, sipEnd, rtpPayloadType);
+				nextToken.Format("%s ", rtpPayloadType);
+				nextStep = memFindAfter((char*)nextToken.c_str(), rtpmapAttribute, sipEnd);
+
+				/* We need our "nextStep" to contain at least the length
+				 * of the string "telephone-event", 15 characters */
+				if(nextStep && ((sipEnd - nextStep) >= 15))
+				{
+					if(strncasecmp(nextStep, "telephone-event", 15) == 0)
+					{
+						/* Our DTMF packets are indicated using
+						 * the payload type rtpPayloadType */
+						info->m_telephoneEventPayloadType = rtpPayloadType;
+						break;
+					}
+				}
+
+				rtpmapAttribute = memFindAfter("\na=rtpmap:", rtpmapAttribute, sipEnd);
 			}
 		}
 

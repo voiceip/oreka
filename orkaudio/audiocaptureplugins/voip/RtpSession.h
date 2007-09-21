@@ -42,6 +42,7 @@ public:
 	bool m_validated;		// true when an RTP stream has been seen for the INVITE
 	bool m_attrSendonly;		// true if the SDP has a:sendonly
 	std::map<CStdString, CStdString> m_extractedFields;
+	CStdString m_telephoneEventPayloadType;
 
 	time_t m_recvTime;
 };
@@ -145,6 +146,8 @@ private:
 	void ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket);
 	void ReportMetadata();
 	void GenerateOrkUid();
+	void HandleRtpEvent(RtpPacketInfoRef& rtpPacket);
+	void RecordRtpEvent();
 
 	RtpPacketInfoRef m_lastRtpPacket;
 	RtpPacketInfoRef m_lastRtpPacketSide1;
@@ -174,6 +177,14 @@ private:
 	TcpAddressList m_rtpAddressList;
 	std::list<SipInviteInfoRef> m_invites;
 	std::map<CStdString, CStdString> m_tags;
+	CStdString m_telephoneEventPayloadType;
+
+	unsigned short m_currentRtpEvent;
+	unsigned int m_currentRtpEventTs;
+	unsigned int m_currentDtmfDuration;
+	unsigned int m_currentDtmfVolume;
+	unsigned int m_currentSeqNo;
+	unsigned int m_lastEventEndSeqNo;
 };
 typedef boost::shared_ptr<RtpSession> RtpSessionRef;
 

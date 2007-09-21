@@ -57,6 +57,11 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_skinnyPassThruPartyId = 0;
 	memset(m_localMac, 0, sizeof(m_localMac));
 	memset(m_remoteMac, 0, sizeof(m_remoteMac));
+	m_currentRtpEvent = 65535;
+	m_lastEventEndSeqNo = 0;
+	m_currentDtmfDuration = 0;
+	m_currentRtpEventTs = 0;
+	m_currentDtmfVolume = 0;
 }
 
 void RtpSession::Stop()
@@ -478,6 +483,85 @@ void RtpSession::ReportMetadata()
 	g_captureEventCallBack(event, m_capturePort);
 }
 
+void RtpSession::RecordRtpEvent()
+{
+	CaptureEventRef event(new CaptureEvent());
+	CStdString dtmfEventString, dtmfEventKey;
+
+	dtmfEventString.Format("event:%d timestamp:%d duration:%d volume:%d seqno:%d", m_currentRtpEvent, m_currentRtpEventTs,
+ m_currentDtmfDuration, m_currentDtmfVolume, m_currentSeqNo);
+	dtmfEventKey.Format("%d_RtpDtmfEvent", m_currentRtpEventTs);
+	event->m_type = CaptureEvent::EtKeyValue;
+	event->m_key = dtmfEventKey;
+	event->m_value = dtmfEventString;
+	g_captureEventCallBack(event, m_capturePort);
+
+	//LOG4CXX_INFO(m_log, "[" + m_trackingId + "] Recording RTP event [ " + dtmfEventString + " ]");
+}
+
+void RtpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket)
+{
+	CStdString logMsg;
+
+	if(rtpPacket->m_payloadSize < sizeof(RtpEventPayloadFormat))
+	{
+		LOG4CXX_WARN(m_log, "[" + m_trackingId + "] Payload size for event packet too small");
+		return;
+	}
+
+	RtpEventPayloadFormat *payloadFormat = (RtpEventPayloadFormat *)rtpPacket->m_payload;
+	RtpEventInfoRef rtpEventInfo(new RtpEventInfo());
+
+	rtpEventInfo->m_event = (unsigned short)payloadFormat->event;
+	rtpEventInfo->m_e = (payloadFormat->er_volume & 0x80) ? 1 : 0;
+	rtpEventInfo->m_r = (payloadFormat->er_volume & 0x40) ? 1 : 0;
+	rtpEventInfo->m_volume = (unsigned short)(payloadFormat->er_volume & 0x3F);
+	rtpEventInfo->m_duration = ntohs(payloadFormat->duration);
+	rtpEventInfo->m_startTimestamp = rtpPacket->m_timestamp;
+
+	if((m_currentRtpEvent != 65535) && (m_currentRtpEvent != rtpEventInfo->m_event))
+	{
+		RecordRtpEvent();
+	}
+	else if(rtpEventInfo->m_e)
+	{
+		if((m_currentRtpEvent != 65535))
+		{
+			m_currentDtmfDuration = rtpEventInfo->m_duration;
+			m_currentDtmfVolume = rtpEventInfo->m_volume;
+			m_currentRtpEventTs = rtpEventInfo->m_startTimestamp;
+			m_currentSeqNo = rtpPacket->m_seqNum;
+
+			if(m_lastEventEndSeqNo != rtpPacket->m_seqNum)
+			{
+				RecordRtpEvent();
+				m_lastEventEndSeqNo = rtpPacket->m_seqNum;
+			}
+
+			m_currentRtpEvent = 65535;
+		}
+
+		rtpEventInfo->m_event = 65535;
+		rtpEventInfo->m_duration = 0;
+	}
+	else if((m_currentRtpEvent != 65535) && m_currentDtmfDuration && (rtpEventInfo->m_duration < m_currentDtmfDuration))
+	{
+		RecordRtpEvent();
+	}
+
+	if(!rtpEventInfo->m_e)
+	{
+		m_currentRtpEvent = rtpEventInfo->m_event;
+	}
+
+	m_currentDtmfDuration = rtpEventInfo->m_duration;
+	m_currentDtmfVolume = rtpEventInfo->m_volume;
+	m_currentRtpEventTs = rtpEventInfo->m_startTimestamp;
+	m_currentSeqNo = rtpPacket->m_seqNum;
+
+	return;
+}
+
 // Returns false if the packet does not belong to the session (RTP timestamp discontinuity)
 bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 {
@@ -507,6 +591,17 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 			(unsigned int)rtpPacket->m_destIp.s_addr != (unsigned int)m_endPointIp.s_addr     )
 		{
 			return true;	// dismiss packet that has neither source or destination matching the endpoint.
+		}
+	}
+
+	if(m_protocol == ProtSip)
+	{
+		/* Check if this is a telephone-event */
+		if(rtpPacket->m_payloadType == StringToInt(m_telephoneEventPayloadType))
+		{
+			// This is a telephone-event
+			HandleRtpEvent(rtpPacket);
+			return true;
 		}
 	}
 
@@ -705,6 +800,7 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 		LOG4CXX_INFO(m_log, logMsg);
 	}
 	m_invites.push_front(invite);
+	m_telephoneEventPayloadType = invite->m_telephoneEventPayloadType;
 
 	// Gather extracted fields
 	std::copy(invite->m_extractedFields.begin(), invite->m_extractedFields.end(), std::inserter(m_tags, m_tags.begin()));
