@@ -92,6 +92,15 @@ typedef struct
 	//unsigned int csrc[1];		// optional CSRC list
 } RtpHeaderStruct;
 
+// Structure of RTP payload format for RTP events (ref RFC 2833, section
+// 3.5)
+typedef struct
+{
+	unsigned char event;
+	unsigned char er_volume;
+	unsigned short duration;
+} RtpEventPayloadFormat;
+
 //===================================================================
 // Cisco Callmanager -> endpoint messages
 typedef struct

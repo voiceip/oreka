@@ -41,3 +41,7 @@ void RtpPacketInfo::ToString(CStdString& string)
 	string.Format("%s,%d %s,%d seq:%u ts:%u len:%d type:%d", sourceIp, m_sourcePort, destIp, m_destPort, m_seqNum, m_timestamp, m_payloadSize, m_payloadType);
 }
 
+void RtpEventInfo::ToString(CStdString& string)
+{
+	string.Format("event:%d e:%d r:%d volume:%d duration:%d timestamp:%u", m_event, m_e, m_r, m_volume, m_duration, m_startTimestamp);
+}
