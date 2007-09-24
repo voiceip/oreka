@@ -75,6 +75,7 @@ public:
 	bool m_sipOverTcpSupport;
 	bool m_sipLogFailedCalls;
 	bool m_sipUse200OkMediaAddress;
+	bool m_sipReportFullAddress;
 	bool m_useMacIfNoLocalParty;
 
 	bool m_skinnyIgnoreStopMediaTransmission;

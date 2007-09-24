@@ -196,6 +196,35 @@ char* SkipWhitespaces(char* in, char* limit)
 	return c;
 }
 
+void GrabSipUserAddress(char* in, char* limit, CStdString& out)
+{
+	char* userStart = SkipWhitespaces(in, limit);
+	bool passedUserPart = false;
+
+	if(userStart >= limit)
+	{
+		return;
+	}
+
+	/* Taken from RFC 1035, section 2.3.1 recommendation for
+	 * domain names, we will add checks for '.' and '@' to allow
+	 * the host part */
+	for(char* c = userStart; (ACE_OS::ace_isalnum(*c) || *c == '#' || *c == '@' || *c == '.' || *c == '-' || *c == ':') && c < limit ; c = c+1)
+	{
+		if(*c == '@' && !passedUserPart)
+		{
+			passedUserPart = true;
+		}
+
+		if(*c == ':' && passedUserPart)
+		{
+			break;
+		}
+
+		out += *c;
+	}
+}
+
 void GrabSipUriUser(char* in, char* limit, CStdString& out)
 {
 	char* userStart = SkipWhitespaces(in, limit);
@@ -1486,11 +1515,25 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			char* sipUser = memFindAfter("sip:", fromField, fromFieldEnd);
 			if(sipUser)
 			{
-				GrabSipUriUser(sipUser, fromFieldEnd, info->m_from);
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sipUser, fromFieldEnd, info->m_from);
+				}
+				else
+				{
+					GrabSipUriUser(sipUser, fromFieldEnd, info->m_from);
+				}
 			}
 			else
 			{
-				GrabSipUriUser(fromField, fromFieldEnd, info->m_from);
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(fromField, fromFieldEnd, info->m_from);
+				}
+				else
+				{
+					GrabSipUriUser(fromField, fromFieldEnd, info->m_from);
+				}
 			}
 		}
 		if(toField)
@@ -1502,11 +1545,25 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			char* sipUser = memFindAfter("sip:", toField, toFieldEnd);
 			if(sipUser)
 			{
-				GrabSipUriUser(sipUser, toFieldEnd, info->m_to);
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sipUser, toFieldEnd, info->m_to);
+				}
+				else
+				{
+					GrabSipUriUser(sipUser, toFieldEnd, info->m_to);
+				}
 			}
 			else
 			{
-				GrabSipUriUser(toField, toFieldEnd, info->m_to);
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(toField, toFieldEnd, info->m_to);
+				}
+				else
+				{
+					GrabSipUriUser(toField, toFieldEnd, info->m_to);
+				}
 			}
 		}
 		if(callIdField)
