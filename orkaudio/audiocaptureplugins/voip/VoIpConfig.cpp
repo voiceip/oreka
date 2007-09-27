@@ -33,6 +33,7 @@ VoIpConfig::VoIpConfig()
 	m_rtpSessionTimeoutSec = 10;
 	m_rtpSessionWithSignallingTimeoutSec = 5*60;
 	m_rtpSessionOnHoldTimeOutSec = 1800;
+	m_rtpReportDtmf = false;
 	m_pcapTest= false;
 	m_rtpDiscontinuityDetect = false;
 	m_rtpDiscontinuityMinSeqDelta = 1000;
@@ -76,6 +77,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("RtpSessionTimeoutSec", m_rtpSessionTimeoutSec);
 	s->IntValue("RtpSessionWithSignallingTimeoutSec", m_rtpSessionWithSignallingTimeoutSec);
 	s->IntValue("RtpSessionOnHoldTimeOutSec", m_rtpSessionOnHoldTimeOutSec);
+	s->BoolValue("RtpReportDtmf", m_rtpReportDtmf);
 	s->BoolValue("PcapTest", m_pcapTest);
 	s->StringValue("PcapFilter", m_pcapFilter);
 	s->BoolValue("RtpDiscontinuityDetect", m_rtpDiscontinuityDetect);
