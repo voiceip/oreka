@@ -596,12 +596,18 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	if(m_protocol == ProtSip)
 	{
-		/* Check if this is a telephone-event */
-		if(rtpPacket->m_payloadType == StringToInt(m_telephoneEventPayloadType))
+		if(DLLCONFIG.m_rtpReportDtmf)
 		{
-			// This is a telephone-event
-			HandleRtpEvent(rtpPacket);
-			return true;
+			/* Check if this is a telephone-event */
+			if(m_telephoneEventPayloadType.CompareNoCase("UNDEFINED") != 0)
+			{
+				if(rtpPacket->m_payloadType == StringToInt(m_telephoneEventPayloadType))
+				{
+					// This is a telephone-event
+					HandleRtpEvent(rtpPacket);
+					return true;
+				}
+			}
 		}
 	}
 
@@ -1844,6 +1850,7 @@ SipInviteInfo::SipInviteInfo()
 	m_fromRtpIp.s_addr = 0;
 	m_validated = false;
 	m_attrSendonly = false;
+	m_telephoneEventPayloadType = "UNDEFINED";
 }
 
 void SipInviteInfo::ToString(CStdString& string)

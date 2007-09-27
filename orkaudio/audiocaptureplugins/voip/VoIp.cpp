@@ -1641,31 +1641,34 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			}
 		}
 
-		if(rtpmapAttribute)
+		if(DLLCONFIG.m_rtpReportDtmf)
 		{
-			CStdString rtpPayloadType, nextToken;
-			char *nextStep = NULL;
-
-			while(rtpmapAttribute && rtpmapAttribute < sipEnd)
+			if(rtpmapAttribute)
 			{
-				GrabTokenSkipLeadingWhitespaces(rtpmapAttribute, sipEnd, rtpPayloadType);
-				nextToken.Format("%s ", rtpPayloadType);
-				nextStep = memFindAfter((char*)nextToken.c_str(), rtpmapAttribute, sipEnd);
+				CStdString rtpPayloadType, nextToken;
+				char *nextStep = NULL;
 
-				/* We need our "nextStep" to contain at least the length
-				 * of the string "telephone-event", 15 characters */
-				if(nextStep && ((sipEnd - nextStep) >= 15))
+				while(rtpmapAttribute && rtpmapAttribute < sipEnd)
 				{
-					if(ACE_OS::strncasecmp(nextStep, "telephone-event", 15) == 0)
-					{
-						/* Our DTMF packets are indicated using
-						 * the payload type rtpPayloadType */
-						info->m_telephoneEventPayloadType = rtpPayloadType;
-						break;
-					}
-				}
+					GrabTokenSkipLeadingWhitespaces(rtpmapAttribute, sipEnd, rtpPayloadType);
+					nextToken.Format("%s ", rtpPayloadType);
+					nextStep = memFindAfter((char*)nextToken.c_str(), rtpmapAttribute, sipEnd);
 
-				rtpmapAttribute = memFindAfter("\na=rtpmap:", rtpmapAttribute, sipEnd);
+					/* We need our "nextStep" to contain at least the length
+					 * of the string "telephone-event", 15 characters */
+					if(nextStep && ((sipEnd - nextStep) >= 15))
+					{
+						if(ACE_OS::strncasecmp(nextStep, "telephone-event", 15) == 0)
+						{
+							/* Our DTMF packets are indicated using
+							 * the payload type rtpPayloadType */
+							info->m_telephoneEventPayloadType = rtpPayloadType;
+							break;
+						}
+					}
+
+					rtpmapAttribute = memFindAfter("\na=rtpmap:", rtpmapAttribute, sipEnd);
+				}
 			}
 		}
 
