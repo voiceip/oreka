@@ -62,6 +62,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_currentDtmfDuration = 0;
 	m_currentRtpEventTs = 0;
 	m_currentDtmfVolume = 0;
+	m_sessionTelephoneEventPtDefined = false;
 }
 
 void RtpSession::Stop()
@@ -599,7 +600,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		if(DLLCONFIG.m_rtpReportDtmf)
 		{
 			/* Check if this is a telephone-event */
-			if(m_telephoneEventPayloadType.CompareNoCase("UNDEFINED") != 0)
+			if(m_sessionTelephoneEventPtDefined)
 			{
 				if(rtpPacket->m_payloadType == StringToInt(m_telephoneEventPayloadType))
 				{
@@ -806,7 +807,11 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 		LOG4CXX_INFO(m_log, logMsg);
 	}
 	m_invites.push_front(invite);
-	m_telephoneEventPayloadType = invite->m_telephoneEventPayloadType;
+	if(invite->m_telephoneEventPtDefined)
+	{
+		m_telephoneEventPayloadType = invite->m_telephoneEventPayloadType;
+		m_sessionTelephoneEventPtDefined = true;
+	}
 
 	// Gather extracted fields
 	std::copy(invite->m_extractedFields.begin(), invite->m_extractedFields.end(), std::inserter(m_tags, m_tags.begin()));
@@ -1850,7 +1855,7 @@ SipInviteInfo::SipInviteInfo()
 	m_fromRtpIp.s_addr = 0;
 	m_validated = false;
 	m_attrSendonly = false;
-	m_telephoneEventPayloadType = "UNDEFINED";
+	m_telephoneEventPtDefined = false;
 }
 
 void SipInviteInfo::ToString(CStdString& string)

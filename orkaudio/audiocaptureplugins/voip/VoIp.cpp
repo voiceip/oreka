@@ -1663,6 +1663,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 							/* Our DTMF packets are indicated using
 							 * the payload type rtpPayloadType */
 							info->m_telephoneEventPayloadType = rtpPayloadType;
+							info->m_telephoneEventPtDefined = true;
 							break;
 						}
 					}
