@@ -43,6 +43,7 @@ public:
 	bool m_attrSendonly;		// true if the SDP has a:sendonly
 	std::map<CStdString, CStdString> m_extractedFields;
 	CStdString m_telephoneEventPayloadType;
+	bool m_telephoneEventPtDefined;
 
 	time_t m_recvTime;
 };
@@ -177,6 +178,7 @@ private:
 	TcpAddressList m_rtpAddressList;
 	std::list<SipInviteInfoRef> m_invites;
 	std::map<CStdString, CStdString> m_tags;
+	bool m_sessionTelephoneEventPtDefined;
 	CStdString m_telephoneEventPayloadType;
 
 	unsigned short m_currentRtpEvent;
