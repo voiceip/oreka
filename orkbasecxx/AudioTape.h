@@ -45,6 +45,7 @@ public:
 	int m_duration;
 	CStdString m_localIp;
 	CStdString m_remoteIp;
+	CStdString m_filename;
 };
 
 class DLL_IMPORT_EXPORT_ORKBASE AudioTape
