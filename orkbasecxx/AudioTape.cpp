@@ -46,6 +46,7 @@ void AudioTapeDescription::Define(Serializer* s)
 	s->StringValue("localEntryPoint", m_localEntryPoint);
 	s->StringValue("localIp", m_localIp);
 	s->StringValue("remoteIp", m_remoteIp);
+	s->StringValue("filename", m_filename);
 }
 
 void AudioTapeDescription::Validate(){}
@@ -251,6 +252,7 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 			atd.m_remoteParty = m_remoteParty;
 			atd.m_localIp = m_localIp;
 			atd.m_remoteIp = m_remoteIp;
+			atd.m_filename = GetFilename();
 			CStdString description = atd.SerializeSingleLine();
 			LOG4CXX_INFO(LOG.tapelistLog, description);
 		}
