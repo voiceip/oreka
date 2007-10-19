@@ -93,6 +93,7 @@ public:
 	CStdString m_remoteIp;
 	CStdString m_trackingId;
 	CStdString m_nativeCallId;
+	StateEnum m_state;
 
 	TapeResponseRef m_tapeResponse;
 
@@ -127,7 +128,6 @@ private:
 
 	AudioFileRef m_audioFileRef;
 	ACE_Thread_Mutex m_mutex;
-	StateEnum m_state;
 	bool m_shouldStop;
 	bool m_readyForBatchProcessing;
 	CStdString m_orkUid;
