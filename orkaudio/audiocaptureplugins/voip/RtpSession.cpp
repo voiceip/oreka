@@ -1293,6 +1293,7 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 			LOG4CXX_INFO(m_log, logMsg);
 		}
 
+		m_byIpAndPort.erase(session->m_ipAndPort);
 		session->m_ipAndPort = ipAndPort;
 		m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
 
