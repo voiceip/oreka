@@ -268,9 +268,19 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 
 bool CapturePort::IsExpired(time_t now)
 {
-	if((now - m_lastUpdated) > (10*60) && m_audioTapeRef->m_state != AudioTape::StateActive)	// 10 minutes
+	if((now - m_lastUpdated) > (10*60))	// 10 minutes
 	{
-		return true;
+		if(m_audioTapeRef.get())
+		{
+			if(m_audioTapeRef->m_state != AudioTape::StateActive)
+			{
+				return true;
+			}
+		}
+		else
+		{
+			return true;
+		}
 	}
 	return false;
 }
