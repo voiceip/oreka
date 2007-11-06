@@ -209,7 +209,7 @@ void GrabSipUserAddress(char* in, char* limit, CStdString& out)
 	/* Taken from RFC 1035, section 2.3.1 recommendation for
 	 * domain names, we will add checks for '.' and '@' to allow
 	 * the host part */
-	for(char* c = userStart; (ACE_OS::ace_isalnum(*c) || *c == '#' || *c == '@' || *c == '.' || *c == '-' || *c == ':') && c < limit ; c = c+1)
+	for(char* c = userStart; (ACE_OS::ace_isalnum(*c) || *c == '#' || *c == '*' || *c == '.' || *c == '+' || *c == '-' || *c == '_' || *c == ':' || *c == '@' ) && c < limit ; c = c+1)
 	{
 		if(*c == '@' && !passedUserPart)
 		{
@@ -234,7 +234,7 @@ void GrabSipUriUser(char* in, char* limit, CStdString& out)
 	}
 	// What stops a SIP URI user is a ':' (separating user from pwd) or an '@' (separating user from hostname)
 	// but no need to test for these as we only allow alphanums and '#'
-	for(char* c = userStart; (ACE_OS::ace_isalnum(*c) || *c == '#') && c < limit ; c = c+1)
+	for(char* c = userStart; (ACE_OS::ace_isalnum(*c) || *c == '#' || *c == '*' || *c == '.' || *c == '+' || *c == '-' || *c == '_' ) && c < limit ; c = c+1)
 	{
 		out += *c;
 	}
