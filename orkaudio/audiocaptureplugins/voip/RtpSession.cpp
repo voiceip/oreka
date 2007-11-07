@@ -149,7 +149,8 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 	}
 	else
 	{
-		m_capturePort = m_ipAndPort;
+		//m_capturePort = m_ipAndPort;
+		m_capturePort = m_trackingId;
 	}
 
 	if(sourceIsLocal)
@@ -166,7 +167,6 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
                 }
 
 		m_remoteParty = szDestIp;
-		//m_capturePort.Format("%s,%d", szSourceIp, rtpPacket->m_sourcePort);
 		m_localIp = rtpPacket->m_sourceIp;
 		m_remoteIp = rtpPacket->m_destIp;
 		memcpy(m_localMac, rtpPacket->m_sourceMac, sizeof(m_localMac));
@@ -186,7 +186,6 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 		}
 
 		m_remoteParty = szSourceIp;
-		//m_capturePort.Format("%s,%d", szDestIp, rtpPacket->m_destPort);
 		m_localIp = rtpPacket->m_destIp;
 		m_remoteIp = rtpPacket->m_sourceIp;
                 memcpy(m_localMac, rtpPacket->m_destMac, sizeof(m_localMac));
@@ -201,7 +200,8 @@ void RtpSession::ProcessMetadataSipIncoming()
 	m_direction = CaptureEvent::DirIn;
 	char szInviteeIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_inviteeIp, szInviteeIp, sizeof(szInviteeIp));
-	m_capturePort.Format("%s,%d", szInviteeIp, m_inviteeTcpPort);
+	//m_capturePort.Format("%s,%d", szInviteeIp, m_inviteeTcpPort);
+	m_capturePort = m_trackingId;
 	m_localIp = m_inviteeIp;
 	m_remoteIp = m_invitorIp;
 	memcpy(m_localMac, m_inviteeMac, sizeof(m_localMac));
@@ -215,7 +215,8 @@ void RtpSession::ProcessMetadataSipOutgoing()
 	m_direction = CaptureEvent::DirOut;
 	char szInvitorIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_invitorIp, szInvitorIp, sizeof(szInvitorIp));
-	m_capturePort.Format("%s,%d", szInvitorIp, m_invitorTcpPort);
+	//m_capturePort.Format("%s,%d", szInvitorIp, m_invitorTcpPort);
+	m_capturePort = m_trackingId;
 	m_localIp = m_invitorIp;
 	m_remoteIp = m_inviteeIp;
         memcpy(m_localMac, m_invitorMac, sizeof(m_localMac));
@@ -368,27 +369,28 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 
 void RtpSession::ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket)
 {
-	//  In Skinny we always want the endpoint (phone) to be used as a capture port and as a local IP address
+	//  In Skinny we always want the endpoint (phone) to be used as a local IP address
 	char szEndpointIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_endPointIp, szEndpointIp, sizeof(szEndpointIp));
+	m_capturePort = m_trackingId;
 
 	if( ( (unsigned int)m_endPointIp.s_addr) == ((unsigned int)rtpPacket->m_destIp.s_addr) )
 	{
-		m_capturePort.Format("%s,%u", szEndpointIp, rtpPacket->m_destPort);
+		//m_capturePort.Format("%s,%u", szEndpointIp, rtpPacket->m_destPort);
 
 		m_localIp = rtpPacket->m_destIp;
 		m_remoteIp = rtpPacket->m_sourceIp;
-                memcpy(m_localMac, rtpPacket->m_destMac, sizeof(m_localMac));
-                memcpy(m_remoteMac, rtpPacket->m_sourceMac, sizeof(m_remoteMac));
+		memcpy(m_localMac, rtpPacket->m_destMac, sizeof(m_localMac));
+		memcpy(m_remoteMac, rtpPacket->m_sourceMac, sizeof(m_remoteMac));
 	}
 	else
 	{
-		m_capturePort.Format("%s,%u", szEndpointIp, rtpPacket->m_sourcePort);
+		//m_capturePort.Format("%s,%u", szEndpointIp, rtpPacket->m_sourcePort);
 
 		m_localIp = rtpPacket->m_sourceIp;
 		m_remoteIp = rtpPacket->m_destIp;
-                memcpy(m_localMac, rtpPacket->m_sourceMac, sizeof(m_localMac));
-                memcpy(m_remoteMac, rtpPacket->m_destMac, sizeof(m_remoteMac));
+		memcpy(m_localMac, rtpPacket->m_sourceMac, sizeof(m_localMac));
+		memcpy(m_remoteMac, rtpPacket->m_destMac, sizeof(m_remoteMac));
 	}
 }
 
