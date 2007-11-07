@@ -118,6 +118,7 @@ public:
 	bool OrkUidMatches(CStdString &oUid);
 	bool PartyMatches(CStdString &party);
 
+	CStdString m_capturePort;
 	CStdString m_trackingId;
 	CStdString m_ipAndPort;	// IP address and TCP port of one side of the session, serves as a key for session storage and retrieval. Not necessarily the same as the capturePort (capturePort is usually the client (phone) IP+port)
 	struct in_addr m_fromRtpIp;
@@ -167,7 +168,6 @@ private:
 	//struct in_addr m_localMac;
 	//struct in_addr m_remoteMac;
 	LoggerPtr m_log;
-	CStdString m_capturePort;
 	bool m_started;
 	bool m_stopped;
 	CStdString m_orkUid;
