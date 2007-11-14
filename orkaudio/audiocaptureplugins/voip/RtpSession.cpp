@@ -402,8 +402,12 @@ void RtpSession::ReportMetadata()
 	char szRemoteIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_remoteIp, szRemoteIp, sizeof(szRemoteIp));
 
+	if(DLLCONFIG.m_localPartyForceLocalIp)
+	{
+		m_localParty = szLocalIp;
+	}
 	// Check if we don't have the local party based on the endpoint IP address
-	if(m_localParty.IsEmpty())
+	else if(m_localParty.IsEmpty())
 	{
 		if(m_protocol == ProtSkinny)
 		{
