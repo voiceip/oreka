@@ -911,35 +911,45 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	CStdString ipAndPort = CStdString(szFromRtpIp) + "," + invite->m_fromRtpPort;
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 
+	int rtpPortAsInt = StringToInt(invite->m_fromRtpPort);
+	unsigned short rtpPort = 0;
+	if(rtpPortAsInt>0 && rtpPortAsInt<65535)
+	{
+		rtpPort = rtpPortAsInt;
+	}
+
 	pair = m_byIpAndPort.find(ipAndPort);
 	if (pair != m_byIpAndPort.end())
 	{
-		// The session already exists, report the new INVITE
-
-		/*
-		 * If the sendonly attribute is present then our call is
-		 * going on hold.
-		 */
+		// A session already exists on this media address
 		RtpSessionRef session = pair->second;
 
-		if(invite->m_attrSendonly)
+		if(session->m_protocol == RtpSession::ProtRawRtp)
 		{
-			session->m_onHold = true;
-			LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going on hold");
-			return;
+			// Do nothing here so that we end up stopping this Raw RTP session 
+			// and creating new session below
 		}
 		else
 		{
-			if(session->m_onHold)
+			if(invite->m_attrSendonly)
 			{
-				session->m_onHold = false;
-				LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going off hold");
+				session->m_onHold = true;
+				LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going on hold");
 				return;
 			}
-		}
+			else
+			{
+				if(session->m_onHold)
+				{
+					session->m_onHold = false;
+					LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going off hold");
+					return;
+				}
+			}
 
-		session->ReportSipInvite(invite);
-		return;
+			session->ReportSipInvite(invite);
+			return;
+		}
 	}
 	pair = m_byCallId.find(invite->m_callId);
 	if (pair != m_byCallId.end())
@@ -997,7 +1007,8 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	session->m_callId = invite->m_callId;
 	session->m_protocol = RtpSession::ProtSip;
 	session->ReportSipInvite(invite);
-	m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
+	//m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
+	SetMediaAddress(session, invite->m_fromRtpIp, rtpPort);
 	m_byCallId.insert(std::make_pair(session->m_callId, session));
 
 	CStdString numSessions = IntToString(m_byIpAndPort.size());
