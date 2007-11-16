@@ -1425,6 +1425,17 @@ bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 
 		Sip200OkInfoRef info(new Sip200OkInfo());
 
+		char* fromField = memFindAfter("From:", (char*)udpPayload, sipEnd);
+		if(!fromField)
+		{
+			fromField = memFindAfter("\nf:", (char*)udpPayload, sipEnd);
+		}
+		char* toField = memFindAfter("To:", (char*)udpPayload, sipEnd);
+		if(!toField)
+		{
+			toField = memFindAfter("\nt:", (char*)udpPayload, sipEnd);
+		}
+
 		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
 		if(!callIdField)
 		{
@@ -1457,6 +1468,80 @@ bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 				}
 			}
 		}
+
+		if(fromField)
+		{
+			if(s_sipExtractionLog->isDebugEnabled())
+			{
+				CStdString from;
+				GrabLine(fromField, sipEnd, from);
+				LOG4CXX_DEBUG(s_sipExtractionLog, "from: " + from);
+			}
+
+			char* fromFieldEnd = memFindEOL(fromField, sipEnd);
+
+			char* sipUser = memFindAfter("sip:", fromField, fromFieldEnd);
+			if(sipUser)
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sipUser, fromFieldEnd, info->m_from);
+				}
+				else
+				{
+					GrabSipUriUser(sipUser, fromFieldEnd, info->m_from);
+				}
+			}
+			else
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(fromField, fromFieldEnd, info->m_from);
+				}
+				else
+				{
+					GrabSipUriUser(fromField, fromFieldEnd, info->m_from);
+				}
+			}
+		}
+		if(toField)
+		{
+			CStdString to;
+			char* toFieldEnd = GrabLine(toField, sipEnd, to);
+			LOG4CXX_DEBUG(s_sipExtractionLog, "to: " + to);
+
+			char* sipUser = memFindAfter("sip:", toField, toFieldEnd);
+			if(sipUser)
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sipUser, toFieldEnd, info->m_to);
+				}
+				else
+				{
+					GrabSipUriUser(sipUser, toFieldEnd, info->m_to);
+				}
+			}
+			else
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(toField, toFieldEnd, info->m_to);
+				}
+				else
+				{
+					GrabSipUriUser(toField, toFieldEnd, info->m_to);
+				}
+			}
+		}
+		info->m_senderIp = ipHeader->ip_src;
+		info->m_receiverIp = ipHeader->ip_dest;
+
+		CStdString logMsg;
+
+		info->ToString(logMsg);
+		logMsg = "200 OK: " + logMsg;
+		LOG4CXX_INFO(s_sipPacketLog, logMsg);
 
 		RtpSessionsSingleton::instance()->ReportSip200Ok(info);
 	}
