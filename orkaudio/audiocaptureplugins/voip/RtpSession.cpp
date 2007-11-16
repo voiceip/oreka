@@ -1923,3 +1923,23 @@ Sip200OkInfo::Sip200OkInfo()
 	m_hasSdp = false;
 }
 
+void Sip200OkInfo::ToString(CStdString& string)
+{
+	char mediaIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_mediaIp, mediaIp, sizeof(mediaIp));
+
+	char senderIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+
+	char receiverIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+
+	if(m_mediaPort.size())
+	{
+		string.Format("sender:%s from:%s RTP:%s,%s to:%s rcvr:%s callid:%s", senderIp, m_from, mediaIp, m_mediaPort, m_to, receiverIp, m_callId);
+	}
+	else
+	{
+		string.Format("sender:%s from:%s to:%s rcvr:%s callid:%s", senderIp, m_from, m_to, receiverIp, m_callId);
+	}
+}

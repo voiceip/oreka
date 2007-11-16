@@ -77,10 +77,17 @@ class Sip200OkInfo
 {
 public:
 	Sip200OkInfo();
+	void ToString(CStdString& string);
+
 	CStdString m_callId;
 	bool m_hasSdp;
 	struct in_addr m_mediaIp;
 	CStdString m_mediaPort;
+
+	struct in_addr m_senderIp;
+	struct in_addr m_receiverIp;
+	CStdString m_from;
+	CStdString m_to;
 };
 
 typedef boost::shared_ptr<Sip200OkInfo> Sip200OkInfoRef;
