@@ -305,10 +305,12 @@ void BatchProcessing::ThreadHandler(void *args)
 					stopChunk->GetDetails()->m_marker = MEDIA_CHUNK_EOS_MARKER;
 					filter->AudioChunkIn(stopChunk);
 					filter->AudioChunkOut(tmpChunkRef);
-					outFileRef->WriteChunk(tmpChunkRef);
-					if(tmpChunkRef.get())
+
+					while(tmpChunkRef.get())
 					{
+						outFileRef->WriteChunk(tmpChunkRef);
 						numSamplesOut += tmpChunkRef->GetNumSamples();
+						filter->AudioChunkOut(tmpChunkRef);
 					}
 				}
 
@@ -368,5 +370,6 @@ void BatchProcessing::ThreadHandler(void *args)
 	}
 	LOG4CXX_INFO(LOG.batchProcessingLog, CStdString("Exiting thread Th" + threadIdString));
 }
+
 
 
