@@ -53,7 +53,8 @@ class SipFailureMessageInfo
 {
 public:
 	SipFailureMessageInfo();
-	void ToString(CStdString& string);
+	virtual void ToString(CStdString& string);
+	virtual void ToString(CStdString& string, SipInviteInfoRef inviteInfo);
 
 	struct in_addr m_senderIp;
 	struct in_addr m_receiverIp;

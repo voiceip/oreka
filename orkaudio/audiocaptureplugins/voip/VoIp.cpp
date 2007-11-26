@@ -1214,10 +1214,11 @@ bool TryLogFailedSip(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHea
 	info->m_errorCode = errorCode;
 	info->m_errorString = errorString;
 
-	CStdString sipError;
+	// Logging is done in RtpSessions.cpp
+	//CStdString sipError;
 
-	info->ToString(sipError);
-	LOG4CXX_INFO(s_sipPacketLog, "SIP Error packet: " + sipError);
+	//info->ToString(sipError);
+	//LOG4CXX_INFO(s_sipPacketLog, "SIP Error packet: " + sipError);
 
 	RtpSessionsSingleton::instance()->ReportSipErrorPacket(info);
 
