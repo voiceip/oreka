@@ -100,6 +100,8 @@
 #define LOOKBACK_RECORDING_DEFAULT true
 #define ALLOW_AUTOMATIC_RECORDING_PARAM "AllowAutomaticRecording"
 #define ALLOW_AUTOMATIC_RECORDING_DEFAULT true
+#define CAPTURE_FILE_SIZE_LIMIT_KB_PARAM "CaptureFileSizeLimitKb"
+#define CAPTURE_FILE_SIZE_LIMIT_KB_DEFAULT 300000
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -157,6 +159,7 @@ public:
 	int m_httpServerPort;
 	bool m_lookBackRecording;
 	bool m_allowAutomaticRecording;
+	int m_captureFileSizeLimitKb;
 
 private:
 	log4cxx::LoggerPtr m_log;

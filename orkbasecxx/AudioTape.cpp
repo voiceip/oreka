@@ -81,6 +81,8 @@ AudioTape::AudioTape(CStdString &portId)
 	m_shouldStop = false;
 	m_readyForBatchProcessing = false;
 	m_trackingId = portId;	// to make sure this has a value before we get the capture tracking Id.
+	m_bytesWritten = 0;
+	m_lastLogWarning = 0;
 
 	GenerateCaptureFilePathAndIdentifier();
 }
@@ -177,7 +179,22 @@ void AudioTape::Write()
 				}
 				if (m_state == StateActive)
 				{
-					m_audioFileRef->WriteChunk(chunkRef);
+					if((m_bytesWritten / 1024) > CONFIG.m_captureFileSizeLimitKb)
+					{
+						if((time(NULL) - m_lastLogWarning) > 3600)
+						{
+							CStdString logMsg;
+
+							logMsg.Format("[%s] capture file %s.mcf is over size limit (%u KBytes) - ignoring new data", m_trackingId, GetIdentifier(), CONFIG.m_captureFileSizeLimitKb);
+							LOG4CXX_INFO(LOG.portLog, logMsg);
+							m_lastLogWarning = time(NULL);
+						}
+					}
+					else
+					{
+						m_audioFileRef->WriteChunk(chunkRef);
+						m_bytesWritten += chunkRef->GetNumBytes();
+					}
 
 					if (CONFIG.m_logRms)
 					{

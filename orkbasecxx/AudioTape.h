@@ -133,6 +133,9 @@ private:
 	CStdString m_orkUid;
 
 	std::map<CStdString, CStdString> m_tags;
+
+	int m_bytesWritten;
+	time_t m_lastLogWarning;
 };
 
 typedef boost::shared_ptr<AudioTape> AudioTapeRef;
