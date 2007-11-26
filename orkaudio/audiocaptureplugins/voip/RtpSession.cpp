@@ -830,6 +830,12 @@ void RtpSession::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
 	event->m_key = CStdString("failed");
 	event->m_value = CStdString("true");
 	g_captureEventCallBack(event, m_capturePort);
+
+	// Do the logging
+	CStdString sipError;
+
+	info->ToString(sipError, m_invite);
+	LOG4CXX_INFO(m_log, "[" + m_trackingId + "] SIP Error packet: " + sipError);
 }
 
 int RtpSession::ProtocolToEnum(CStdString& protocol)
@@ -1914,7 +1920,20 @@ void SipFailureMessageInfo::ToString(CStdString& string)
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
-	string.Format("sender:%s rcvr:%s smac:%s rmac:%s callid:%s errorcode:%s errorstr:\"%s\"", senderIp, receiverIp, senderMac, receiverMac, m_callId, m_errorCode, m_errorString);
+	string.Format("sender:%s rcvr:%s smac:%s rmac:%s callid:%s errorcode:%s reason:\"%s\"", senderIp, receiverIp, senderMac, receiverMac, m_callId, m_errorCode, m_errorString);
+}
+
+void SipFailureMessageInfo::ToString(CStdString& string, SipInviteInfoRef inviteInfo)
+{
+	char senderIp[16], receiverIp[16];
+	CStdString senderMac, receiverMac;
+
+	MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
+	MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+
+	string.Format("sender:%s from:%s to:%s rcvr:%s callid:%s errorcode:%s reason:\"%s\"", senderIp, inviteInfo->m_from, inviteInfo->m_to, receiverIp, inviteInfo->m_callId, m_errorCode, m_errorString);
 }
 
 Sip200OkInfo::Sip200OkInfo()
