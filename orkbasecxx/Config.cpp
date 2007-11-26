@@ -66,6 +66,7 @@ Config::Config()
 	m_httpServerPort = HTTP_SERVER_PORT_DEFAULT;
 	m_lookBackRecording = LOOKBACK_RECORDING_DEFAULT;
 	m_allowAutomaticRecording = ALLOW_AUTOMATIC_RECORDING_DEFAULT;
+	m_captureFileSizeLimitKb = CAPTURE_FILE_SIZE_LIMIT_KB_DEFAULT;
 }
 
 void Config::Define(Serializer* s)
@@ -135,6 +136,7 @@ void Config::Define(Serializer* s)
 	s->IntValue(HTTP_SERVER_PORT_PARAM, m_httpServerPort);
 	s->BoolValue(LOOKBACK_RECORDING_PARAM, m_lookBackRecording);
 	s->BoolValue(ALLOW_AUTOMATIC_RECORDING_PARAM, m_allowAutomaticRecording);	// only valid in non-lookback mode
+	s->IntValue(CAPTURE_FILE_SIZE_LIMIT_KB_PARAM, m_captureFileSizeLimitKb);
 }
 
 void Config::Validate()
