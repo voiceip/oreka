@@ -830,12 +830,6 @@ void RtpSession::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
 	event->m_key = CStdString("failed");
 	event->m_value = CStdString("true");
 	g_captureEventCallBack(event, m_capturePort);
-
-	// Do the logging
-	CStdString sipError;
-
-	info->ToString(sipError, m_invite);
-	LOG4CXX_INFO(m_log, "[" + m_trackingId + "] SIP Error packet: " + sipError);
 }
 
 int RtpSession::ProtocolToEnum(CStdString& protocol)
@@ -1043,9 +1037,11 @@ void RtpSessions::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
 			// Other error, stop the session
 			session->ReportSipErrorPacket(info);
 
-			CStdString InviteInfoString;
-			session->m_invite->ToString(InviteInfoString);
-			LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] stopped by SIP \"" + info->m_errorCode + " " + info->m_errorString + "\" " + InviteInfoString);
+			CStdString sipError;
+
+			info->ToString(sipError, session->m_invite);
+			LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP Error packet: " + sipError);
+
 			Stop(session);
 		}
 	}
@@ -1928,8 +1924,8 @@ void SipFailureMessageInfo::ToString(CStdString& string, SipInviteInfoRef invite
 	char senderIp[16], receiverIp[16];
 	CStdString senderMac, receiverMac;
 
-	MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
-	MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
+	//MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
+	//MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
