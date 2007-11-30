@@ -31,7 +31,8 @@ VoIpConfig::VoIpConfig()
 	m_pcapFastReplay = true;
 	m_pcapFastReplaySleepUsPerSec = 0;
 	m_rtpSessionTimeoutSec = 10;
-	m_rtpSessionWithSignallingTimeoutSec = 5*60;
+	m_rtpSessionWithSignallingTimeoutSec = 10;
+	m_rtpSessionWithSignallingInitialTimeoutSec = 5*60;
 	m_rtpSessionOnHoldTimeOutSec = 1800;
 	m_rtpReportDtmf = false;
 	m_pcapTest= false;
@@ -77,6 +78,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("PcapSocketBufferSize", m_pcapSocketBufferSize);
 	s->IntValue("RtpSessionTimeoutSec", m_rtpSessionTimeoutSec);
 	s->IntValue("RtpSessionWithSignallingTimeoutSec", m_rtpSessionWithSignallingTimeoutSec);
+	s->IntValue("RtpSessionWithSignallingInitialTimeoutSec", m_rtpSessionWithSignallingInitialTimeoutSec);
 	s->IntValue("RtpSessionOnHoldTimeOutSec", m_rtpSessionOnHoldTimeOutSec);
 	s->BoolValue("RtpReportDtmf", m_rtpReportDtmf);
 	s->BoolValue("PcapTest", m_pcapTest);
@@ -265,10 +267,15 @@ void VoIpConfig::Validate()
 	if(m_rtpSessionOnHoldTimeOutSec < 1)
 	{
 		CStdString exception;
-                exception.Format("VoIpConfig: RtpSessionOnHoldTimeOutSec must be > 0 (currently:%d) please fix config.xml", m_rtpSessionWithSignallingTimeoutSec);
-                throw (exception);
+		exception.Format("VoIpConfig: RtpSessionOnHoldTimeOutSec must be > 0 (currently:%d) please fix config.xml", m_rtpSessionOnHoldTimeOutSec);
+		throw (exception);
 	}
-
+	if(m_rtpSessionWithSignallingInitialTimeoutSec < 1)
+	{
+		CStdString exception;
+		exception.Format("VoIpConfig: RtpSessionWithSignallingInitialTimeoutSec must be > 0 (currently:%d) please fix config.xml", m_rtpSessionWithSignallingInitialTimeoutSec);
+		throw (exception);
+	}
 	if(m_sangomaRxTcpPortStart == 0)
 	{
 	}

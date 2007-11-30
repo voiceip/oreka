@@ -66,6 +66,7 @@ public:
 	int m_rtpSessionTimeoutSec;
 	int m_rtpSessionWithSignallingTimeoutSec;
 	int m_rtpSessionOnHoldTimeOutSec;
+	int m_rtpSessionWithSignallingInitialTimeoutSec;
 	bool m_pcapTest;
 	CStdString m_pcapFilter;
 	bool m_rtpDiscontinuityDetect;

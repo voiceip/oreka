@@ -1768,7 +1768,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 void RtpSessions::StopAll()
 {
-	time_t forceExpiryTime = time(NULL) + 2*DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec;
+	time_t forceExpiryTime = time(NULL) + 2*DLLCONFIG.m_rtpSessionWithSignallingInitialTimeoutSec;
 	Hoover(forceExpiryTime);
 }
 
@@ -1791,10 +1791,20 @@ void RtpSessions::Hoover(time_t now)
 		}
 		else
 		{
-			if(session->m_onHold) {
+			if(session->m_onHold)
+			{
 				timeoutSeconds = DLLCONFIG.m_rtpSessionOnHoldTimeOutSec;
-			} else {
-				timeoutSeconds = DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec;
+			}
+			else
+			{
+				if(session->m_numRtpPackets)
+				{
+					timeoutSeconds = DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec;
+				}
+				else
+				{
+					timeoutSeconds = DLLCONFIG.m_rtpSessionWithSignallingInitialTimeoutSec;
+				}
 			}
 		}
 		if((now - session->m_lastUpdated) > timeoutSeconds)
@@ -1817,15 +1827,28 @@ void RtpSessions::Hoover(time_t now)
 	{
 		RtpSessionRef session = pair->second;
 
-		if(session->m_onHold) {
+		if(session->m_onHold)
+		{
 			if((now - session->m_lastUpdated) > DLLCONFIG.m_rtpSessionOnHoldTimeOutSec)
-	                {
-        	                toDismiss.push_back(session);
-                	}
-		} else {
-			if((now - session->m_lastUpdated) > DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec)
 			{
 				toDismiss.push_back(session);
+			}
+		}
+		else
+		{
+			if(session->m_numRtpPackets)
+			{
+				if((now - session->m_lastUpdated) > DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec)
+				{
+					toDismiss.push_back(session);
+				}
+			}
+			else
+			{
+				if((now - session->m_lastUpdated) > DLLCONFIG.m_rtpSessionWithSignallingInitialTimeoutSec)
+				{
+					toDismiss.push_back(session);
+				}
 			}
 		}
 	}
