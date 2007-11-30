@@ -24,8 +24,8 @@
 // Structure of Ethernet header
 typedef struct
 {
-	unsigned char sourceMac[6];
 	unsigned char destinationMac[6];
+	unsigned char sourceMac[6];
 	unsigned short length;
 
 } EthernetHeaderStruct;
