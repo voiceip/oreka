@@ -18,6 +18,37 @@
 #include "TapeProcessor.h"
 #include "AudioTape.h"
 
+
+struct ReportingThreadInfo
+{
+	char m_serverHostname[256];
+	int m_serverPort;
+	int m_numTapesToSkip;
+	bool m_queueFullError;
+	char m_threadId[256];
+	ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
+	ACE_Thread_Mutex m_mutex;
+};
+typedef boost::shared_ptr<ReportingThreadInfo> ReportingThreadInfoRef;
+
+
+class ReportingThread
+{
+public:
+	ReportingThread();
+	void Run();
+
+	CStdString m_serverHostname;
+	int m_serverPort;
+
+	CStdString m_threadId;
+	ReportingThreadInfoRef m_myInfo;
+private:
+	bool IsSkip();
+};
+
+//=======================================================
+
 class DLL_IMPORT_EXPORT_ORKBASE Reporting : public TapeProcessor
 {
 public:
@@ -27,22 +58,23 @@ public:
 	CStdString __CDECL__ GetName();
 	TapeProcessorRef __CDECL__ Instanciate();
 	void __CDECL__ AddAudioTape(AudioTapeRef& audioTapeRef);
-	void __CDECL__ SkipTapes(int number);
+	void __CDECL__ SkipTapes(int number, CStdString trackingServer="");
 
 	//static Reporting* GetInstance();
 	static void ThreadHandler(void *args);
+	static void ReportingThreadEntryPoint(void *args);
 
 private:
 	Reporting();
-	bool IsSkip();
+	//bool IsSkip();
 
 	//static Reporting m_reportingSingleton;
 	static TapeProcessorRef m_singleton;
 
-	ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
-	bool m_queueFullError;
-	int numTapesToSkip;
-	ACE_Thread_Mutex m_mutex;
+	//ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
+	//bool m_queueFullError;
+	//int numTapesToSkip;
+	//ACE_Thread_Mutex m_mutex;
 };
 
 class DLL_IMPORT_EXPORT_ORKBASE ReportingSkipTapeMsg : public SyncMessage
@@ -58,7 +90,9 @@ public:
 	ObjectRef Process();
 
 	int m_number;
+	CStdString m_tracker;
 };
+
 
 #endif
 
