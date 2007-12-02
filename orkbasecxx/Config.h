@@ -130,7 +130,7 @@ public:
 	double m_vadHighThresholdDb;
 	double m_vadLowThresholdDb;
 	double m_vadHoldOnSec;
-	CStdString m_trackerHostname;
+	std::list<CStdString> m_trackerHostname;
 	CStdString m_trackerServicename;
 	int m_trackerTcpPort;
 	CStdString m_serviceName;

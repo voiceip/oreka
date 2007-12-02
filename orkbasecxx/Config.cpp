@@ -37,7 +37,7 @@ Config::Config()
 	m_vadHighThresholdDb = VAD_HIGH_THRESHOLD_DB_DEFAULT;
 	m_vadLowThresholdDb = VAD_LOW_THRESHOLD_DB_DEFAULT;
 	m_vadHoldOnSec = VAD_HOLD_ON_SEC_DEFAULT;
-	m_trackerHostname = TRACKER_HOSTNAME_DEFAULT;
+	m_trackerHostname.push_back(TRACKER_HOSTNAME_DEFAULT);
 	m_trackerTcpPort = TRACKER_TCP_PORT_DEFAULT;
 	m_trackerServicename = TRACKER_SERVICENAME_DEFAULT;
 	m_audioOutputPath = AUDIO_OUTPUT_PATH_DEFAULT;
@@ -87,7 +87,8 @@ void Config::Define(Serializer* s)
 	s->DoubleValue(VAD_HIGH_THRESHOLD_DB_PARAM, m_vadHighThresholdDb);
 	s->DoubleValue(VAD_LOW_THRESHOLD_DB_PARAM, m_vadLowThresholdDb);
 	s->DoubleValue(VAD_HOLD_ON_SEC_PARAM, m_vadHoldOnSec);
-	s->StringValue(TRACKER_HOSTNAME_PARAM, m_trackerHostname);
+	//s->StringValue(TRACKER_HOSTNAME_PARAM, m_trackerHostname);
+	s->CsvValue(TRACKER_HOSTNAME_PARAM, m_trackerHostname);
 	s->IntValue(TRACKER_TCP_PORT_PARAM, m_trackerTcpPort);
 	s->StringValue(TRACKER_SERVICENAME_PARAM, m_trackerServicename);
 	s->StringValue(SERVICE_NAME_PARAM, m_serviceName);
