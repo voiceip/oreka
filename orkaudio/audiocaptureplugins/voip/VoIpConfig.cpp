@@ -44,6 +44,7 @@ VoIpConfig::VoIpConfig()
 	m_sipLogFailedCalls = false;
 	m_sipUse200OkMediaAddress = false;
 	m_sipReportFullAddress = false;
+	m_sipDynamicMediaAddress = false;
 
 	m_useMacIfNoLocalParty = false; // Uses IP address by default
 	m_localPartyForceLocalIp = false;
@@ -93,6 +94,8 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SipLogFailedCalls", m_sipLogFailedCalls);
 	s->BoolValue("SipUse200OkMediaAddress", m_sipUse200OkMediaAddress);
 	s->BoolValue("SipReportFullAddress", m_sipReportFullAddress);
+	s->BoolValue("SipDynamicMediaAddress", m_sipDynamicMediaAddress);
+
 	s->BoolValue("UseMacIfNoLocalParty", m_useMacIfNoLocalParty);
 	s->BoolValue("LocalPartyForceLocalIp", m_localPartyForceLocalIp);
 

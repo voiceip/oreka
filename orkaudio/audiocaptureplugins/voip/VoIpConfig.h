@@ -78,6 +78,7 @@ public:
 	bool m_sipLogFailedCalls;
 	bool m_sipUse200OkMediaAddress;
 	bool m_sipReportFullAddress;
+	bool m_sipDynamicMediaAddress;
 	bool m_useMacIfNoLocalParty;
 	bool m_localPartyForceLocalIp;
 
