@@ -979,23 +979,9 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			}
 		}
 
-		// For now, do not report new INVITEs that have the same SIP call ID but a different media address
-		// those INVITEs are ignored altogether.
-		if(!session->m_ipAndPort.Equals(ipAndPort))
+		if(!session->m_ipAndPort.Equals(ipAndPort) && DLLCONFIG.m_sipDynamicMediaAddress)
 		{
-			//===== The following is disabled because it disrupts valid sessions	====
-			//===== We need to make sure that at least one RTP packet has been		====
-			//===== seen that validates any new INVITE associated with the session	====
-			//// The session RTP connection address has changed
-			//// Remove session from IP and Port map
-			//m_byIpAndPort.erase(session->m_ipAndPort);
-			//// ... update
-			//session->m_ipAndPort = ipAndPort;
-			//session->ReportSipInvite(invite);
-			//// ... and reinsert
-			//m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
-			//
-			//LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] updated with new INVITE data");
+			SetMediaAddress(session, invite->m_fromRtpIp, rtpPort);
 		}
 		return;
 	}
