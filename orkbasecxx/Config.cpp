@@ -67,6 +67,7 @@ Config::Config()
 	m_lookBackRecording = LOOKBACK_RECORDING_DEFAULT;
 	m_allowAutomaticRecording = ALLOW_AUTOMATIC_RECORDING_DEFAULT;
 	m_captureFileSizeLimitKb = CAPTURE_FILE_SIZE_LIMIT_KB_DEFAULT;
+	m_partyFilter.clear();
 }
 
 void Config::Define(Serializer* s)
@@ -138,6 +139,7 @@ void Config::Define(Serializer* s)
 	s->BoolValue(LOOKBACK_RECORDING_PARAM, m_lookBackRecording);
 	s->BoolValue(ALLOW_AUTOMATIC_RECORDING_PARAM, m_allowAutomaticRecording);	// only valid in non-lookback mode
 	s->IntValue(CAPTURE_FILE_SIZE_LIMIT_KB_PARAM, m_captureFileSizeLimitKb);
+	s->CsvValue(PARTY_FILTER_PARAM, m_partyFilter);
 }
 
 void Config::Validate()

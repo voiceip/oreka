@@ -136,6 +136,8 @@ private:
 
 	int m_bytesWritten;
 	time_t m_lastLogWarning;
+
+	bool m_passedPartyFilterTest;
 };
 
 typedef boost::shared_ptr<AudioTape> AudioTapeRef;

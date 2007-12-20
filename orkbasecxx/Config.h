@@ -102,6 +102,8 @@
 #define ALLOW_AUTOMATIC_RECORDING_DEFAULT true
 #define CAPTURE_FILE_SIZE_LIMIT_KB_PARAM "CaptureFileSizeLimitKb"
 #define CAPTURE_FILE_SIZE_LIMIT_KB_DEFAULT 300000
+#define PARTY_FILTER_PARAM "PartyFilter"
+#define PARTY_FILTER_DEFAULT ""
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -160,6 +162,7 @@ public:
 	bool m_lookBackRecording;
 	bool m_allowAutomaticRecording;
 	int m_captureFileSizeLimitKb;
+	std::list<CStdString> m_partyFilter;
 
 private:
 	log4cxx::LoggerPtr m_log;
