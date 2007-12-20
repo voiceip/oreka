@@ -144,6 +144,7 @@ void AudioTape::Write()
 		{
 			AudioChunkRef chunkRef;
 			{
+				MutexSentinel sentinel(m_mutex);
 				if(m_chunkQueue.size() > 0)
 				{
 					chunkRef = m_chunkQueue.front();
