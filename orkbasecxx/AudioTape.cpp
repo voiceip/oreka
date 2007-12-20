@@ -25,7 +25,7 @@
 #include "messages/TapeMsg.h"
 #include "AudioTape.h"
 #include "ConfigManager.h"
-
+#include "PartyFilter.h"
 
 
 AudioTapeDescription::AudioTapeDescription()
@@ -83,12 +83,14 @@ AudioTape::AudioTape(CStdString &portId)
 	m_trackingId = portId;	// to make sure this has a value before we get the capture tracking Id.
 	m_bytesWritten = 0;
 	m_lastLogWarning = 0;
+	m_passedPartyFilterTest = false;
 
 	GenerateCaptureFilePathAndIdentifier();
 }
 
 AudioTape::AudioTape(CStdString &portId, CStdString& file)
 {
+	m_passedPartyFilterTest = false;
 	m_portId = portId;
 
 	// Extract Path and Identifier
@@ -119,6 +121,44 @@ void AudioTape::Write()
 {
 	// Get the latest audio chunks and write them to disk
 	bool done = false;
+	CStdString logMsg;
+
+	if(m_state == StateCreated && PartyFilterActive())
+	{
+		if(!m_passedPartyFilterTest)
+		{
+			logMsg.Format("[%s] rejected by PartyFilter", m_trackingId);
+			LOG4CXX_INFO(LOG.portLog, logMsg);
+		}
+	}
+
+	if(!m_passedPartyFilterTest && PartyFilterActive())
+	{
+		if(m_state == StateCreated)
+		{
+			m_state = StateActive;
+		}
+
+		// Discard chunks
+		while(!done)
+		{
+			AudioChunkRef chunkRef;
+			{
+				if(m_chunkQueue.size() > 0)
+				{
+					chunkRef = m_chunkQueue.front();
+					m_chunkQueue.pop();
+				}
+				else
+				{
+					done = true;
+				}
+			}
+		}
+
+		return;
+	}
+
 	while(!done && m_state != StateStopped && m_state != StateError)
 	{
 		// Get the oldest audio chunk
@@ -279,9 +319,27 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		break;
 	case CaptureEvent::EtRemoteParty:
 		m_remoteParty = eventRef->m_value;
+		if(!m_passedPartyFilterTest && PartyFilterActive())
+		{
+			m_passedPartyFilterTest = PartyFilterMatches(m_remoteParty);
+			if(m_passedPartyFilterTest)
+			{
+				logMsg.Format("[%s] remote party passed PartyFilter test", m_trackingId);
+				LOG4CXX_INFO(LOG.portLog, logMsg);
+			}
+		}
 		break;
 	case CaptureEvent::EtLocalParty:
 		m_localParty = eventRef->m_value;
+		if(!m_passedPartyFilterTest && PartyFilterActive())
+		{
+			m_passedPartyFilterTest = PartyFilterMatches(m_localParty);
+			if(m_passedPartyFilterTest)
+			{
+				logMsg.Format("[%s] local party passed PartyFilter test", m_trackingId);
+				LOG4CXX_INFO(LOG.portLog, logMsg);
+			}
+		}
 		break;
 	case CaptureEvent::EtLocalEntryPoint:
 		m_localEntryPoint = eventRef->m_value;
@@ -323,6 +381,11 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 
 void AudioTape::GetMessage(MessageRef& msgRef)
 {
+	if(!m_passedPartyFilterTest && PartyFilterActive())
+	{
+		return;
+	}
+
 	CaptureEventRef captureEventRef;
 	{
 		MutexSentinel sentinel(m_mutex);
@@ -358,6 +421,11 @@ void AudioTape::GetDetails(TapeMsg* msg)
 
 void AudioTape::PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum eventType)
 {
+	if(!m_passedPartyFilterTest && PartyFilterActive())
+	{
+		return;
+	}
+
 	msg->m_recId = m_orkUid;
 	msg->m_fileName = m_filePath + m_fileIdentifier + m_fileExtension;
 	msg->m_stage = CaptureEvent::EventTypeToString(eventType);
