@@ -189,7 +189,7 @@ void BatchProcessing::ThreadHandler(void *args)
 					AudioChunkDetails details = *chunkRef->GetDetails();
 					decoder.reset();
 
-					if(details.m_rtpPayloadType < -1 || details.m_rtpPayloadType > RTP_PAYLOAD_TYPE_MAX)
+					if(details.m_rtpPayloadType < -1 || details.m_rtpPayloadType >= RTP_PAYLOAD_TYPE_MAX)
 					{
 						logMsg.Format("RTP payload type out of bound:%d", details.m_rtpPayloadType);
 						throw(logMsg);
