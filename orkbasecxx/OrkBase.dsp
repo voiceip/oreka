@@ -696,6 +696,10 @@ SOURCE=.\OrkClient.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\PartyFilter.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Reporting.cpp
 # End Source File
 # Begin Source File
@@ -738,6 +742,10 @@ SOURCE=.\Utils.h
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\PartyFilter.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\StdAfx.h
