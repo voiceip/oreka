@@ -1060,7 +1060,11 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 		u_short dest = ntohs(udpHeader->dest);
 		if(!(ntohs(udpHeader->source)%2) && !(ntohs(udpHeader->dest)%2) || DLLCONFIG.m_rtpDetectOnOddPorts)	// udp ports usually even 
 		{
-			if((rtpHeader->pt <= 34 &&  rtpHeader->pt != 13) || rtpHeader->pt == 97 || rtpHeader->pt == 98 || rtpHeader->pt > 98)		// pt=34 is H263 and is the last possible valid codec, pt > 98 is for the case of SIP telephone-event
+			if((rtpHeader->pt <= 34 &&  rtpHeader->pt != 13) || (rtpHeader->pt >= 97 && rtpHeader->pt < 127) )         
+			// pt=13 is CN (Comfort Noise)
+			// pt=34 is H263
+			// pt=97 is IAX2 iLBC payload
+			// pt > 98 is telephone-event in SIP
 			{													// pt=13 is CN (Comfort Noise)
 				result = true;
 				u_char* payload = (u_char *)rtpHeader + sizeof(RtpHeaderStruct);
