@@ -16,6 +16,7 @@
 
 #pragma warning( disable: 4786 ) // disables truncated symbols in browse-info warning
 
+#include "Utils.h"
 #include "dll.h"
 #include "OrkBase.h"
 #include <map>
@@ -49,6 +50,7 @@ public:
 	void CsvMapValue(const char* key, std::map<CStdString, CStdString>& value, bool required = false);
 	void DateValue(const char* key, time_t& value, bool required = false);
 	virtual void ListValue(const char* key, std::list<ObjectRef>& value, Object& model, bool required = false) = 0;
+	void IpRangesValue(const char* key, IpRanges& value, bool required = false);
 
 	void AddInt(const char* key, int value);
 	void AddDouble(const char* key, double value);
@@ -58,6 +60,7 @@ public:
 	void AddCsvMap(const char* key,  std::map<CStdString, CStdString>& value);
 	void AddDate(const char* key, time_t value);
 	virtual void AddString(const char* key, CStdString& value) = 0;
+	void AddIpRanges(const char* key,  IpRanges& value);
 
 	void GetInt(const char* key, int& value, bool required = false);
 	void GetDouble(const char* key, double& value, bool required = false);
@@ -67,6 +70,7 @@ public:
 	void GetCsvMap(const char* key,  std::map<CStdString, CStdString>& value, bool required = false);
 	void GetDate(const char* key, time_t& value, bool required = false);
 	virtual void GetString(const char* key, CStdString& value, bool required = false) = 0;
+	void GetIpRanges(const char* key,  IpRanges& value, bool required = false);
 
 	void EscapeCsv(CStdString& in, CStdString& out);
 	void UnEscapeCsv(CStdString& in, CStdString& out);

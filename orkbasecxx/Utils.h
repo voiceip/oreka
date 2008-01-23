@@ -104,6 +104,19 @@ private:
 	std::list<TcpAddress> m_addresses;
 };
 
+class DLL_IMPORT_EXPORT_ORKBASE IpRanges
+{
+public:
+	bool Matches(struct in_addr ip);
+	void Compute();
+
+	std::list<CStdString> m_asciiIpRanges;
+private:
+	std::list<unsigned int> m_ipRangePrefixes;
+	std::list<unsigned int> m_ipRangeBitWidths;
+};
+
+
 //=====================================================
 // Miscellanous stuff
 

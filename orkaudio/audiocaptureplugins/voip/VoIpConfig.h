@@ -79,6 +79,8 @@ public:
 	bool m_sipUse200OkMediaAddress;
 	bool m_sipReportFullAddress;
 	bool m_sipDynamicMediaAddress;
+	IpRanges m_sipIgnoredMediaAddresses;
+
 	bool m_useMacIfNoLocalParty;
 	bool m_localPartyForceLocalIp;
 

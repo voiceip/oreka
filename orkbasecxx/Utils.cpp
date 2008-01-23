@@ -194,7 +194,7 @@ int FileSetOwnership(CStdString filename, CStdString owner, CStdString group)
 
 
 //=====================================================
-// Network related stuff
+// TcpAddress
 
 void TcpAddress::ToString(CStdString& string)
 {
@@ -233,5 +233,80 @@ bool TcpAddressList::HasAddressOrAdd(struct in_addr ip, unsigned short port)
 		return false;
 	}
 	return true;
+}
+
+//=========================
+// IpRanges
+
+void IpRanges::Compute()
+{
+	m_ipRangePrefixes.clear();
+	m_ipRangeBitWidths.clear();
+	std::list<CStdString>::iterator it;
+
+	for(it = m_asciiIpRanges.begin(); it != m_asciiIpRanges.end(); it++)
+	{
+		CStdString cidrPrefixLengthString;
+		unsigned int cidrPrefixLength = 32;		// by default, x.x.x.x/32
+		CStdString cidrIpAddressString;
+		struct in_addr cidrIpAddress;
+		
+		CStdString entry = *it;
+		int slashPosition = entry.Find('/');
+		if(slashPosition > 0)
+		{
+			cidrIpAddressString = entry.Left(slashPosition);
+			cidrPrefixLengthString = entry.Mid(slashPosition+1);
+
+			bool notAnInt = false;
+			try
+			{
+				cidrPrefixLength = StringToInt(cidrPrefixLengthString);
+			}
+			catch (...) {notAnInt = true;}
+			if(cidrPrefixLength < 1 || cidrPrefixLength > 32 || notAnInt)
+			{
+				throw (CStdString("IpRanges: invalid CIDR prefix length" + entry));
+			}
+		}
+		else
+		{
+			cidrIpAddressString = entry;
+		}
+
+		if(ACE_OS::inet_aton((PCSTR)cidrIpAddressString, &cidrIpAddress))
+		{
+			unsigned int rangeBitWidth = 32-cidrPrefixLength;
+			unsigned int prefix = ntohl((unsigned int)cidrIpAddress.s_addr) >> (rangeBitWidth);
+			m_ipRangePrefixes.push_back(prefix);
+			m_ipRangeBitWidths.push_back(rangeBitWidth);
+		}
+		else
+		{
+			throw (CStdString("invalid IP range:" + entry));
+		}
+	}
+}
+
+bool IpRanges::Matches(struct in_addr ip)
+{
+	bool matches = false;
+	std::list<unsigned int>::iterator bitWidthIt = m_ipRangeBitWidths.begin();
+	std::list<unsigned int>::iterator prefixIt = m_ipRangePrefixes.begin();
+
+	while(prefixIt != m_ipRangePrefixes.end())
+	{
+		unsigned int bitWidth = *bitWidthIt;
+		unsigned int prefix = *prefixIt;
+		unsigned int packetSourcePrefix = ntohl((unsigned int)ip.s_addr) >> bitWidth;
+		if(packetSourcePrefix == prefix)
+		{
+			matches = true;
+			break;
+		}
+		prefixIt++; 
+		bitWidthIt++;
+	}
+	return matches;
 }
 

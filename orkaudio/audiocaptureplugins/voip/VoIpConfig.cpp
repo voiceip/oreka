@@ -95,6 +95,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SipUse200OkMediaAddress", m_sipUse200OkMediaAddress);
 	s->BoolValue("SipReportFullAddress", m_sipReportFullAddress);
 	s->BoolValue("SipDynamicMediaAddress", m_sipDynamicMediaAddress);
+	s->IpRangesValue("SipIgnoredMediaAddresses", m_sipIgnoredMediaAddresses);
 
 	s->BoolValue("UseMacIfNoLocalParty", m_useMacIfNoLocalParty);
 	s->BoolValue("LocalPartyForceLocalIp", m_localPartyForceLocalIp);
@@ -122,7 +123,7 @@ void VoIpConfig::Validate()
 		}
 		else
 		{
-			throw (CStdString("VoIpConfig: invalid IP address in LanMasks:" + *it)  + " please fix config.xml");
+			throw (CStdString("VoIpConfig: invalid IP address in LanMasks:" + *it));
 		}
 	}
 
@@ -137,7 +138,7 @@ void VoIpConfig::Validate()
 		}
 		else
 		{
-			throw (CStdString("VoIpConfig: invalid IP address in MediaGateways:" + *it)  + " please fix config.xml");
+			throw (CStdString("VoIpConfig: invalid IP address in MediaGateways:" + *it));
 		}
 	}
 
@@ -152,7 +153,7 @@ void VoIpConfig::Validate()
 		}
 		else
 		{
-			throw (CStdString("VoIpConfig: invalid IP address in RtpTrackUsingIpAddresses:" + *it)  + " please fix config.xml");
+			throw (CStdString("VoIpConfig: invalid IP address in RtpTrackUsingIpAddresses:" + *it));
 		}
 	}
 
@@ -181,7 +182,7 @@ void VoIpConfig::Validate()
 			catch (...) {notAnInt = true;}
 			if(cidrPrefixLength < 1 || cidrPrefixLength > 32 || notAnInt)
 			{
-				throw (CStdString("VoIpConfig: invalid CIDR prefix length in AllowedIpRanges:" + entry) + " please fix config.xml");
+				throw (CStdString("VoIpConfig: invalid CIDR prefix length in AllowedIpRanges:" + entry));
 			}
 		}
 		else
@@ -198,7 +199,7 @@ void VoIpConfig::Validate()
 		}
 		else
 		{
-			throw (CStdString("VoIpConfig: invalid IP range in AllowedIpRanges:" + entry) + " please fix config.xml");
+			throw (CStdString("VoIpConfig: invalid IP range in AllowedIpRanges:" + entry));
 		}
 	}
 
@@ -228,7 +229,7 @@ void VoIpConfig::Validate()
 			catch (...) {notAnInt = true;}
 			if(cidrPrefixLength < 1 || cidrPrefixLength > 32 || notAnInt)
 			{
-				throw (CStdString("VoIpConfig: invalid CIDR prefix length in blockedIpRanges:" + entry) + " please fix config.xml");
+				throw (CStdString("VoIpConfig: invalid CIDR prefix length in blockedIpRanges:" + entry));
 			}
 		}
 		else
@@ -245,38 +246,38 @@ void VoIpConfig::Validate()
 		}
 		else
 		{
-			throw (CStdString("VoIpConfig: invalid IP range in BlockedIpRanges:" + entry) + " please fix config.xml");
+			throw (CStdString("VoIpConfig: invalid IP range in BlockedIpRanges:" + entry));
 		}
 	}
 	if(m_pcapSocketBufferSize < 0)
 	{
 		CStdString exception;
-		exception.Format("VoIpConfig: PcapSocketBufferSize must be a positive number (currently:%d) please fix config.xml", m_pcapSocketBufferSize);
+		exception.Format("VoIpConfig: PcapSocketBufferSize must be a positive number (currently:%d)", m_pcapSocketBufferSize);
 		throw (exception);
 
 	}
 	if(m_rtpSessionTimeoutSec < 1)
 	{
 		CStdString exception;
-		exception.Format("VoIpConfig: RtpSessionTimeoutSec must be > 0 (currently:%d) please fix config.xml", m_rtpSessionTimeoutSec);
+		exception.Format("VoIpConfig: RtpSessionTimeoutSec must be > 0 (currently:%d)", m_rtpSessionTimeoutSec);
 		throw (exception);
 	}
 	if(m_rtpSessionWithSignallingTimeoutSec < 1)
 	{
 		CStdString exception;
-		exception.Format("VoIpConfig: RtpSessionWithSignallingTimeoutSec must be > 0 (currently:%d) please fix config.xml", m_rtpSessionWithSignallingTimeoutSec);
+		exception.Format("VoIpConfig: RtpSessionWithSignallingTimeoutSec must be > 0 (currently:%d)", m_rtpSessionWithSignallingTimeoutSec);
 		throw (exception);
 	}
 	if(m_rtpSessionOnHoldTimeOutSec < 1)
 	{
 		CStdString exception;
-		exception.Format("VoIpConfig: RtpSessionOnHoldTimeOutSec must be > 0 (currently:%d) please fix config.xml", m_rtpSessionOnHoldTimeOutSec);
+		exception.Format("VoIpConfig: RtpSessionOnHoldTimeOutSec must be > 0 (currently:%d)", m_rtpSessionOnHoldTimeOutSec);
 		throw (exception);
 	}
 	if(m_rtpSessionWithSignallingInitialTimeoutSec < 1)
 	{
 		CStdString exception;
-		exception.Format("VoIpConfig: RtpSessionWithSignallingInitialTimeoutSec must be > 0 (currently:%d) please fix config.xml", m_rtpSessionWithSignallingInitialTimeoutSec);
+		exception.Format("VoIpConfig: RtpSessionWithSignallingInitialTimeoutSec must be > 0 (currently:%d)", m_rtpSessionWithSignallingInitialTimeoutSec);
 		throw (exception);
 	}
 	if(m_sangomaRxTcpPortStart == 0)
@@ -285,7 +286,7 @@ void VoIpConfig::Validate()
 	else if(m_sangomaRxTcpPortStart > 65000 || m_sangomaRxTcpPortStart < 2000 || ((m_sangomaRxTcpPortStart%1000) != 0) )
 	{
 		CStdString exception;
-		exception.Format("VoIpConfig: SangomaRxTcpPort must be between 2000 and 65000 and be a multiple of 1000 (currently:%d) please fix config.xml", m_sangomaRxTcpPortStart);
+		exception.Format("VoIpConfig: SangomaRxTcpPort must be between 2000 and 65000 and be a multiple of 1000 (currently:%d)", m_sangomaRxTcpPortStart);
 		throw (exception);
 	}
 	if(m_sangomaTxTcpPortStart == 0)
@@ -294,14 +295,14 @@ void VoIpConfig::Validate()
 	else if(m_sangomaTxTcpPortStart > 65000 || m_sangomaTxTcpPortStart < 2000 || ((m_sangomaTxTcpPortStart%1000) != 0) )
 	{
 		CStdString exception;
-		exception.Format("VoIpConfig: SangomaTxTcpPort must be between 2000 and 65000 and be a multiple of 1000 (currently:%d) please fix config.xml", m_sangomaTxTcpPortStart);
+		exception.Format("VoIpConfig: SangomaTxTcpPort must be between 2000 and 65000 and be a multiple of 1000 (currently:%d)", m_sangomaTxTcpPortStart);
 		throw (exception);
 	}
 
 	if(m_sangomaRxTcpPortStart > m_sangomaTxTcpPortStart)
 	{
 		CStdString exception;
-		exception.Format("VoIpConfig: SangomaTxTcpPort should always be bigger than SangomaRxTcpPort please fix config.xml");
+		exception.Format("VoIpConfig: SangomaTxTcpPort should always be bigger than SangomaRxTcpPort");
 		throw (exception);
 	}
 	else if(m_sangomaRxTcpPortStart > 0 && m_sangomaTxTcpPortStart>0)
