@@ -908,6 +908,12 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	char szFromRtpIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&invite->m_fromRtpIp, szFromRtpIp, sizeof(szFromRtpIp));
 
+	if(DLLCONFIG.m_sipIgnoredMediaAddresses.Matches(invite->m_fromRtpIp))
+	{
+		LOG4CXX_INFO(m_log, "INVITE disregarded by SipIgnoredMediaAddresses parameter");
+		return;
+	}
+
 	CStdString ipAndPort = CStdString(szFromRtpIp) + "," + invite->m_fromRtpPort;
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 

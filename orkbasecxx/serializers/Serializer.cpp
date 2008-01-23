@@ -134,6 +134,19 @@ void Serializer::DateValue(const char* key, time_t& value, bool required)
 	}
 }
 
+void Serializer::IpRangesValue(const char* key, IpRanges& value, bool required)
+{
+	if (m_deSerialize == true)
+	{
+		GetIpRanges(key, value, required);
+	}
+	else
+	{
+		AddIpRanges(key, value);
+	}
+}
+
+
 
 //=====================================
 void Serializer::AddInt(const char* key, int value)
@@ -231,6 +244,10 @@ void Serializer::AddDate(const char* key, time_t value)
 	AddString(key, dateString);
 }
 
+void Serializer::AddIpRanges(const char* key,  IpRanges& value)
+{
+	;	// Not yet implemented
+}
 
 //====================================================================
 void Serializer::GetInt(const char* key, int&value, bool required)
@@ -375,6 +392,13 @@ void Serializer::GetDate(const char* key, time_t& value, bool required)
 		//value = ;
 	}
 }
+
+void Serializer::GetIpRanges(const char* key,  IpRanges& value, bool required)
+{
+	GetCsv(key, value.m_asciiIpRanges, required);
+	value.Compute();
+}
+
 
 //-------------------------------------------------------------------------
 // Escape the comma and percent characters for adding string to csv list
