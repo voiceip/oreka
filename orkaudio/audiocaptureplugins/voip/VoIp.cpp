@@ -2172,7 +2172,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	{
 		TcpHeaderStruct* tcpHeader = (TcpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
 
-		if(ntohs(tcpHeader->source) == SKINNY_CTRL_PORT || ntohs(tcpHeader->dest) == SKINNY_CTRL_PORT)
+		if(ntohs(tcpHeader->source) == DLLCONFIG.m_skinnyTcpPort || ntohs(tcpHeader->dest) == DLLCONFIG.m_skinnyTcpPort)
 		{
 			u_char* startTcpPayload = (u_char*)tcpHeader + TCP_HEADER_LENGTH;
 			SkinnyHeaderStruct* skinnyHeader = (SkinnyHeaderStruct*)(startTcpPayload);
