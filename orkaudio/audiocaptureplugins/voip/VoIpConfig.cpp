@@ -57,6 +57,7 @@ VoIpConfig::VoIpConfig()
 	m_sangomaEnable = false;
 	m_sangomaRxTcpPortStart = 0;
 	m_sangomaTxTcpPortStart = 0;
+	m_skinnyTcpPort = 2000;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -104,6 +105,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SkinnyIgnoreOpenReceiveChannelAck", m_skinnyIgnoreOpenReceiveChannelAck);
 	s->BoolValue("SkinnyDynamicMediaAddress", m_skinnyDynamicMediaAddress);
 	s->BoolValue("SkinnyAllowCallInfoUpdate", m_skinnyAllowCallInfoUpdate);
+	s->IntValue("SkinnyTcpPort", m_skinnyTcpPort);
 
 	s->IntValue("SangomaRxTcpPortStart", m_sangomaRxTcpPortStart);
 	s->IntValue("SangomaTxTcpPortStart", m_sangomaTxTcpPortStart);
@@ -278,6 +280,12 @@ void VoIpConfig::Validate()
 	{
 		CStdString exception;
 		exception.Format("VoIpConfig: RtpSessionWithSignallingInitialTimeoutSec must be > 0 (currently:%d)", m_rtpSessionWithSignallingInitialTimeoutSec);
+		throw (exception);
+	}
+	if(m_skinnyTcpPort < 1)
+	{
+		CStdString exception;
+		exception.Format("VoIpConfig: SkinnyTcpPort must be > 0 (currently:%d) please fix in config.xml", m_skinnyTcpPort);
 		throw (exception);
 	}
 	if(m_sangomaRxTcpPortStart == 0)
