@@ -66,6 +66,8 @@ inline double StringToDouble(CStdString& value)
 	return doubleValue;
 }
 
+bool DLL_IMPORT_EXPORT_ORKBASE StringIsDigit(CStdString& string);
+
 //========================================================
 // file related stuff
 
