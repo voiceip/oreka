@@ -86,8 +86,20 @@ void ImmediateProcessing::ThreadHandler(void *args)
 
 				if (audioTapeRef->IsReadyForBatchProcessing())
 				{
-					// Pass the tape to the tape processor chain
-					TapeProcessorRegistry::instance()->RunProcessingChain(audioTapeRef);
+
+					if(CONFIG.m_tapeDurationMinimumSec>0 && audioTapeRef->m_duration<CONFIG.m_tapeDurationMinimumSec)
+					{
+						audioTapeRef->GetAudioFileRef()->Delete();
+
+						CStdString logMsg;
+						logMsg.Format("[%s] is less than %d sec, discarding", audioTapeRef->m_trackingId, CONFIG.m_tapeDurationMinimumSec);
+						LOG4CXX_INFO(LOG.immediateProcessingLog, logMsg);
+					}
+					else
+					{
+						// Pass the tape to the tape processor chain
+						TapeProcessorRegistry::instance()->RunProcessingChain(audioTapeRef);
+					}
 				}
 			}
 		}
@@ -98,4 +110,5 @@ void ImmediateProcessing::ThreadHandler(void *args)
 	}
 	LOG4CXX_INFO(LOG.immediateProcessingLog, CStdString("Exiting thread"));
 }
+
 
