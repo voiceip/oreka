@@ -9,6 +9,23 @@
 #endif
 
 //========================================================
+// String related stuff
+
+bool StringIsDigit(CStdString& string)
+{
+	int size = string.size();
+	for(int i=0; i<size; i++)
+	{
+		if(isdigit(string.GetAt(i)) == false)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//========================================================
 // file related stuff
 
 CStdString FileBaseName(CStdString& path)
