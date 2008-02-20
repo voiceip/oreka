@@ -2282,7 +2282,7 @@ void Configure(DOMNode* node)
 		}
 		catch (CStdString& e)
 		{
-			LOG4CXX_ERROR(s_voipPluginLog, e);
+			LOG4CXX_ERROR(s_voipPluginLog, e + " - check your config.xml");
 		}
 	}
 	else
