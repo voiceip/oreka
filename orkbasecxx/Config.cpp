@@ -68,6 +68,8 @@ Config::Config()
 	m_allowAutomaticRecording = ALLOW_AUTOMATIC_RECORDING_DEFAULT;
 	m_captureFileSizeLimitKb = CAPTURE_FILE_SIZE_LIMIT_KB_DEFAULT;
 	m_partyFilter.clear();
+	m_stereoRecording = STEREO_RECORDING_DEFAULT;
+	m_tapeNumChannels = TAPE_NUM_CHANNELS_DEFAULT;
 	m_tapeDurationMinimumSec = TAPE_DURATION_MINIMUM_SEC_DEFAULT;
 }
 
@@ -141,6 +143,8 @@ void Config::Define(Serializer* s)
 	s->BoolValue(ALLOW_AUTOMATIC_RECORDING_PARAM, m_allowAutomaticRecording);	// only valid in non-lookback mode
 	s->IntValue(CAPTURE_FILE_SIZE_LIMIT_KB_PARAM, m_captureFileSizeLimitKb);
 	s->CsvValue(PARTY_FILTER_PARAM, m_partyFilter);
+	s->BoolValue(STEREO_RECORDING_PARAM, m_stereoRecording);
+	s->IntValue(TAPE_NUM_CHANNELS_PARAM, m_tapeNumChannels);
 	s->IntValue(TAPE_DURATION_MINIMUM_SEC_PARAM, m_tapeDurationMinimumSec);
 }
 
@@ -184,6 +188,12 @@ void Config::Validate()
 
 			throw(exc);
 		}
+	}
+	if(m_tapeNumChannels < 0)
+	{
+		CStdString exception;
+		exception.Format("Config::Validate: please set a valid number for TapeNumChannels - currently:%d", m_tapeNumChannels);
+		throw(exception);
 	}
 }
 

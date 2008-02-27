@@ -22,33 +22,105 @@ AudioChunk::AudioChunk()
 {
 	m_details.Clear();
 	m_pBuffer = NULL;
+	m_numChannels = 0;
+	m_pChannelAudio = NULL;
+}
+
+AudioChunk::AudioChunk(int numChannels)
+{
+	m_details.Clear();
+	m_pBuffer = NULL;
+	m_pChannelAudio = NULL;
+	if(numChannels <= 0)
+	{
+		// Force at least one channel to resolve this possible
+		// error condition
+		numChannels = 1;
+	}
+
+	m_numChannels = numChannels;
+	m_pChannelAudio = (void**)calloc(m_numChannels, sizeof(void*));
+	m_details.m_channel = 100;
+
+	if(!m_pChannelAudio)
+	{
+		CStdString numBytesString;
+
+		numBytesString.Format("%d", m_numChannels*sizeof(void*));
+		throw("AudioChunk::AudioChunk(numChannels) could not allocate a buffer of size " + numBytesString);
+	}
 }
 
 AudioChunk::~AudioChunk()
 {
-	if(m_pBuffer)
-	{
-		free(m_pBuffer);
-	}
+	FreeAll();
 }
 
 void AudioChunk::ToString(CStdString& string)
 {
-	string.Format("encoding:%d numBytes:%u ts:%u ats:%u seq:%u rtp-pt:%d ch:%u", 
-		m_details.m_encoding, m_details.m_numBytes, m_details.m_timestamp, m_details.m_arrivalTimestamp, 
-		m_details.m_sequenceNumber, m_details.m_rtpPayloadType, m_details.m_channel);
+	if(!m_numChannels)
+	{
+		string.Format("encoding:%d numBytes:%u ts:%u ats:%u seq:%u rtp-pt:%d ch:%u", 
+			m_details.m_encoding, m_details.m_numBytes, m_details.m_timestamp, m_details.m_arrivalTimestamp, 
+			m_details.m_sequenceNumber, m_details.m_rtpPayloadType, m_details.m_channel);
+	}
+	else
+	{
+		string.Format("encoding:%d numBytesPerChannel:%u numChannels:%d ts:%u ats:%u seq:%u rtp-pt:%d",
+			m_details.m_encoding, m_details.m_numBytes, m_numChannels, m_details.m_timestamp,
+			m_details.m_arrivalTimestamp, m_details.m_sequenceNumber, m_details.m_rtpPayloadType);
+	}
 }
 
-void* AudioChunk::CreateBuffer(AudioChunkDetails& details)
+void AudioChunk::FreeAll()
 {
 	if(m_pBuffer)
 	{
 		free(m_pBuffer);
 		m_pBuffer = NULL;
 	}
+	if(m_numChannels)
+	{
+		for(int i = 0; i < m_numChannels; i++)
+		{
+			if(m_pChannelAudio[i])
+			{
+				free(m_pChannelAudio[i]);
+			}
+		}
+
+		free(m_pChannelAudio);
+		m_pChannelAudio = NULL;
+	}
+}
+
+void AudioChunk::CreateMultiChannelBuffers(AudioChunkDetails& details)
+{
+	if(!m_numChannels)
+	{
+		return;
+	}
+
+	for(int i = 0; i < m_numChannels; i++)
+	{
+		m_pChannelAudio[i] = calloc(details.m_numBytes, 1);
+		if(!m_pChannelAudio[i])
+		{
+			CStdString exception;
+
+			exception.Format("AudioChunk::CreateMultiChannelBuffers failed to calloc buffer of size:%d for channel:%d", details.m_numBytes, i);
+			throw(exception);
+		}
+	}
+}
+
+void* AudioChunk::CreateBuffer(AudioChunkDetails& details)
+{
+	FreeAll();
 	if(details.m_numBytes)
 	{
 		m_pBuffer = calloc(details.m_numBytes, 1);
+		CreateMultiChannelBuffers(details);
 	}
 	if (!m_pBuffer)
 	{
@@ -82,6 +154,38 @@ void AudioChunk::SetBuffer(void* pBuffer, AudioChunkDetails& details)
 		{
 			memcpy(m_pBuffer, pBuffer, details.m_numBytes);
 			m_details = details;
+		}
+	}
+}
+
+void AudioChunk::SetBuffer(void* pBuffer, AudioChunkDetails& details, int chan)
+{
+	CStdString exception;
+	int chanIdx = 0;
+
+	if(chan > m_numChannels || chan < 1)
+	{
+		exception.Format("AudioChunk::SetBuffer: invalid channel %d", chan);
+		throw(exception);
+	}
+
+	chanIdx = chan - 1;
+	if(m_pChannelAudio[chanIdx])
+	{
+		free(m_pChannelAudio[chanIdx]);
+		m_pChannelAudio[chanIdx] = NULL;
+	}
+	if(details.m_numBytes && pBuffer)
+	{
+		m_pChannelAudio[chanIdx] = malloc(details.m_numBytes);
+		if(!m_pChannelAudio[chanIdx])
+		{
+			exception.Format("AudioChunk::SetBuffer: failed to allocate buffer of size:%d for channel:%d channelidx:%d", details.m_numBytes, chan, chanIdx);
+			throw(exception);
+		}
+		else
+		{
+			memcpy(m_pChannelAudio[chanIdx], pBuffer, details.m_numBytes);
 		}
 	}
 }
