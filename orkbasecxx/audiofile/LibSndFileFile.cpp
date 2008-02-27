@@ -19,12 +19,12 @@
 
 LibSndFileFile::LibSndFileFile(int fileFormat)
 {
-    m_fileInfo.format = fileFormat;
+	m_fileInfo.format = fileFormat;
 	m_fileInfo.frames = 0;
-    m_fileInfo.samplerate = 0;
-    m_fileInfo.channels = 0;
-    m_fileInfo.sections = 0;
-    m_fileInfo.seekable = 0; 
+	m_fileInfo.samplerate = 0;
+	m_fileInfo.channels = 0;
+	m_fileInfo.sections = 0;
+	m_fileInfo.seekable = 0; 
 	m_pFile = NULL;
 	m_numChunksWritten = 0;
 	m_mode = READ;
@@ -43,7 +43,21 @@ void LibSndFileFile::Open(CStdString& filename, fileOpenModeEnum mode, bool ster
 		m_filename = filename + ".wav";
 	}
 	m_mode = mode;
-	stereo ? m_fileInfo.channels = 2 : m_fileInfo.channels = 1;
+	if(CONFIG.m_stereoRecording == true)
+	{
+		if(CONFIG.m_tapeNumChannels > 1)
+		{
+			m_fileInfo.channels = CONFIG.m_tapeNumChannels;
+		}
+		else
+		{
+			m_fileInfo.channels = 1;
+		}
+	}
+	else
+	{
+		m_fileInfo.channels = 1;
+	}
 	if(m_sampleRate == 0)
 	{
 		m_sampleRate = sampleRate;
@@ -82,18 +96,95 @@ void LibSndFileFile::WriteChunk(AudioChunkRef chunkRef)
 	{
 		if( chunkRef->GetEncoding() == AlawAudio ||  chunkRef->GetEncoding() == UlawAudio)
 		{
-			if(sf_write_raw(m_pFile, chunkRef->m_pBuffer, chunkRef->GetNumSamples()) != chunkRef->GetNumSamples())
+			// We have faith that whoever is producing these chunks created them
+			// with the same number of channels that we have opened the soundfile
+			// with above - this is enforced in the RtpMixer
+			if(chunkRef->m_numChannels > 0 && CONFIG.m_stereoRecording == true)
 			{
-				CStdString numChunksWrittenString = IntToString(m_numChunksWritten);
-				throw(CStdString("sf_write_raw failed, audio file " + m_filename + " could not be written after " + numChunksWrittenString + " chunks written"));
+				int numBytes = 0;
+				unsigned char *muxAudio = NULL;
+				unsigned char *wrPtr = NULL;
+
+				numBytes = chunkRef->GetNumSamples() * chunkRef->m_numChannels;
+				muxAudio = (unsigned char*)malloc(numBytes);
+				wrPtr = muxAudio;
+
+				if(!muxAudio)
+				{
+					CStdString exception;
+
+					exception.Format("sf_write_raw failed for stereo write: could not allocate %d bytes", numBytes);
+					throw(exception);
+				}
+
+				for(int x = 0; x < chunkRef->GetNumSamples(); x++)
+				{
+					for(int i = 0; i < chunkRef->m_numChannels; i++)
+					{
+						 *wrPtr++ = (unsigned char)*((unsigned char*)(chunkRef->m_pChannelAudio[i])+x);
+					}
+				}
+
+				if(sf_write_raw(m_pFile, muxAudio, numBytes) != numBytes)
+				{
+					CStdString numChunksWrittenString = IntToString(m_numChunksWritten);
+					free(muxAudio);
+					throw(CStdString("sf_write_raw failed, audio file " + m_filename + " could not be written after " + numChunksWrittenString + " chunks written"));
+				}
+				free(muxAudio);
+			}
+			else
+			{
+				if(sf_write_raw(m_pFile, chunkRef->m_pBuffer, chunkRef->GetNumSamples()) != chunkRef->GetNumSamples())
+				{
+					CStdString numChunksWrittenString = IntToString(m_numChunksWritten);
+					throw(CStdString("sf_write_raw failed, audio file " + m_filename + " could not be written after " + numChunksWrittenString + " chunks written"));
+				}
 			}
 		}
 		else if (chunkRef->GetEncoding() == PcmAudio)
 		{
-			if(sf_write_short(m_pFile, (short*)chunkRef->m_pBuffer, chunkRef->GetNumSamples()) != chunkRef->GetNumSamples())
+			// We have faith that whoever is producing these chunks created them
+			// with the same number of channels that we have opened the soundfile
+			// with above - this is enforced in the RtpMixer
+			if(chunkRef->m_numChannels > 0 && CONFIG.m_stereoRecording == true)
 			{
-				CStdString numChunksWrittenString = IntToString(m_numChunksWritten);
-				throw(CStdString("sf_write_short failed, audio file " + m_filename + " could not be written after " + numChunksWrittenString + " chunks written"));
+				int numShorts = 0;
+				short *muxAudio = NULL;
+				short *wrPtr = NULL;
+
+				numShorts = chunkRef->GetNumSamples()*chunkRef->m_numChannels;
+				muxAudio = (short*)calloc(numShorts, sizeof(short));
+				wrPtr = muxAudio;
+				if(!muxAudio)
+				{
+					CStdString exception;
+
+					exception.Format("sf_write_raw failed for stereo write: could not allocate %d bytes", numShorts*sizeof(short));
+					throw(exception);
+				}
+				for(int x = 0; x < chunkRef->GetNumSamples(); x++)
+				{
+					for(int i = 0; i < chunkRef->m_numChannels; i++)
+					{
+						*wrPtr++ = (short)*((short*)(chunkRef->m_pChannelAudio[i])+x);
+					}
+				}
+				if(sf_write_short(m_pFile, muxAudio, numShorts) != numShorts)
+				{
+					CStdString numChunksWrittenString = IntToString(m_numChunksWritten);
+					free(muxAudio);
+					throw(CStdString("sf_write_short failed, audio file " + m_filename + " could not be written after " + numChunksWrittenString + " chunks written"));
+				}
+				free(muxAudio);
+			}
+			else
+			{
+				if(sf_write_short(m_pFile, (short*)chunkRef->m_pBuffer, chunkRef->GetNumSamples()) != chunkRef->GetNumSamples())
+				{
+					CStdString numChunksWrittenString = IntToString(m_numChunksWritten);
+					throw(CStdString("sf_write_short failed, audio file " + m_filename + " could not be written after " + numChunksWrittenString + " chunks written"));
+				}
 			}
 		}
 		m_numChunksWritten++;

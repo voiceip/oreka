@@ -104,6 +104,10 @@
 #define CAPTURE_FILE_SIZE_LIMIT_KB_DEFAULT 300000
 #define PARTY_FILTER_PARAM "PartyFilter"
 #define PARTY_FILTER_DEFAULT ""
+#define STEREO_RECORDING_PARAM "StereoRecording"
+#define STEREO_RECORDING_DEFAULT false
+#define TAPE_NUM_CHANNELS_PARAM "TapeNumChannels"
+#define TAPE_NUM_CHANNELS_DEFAULT 2
 #define TAPE_DURATION_MINIMUM_SEC_PARAM "TapeDurationMinimumSec"
 #define TAPE_DURATION_MINIMUM_SEC_DEFAULT 0
 
@@ -166,6 +170,8 @@ public:
 	bool m_allowAutomaticRecording;
 	int m_captureFileSizeLimitKb;
 	std::list<CStdString> m_partyFilter;
+	bool m_stereoRecording;
+	int m_tapeNumChannels;
 	int m_tapeDurationMinimumSec;
 
 private:

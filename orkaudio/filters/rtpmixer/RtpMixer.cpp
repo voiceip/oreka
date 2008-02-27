@@ -14,9 +14,11 @@
 
 #include "dll.h"
 #include <queue>
+#include <vector>
 #include "Filter.h"
 #include "AudioCapture.h"
 #include <log4cxx/logger.h>
+#include "ConfigManager.h"
 extern "C"
 {
 #include "g711.h"
@@ -26,6 +28,24 @@ extern "C"
 #define NUM_SAMPLES_TRIGGER 12000			// when we have this number of available samples make a shipment
 #define NUM_SAMPLES_SHIPMENT_HOLDOFF 11000	// when shipping, ship everything but this number of samples 
 
+class RtpMixerChannel
+{
+public:
+	RtpMixerChannel();
+	~RtpMixerChannel();
+
+	int m_channel;
+	double m_timestampCorrectiveDelta;
+	short m_buffer[NUM_SAMPLES_CIRCULAR_BUFFER];
+
+	// Statistics related to channel
+	AudioChunkRef m_lastChunk;
+	int m_seqNumMisses;
+	int m_seqMaxGap;
+	int m_seqNumOutOfOrder;
+	int m_seqNumDiscontinuities;
+};
+typedef boost::shared_ptr<RtpMixerChannel> RtpMixerChannelRef;
 
 class RtpMixer : public Filter
 {
@@ -48,6 +68,7 @@ private:
 
 	void StoreRtpPacket(AudioChunkRef& chunk, unsigned int correctedTimestamp);
 	void ManageOutOfRangeTimestamp(AudioChunkRef& chunk);
+	void HandleMixedOutput(AudioChunkRef &chunk, AudioChunkDetails& details, short *readPtr);
 	void CreateShipment(size_t silenceSize = 0, bool force = false);
 	void Reset(unsigned int timestamp);
 	unsigned int FreeSpace();
@@ -59,6 +80,7 @@ private:
 	void DoStats(	AudioChunkDetails* details, AudioChunkDetails* lastDetails, 
 					int& seqNumMisses, int& seqMaxGap, int& seqNumOutOfOrder, 
 					int& seqNumDiscontinuities);
+	void CreateChannels(int channelNumber);
 
 	short* m_writePtr;		// pointer after newest RTP data we've received
 	short* m_readPtr;		// where to read from next
@@ -84,7 +106,35 @@ private:
 	int m_seqNumOutOfOrderS2;
 	int m_seqNumDiscontinuitiesS1;
 	int m_seqNumDiscontinuitiesS2;
+
+	//==========================================================
+	// Multi-channel separated output
+
+	int m_numChannels; // Number of channels
+	std::vector<RtpMixerChannelRef> m_rtpMixerChannels; // Channel information
 };
+
+//==========================================================
+RtpMixerChannel::RtpMixerChannel()
+{
+	m_timestampCorrectiveDelta = 0.0;
+	m_seqNumMisses = 0;
+	m_seqMaxGap = 0;
+	m_seqNumOutOfOrder = 0;
+	m_seqNumDiscontinuities = 0;
+	m_channel = 0;
+	for(int i = 0; i < NUM_SAMPLES_CIRCULAR_BUFFER; i++)
+	{
+		m_buffer[i] = 0;
+	}
+}
+
+RtpMixerChannel::~RtpMixerChannel()
+{
+	//printf("\n\n\n\n\n\n\nRtpMixerChannel%d being destroyed\n\n\n\n\n", m_channel);
+}
+
+//==========================================================
 
 RtpMixer::RtpMixer()
 {
@@ -107,6 +157,44 @@ RtpMixer::RtpMixer()
 	m_seqNumOutOfOrderS2 = 0;
 	m_seqNumDiscontinuitiesS1 = 0;
 	m_seqNumDiscontinuitiesS2 = 0;
+	m_numChannels = 0;
+	m_rtpMixerChannels.clear();
+}
+
+void RtpMixer::CreateChannels(int channelNumber)
+{
+	if(CONFIG.m_stereoRecording == false)
+	{
+		return;
+	}
+
+	if(CONFIG.m_tapeNumChannels <= 1)
+	{
+		return;
+	}
+
+	if(channelNumber <= m_numChannels)
+	{
+		// Channel already created
+		return;
+	}
+
+	RtpMixerChannelRef rtpMixerChannel;
+
+	int i;
+
+	i = m_numChannels;
+
+	// Always create channels until this number
+	for(; i < channelNumber; i++)
+	{
+		rtpMixerChannel.reset(new RtpMixerChannel());
+		rtpMixerChannel->m_channel = i+1;
+		m_rtpMixerChannels.push_back(rtpMixerChannel);
+		m_numChannels += 1;
+	}
+
+	return;
 }
 
 FilterRef RtpMixer::Instanciate()
@@ -167,10 +255,41 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 
 	if(details->m_marker == MEDIA_CHUNK_EOS_MARKER)
 	{
-		logMsg.Format("EOS s1: misses:%d maxgap:%d oo:%d disc:%d  s2: misses:%d maxgap:%d oo:%d disc:%d", 
-			m_seqNumMissesS1, m_seqMaxGapS1, m_seqNumOutOfOrderS1, m_seqNumDiscontinuitiesS1,
-			m_seqNumMissesS2, m_seqMaxGapS2, m_seqNumOutOfOrderS2, m_seqNumDiscontinuitiesS2);
+		if(m_numChannels)
+		{
+			for(int i = 0; i < m_numChannels; i++)
+			{
+				CStdString statsChan;
+
+				statsChan.Format("EOS s%d: misses:%d maxgap:%d oo:%d disc:%d", i+1,
+					m_rtpMixerChannels[i]->m_seqNumMisses, m_rtpMixerChannels[i]->m_seqMaxGap,
+					m_rtpMixerChannels[i]->m_seqNumOutOfOrder, m_rtpMixerChannels[i]->m_seqNumDiscontinuities);
+
+				if(logMsg.size())
+				{
+					logMsg = logMsg + "  " + statsChan;
+				}
+				else
+				{
+					logMsg = statsChan;
+				}
+			}
+		}
+		else
+		{
+			logMsg.Format("EOS s1: misses:%d maxgap:%d oo:%d disc:%d  s2: misses:%d maxgap:%d oo:%d disc:%d", 
+				m_seqNumMissesS1, m_seqMaxGapS1, m_seqNumOutOfOrderS1, m_seqNumDiscontinuitiesS1,
+				m_seqNumMissesS2, m_seqMaxGapS2, m_seqNumOutOfOrderS2, m_seqNumDiscontinuitiesS2);
+			
+		}
+
 		LOG4CXX_INFO(m_log, logMsg);
+
+		//logMsg.Format("COMPARISON: EOS s1: misses:%d maxgap:%d oo:%d disc:%d  s2: misses:%d maxgap:%d oo:%d disc:%d",
+		//	m_seqNumMissesS1, m_seqMaxGapS1, m_seqNumOutOfOrderS1, m_seqNumDiscontinuitiesS1,
+		//	m_seqNumMissesS2, m_seqMaxGapS2, m_seqNumOutOfOrderS2, m_seqNumDiscontinuitiesS2);
+
+		//LOG4CXX_INFO(m_log, logMsg);
 
 		CreateShipment(0, true);	// flush the buffer
 		return;
@@ -193,12 +312,31 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 
 	unsigned int correctedTimestamp = 0;
 
+	if(CONFIG.m_stereoRecording == true)
+	{
+		CreateChannels(details->m_channel);
+	}
+
 	if(details->m_channel == 1)
 	{
+		if(m_numChannels)
+		{
+			int chanIdx = 0;
+			AudioChunkRef lastChunk = m_rtpMixerChannels[chanIdx]->m_lastChunk;
+
+			if(lastChunk.get())
+			{
+				DoStats(details, lastChunk->GetDetails(), m_rtpMixerChannels[chanIdx]->m_seqNumMisses,
+					m_rtpMixerChannels[chanIdx]->m_seqMaxGap, m_rtpMixerChannels[chanIdx]->m_seqNumOutOfOrder,
+					m_rtpMixerChannels[chanIdx]->m_seqNumDiscontinuities);
+			}
+			m_rtpMixerChannels[chanIdx]->m_lastChunk = chunk;
+		}
+
 		if(m_lastChunkS1.get())
 		{
 			DoStats(details, m_lastChunkS1->GetDetails(), m_seqNumMissesS1, m_seqMaxGapS1, 
-				m_seqNumOutOfOrderS1, m_seqNumDiscontinuitiesS1);
+			m_seqNumOutOfOrderS1, m_seqNumDiscontinuitiesS1);
 		}
 		m_lastChunkS1 = chunk;
 		correctedTimestamp = details->m_timestamp;
@@ -212,6 +350,20 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 	}
 	else if(details->m_channel == 2)
 	{
+		if(m_numChannels)
+		{
+			int chanIdx = 1;
+			AudioChunkRef lastChunk = m_rtpMixerChannels[chanIdx]->m_lastChunk;
+
+			if(lastChunk.get())
+			{
+				DoStats(details, lastChunk->GetDetails(), m_rtpMixerChannels[chanIdx]->m_seqNumMisses,
+					m_rtpMixerChannels[chanIdx]->m_seqMaxGap, m_rtpMixerChannels[chanIdx]->m_seqNumOutOfOrder,
+					m_rtpMixerChannels[chanIdx]->m_seqNumDiscontinuities);
+			}
+			m_rtpMixerChannels[chanIdx]->m_lastChunk = chunk;
+		}
+
 		if(m_lastChunkS2.get())
 		{
 			DoStats(details, m_lastChunkS2->GetDetails(), m_seqNumMissesS2, m_seqMaxGapS2, 
@@ -232,11 +384,40 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 	}
 	else
 	{
-		if(m_invalidChannelReported == false)
+		// Support for channel 3, 4, 5, ...
+		if(m_numChannels)
 		{
-			m_invalidChannelReported = true;
-			logMsg.Format("Invalid Channel:%d", details->m_channel);
-			LOG4CXX_ERROR(m_log, logMsg);
+			int chanIdx = (details->m_channel)-1;
+			AudioChunkRef lastChunk = m_rtpMixerChannels[chanIdx]->m_lastChunk;
+
+			if(lastChunk.get())
+			{
+				DoStats(details, lastChunk->GetDetails(), m_rtpMixerChannels[chanIdx]->m_seqNumMisses,
+					m_rtpMixerChannels[chanIdx]->m_seqMaxGap, m_rtpMixerChannels[chanIdx]->m_seqNumOutOfOrder,
+					m_rtpMixerChannels[chanIdx]->m_seqNumDiscontinuities);
+			}
+			m_rtpMixerChannels[chanIdx]->m_lastChunk = chunk;
+
+			// Corrective delta always only applied to side 2 and other sides.
+			double tmp = (double)details->m_timestamp - m_rtpMixerChannels[chanIdx]->m_timestampCorrectiveDelta;
+			if(tmp < 0.0)
+			{
+				// Unsuccessful correction, do not correct.
+				correctedTimestamp = details->m_timestamp;
+			}
+			else
+			{
+				correctedTimestamp = (unsigned int)tmp;
+			}
+		}
+		else
+		{
+			if(m_invalidChannelReported == false)
+			{
+				m_invalidChannelReported = true;
+				logMsg.Format("Invalid Channel:%d", details->m_channel);
+				LOG4CXX_ERROR(m_log, logMsg);
+			}
 		}
 	}
 	unsigned int rtpEndTimestamp = correctedTimestamp + chunk->GetNumSamples();
@@ -333,6 +514,17 @@ void RtpMixer::ManageOutOfRangeTimestamp(AudioChunkRef& chunk)
 		// will be in the circular buffer timestamp window.
 		m_timestampCorrectiveDelta = (double)details->m_timestamp - (double)m_writeTimestamp;
 	}
+	else
+	{
+		if(m_numChannels)
+		{
+			int chanIdx = details->m_channel - 1;
+
+			// Calculate timestamp corrective delta so that next channel-x chunk
+			// will be in the circular buffer timestamp window.
+			m_rtpMixerChannels[chanIdx]->m_timestampCorrectiveDelta = (double)details->m_timestamp - (double)m_writeTimestamp;
+		}
+	}
 }
 
 void RtpMixer::Reset(unsigned int timestamp)
@@ -382,14 +574,37 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk, unsigned int correctedT
 {
 	CStdString debug;
 	AudioChunkDetails* details = audioChunk->GetDetails();
+	RtpMixerChannelRef myChannel;
+
+	if(m_numChannels)
+	{
+		// Define this once and for all
+		myChannel = m_rtpMixerChannels[details->m_channel - 1];
+	}
 
 	// 1. Silence from write pointer until end of RTP packet
+	// Doing this also will help us determine the offset at the channel's circular
+	// buffer at which we should write - for stereo recording
 	unsigned int endRtpTimestamp = correctedTimestamp + audioChunk->GetNumSamples();
 	if (endRtpTimestamp > m_writeTimestamp)
 	{
 		for(int i=0; i<(endRtpTimestamp - m_writeTimestamp); i++)
 		{
 			*m_writePtr = 0;
+
+			if(m_numChannels)
+			{
+				for(int x = 0; x < m_numChannels; x++)
+				{
+					// We follow in step and zero the bytes in the buffers of all the
+					// RtpMixer channels, in preparation for the write - this means that
+					// if there is no data for this timestamp in any one buffer,
+					// then we have silence there
+					short *myZeroPtr = m_rtpMixerChannels[x]->m_buffer + (m_writePtr - m_buffer);
+					*myZeroPtr = 0;
+				}
+			}
+
 			m_writePtr++;
 			if(m_writePtr >= m_bufferEnd)
 			{
@@ -420,6 +635,14 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk, unsigned int correctedT
            		sample = -32768;
 		}
 		*tempWritePtr = (short)sample;
+
+		// Follow in step and save the payload in the respective channel buffer
+		if(m_numChannels)
+		{
+			short* myChannelTempWritePtr = myChannel->m_buffer + (tempWritePtr - m_buffer);
+			*myChannelTempWritePtr = (short)payload[i];
+		}
+
 		tempWritePtr++;
 		if(tempWritePtr >= m_bufferEnd)
 		{
@@ -454,6 +677,118 @@ short* RtpMixer::CicularPointerSubtractOffset(short *ptr, size_t offset)
 	}
 }
 
+void RtpMixer::HandleMixedOutput(AudioChunkRef &chunk, AudioChunkDetails& details, short *readPtr)
+{
+	if(CONFIG.m_stereoRecording == false)
+	{
+		return;
+	}
+	if(CONFIG.m_tapeNumChannels <= 1)
+	{
+		return;
+	}
+
+	// If we're required to output a different number of channels than we currently
+	// know about in the RtpMixer, we will need to adjust the chunk such that it has
+	// the exact number of channel buffers we're required to output i.e so that
+	// the number of channel buffers in the chunk == CONFIG.m_tapeNumChannels
+	if(CONFIG.m_tapeNumChannels != m_numChannels)
+	{
+		chunk.reset(new AudioChunk(CONFIG.m_tapeNumChannels));
+		chunk->SetBuffer((void*)readPtr, details);
+	}
+
+	// 2 is hardcoded here because as per instructions we are currently to support
+	// only output of 2 channels.  So tapeChannels[0] will contain a mixed
+	// output of all even channels in the system (2, 4, 6...) and
+	// tapeChannels[1] will contain a mixed output of all odd channels
+	// in the system (1, 3, 5...).  Now, the rest of the chunks for the rest of
+	// the output channels i.e output channel 3, 4, 5... will be zeroed
+	short *tapeChannels[2];
+
+	tapeChannels[0] = (short*)malloc(details.m_numBytes); // Even channels mixed into here
+	tapeChannels[1] = (short*)malloc(details.m_numBytes); // Odd channels mixed into here
+
+	if(!tapeChannels[0] || !tapeChannels[1])
+	{
+		CStdString logMsg;
+
+		logMsg.Format("Out of memory in RtpMixer::AddMixedChannels while allocating %d bytes", details.m_numBytes);
+		LOG4CXX_ERROR(m_log, logMsg);
+
+		if(tapeChannels[0])
+		{
+			free(tapeChannels[0]);
+		}
+		if(tapeChannels[1])
+		{
+			free(tapeChannels[1]);
+		}
+
+		return;
+	}
+
+	memset(tapeChannels[0], 0, details.m_numBytes);
+	memset(tapeChannels[1], 0, details.m_numBytes);
+
+	int chanNo = 0;
+	int chanIdx = 0;
+
+	for(int i = 0; i < m_numChannels; i++)
+	{
+		chanNo = i+1;
+		chanIdx = i;
+
+		for(int j = 0; j < (details.m_numBytes/2); j++)
+		{
+			int sample;
+			int saveIdx = 0;
+
+			if(!(chanNo % 2))
+			{
+				saveIdx = 0;
+			}
+			else
+			{
+				saveIdx = 1;
+			}
+
+			short *chanReadPtr = (short*)m_rtpMixerChannels[chanIdx]->m_buffer + ((readPtr - m_buffer) + j);
+
+			sample = tapeChannels[saveIdx][j] + *chanReadPtr;
+			if (sample > 32767)
+			{
+				sample = 32767;
+			}
+			if(sample < -32768)
+			{
+				sample = -32768;
+			}
+
+			tapeChannels[saveIdx][j] = (short)sample;
+		}
+	}
+
+	// Set the two supported output channels
+	chunk->SetBuffer((void*)tapeChannels[0], details, 1);
+	chunk->SetBuffer((void*)tapeChannels[1], details, 2);
+
+	memset(tapeChannels[0], 0, details.m_numBytes);
+
+	// If we're required to output more than two channels then we need to
+	// zero the rest of the output channels i.e 3, 4, 5...
+	if(CONFIG.m_tapeNumChannels > 2)
+	{
+		for(int i = 2; i < CONFIG.m_tapeNumChannels; i++)
+		{
+			chunk->SetBuffer((void*)tapeChannels[0], details, (i+1));
+		}
+	}
+
+	free(tapeChannels[0]);
+	free(tapeChannels[1]);
+}
+
 void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 {
 	// 1. ship from readPtr until stop pointer or until end of buffer if wrapped
@@ -478,13 +813,28 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 	}
 	size_t shortSize = stopPtr-m_readPtr;
 	size_t byteSize = shortSize*2;
-	AudioChunkRef chunk(new AudioChunk());
+	AudioChunkRef chunk;
 	AudioChunkDetails details;
+
+	if(m_numChannels)
+	{
+		chunk.reset(new AudioChunk(m_numChannels));
+		details.m_channel = 100;
+	}
+	else
+	{
+		chunk.reset(new AudioChunk());
+	}
+
 	details.m_encoding = PcmAudio;
 	details.m_numBytes = byteSize;
 	if(CheckChunkDetails(details))
 	{
 		chunk->SetBuffer((void*)m_readPtr, details);
+		if(CONFIG.m_stereoRecording == true)
+		{
+			HandleMixedOutput(chunk, details, m_readPtr);
+		}
 		m_outputQueue.push(chunk);
 	}
 	m_shippedSamples += shortSize;
@@ -499,17 +849,34 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 	// 2. ship from beginning of buffer until stop ptr
 	if(bufferWrapped) 
 	{
+		AudioChunkDetails details;
+
 		shortSize = wrappedStopPtr - m_buffer;
 		byteSize = shortSize*2;
-		chunk.reset(new AudioChunk());
-		AudioChunkDetails details;
+
+		if(m_numChannels)
+		{
+			chunk.reset(new AudioChunk(m_numChannels));
+			details.m_channel = 100;
+		}
+		else
+		{
+			chunk.reset(new AudioChunk());
+		}
+
 		details.m_encoding = PcmAudio;
 		details.m_numBytes = byteSize;
+
 		if(CheckChunkDetails(details))
 		{
 			chunk->SetBuffer((void*)m_buffer, details);
+			if(CONFIG.m_stereoRecording == true)
+			{
+				HandleMixedOutput(chunk, details, m_buffer);
+			}
 			m_outputQueue.push(chunk);
 		}
+
 		m_shippedSamples += shortSize;
 		m_readPtr = CircularPointerAddOffset(m_readPtr ,shortSize);
 		m_readTimestamp += shortSize;
@@ -521,8 +888,26 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 	if (silenceSize)
 	{
 		byteSize = silenceSize*2;
-		AudioChunkRef chunk(new AudioChunk());
+		AudioChunkRef chunk;
 		AudioChunkDetails details;
+
+		if(CONFIG.m_stereoRecording == true)
+		{
+			if(CONFIG.m_tapeNumChannels > 1)
+			{
+				chunk.reset(new AudioChunk(CONFIG.m_tapeNumChannels));
+				details.m_channel = 100;
+			}
+			else
+			{
+				chunk.reset(new AudioChunk());
+			}
+		}
+		else
+		{
+			chunk.reset(new AudioChunk());
+		}
+
 		details.m_encoding = PcmAudio;
 		details.m_numBytes = byteSize;
 		if(CheckChunkDetails(details))

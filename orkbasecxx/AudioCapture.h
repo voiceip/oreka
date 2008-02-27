@@ -55,7 +55,8 @@ public:
 	unsigned int m_sequenceNumber;
 	unsigned int m_sampleRate;
 	char m_rtpPayloadType;				// -1 if none
-	unsigned char m_channel;			// 0 if mono, 1 or 2 if stereo
+	unsigned char m_channel;			// 0 if mono, 1 or 2 if stereo, 100 if we have
+							// separated multiple channels
 };
 
 /** 
@@ -65,9 +66,13 @@ class DLL_IMPORT_EXPORT_ORKBASE AudioChunk
 {
 public: 
 	AudioChunk();
+	AudioChunk(int numChannels);
 	~AudioChunk();
 
 	void ToString(CStdString&);
+
+	/** Creates n zeroed buffers where n=m_numChannels */
+	void CreateMultiChannelBuffers(AudioChunkDetails& details);
 
 	/** Allocate a new empty buffer (zeroed) */
 	void* CreateBuffer(AudioChunkDetails& details);
@@ -75,10 +80,16 @@ public:
 	/** Copy external buffer to internal buffer. Create internal buffer if necessary */
 	void SetBuffer(void* pBuffer, AudioChunkDetails& details);
 
+	/** Copy external buffer to internal buffer. Create internal buffer if necessary */
+	void SetBuffer(void* pBuffer, AudioChunkDetails& details, int chan);
+
 	/** Computes the Root-Mean-Square power value of the buffer */
 	double ComputeRms();
 	/** Compute the RMS decibel value of the buffer with a 0 dB reference being the maximum theoretical RMS power of the buffer (2^15) */
 	double ComputeRmsDb();
+
+	/** Free's all memory allocated */
+	void FreeAll();
 
 	int GetNumSamples();
 	int GetNumBytes();
@@ -89,6 +100,12 @@ public:
 	void SetDetails(AudioChunkDetails* details);
 
 	void * m_pBuffer;
+
+	//==========================================================
+	// Additions to support separate audio for multiple channels
+
+	int m_numChannels;
+	void ** m_pChannelAudio;
 
 private:
 	AudioChunkDetails m_details;
