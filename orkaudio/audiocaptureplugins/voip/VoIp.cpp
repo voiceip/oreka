@@ -196,6 +196,32 @@ char* SkipWhitespaces(char* in, char* limit)
 	return c;
 }
 
+void GrabSipUriDomain(char* in, char* limit, CStdString& out)
+{
+	char* userStart = SkipWhitespaces(in, limit);
+	if(userStart >= limit)
+	{
+		return;
+	}
+
+	char* domainStart = strchr(userStart, '@');
+	if(!domainStart)
+	{
+		return;
+	}
+
+	domainStart += 1;
+	if(*domainStart == '\0' || domainStart >= limit)
+	{
+		return;
+	}
+
+	for(char *c = domainStart; (ACE_OS::ace_isalnum(*c) || *c == '.' || *c == '-' || *c == '_') && (c < limit); c = c+1)
+	{
+		out += *c;
+	}
+}
+
 void GrabSipUserAddress(char* in, char* limit, CStdString& out)
 {
 	char* userStart = SkipWhitespaces(in, limit);
@@ -1613,6 +1639,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 				{
 					GrabSipUriUser(sipUser, fromFieldEnd, info->m_from);
 				}
+				GrabSipUriDomain(sipUser, fromFieldEnd, info->m_fromDomain);
 			}
 			else
 			{
@@ -1624,6 +1651,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 				{
 					GrabSipUriUser(fromField, fromFieldEnd, info->m_from);
 				}
+				GrabSipUriDomain(fromField, fromFieldEnd, info->m_fromDomain);
 			}
 		}
 		if(toField)
@@ -1643,6 +1671,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 				{
 					GrabSipUriUser(sipUser, toFieldEnd, info->m_to);
 				}
+				GrabSipUriDomain(sipUser, toFieldEnd, info->m_toDomain);
 			}
 			else
 			{
@@ -1654,6 +1683,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 				{
 					GrabSipUriUser(toField, toFieldEnd, info->m_to);
 				}
+				GrabSipUriDomain(toField, toFieldEnd, info->m_toDomain);
 			}
 		}
 		if(callIdField)

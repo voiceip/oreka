@@ -44,6 +44,8 @@ public:
 	std::map<CStdString, CStdString> m_extractedFields;
 	CStdString m_telephoneEventPayloadType;
 	bool m_telephoneEventPtDefined;
+	CStdString m_fromDomain;
+	CStdString m_toDomain;
 
 	time_t m_recvTime;
 };
@@ -158,6 +160,7 @@ private:
 	void GenerateOrkUid();
 	void HandleRtpEvent(RtpPacketInfoRef& rtpPacket);
 	void RecordRtpEvent();
+	bool MatchesSipDomain(CStdString& domain);
 
 	RtpPacketInfoRef m_lastRtpPacket;
 	RtpPacketInfoRef m_lastRtpPacketSide1;
