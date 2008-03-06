@@ -193,6 +193,21 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 	}
 }
 
+bool RtpSession::MatchesSipDomain(CStdString& domain)
+{
+	for(std::list<CStdString>::iterator it = DLLCONFIG.m_sipDomains.begin(); it != DLLCONFIG.m_sipDomains.end(); it++)
+	{
+		CStdString element = *it;
+
+		if(element.CompareNoCase(domain) == 0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void RtpSession::ProcessMetadataSipIncoming()
 {
 	m_remoteParty = m_invite->m_from;
@@ -325,45 +340,26 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 	}
 
 	// work out capture port and direction
-	if(DLLCONFIG.IsMediaGateway(m_invitorIp))
+	if(MatchesSipDomain(m_invite->m_fromDomain) && MatchesSipDomain(m_invite->m_toDomain))
 	{
-		if(DLLCONFIG.IsMediaGateway(m_inviteeIp))
-		{
-			// Media gateway talking to media gateway, this is probably incoming
-			ProcessMetadataSipIncoming();
-		}
-		else if(DLLCONFIG.IsPartOfLan(m_inviteeIp))
-		{
-			// Gateway to LAN, this is pobably incoming
-			ProcessMetadataSipIncoming();
-		}
-		else
-		{
-			// Gateway to outside address, probably outgoing but treat as incoming for now because
-			// It can be due to misconfigured LAN Mask, odds are it's still incoming.
-			ProcessMetadataSipIncoming();
-		}
-	}
-	else if (DLLCONFIG.IsPartOfLan(m_invitorIp))
-	{
+		// Both match at least one entry
 		ProcessMetadataSipOutgoing();
+	}
+	else if(MatchesSipDomain(m_invite->m_fromDomain))
+	{
+		// Only from domain matches
+		ProcessMetadataSipOutgoing();
+	}
+	else if(MatchesSipDomain(m_invite->m_toDomain))
+	{
+		// Only to domain matches
+		ProcessMetadataSipIncoming();
 	}
 	else
 	{
-		// SIP invitor media IP address is an outside IP address
-		if(DLLCONFIG.IsMediaGateway(m_inviteeIp))
-		{
-			ProcessMetadataSipIncoming();
-		}
-		else if(DLLCONFIG.IsPartOfLan(m_inviteeIp))
-		{
-			ProcessMetadataSipIncoming();
-		}
-		else
-		{
-			// SIP invitee media address is an outside IP address
-			ProcessMetadataSipOutgoing();
-		}
+		// Default to outgoing whereby m_from is the local party and m_to is
+		// the remote party - neither from nor to domains match
+		ProcessMetadataSipOutgoing();
 	}
 }
 
@@ -1909,7 +1905,7 @@ void SipInviteInfo::ToString(CStdString& string)
 	MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
 	MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
 
-	string.Format("sender:%s from:%s RTP:%s,%s to:%s rcvr:%s callid:%s smac:%s rmac:%s", senderIp, m_from, fromRtpIp, m_fromRtpPort, m_to, receiverIp, m_callId, senderMac, receiverMac);
+	string.Format("sender:%s from:%s@%s RTP:%s,%s to:%s@%s rcvr:%s callid:%s smac:%s rmac:%s", senderIp, m_from, m_fromDomain, fromRtpIp, m_fromRtpPort, m_to, m_toDomain, receiverIp, m_callId, senderMac, receiverMac);
 }
 
 //==========================================================

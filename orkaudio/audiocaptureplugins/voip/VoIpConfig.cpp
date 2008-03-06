@@ -109,6 +109,8 @@ void VoIpConfig::Define(Serializer* s)
 
 	s->IntValue("SangomaRxTcpPortStart", m_sangomaRxTcpPortStart);
 	s->IntValue("SangomaTxTcpPortStart", m_sangomaTxTcpPortStart);
+
+	s->CsvValue("SipDomains", m_sipDomains);
 }
 
 void VoIpConfig::Validate()
