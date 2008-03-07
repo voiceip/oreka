@@ -71,6 +71,8 @@ Config::Config()
 	m_stereoRecording = STEREO_RECORDING_DEFAULT;
 	m_tapeNumChannels = TAPE_NUM_CHANNELS_DEFAULT;
 	m_tapeDurationMinimumSec = TAPE_DURATION_MINIMUM_SEC_DEFAULT;
+	m_transcodingSleepEveryNumFrames = TRANSCODING_SLEEP_EVERY_NUM_FRAMES_DEFAULT;
+	m_transcodingSleepUs = TRANSCODING_SLEEP_US_DEFAULT;
 }
 
 void Config::Define(Serializer* s)
@@ -146,6 +148,8 @@ void Config::Define(Serializer* s)
 	s->BoolValue(STEREO_RECORDING_PARAM, m_stereoRecording);
 	s->IntValue(TAPE_NUM_CHANNELS_PARAM, m_tapeNumChannels);
 	s->IntValue(TAPE_DURATION_MINIMUM_SEC_PARAM, m_tapeDurationMinimumSec);
+	s->IntValue(TRANSCODING_SLEEP_EVERY_NUM_FRAMES_PARAM, m_transcodingSleepEveryNumFrames);
+	s->IntValue(TRANSCODING_SLEEP_US_PARAM, m_transcodingSleepUs);
 }
 
 void Config::Validate()
@@ -193,6 +197,19 @@ void Config::Validate()
 	{
 		CStdString exception;
 		exception.Format("Config::Validate: please set a valid number for TapeNumChannels - currently:%d", m_tapeNumChannels);
+		throw(exception);
+	}
+
+	if(m_transcodingSleepEveryNumFrames < 0)
+	{
+		CStdString exception;
+		exception.Format("Config::Validate: please set a valid value for TranscodingSleepEveryNumFrames - currently:%d", m_transcodingSleepEveryNumFrames);
+		throw(exception);
+	}
+	if(m_transcodingSleepUs < 0)
+	{
+		CStdString exception;
+		exception.Format("Config::Validate: please set a valid value for TranscodingSleepUs - currently:%d", m_transcodingSleepUs);
 		throw(exception);
 	}
 }
