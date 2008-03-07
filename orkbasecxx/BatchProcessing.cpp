@@ -138,6 +138,9 @@ void BatchProcessing::ThreadHandler(void *args)
 
 				AudioChunkRef chunkRef;
 				AudioChunkRef tmpChunkRef;
+				unsigned int frameSleepCounter;
+
+				frameSleepCounter = 0;
 
 				switch(CONFIG.m_storageAudioFormat)
 				{
@@ -295,6 +298,22 @@ void BatchProcessing::ThreadHandler(void *args)
 						ts.tv_sec = 0;
 						ts.tv_nsec = 1;
 						ACE_OS::nanosleep (&ts, NULL);
+					}
+					
+					if(CONFIG.m_transcodingSleepEveryNumFrames > 0 && CONFIG.m_transcodingSleepUs > 0)
+					{
+						if(frameSleepCounter >= CONFIG.m_transcodingSleepEveryNumFrames)
+						{
+							frameSleepCounter = 0;
+							struct timespec ts;
+							ts.tv_sec = 0;
+							ts.tv_nsec = CONFIG.m_transcodingSleepUs*1000;
+							ACE_OS::nanosleep (&ts, NULL);
+						}
+						else
+						{
+							frameSleepCounter += 1;
+						}
 					}
 				}
 

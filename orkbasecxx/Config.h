@@ -110,6 +110,10 @@
 #define TAPE_NUM_CHANNELS_DEFAULT 2
 #define TAPE_DURATION_MINIMUM_SEC_PARAM "TapeDurationMinimumSec"
 #define TAPE_DURATION_MINIMUM_SEC_DEFAULT 0
+#define TRANSCODING_SLEEP_EVERY_NUM_FRAMES_PARAM "TranscodingSleepEveryNumFrames"
+#define TRANSCODING_SLEEP_EVERY_NUM_FRAMES_DEFAULT 0
+#define TRANSCODING_SLEEP_US_PARAM "TranscodingSleepUs"
+#define TRANSCODING_SLEEP_US_DEFAULT 0
 
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
@@ -173,6 +177,8 @@ public:
 	bool m_stereoRecording;
 	int m_tapeNumChannels;
 	int m_tapeDurationMinimumSec;
+	int m_transcodingSleepEveryNumFrames;
+	int m_transcodingSleepUs;
 
 private:
 	log4cxx::LoggerPtr m_log;
