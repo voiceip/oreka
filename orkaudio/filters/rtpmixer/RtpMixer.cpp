@@ -12,12 +12,15 @@
  */
 #pragma warning( disable: 4786 )
 
+#define _WINSOCKAPI_		// prevents the inclusion of winsock.h
+
 #include "dll.h"
 #include <queue>
 #include <vector>
+#include <log4cxx/logger.h>
 #include "Filter.h"
 #include "AudioCapture.h"
-#include <log4cxx/logger.h>
+
 #include "ConfigManager.h"
 extern "C"
 {
