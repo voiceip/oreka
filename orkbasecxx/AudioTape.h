@@ -76,6 +76,7 @@ public:
 	CStdString GetFilename();
 	CStdString GetPath();
 	CStdString GetExtension();
+	void SetExtension(CStdString& ext);
 	AudioFileRef GetAudioFileRef();
 	bool IsReadyForBatchProcessing();
 	void GetDetails(TapeMsg* msg);
