@@ -893,6 +893,11 @@ CStdString AudioTape::GetExtension()
 	return m_fileExtension;
 }
 
+void AudioTape::SetExtension(CStdString& ext)
+{
+	m_fileExtension = ext;
+}
+
 bool AudioTape::IsStoppedAndValid()
 {
 	if (m_state == StateStopped)
