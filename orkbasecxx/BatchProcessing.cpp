@@ -348,7 +348,7 @@ void BatchProcessing::ThreadHandler(void *args)
 						CStdString logMsg;
 
 						logMsg.Format("Error setting permissions of %s to %o: %s", audioFileName.c_str(), CONFIG.m_audioFilePermissions, strerror(errno));
-						LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + logMsg);
+						LOG4CXX_ERROR(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + logMsg);
 					}
 				}
 
@@ -356,7 +356,7 @@ void BatchProcessing::ThreadHandler(void *args)
 					if(FileSetOwnership(audioFileName, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup))
 					{
 						logMsg.Format("Error setting ownership and group of %s to %s:%s: %s", audioFileName.c_str(), CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, strerror(errno));
-						LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + logMsg);
+						LOG4CXX_ERROR(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + logMsg);
 					}
 				}
 				
