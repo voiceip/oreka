@@ -48,6 +48,7 @@ VoIpConfig::VoIpConfig()
 
 	m_useMacIfNoLocalParty = false; // Uses IP address by default
 	m_localPartyForceLocalIp = false;
+	m_localPartyForceLocalMac = false;
 
 	m_skinnyIgnoreStopMediaTransmission = false;
 	m_skinnyIgnoreOpenReceiveChannelAck = false;
@@ -100,6 +101,7 @@ void VoIpConfig::Define(Serializer* s)
 
 	s->BoolValue("UseMacIfNoLocalParty", m_useMacIfNoLocalParty);
 	s->BoolValue("LocalPartyForceLocalIp", m_localPartyForceLocalIp);
+	s->BoolValue("LocalPartyForceLocalMac", m_localPartyForceLocalMac);
 
 	s->BoolValue("SkinnyIgnoreStopMediaTransmission", m_skinnyIgnoreStopMediaTransmission);
 	s->BoolValue("SkinnyIgnoreOpenReceiveChannelAck", m_skinnyIgnoreOpenReceiveChannelAck);

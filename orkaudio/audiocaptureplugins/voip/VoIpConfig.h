@@ -83,6 +83,7 @@ public:
 
 	bool m_useMacIfNoLocalParty;
 	bool m_localPartyForceLocalIp;
+	bool m_localPartyForceLocalMac;
 
 	bool m_skinnyIgnoreStopMediaTransmission;
 	bool m_skinnyIgnoreOpenReceiveChannelAck;

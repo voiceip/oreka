@@ -428,6 +428,12 @@ void RtpSession::ReportMetadata()
 		}
 	}
 
+	if(DLLCONFIG.m_localPartyForceLocalMac)
+	{
+		m_localParty = "";
+		MemMacToHumanReadable((unsigned char*)m_localMac, m_localParty);
+	}
+
 	// Report Local party
 	CaptureEventRef event(new CaptureEvent());
 	event->m_type = CaptureEvent::EtLocalParty;
