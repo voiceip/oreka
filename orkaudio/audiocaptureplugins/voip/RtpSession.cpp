@@ -1555,21 +1555,30 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	if(DLLCONFIG.m_sangomaEnable && sourcePort == destPort)
 	{
+		if(rtpPacket->m_sourceIp.s_addr == rtpPacket->m_destIp.s_addr)
+		{
+			// Source and destination IP are the same, let's change one
+			// side in order to simulate bidirection RTP
+			// flip the least significant bit of the most significant byte
+			rtpPacket->m_destIp.s_addr ^= 0x00000001;
+		}
+
 		if(sourcePort > DLLCONFIG.m_sangomaTxTcpPortStart)
 		{
 			// This is a TX packet
 			sourcePort = sourcePort - DLLCONFIG.m_sangomaTcpPortDelta;
 			rtpPacket->m_sourcePort = sourcePort;
-			// flip the least significant bit of the most significant byte
-			rtpPacket->m_sourceIp.s_addr ^= 0x00000001;
+
+			// swap source and dest IP addresses so that we simulate bidirectional RTP
+			in_addr sourceIP = rtpPacket->m_sourceIp;
+			rtpPacket->m_sourceIp = rtpPacket->m_destIp;
+			rtpPacket->m_destIp = sourceIP;
 		}
 		else
 		{
 			// This is an RX packet
 			sourcePort = sourcePort + DLLCONFIG.m_sangomaTcpPortDelta;
 			rtpPacket->m_sourcePort = sourcePort;
-			// flip the least significant bit of the most significant byte
-			rtpPacket->m_destIp.s_addr ^= 0x00000001;
 		}
 	}
 

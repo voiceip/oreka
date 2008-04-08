@@ -93,7 +93,7 @@ public:
 	std::list<CStdString> m_sipExtractFields;
 
 	bool m_sangomaEnable;	// not a config parm, derived from the two following
-	int m_sangomaTcpPortDelta;
+	int m_sangomaTcpPortDelta;	// not a config parm, derived from the two following
 	int m_sangomaRxTcpPortStart;
 	int m_sangomaTxTcpPortStart;
 	int m_skinnyTcpPort;
