@@ -1813,6 +1813,16 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		{
 			RtpSessionsSingleton::instance()->ReportSipInvite(info);
 		}
+		else
+		{
+			if(drop == false && DLLCONFIG.m_sipUse200OkMediaAddress && info->m_from.size() && info->m_to.size() && info->m_callId.size())
+			{
+				// Get information from 200 OK
+				RtpSessionsSingleton::instance()->ReportSipInvite(info);
+			}
+			//logMsg.Format("Not logging this INVITE: drop:%s m_fromRtpPort:%s from:%s to:%s callId:%s", (drop ? "true" : "false"), info->m_fromRtpPort, info->m_from, info->m_to, info->m_callId);
+			//LOG4CXX_INFO(s_sipPacketLog, logMsg);
+		}
 	}
 	return result;
 }
