@@ -26,7 +26,8 @@ struct ReportingThreadInfo
 	int m_numTapesToSkip;
 	bool m_queueFullError;
 	char m_threadId[256];
-	ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
+	//ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
+	ThreadSafeQueue<MessageRef> m_messageQueue;
 	ACE_Thread_Mutex m_mutex;
 };
 typedef boost::shared_ptr<ReportingThreadInfo> ReportingThreadInfoRef;
@@ -58,6 +59,7 @@ public:
 	CStdString __CDECL__ GetName();
 	TapeProcessorRef __CDECL__ Instanciate();
 	void __CDECL__ AddAudioTape(AudioTapeRef& audioTapeRef);
+	void __CDECL__ AddTapeMessage(MessageRef& messageRef);
 	void __CDECL__ SkipTapes(int number, CStdString trackingServer="");
 
 	//static Reporting* GetInstance();

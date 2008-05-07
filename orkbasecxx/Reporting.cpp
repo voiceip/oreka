@@ -140,27 +140,45 @@ void __CDECL__ Reporting::SkipTapes(int number, CStdString trackingServer)
 	}
 }
 
-
-void Reporting::AddAudioTape(AudioTapeRef& audioTapeRef)
+void Reporting::AddTapeMessage(MessageRef& messageRef)
 {
 	std::map<CStdString, ReportingThreadInfoRef>::iterator pair;
 	CStdString logMsg;
-
+	TapeMsg *pTapeMsg = (TapeMsg*)messageRef.get(), *pRptTapeMsg;
+	MessageRef reportingMsgRef;
+	
 	for(pair = s_reportingThreads.begin(); pair != s_reportingThreads.end(); pair++)
 	{
 		ReportingThreadInfoRef reportingThread = pair->second;
 
-		if(reportingThread->m_audioTapeQueue.push(audioTapeRef))
+		reportingMsgRef.reset(new TapeMsg);
+		pRptTapeMsg = (TapeMsg*)reportingMsgRef.get();
+
+		pRptTapeMsg->m_recId = pTapeMsg->m_recId;
+		pRptTapeMsg->m_fileName = pTapeMsg->m_fileName;
+		pRptTapeMsg->m_stage = pTapeMsg->m_stage;
+		pRptTapeMsg->m_capturePort = pTapeMsg->m_capturePort;
+		pRptTapeMsg->m_localParty = pTapeMsg->m_localParty;
+		pRptTapeMsg->m_localEntryPoint = pTapeMsg->m_localEntryPoint;
+		pRptTapeMsg->m_remoteParty = pTapeMsg->m_remoteParty;
+		pRptTapeMsg->m_direction = pTapeMsg->m_direction;
+		pRptTapeMsg->m_duration = pTapeMsg->m_duration;
+		pRptTapeMsg->m_timestamp = pTapeMsg->m_timestamp;
+		pRptTapeMsg->m_localIp = pTapeMsg->m_localIp;
+		pRptTapeMsg->m_remoteIp = pTapeMsg->m_remoteIp;
+		pRptTapeMsg->m_nativeCallId = pTapeMsg->m_nativeCallId;
+
+		if(reportingThread->m_messageQueue.push(reportingMsgRef))
 		{
 			reportingThread->m_queueFullError = false;
-			logMsg.Format("[%s] added audiotape to queue: %s", reportingThread->m_threadId, audioTapeRef->GetIdentifier());
+			logMsg.Format("[%s] added %s tape message to queue: %s", reportingThread->m_threadId, pTapeMsg->m_stage, pTapeMsg->m_recId);
 			LOG4CXX_INFO(LOG.reportingLog, logMsg);
 		}
 		else
 		{
 			if(reportingThread->m_queueFullError == false)
 			{
-				logMsg.Format("[%s] queue full, could not add audiotape %s", reportingThread->m_threadId, audioTapeRef->GetIdentifier());
+				logMsg.Format("[%s] queue full, could not add tape message %s", reportingThread->m_threadId, pTapeMsg->m_recId);
 				LOG4CXX_WARN(LOG.reportingLog, logMsg);
 				reportingThread->m_queueFullError = true;
 			}
@@ -168,150 +186,27 @@ void Reporting::AddAudioTape(AudioTapeRef& audioTapeRef)
 	}
 }
 
+void Reporting::AddAudioTape(AudioTapeRef& audioTapeRef)
+{
+	// What to do?
+	MessageRef msgRef;
+	audioTapeRef->GetMessage(msgRef);
+	        audioTapeRef->GetMessage(msgRef);
+        audioTapeRef->GetMessage(msgRef);
+        audioTapeRef->GetMessage(msgRef);
+        audioTapeRef->GetMessage(msgRef);
+        audioTapeRef->GetMessage(msgRef);
+        audioTapeRef->GetMessage(msgRef);
+
+	TapeMsg *pTapeMsg = (TapeMsg*)msgRef.get();
+
+	AddTapeMessage(msgRef);
+}
+
 void Reporting::ThreadHandler(void *args)
 {
-	int humptyDumptySatOnAWall;
-
-	humptyDumptySatOnAWall = 0;
-
 	return;
 }
-
-#if 0
-void Reporting::ThreadHandler(void *args)
-{
-	CStdString processorName("Reporting");
-	TapeProcessorRef reporting = TapeProcessorRegistry::instance()->GetNewTapeProcessor(processorName);
-	if(reporting.get() == NULL)
-	{
-		LOG4CXX_ERROR(LOG.reportingLog, "Could not instanciate Reporting");
-		return;
-	}
-	Reporting* pReporting = (Reporting*)(reporting->Instanciate().get());
-
-	bool stop = false;
-	bool reportError = true;
-	time_t reportErrorLastTime = 0;
-	bool error = false;
-
-	for(;stop == false;)
-	{
-		try
-		{
-			AudioTapeRef audioTapeRef = pReporting->m_audioTapeQueue.pop();
-
-			if(audioTapeRef.get() == NULL)
-			{
-				if(Daemon::Singleton()->IsStopping())
-				{
-					stop = true;
-				}
-			}
-			else
-			{
-
-				MessageRef msgRef;
-				audioTapeRef->GetMessage(msgRef);
-				TapeMsg* ptapeMsg = (TapeMsg*)msgRef.get();
-				//bool startMsg = false;
-				bool realtimeMessage = false;
-
-				if(msgRef.get() && CONFIG.m_enableReporting)
-				{
-					//if(ptapeMsg->m_stage.Equals("START"))
-					//{
-					//	startMsg = true;
-					//}
-					if(ptapeMsg->m_stage.Equals("start") || ptapeMsg->m_stage.Equals("stop"))
-					{
-						realtimeMessage = true;
-					}
-
-					CStdString msgAsSingleLineString = msgRef->SerializeSingleLine();
-					LOG4CXX_INFO(LOG.reportingLog, msgAsSingleLineString);
-
-					OrkHttpSingleLineClient c;
-					TapeResponseRef tr(new TapeResponse());
-					audioTapeRef->m_tapeResponse = tr;
-
-					bool success = false;
-
-					while (!success && !pReporting->IsSkip())
-					{
-						if (c.Execute((SyncMessage&)(*msgRef.get()), (AsyncMessage&)(*tr.get()), CONFIG.m_trackerHostname, CONFIG.m_trackerTcpPort, CONFIG.m_trackerServicename, CONFIG.m_clientTimeout))
-						{
-							success = true;
-							reportError = true; // reenable error reporting
-							if(error)
-							{
-								error = false;
-								LOG4CXX_ERROR(LOG.reportingLog, CStdString("Orktrack successfully contacted"));
-							}
-
-							if(tr->m_deleteTape)
-							{
-								CStdString tapeFilename = audioTapeRef->GetFilename();
-
-								CStdString absoluteFilename = CONFIG.m_audioOutputPath + "/" + tapeFilename;
-								if (ACE_OS::unlink((PCSTR)absoluteFilename) == 0)
-								{
-									LOG4CXX_INFO(LOG.reportingLog, "Deleted tape: " + tapeFilename);
-								}
-								else
-								{
-									LOG4CXX_DEBUG(LOG.reportingLog, "Could not delete tape: " + tapeFilename);
-								}
-
-							}
-							else 
-							{
-								// Tape is wanted
-								if(CONFIG.m_lookBackRecording == false && CONFIG.m_allowAutomaticRecording && ptapeMsg->m_stage.Equals("start"))
-								{
-									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_localParty);
-									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_remoteParty);
-								}
-							}
-							//else
-							//{
-							//	if(!startMsg)
-							//	{
-							//		// Pass the tape to the next processor
-							//		pReporting->Runsftp NextProcessor(audioTapeRef);
-							//	}
-							//}
-						}
-						else
-						{
-							error = true;
-
-							if( reportError || ((time(NULL) - reportErrorLastTime) > 60) )	// at worst, one error is reported every minute
-							{
-								reportError = false;
-								reportErrorLastTime = time(NULL);
-								LOG4CXX_ERROR(LOG.reportingLog, CStdString("Could not contact orktrack"));
-							}
-							if(realtimeMessage)
-							{
-								success = true;		// No need to resend realtime messages
-							}
-							else
-							{
-								ACE_OS::sleep(2);	// Make sure orktrack is not flooded in case of a problem
-							}
-						}
-					}
-				}
-			}
-		}
-		catch (CStdString& e)
-		{
-			LOG4CXX_ERROR(LOG.reportingLog, CStdString("Exception: ") + e);
-		}
-	}
-	LOG4CXX_INFO(LOG.reportingLog, CStdString("Exiting thread"));
-}
-#endif
 
 //=======================================================
 #define REPORTING_SKIP_TAPE_CLASS "reportingskiptape"
@@ -320,7 +215,6 @@ ReportingSkipTapeMsg::ReportingSkipTapeMsg()
 {
 	m_number = 1;
 }
-
 
 void ReportingSkipTapeMsg::Define(Serializer* s)
 {
@@ -396,9 +290,9 @@ void ReportingThread::Run()
 	{
 		try
 		{
-			AudioTapeRef audioTapeRef = m_myInfo->m_audioTapeQueue.pop();
+			MessageRef msgRef = m_myInfo->m_messageQueue.pop();
 
-			if(audioTapeRef.get() == NULL)
+			if(msgRef.get() == NULL)
 			{
 				if(Daemon::Singleton()->IsStopping())
 				{
@@ -407,9 +301,6 @@ void ReportingThread::Run()
 			}
 			else
 			{
-
-				MessageRef msgRef;
-				audioTapeRef->GetMessage(msgRef);
 				TapeMsg* ptapeMsg = (TapeMsg*)msgRef.get();
 				//bool startMsg = false;
 				bool realtimeMessage = false;
@@ -430,7 +321,7 @@ void ReportingThread::Run()
 
 					OrkHttpSingleLineClient c;
 					TapeResponseRef tr(new TapeResponse());
-					audioTapeRef->m_tapeResponse = tr;
+					//audioTapeRef->m_tapeResponse = tr;
 
 					bool success = false;
 
@@ -448,7 +339,7 @@ void ReportingThread::Run()
 
 							if(tr->m_deleteTape)
 							{
-								CStdString tapeFilename = audioTapeRef->GetFilename();
+								CStdString tapeFilename = ptapeMsg->m_fileName;
 
 								CStdString absoluteFilename = CONFIG.m_audioOutputPath + "/" + tapeFilename;
 								if (ACE_OS::unlink((PCSTR)absoluteFilename) == 0)
