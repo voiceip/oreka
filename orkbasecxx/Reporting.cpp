@@ -188,18 +188,8 @@ void Reporting::AddTapeMessage(MessageRef& messageRef)
 
 void Reporting::AddAudioTape(AudioTapeRef& audioTapeRef)
 {
-	// What to do?
 	MessageRef msgRef;
 	audioTapeRef->GetMessage(msgRef);
-	        audioTapeRef->GetMessage(msgRef);
-        audioTapeRef->GetMessage(msgRef);
-        audioTapeRef->GetMessage(msgRef);
-        audioTapeRef->GetMessage(msgRef);
-        audioTapeRef->GetMessage(msgRef);
-        audioTapeRef->GetMessage(msgRef);
-
-	TapeMsg *pTapeMsg = (TapeMsg*)msgRef.get();
-
 	AddTapeMessage(msgRef);
 }
 
@@ -321,7 +311,6 @@ void ReportingThread::Run()
 
 					OrkHttpSingleLineClient c;
 					TapeResponseRef tr(new TapeResponse());
-					//audioTapeRef->m_tapeResponse = tr;
 
 					bool success = false;
 
