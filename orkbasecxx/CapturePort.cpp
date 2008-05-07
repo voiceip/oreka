@@ -230,11 +230,14 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		case CaptureEvent::EtStart:
 			break;
 		case CaptureEvent::EtStop:
-
+		{
 			m_capturing = false;
 			LOG4CXX_INFO(s_log, "[" + audioTapeRef->m_trackingId + "] #" + m_id + " stop");
 			audioTapeRef->AddCaptureEvent(eventRef, true);
-			Reporting::Instance()->AddAudioTape(audioTapeRef);
+			
+			MessageRef msgRef;
+			audioTapeRef->GetMessage(msgRef);
+			Reporting::Instance()->AddTapeMessage(msgRef);
 
 			if (m_audioTapeRef->GetAudioFileRef().get())
 			{
@@ -247,15 +250,26 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 				LOG4CXX_WARN(s_log, "[" + audioTapeRef->m_trackingId + "] #" + m_id + " no audio reported between last start and stop");
 			}
 			break;
+		}
 		case CaptureEvent::EtEndMetadata:
+		{
 			// Now that all metadata has been acquired, we can generate the tape start message
-			Reporting::Instance()->AddAudioTape(audioTapeRef);
+
+			MessageRef msgRef;
+			audioTapeRef->GetMessage(msgRef);
+			Reporting::Instance()->AddTapeMessage(msgRef);
+
 			break;
+		}
 		case CaptureEvent::EtUpdate:
+		{
 			audioTapeRef->AddCaptureEvent(eventRef, true);
 			// Generate tape update message
-			Reporting::Instance()->AddAudioTape(audioTapeRef);
+			MessageRef msgRef;
+			audioTapeRef->GetMessage(msgRef);
+			Reporting::Instance()->AddTapeMessage(msgRef);
 			break;
+		}
 		case CaptureEvent::EtDirection:
 		case CaptureEvent::EtRemoteParty:
 		case CaptureEvent::EtLocalParty:
