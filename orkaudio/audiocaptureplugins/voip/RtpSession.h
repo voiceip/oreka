@@ -127,6 +127,7 @@ public:
 	void ReportSipErrorPacket(SipFailureMessageInfoRef& info);
 	bool OrkUidMatches(CStdString &oUid);
 	bool PartyMatches(CStdString &party);
+	void UpdateMetadataSkinny();
 
 	CStdString m_capturePort;
 	CStdString m_trackingId;
