@@ -100,6 +100,7 @@ public:
 	int m_sangomaTxTcpPortStart;
 	int m_skinnyTcpPort;
 	std::list<CStdString> m_sipDomains;
+	std::list<CStdString> m_sipDirectionRefenceIpAddresses;
 };
 
 //========================================

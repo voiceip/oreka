@@ -162,6 +162,7 @@ private:
 	void HandleRtpEvent(RtpPacketInfoRef& rtpPacket);
 	void RecordRtpEvent();
 	bool MatchesSipDomain(CStdString& domain);
+	bool MatchesReferenceAddresses(struct in_addr inAddr);
 
 	RtpPacketInfoRef m_lastRtpPacket;
 	RtpPacketInfoRef m_lastRtpPacketSide1;

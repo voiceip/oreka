@@ -333,6 +333,24 @@ void RtpSession::UpdateMetadataSip(RtpPacketInfoRef& rtpPacket, bool sourceRtpAd
 	}
 }
 
+bool RtpSession::MatchesReferenceAddresses(struct in_addr inAddr)
+{
+	char szInAddr[16];
+
+	ACE_OS::inet_ntop(AF_INET, (void*)&inAddr, szInAddr, sizeof(szInAddr));
+	for(std::list<CStdString>::iterator it = DLLCONFIG.m_sipDirectionRefenceIpAddresses.begin(); it != DLLCONFIG.m_sipDirectionRefenceIpAddresses.end(); it++)
+	{
+		CStdString element = *it;
+
+		if(element.CompareNoCase(szInAddr) == 0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 {
 	// work out invitee media IP address
@@ -359,27 +377,41 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 		LOG4CXX_WARN(m_log,  "[" + m_trackingId + "] " + m_ipAndPort + " alien RTP packet");
 	}
 
-	// work out capture port and direction
-	if(MatchesSipDomain(m_invite->m_fromDomain) && MatchesSipDomain(m_invite->m_toDomain))
+	if(DLLCONFIG.m_sipDirectionRefenceIpAddresses.size())
 	{
-		// Both match at least one entry
-		ProcessMetadataSipOutgoing();
-	}
-	else if(MatchesSipDomain(m_invite->m_fromDomain))
-	{
-		// Only from domain matches
-		ProcessMetadataSipOutgoing();
-	}
-	else if(MatchesSipDomain(m_invite->m_toDomain))
-	{
-		// Only to domain matches
-		ProcessMetadataSipIncoming();
+		if(MatchesReferenceAddresses(m_invite->m_senderIp))
+		{
+			ProcessMetadataSipIncoming();
+		}
+		else
+		{
+			ProcessMetadataSipOutgoing();
+		}
 	}
 	else
 	{
-		// Default to outgoing whereby m_from is the local party and m_to is
-		// the remote party - neither from nor to domains match
-		ProcessMetadataSipOutgoing();
+		// work out capture port and direction
+		if(MatchesSipDomain(m_invite->m_fromDomain) && MatchesSipDomain(m_invite->m_toDomain))
+		{
+			// Both match at least one entry
+			ProcessMetadataSipOutgoing();
+		}
+		else if(MatchesSipDomain(m_invite->m_fromDomain))
+		{
+			// Only from domain matches
+			ProcessMetadataSipOutgoing();
+		}
+		else if(MatchesSipDomain(m_invite->m_toDomain))
+		{
+			// Only to domain matches
+			ProcessMetadataSipIncoming();
+		}
+		else
+		{
+			// Default to outgoing whereby m_from is the local party and m_to is
+			// the remote party - neither from nor to domains match
+			ProcessMetadataSipOutgoing();
+		}
 	}
 }
 
