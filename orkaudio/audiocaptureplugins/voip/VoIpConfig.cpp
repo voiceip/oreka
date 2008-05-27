@@ -116,6 +116,7 @@ void VoIpConfig::Define(Serializer* s)
 
 	s->CsvValue("SipDomains", m_sipDomains);
 	s->CsvValue("SipDirectionRefenceIpAddresses", m_sipDirectionRefenceIpAddresses);
+	s->IpRangesValue("LanIpRanges", m_lanIpRanges);
 }
 
 void VoIpConfig::Validate()
