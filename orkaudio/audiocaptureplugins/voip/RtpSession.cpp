@@ -1113,7 +1113,28 @@ void RtpSessions::ReportSip200Ok(Sip200OkInfoRef info)
 		if(info->m_hasSdp && DLLCONFIG.m_sipUse200OkMediaAddress && !session->m_numRtpPackets) 
 		{
 			unsigned short mediaPort = ACE_OS::atoi(info->m_mediaPort);
-			SetMediaAddress(session, info->m_mediaIp, mediaPort);
+
+			if(!session->m_fromRtpIp.s_addr)
+			{
+				// Session has empty RTP address
+				SetMediaAddress(session, info->m_mediaIp, mediaPort);
+			}
+			else
+			{
+				if(!DLLCONFIG.m_lanIpRanges.Matches(session->m_fromRtpIp))
+				{
+					// Session has a public IP
+					if(!DLLCONFIG.m_lanIpRanges.Matches(info->m_mediaIp))
+					{
+						SetMediaAddress(session, info->m_mediaIp, mediaPort);
+					}
+				}
+				else
+				{
+					// Session has a private IP
+					SetMediaAddress(session, info->m_mediaIp, mediaPort);
+				}
+			}
 		}
 		//else
 		//{
