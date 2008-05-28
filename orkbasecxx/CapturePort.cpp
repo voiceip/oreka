@@ -30,6 +30,7 @@ CapturePort::CapturePort(CStdString& id)
 	m_vadUp = false;
 	m_capturing = false;
 	m_lastUpdated = 0;
+	m_needSendStop = false;
 
 	LoadFilters();
 }
@@ -238,6 +239,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			MessageRef msgRef;
 			audioTapeRef->GetMessage(msgRef);
 			Reporting::Instance()->AddTapeMessage(msgRef);
+			m_needSendStop = false;
 
 			if (m_audioTapeRef->GetAudioFileRef().get())
 			{
@@ -258,6 +260,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			MessageRef msgRef;
 			audioTapeRef->GetMessage(msgRef);
 			Reporting::Instance()->AddTapeMessage(msgRef);
+			m_needSendStop = true;
 
 			break;
 		}
@@ -299,6 +302,22 @@ bool CapturePort::IsExpired(time_t now)
 	return false;
 }
 
+void CapturePort::Finalize()
+{
+	if(m_needSendStop)
+	{
+		// Stop message not sent yet for some reason, force it
+		CaptureEventRef stopEvent(new CaptureEvent);
+		stopEvent->m_type = CaptureEvent::EtStop;
+		stopEvent->m_timestamp = time(NULL);
+		AddCaptureEvent(stopEvent);
+
+		MessageRef msgRef;
+		m_audioTapeRef->GetMessage(msgRef);
+		Reporting::Instance()->AddTapeMessage(msgRef);
+		m_needSendStop = false;
+	}
+}
 
 //=======================================
 CapturePorts::CapturePorts()
@@ -371,6 +390,7 @@ void CapturePorts::Hoover()
 		for (std::list<CapturePortRef>::iterator it = toDismiss.begin(); it != toDismiss.end() ; it++)
 		{
 			CapturePortRef port = *it;
+			port->Finalize();
 			m_ports.erase(port->GetId());
 			LOG4CXX_DEBUG(s_log,  port->GetId() + ": Expired");
 		}
