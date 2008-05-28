@@ -131,8 +131,8 @@ public:
 
 	CStdString m_capturePort;
 	CStdString m_trackingId;
-	CStdString m_ipAndPort;	// IP address and TCP port of one side of the session, serves as a key for session storage and retrieval. Not necessarily the same as the capturePort (capturePort is usually the client (phone) IP+port)
-	struct in_addr m_fromRtpIp;
+	CStdString m_ipAndPort;	// IP address and UDP port of one side of the RTP session, serves as a key for session storage and retrieval. Not necessarily the same as the capturePort (capturePort is usually the client (phone) IP+port)
+	struct in_addr m_rtpIp;	// IP address of one side of the RTP session
 	CStdString m_callId;
 	SipInviteInfoRef m_invite;
 	ACE_Time_Value m_creationDate;		// When the session is first created
