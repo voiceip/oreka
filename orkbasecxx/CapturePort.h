@@ -40,6 +40,8 @@ public:
 	void AddAudioChunk(AudioChunkRef chunkRef);
 	void AddCaptureEvent(CaptureEventRef eventRef);
 	bool IsExpired(time_t now);
+	void Finalize();
+
 private:
 	void LoadFilters();
 	void FilterAudioChunk(AudioChunkRef& chunkRef);
@@ -53,6 +55,7 @@ private:
 	bool m_vadUp;
 	time_t m_lastUpdated;
 	std::list<FilterRef> m_filters;
+	bool m_needSendStop;
 };
 
 typedef boost::shared_ptr<CapturePort> CapturePortRef;
