@@ -63,6 +63,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_currentRtpEventTs = 0;
 	m_currentDtmfVolume = 0;
 	m_sessionTelephoneEventPtDefined = false;
+	m_rtpIp.s_addr = 0;
 }
 
 void RtpSession::Stop()
@@ -149,7 +150,6 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 	}
 	else
 	{
-		//m_capturePort = m_ipAndPort;
 		m_capturePort = m_trackingId;
 	}
 
@@ -863,7 +863,6 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 		invite->ToString(inviteString);
 		CStdString logMsg;
 		logMsg.Format("[%s] associating INVITE:%s", m_trackingId, inviteString);
-		m_fromRtpIp = invite->m_fromRtpIp;
 		LOG4CXX_INFO(m_log, logMsg);
 	}
 	m_invites.push_front(invite);
@@ -1050,10 +1049,10 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	CStdString trackingId = m_alphaCounter.GetNext();
 	RtpSessionRef session(new RtpSession(trackingId));
 	session->m_ipAndPort = ipAndPort;
+	session->m_rtpIp = invite->m_fromRtpIp;
 	session->m_callId = invite->m_callId;
 	session->m_protocol = RtpSession::ProtSip;
 	session->ReportSipInvite(invite);
-	//m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
 	SetMediaAddress(session, invite->m_fromRtpIp, rtpPort);
 	m_byCallId.insert(std::make_pair(session->m_callId, session));
 
@@ -1109,19 +1108,18 @@ void RtpSessions::ReportSip200Ok(Sip200OkInfoRef info)
 	{
 		RtpSessionRef session = pair->second;
 
-		//if(info->m_hasSdp && DLLCONFIG.IsPartOfLan(session->m_fromRtpIp) && !DLLCONFIG.IsPartOfLan(info->m_fromRtpIp) && !session->m_numRtpPackets)
 		if(info->m_hasSdp && DLLCONFIG.m_sipUse200OkMediaAddress && !session->m_numRtpPackets) 
 		{
 			unsigned short mediaPort = ACE_OS::atoi(info->m_mediaPort);
 
-			if(!session->m_fromRtpIp.s_addr)
+			if(!session->m_rtpIp.s_addr)
 			{
 				// Session has empty RTP address
 				SetMediaAddress(session, info->m_mediaIp, mediaPort);
 			}
 			else
 			{
-				if(!DLLCONFIG.m_lanIpRanges.Matches(session->m_fromRtpIp))
+				if(!DLLCONFIG.m_lanIpRanges.Matches(session->m_rtpIp))
 				{
 					// Session has a public IP
 					if(!DLLCONFIG.m_lanIpRanges.Matches(info->m_mediaIp))
@@ -1410,6 +1408,7 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 
 		m_byIpAndPort.erase(session->m_ipAndPort);
 		session->m_ipAndPort = ipAndPort;
+		session->m_rtpIp = mediaIp;
 		m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
 
 		CStdString numSessions = IntToString(m_byIpAndPort.size());
@@ -1469,6 +1468,7 @@ void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruc
 				session->m_endPointIp = openReceive->endpointIpAddr;
 				session->m_protocol = RtpSession::ProtSkinny;
 				session->m_ipAndPort = ipAndPort;
+				session->m_rtpIp = openReceive->endpointIpAddr;
 				session->m_skinnyPassThruPartyId = openReceive->passThruPartyId;
 
 				if(endpoint.get())
@@ -1533,6 +1533,7 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 				session->m_endPointIp = ipHeader->ip_dest;	// CallInfo StartMediaTransmission always goes from CM to endpoint 
 				session->m_protocol = RtpSession::ProtSkinny;
 				session->m_ipAndPort = ipAndPort;
+				session->m_rtpIp = startMedia->remoteIpAddr;
 				session->m_skinnyPassThruPartyId = startMedia->passThruPartyId;
 
 				if(endpoint.get())
@@ -1931,19 +1932,25 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 		// Make sure the session is tracked by the right IP address
 		CStdString ipAndPort;
+		struct in_addr rtpIp;
+
 		if(DLLCONFIG.IsRtpTrackingIpAddress(rtpPacket->m_sourceIp))
 		{
 			ipAndPort = sourceIpAndPort;
+			rtpIp = rtpPacket->m_sourceIp;
 		}
 		else if(DLLCONFIG.m_sangomaEnable)
 		{
 			ipAndPort = sourceIpAndPort;
+			rtpIp = rtpPacket->m_sourceIp;
 		}
 		else
 		{
 			ipAndPort = destIpAndPort;
+			rtpIp = rtpPacket->m_destIp;
 		}
 		session->m_ipAndPort = ipAndPort;	// (1) In the case of a PSTN Gateway automated answer, This is the destination IP+Port of the first packet which is good, because it is usually the IP+Port of the PSTN Gateway.
+		session->m_rtpIp = rtpIp;
 
 		session->AddRtpPacket(rtpPacket);
 		m_byIpAndPort.insert(std::make_pair(ipAndPort, session));

@@ -60,6 +60,12 @@ VoIpConfig::VoIpConfig()
 	m_sangomaRxTcpPortStart = 0;
 	m_sangomaTxTcpPortStart = 0;
 	m_skinnyTcpPort = 2000;
+
+	// Initialize LAN IP ranges to standard values.
+	m_lanIpRanges.m_asciiIpRanges.push_back(CStdString("10.0.0.0/8"));
+	m_lanIpRanges.m_asciiIpRanges.push_back(CStdString("192.168.0.0/16"));
+	m_lanIpRanges.m_asciiIpRanges.push_back(CStdString("172.16.0.0/20"));
+	m_lanIpRanges.Compute();
 }
 
 void VoIpConfig::Define(Serializer* s)
