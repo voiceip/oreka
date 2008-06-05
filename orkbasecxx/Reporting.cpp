@@ -167,6 +167,8 @@ void Reporting::AddTapeMessage(MessageRef& messageRef)
 		pRptTapeMsg->m_localIp = pTapeMsg->m_localIp;
 		pRptTapeMsg->m_remoteIp = pTapeMsg->m_remoteIp;
 		pRptTapeMsg->m_nativeCallId = pTapeMsg->m_nativeCallId;
+		// Copy the tags!
+		std::copy(pTapeMsg->m_tags.begin(), pTapeMsg->m_tags.end(), std::inserter(pRptTapeMsg->m_tags, pRptTapeMsg->m_tags.begin()));
 
 		if(reportingThread->m_messageQueue.push(reportingMsgRef))
 		{
