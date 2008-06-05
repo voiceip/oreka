@@ -2,16 +2,16 @@
 	<!-- This is an example configuration file for the Oreka orkaudio capture service on Windows -->
 	<!-- Copy this to config.xml and modify according to taste -->
 
-    <!-- Change this to point to Tomcat if you run the OrkWeb user interface -->
+	<!-- Change this to point to Tomcat if you run the OrkWeb user interface -->
 	<AudioOutputPath>/var/log/orkaudio</AudioOutputPath>
-    <!--<AudioOutputPath>/opt/tomcat5/webapps/ROOT</AudioOutputPath>-->
+	<!--<AudioOutputPath>/opt/tomcat5/webapps/ROOT</AudioOutputPath>-->
 
 	<!-- Uncomment the plugin you want to use: -->
-    <!-- Use libvoip.so for SIP, Cisco Skinny and pure RTP -->
-    <!-- Use libh323voip.so for Avaya, Nortel Unistim, H.323 and MGCP -->
-    <!-- See in <VoIpPlugin> below for more precise protocol tuning -->
-	<CapturePlugin>voip.so</CapturePlugin>
-    <!--<CapturePlugin>libh323voip.so</CapturePlugin>-->
+	<!-- Use libvoip.so for SIP, Cisco Skinny and pure RTP -->
+	<!-- Use libh323voip.so for Avaya, Nortel Unistim, H.323 and MGCP -->
+	<!-- See in <VoIpPlugin> below for more precise protocol tuning -->
+	<CapturePlugin>libvoip.so</CapturePlugin>
+	<!--<CapturePlugin>libh323voip.so</CapturePlugin>-->
     
 	<CapturePluginPath>/usr/lib</CapturePluginPath>	
 	
@@ -29,25 +29,25 @@
 	
 	<BatchProcessingEnhancePriority>true</BatchProcessingEnhancePriority>	    
     
-    <!--<TapeDurationMinimumSec>3</TapeDurationMinimumSec>-->
+	<!--<TapeDurationMinimumSec>3</TapeDurationMinimumSec>-->
     
 	<VoIpPlugin>
-        <!-- Use this for Nortel proprietary VoIP protocol -->
-        <!--<UnistimDetect>yes</UnistimDetect>-->
+		<!-- Use this for Nortel proprietary VoIP protocol -->
+		<!--<UnistimDetect>yes</UnistimDetect>-->
 
-        <!-- Turn both these on this for Avaya H.323 extensions -->
-        <!--<AvayaDetect>yes</AvayaDetect>-->
-        <!--<RtcpDetect>yes</RtcpDetect>-->
+		<!-- Turn both these on this for Avaya H.323 extensions -->
+		<!--<AvayaDetect>yes</AvayaDetect>-->
+		<!--<RtcpDetect>yes</RtcpDetect>-->
 
-        <!-- Set the option below to "false" to disable IAX2 support -->
-        <!-- the default is that IAX2 support is enabled -->
-        <!--<Iax2Support>true</Iax2Support> -->
+		<!-- Set the option below to "false" to disable IAX2 support -->
+		<!-- the default is that IAX2 support is enabled -->
+		<!--<Iax2Support>true</Iax2Support> -->
         
 		<!-- Use this if you want to force capture from a given list of devices. -->
 		<!-- All available devices are listed in orkaudio.log when the service is starting -->
 		<!--<Devices>\Device\NPF_{E0E496FA-DABF-47C1-97C2-DD914DFD3354}, \Device\NPF_{ADE496FA-DABF-47C1-97C2-DD914DFDAB38}</Devices>-->
 		
-        <!--<PcapFilter>net 217.14.0.0/16 or host 10.0.0.1</PcapFilter>-->
+		<!--<PcapFilter>net 217.14.0.0/16 or host 10.0.0.1</PcapFilter>-->
         
 		<!-- If AllowedIpRanges is used, only packets with *both* source and destination -->
 		<!-- matching the list are retained -->
@@ -57,15 +57,15 @@
 		<!--<BlockedIpRanges>212.125.143.0/24, 82.150.0.0/16, 82.199.64.133</BlockedIpRanges>-->				
 		
 		<!--<SipOverTcpSupport>yes</SipOverTcpSupport>-->
-        <!--<SipReportFullAddress>yes</SipReportFullAddress>-->
-        <!--<SipUse200OkMediaAddress>yes</SipUse200OkMediaAddress>-->
+		<!--<SipReportFullAddress>yes</SipReportFullAddress>-->
+		<!--<SipUse200OkMediaAddress>yes</SipUse200OkMediaAddress>-->
         
-        <!-- Those two parameters are only needed for call direction detection (one or the other) -->
-        <!--<SipDomains>company.com, 65.34.25.87</SipDomains>-->
-        <!--<SipDirectionRefenceIpAddresses>65.34.98.56, 65.34.98.57</SipDirectionRefenceIpAddresses>-->
+		<!-- Those two parameters are only needed for call direction detection (one or the other) -->
+		<!--<SipDomains>company.com, 65.34.25.87</SipDomains>-->
+		<!--<SipDirectionRefenceIpAddresses>65.34.98.56, 65.34.98.57</SipDirectionRefenceIpAddresses>-->
                 
-        <!-- Sangoma RTP tap for TDM boards -->
-        <!--<SangomaRxTcpPortStart>9000</SangomaRxTcpPortStart>-->
-        <!--<SangomaTxTcpPortStart>11000</SangomaTxTcpPortStart>-->
+		<!-- Sangoma RTP tap for TDM boards -->
+		<!--<SangomaRxTcpPortStart>9000</SangomaRxTcpPortStart>-->
+		<!--<SangomaTxTcpPortStart>11000</SangomaTxTcpPortStart>-->
 	</VoIpPlugin>
 </config>
