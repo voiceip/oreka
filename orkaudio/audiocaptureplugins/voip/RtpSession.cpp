@@ -1205,8 +1205,9 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 	{
 		RtpSessionRef ipPortSession = findByEndpointIpUsingIpAndPort(ipHeader->ip_dest);
 
-		if(ipPortSession.get())
+		if(ipPortSession.get() && ipPortSession->m_callId.IsEmpty())
 		{
+			// The session has not already had a CallInfo, update it with CallInfo data
 			ipPortSession->m_skinnyLastCallInfoTime = ACE_OS::gettimeofday();
 			ipPortSession->m_callId = callId;
 			UpdateSessionWithCallInfo(callInfo, ipPortSession);
