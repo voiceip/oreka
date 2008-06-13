@@ -2014,7 +2014,9 @@ void RtpSessions::Hoover(time_t now)
 	for (std::list<RtpSessionRef>::iterator it = toDismiss.begin(); it != toDismiss.end() ; it++)
 	{
 		RtpSessionRef session = *it;
-		LOG4CXX_INFO(m_log,  "[" + session->m_trackingId + "] " + session->m_ipAndPort + " Expired");
+		CStdString logMsg;
+		logMsg.Format("[%s] %s Expired (RTP) ts:%u", session->m_trackingId, session->m_ipAndPort, session->m_lastUpdated);
+		LOG4CXX_INFO(m_log, logMsg);
 		Stop(session);
 	}
 
@@ -2054,7 +2056,8 @@ void RtpSessions::Hoover(time_t now)
 	for (std::list<RtpSessionRef>::iterator it2 = toDismiss.begin(); it2 != toDismiss.end() ; it2++)
 	{
 		RtpSessionRef session = *it2;
-		LOG4CXX_INFO(m_log,  "[" + session->m_trackingId + "] " + session->m_ipAndPort + " Expired");
+		CStdString logMsg;
+		logMsg.Format("[%s] %s Expired (CallID) ts:%u", session->m_trackingId, session->m_ipAndPort, session->m_lastUpdated);
 		Stop(session);
 	}
 }
