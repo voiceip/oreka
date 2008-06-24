@@ -45,7 +45,7 @@
         
 		<!-- Use this if you want to force capture from a given list of devices. -->
 		<!-- All available devices are listed in orkaudio.log when the service is starting -->
-		<!--<Devices>\Device\NPF_{E0E496FA-DABF-47C1-97C2-DD914DFD3354}, \Device\NPF_{ADE496FA-DABF-47C1-97C2-DD914DFDAB38}</Devices>-->
+		<!--<Devices>eth1, eth2</Devices>-->
 		
 		<!--<PcapFilter>net 217.14.0.0/16 or host 10.0.0.1</PcapFilter>-->
         
