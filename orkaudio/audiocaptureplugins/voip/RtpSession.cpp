@@ -208,6 +208,21 @@ bool RtpSession::MatchesSipDomain(CStdString& domain)
 	return false;
 }
 
+bool RtpSession::IsInSkinnyReportingList(CStdString item)
+{
+	for(std::list<CStdString>::iterator it = DLLCONFIG.m_skinnyReportTags.begin(); it != DLLCONFIG.m_skinnyReportTags.end(); it++)
+	{
+		CStdString element = *it;
+
+		if(element.CompareNoCase(item) == 0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void RtpSession::ProcessMetadataSipIncoming()
 {
 	m_remoteParty = m_invite->m_from;
@@ -243,7 +258,14 @@ void RtpSession::UpdateMetadataSkinny()
 	// Report Local party
 	CaptureEventRef event(new CaptureEvent());
 	event->m_type = CaptureEvent::EtLocalParty;
-	event->m_value = m_localParty;
+	if(DLLCONFIG.m_skinnyNameAsLocalParty == true && m_localPartyName.size())
+	{
+		event->m_value = m_localPartyName;
+	}
+	else
+	{
+		event->m_value = m_localParty;
+	}
 	g_captureEventCallBack(event, m_capturePort);
 
 	// Report remote party
@@ -489,7 +511,14 @@ void RtpSession::ReportMetadata()
 	// Report Local party
 	CaptureEventRef event(new CaptureEvent());
 	event->m_type = CaptureEvent::EtLocalParty;
-	event->m_value = m_localParty;
+	if(m_protocol == ProtSkinny && DLLCONFIG.m_skinnyNameAsLocalParty == true && m_localPartyName.size())
+	{
+		event->m_value = m_localPartyName;
+	}
+	else
+	{
+		event->m_value = m_localParty;
+	}
 	g_captureEventCallBack(event, m_capturePort);
 
 	// Report remote party
@@ -945,6 +974,41 @@ bool RtpSession::PartyMatches(CStdString &party)
 	return false;
 }
 
+void RtpSession::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader)
+{
+	std::map<CStdString, CStdString>::iterator pair;
+
+	if(IsInSkinnyReportingList(CStdString("localpartyname")))
+	{
+		CStdString key, value;
+
+		key = "localpartyname";
+		value = callInfo->callingPartyName;
+
+		pair = m_tags.find(key);
+		if(pair == m_tags.end())
+		{
+			m_tags.insert(std::make_pair(key, value));
+		}
+	}
+
+	if(IsInSkinnyReportingList(CStdString("callmanager")))
+	{
+		CStdString key, value;
+		char szIp[16];
+
+		ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, szIp, sizeof(szIp));
+		key = "callmanager";
+		value = szIp;
+
+		pair = m_tags.find("callmanager");
+		if(pair == m_tags.end())
+		{
+			m_tags.insert(std::make_pair(key, value));
+		}
+	}
+}
+
 //=====================================================================
 RtpSessions::RtpSessions()
 {
@@ -1185,6 +1249,8 @@ void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessi
 void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader)
 {
 	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, callInfo->callId);
+	CStdString logMsg;
+
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	pair = m_byCallId.find(callId);
 
@@ -1194,10 +1260,24 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 		// just update timestamp
 		RtpSessionRef existingSession = pair->second;
 		existingSession->m_skinnyLastCallInfoTime = ACE_OS::gettimeofday();
+
+		if(DLLCONFIG.m_skinnyNameAsLocalParty == true)
+		{
+			if(!(existingSession->m_localPartyName).size())
+			{
+				(existingSession->m_localPartyName).Format("%s", callInfo->callingPartyName);
+				logMsg.Format("[%s] setting localpartyname:%s", existingSession->m_trackingId, callInfo->callingPartyName);
+				LOG4CXX_INFO(m_log, logMsg);
+			}
+		}
+
 		if(DLLCONFIG.m_skinnyAllowCallInfoUpdate)
 		{
 			UpdateSessionWithCallInfo(callInfo, existingSession);
 		}
+
+		existingSession->ReportSkinnyCallInfo(callInfo, ipHeader);
+
 		return;
 	}
 
@@ -1212,6 +1292,17 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 			ipPortSession->m_callId = callId;
 			UpdateSessionWithCallInfo(callInfo, ipPortSession);
 			ipPortSession->UpdateMetadataSkinny();
+			ipPortSession->ReportSkinnyCallInfo(callInfo, ipHeader);
+
+			if(DLLCONFIG.m_skinnyNameAsLocalParty == true)
+			{
+				if(!(ipPortSession->m_localPartyName).size())
+				{
+					(ipPortSession->m_localPartyName).Format("%s", callInfo->callingPartyName);
+	                	        logMsg.Format("[%s] setting localpartyname:%s", ipPortSession->m_trackingId, callInfo->callingPartyName);
+        	                	LOG4CXX_INFO(m_log, logMsg);
+				}
+			}
 
 			if(m_log->isInfoEnabled())
 			{
@@ -1238,6 +1329,14 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 	session->m_endPointIp = ipHeader->ip_dest;	// CallInfo message always goes from CM to endpoint 
 	session->m_protocol = RtpSession::ProtSkinny;
 	UpdateSessionWithCallInfo(callInfo, session);
+	session->ReportSkinnyCallInfo(callInfo, ipHeader);
+
+	if(DLLCONFIG.m_skinnyNameAsLocalParty == true)
+	{
+		(session->m_localPartyName).Format("%s", callInfo->callingPartyName);
+		logMsg.Format("[%s] setting localpartyname:%s", session->m_trackingId, callInfo->callingPartyName);
+		LOG4CXX_INFO(m_log, logMsg);
+	}
 
 	if(m_log->isInfoEnabled())
 	{

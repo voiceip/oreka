@@ -146,6 +146,16 @@ void GrabToken(char* in, char* limit, CStdString& out)
 	}
 }
 
+// Same as GrabToken but includes spaces in the token grabbed as opposed to stopping
+// when a space is encountered
+void GrabTokenAcceptSpace(char* in, char* limit, CStdString& out)
+{
+	for(char* c = in; *c != '\0' && *c != 0x0D && *c != 0x0A && c<limit; c = c+1)
+	{
+		out += *c;
+	}
+}
+
 // Same as GrabToken but skipping leading whitespaces
 void GrabTokenSkipLeadingWhitespaces(char* in, char* limit, CStdString& out)
 {
@@ -1907,6 +1917,23 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			GrabToken(parties, parties+SKINNY_CCM5_PARTIES_BLOCK_SIZE, callingParty);
 			CStdString calledParty;
 			GrabToken(parties+callingParty.size()+1, parties+SKINNY_CCM5_PARTIES_BLOCK_SIZE, calledParty);
+			CStdString callingPartyName;
+
+			if(DLLCONFIG.m_skinnyNameAsLocalParty)
+			{
+				// It appears that the calling party name is the 9th token
+				int tokenNr = 0;
+				char *partiesPtr = NULL;
+
+				partiesPtr = parties;
+				while(tokenNr < 9 && partiesPtr < parties+SKINNY_CCM5_PARTIES_BLOCK_SIZE)
+				{
+					callingPartyName = "";
+					GrabTokenAcceptSpace(partiesPtr, parties+SKINNY_CCM5_PARTIES_BLOCK_SIZE, callingPartyName);
+					partiesPtr += callingPartyName.size() + 1;
+					tokenNr += 1;
+				}
+			}
 
 			// Emulate a regular CCM CallInfo message
 			SkCallInfoStruct callInfo;
@@ -1916,7 +1943,23 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			callInfo.callType = ccm5CallInfo->callType;
 			callInfo.lineInstance = 0;
 			callInfo.calledPartyName[0] = '\0';
-			callInfo.callingPartyName[0] = '\0';
+
+			if(DLLCONFIG.m_skinnyNameAsLocalParty)
+			{
+				if(callingPartyName.size())
+				{
+					strncpy(callInfo.callingPartyName, (PCSTR)callingPartyName, sizeof(callInfo.callingPartyName));
+				}
+				else
+				{
+					callInfo.callingPartyName[0] = '\0';
+				}
+			}
+			else
+			{
+				callInfo.callingPartyName[0] = '\0';
+			}
+
 			if(s_skinnyPacketLog->isInfoEnabled())
 			{
 				logMsg.Format(" CallId:%u calling:%s called:%s", callInfo.callId, callInfo.callingParty, callInfo.calledParty);
