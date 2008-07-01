@@ -90,6 +90,8 @@ public:
 	bool m_skinnyDynamicMediaAddress;
 	bool m_skinnyAllowCallInfoUpdate;
 	bool m_skinnyAllowLateCallInfo;
+	bool m_skinnyNameAsLocalParty;
+	std::list<CStdString> m_skinnyReportTags;
 
 	std::list<CStdString> m_dnisNumbers;
 	std::list<CStdString> m_sipExtractFields;

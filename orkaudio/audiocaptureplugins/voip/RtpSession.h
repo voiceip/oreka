@@ -128,6 +128,7 @@ public:
 	bool OrkUidMatches(CStdString &oUid);
 	bool PartyMatches(CStdString &party);
 	void UpdateMetadataSkinny();
+	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader);
 
 	CStdString m_capturePort;
 	CStdString m_trackingId;
@@ -141,6 +142,7 @@ public:
 	ProtocolEnum m_protocol;
 	CStdString m_localParty;
 	CStdString m_remoteParty;
+	CStdString m_localPartyName;
 	CaptureEvent::DirectionEnum m_direction;
 	int m_numRtpPackets;
 	struct in_addr m_endPointIp;		// only used for Skinny
@@ -163,6 +165,7 @@ private:
 	void RecordRtpEvent();
 	bool MatchesSipDomain(CStdString& domain);
 	bool MatchesReferenceAddresses(struct in_addr inAddr);
+	bool IsInSkinnyReportingList(CStdString item);
 
 	RtpPacketInfoRef m_lastRtpPacket;
 	RtpPacketInfoRef m_lastRtpPacketSide1;
