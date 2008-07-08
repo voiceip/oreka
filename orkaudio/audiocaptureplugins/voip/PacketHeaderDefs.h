@@ -52,10 +52,10 @@ typedef struct
 {
     unsigned short source;		// source port
     unsigned short dest;		// destination port
-    unsigned long seq;			// sequence number
-    unsigned long ack;			// acknowledgement id
-    unsigned int x2:4;			// unused
-    unsigned int off:4;			// data offset
+    unsigned int seq;			// sequence number
+    unsigned int ack;			// acknowledgement id
+    unsigned char x2:4;			// unused
+    unsigned char off:4;		// data offset
     unsigned char flags;		// flags field
     unsigned short win;			// window size
     unsigned short sum;			// tcp checksum
