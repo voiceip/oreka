@@ -97,6 +97,7 @@ private:
 	bool m_invalidChannelReported;
 	size_t m_numProcessedSamples;
 	bool m_error;
+	bool m_oneS1PacketState;
 
 	// Statistics related variables
 	AudioChunkRef m_lastChunkS1;
@@ -161,6 +162,7 @@ RtpMixer::RtpMixer()
 	m_seqNumDiscontinuitiesS1 = 0;
 	m_seqNumDiscontinuitiesS2 = 0;
 	m_numChannels = 0;
+	m_oneS1PacketState = false;
 	m_rtpMixerChannels.clear();
 }
 
@@ -372,6 +374,19 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 			DoStats(details, m_lastChunkS2->GetDetails(), m_seqNumMissesS2, m_seqMaxGapS2, 
 				m_seqNumOutOfOrderS2, m_seqNumDiscontinuitiesS2);
 		}
+		if(m_oneS1PacketState)
+		{
+			m_timestampCorrectiveDelta = (double)details->m_timestamp - (double)m_writeTimestamp;
+			m_oneS1PacketState = false;
+		}
+		else
+		{
+			if(!m_timestampCorrectiveDelta && (m_writeTimestamp != 0))
+			{
+				m_timestampCorrectiveDelta = (double)details->m_timestamp - (double)m_writeTimestamp;
+			}
+		}
+
 		m_lastChunkS2 = chunk;
 		// Corrective delta always only applied to side 2.
 		double tmp = (double)details->m_timestamp - m_timestampCorrectiveDelta;
@@ -439,6 +454,7 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 			LOG4CXX_DEBUG(m_log, "first chunk");
 			m_writeTimestamp = correctedTimestamp;
 			m_readTimestamp = m_writeTimestamp;
+			m_oneS1PacketState = true;
 			StoreRtpPacket(chunk, correctedTimestamp);
 		}
 		else
@@ -499,6 +515,9 @@ void RtpMixer::ManageOutOfRangeTimestamp(AudioChunkRef& chunk)
 	CStdString logMsg;
 
 	AudioChunkDetails* details = chunk->GetDetails();
+
+	logMsg.Format("ManageOutOfRangeTimestamp - channel:%d", details->m_channel);
+	LOG4CXX_DEBUG(m_log, logMsg);
 	if(details->m_channel == 1)
 	{
 		// 1. Ship what we have
