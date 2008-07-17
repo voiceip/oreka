@@ -148,6 +148,7 @@ public:
 	struct in_addr m_endPointIp;		// only used for Skinny
 	int m_skinnyPassThruPartyId;
 	ACE_Time_Value m_skinnyLastCallInfoTime;
+	int m_skinnyLineInstance;
 	bool m_onHold;
 	bool m_keep;
 	bool m_nonLookBackSessionStarted;
@@ -230,9 +231,10 @@ public:
 	void StartCapture(CStdString& party);
 
 private:
-	RtpSessionRef findByEndpointIp(struct in_addr, int passThruPartyId = 0);
+	RtpSessionRef findByEndpointIp(struct in_addr endpointIpAddr, int passThruPartyId = 0);
 	RtpSessionRef findNewestByEndpointIp(struct in_addr endpointIpAddr);
 	RtpSessionRef findByEndpointIpUsingIpAndPort(struct in_addr endpointIpAddr);
+	RtpSessionRef findByEndpointIpAndLineInstance(struct in_addr endpointIpAddr, int lineInstance);
 	bool ChangeCallId(RtpSessionRef& session, unsigned int newId);
 	void SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort);
 	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId);

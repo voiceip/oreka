@@ -1897,7 +1897,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		{
 			if(s_skinnyPacketLog->isInfoEnabled())
 			{
-				logMsg.Format(" CallId:%u calling:%s called:%s", callInfo->callId, callInfo->callingParty, callInfo->calledParty);
+				logMsg.Format(" CallId:%u calling:%s called:%s line:%d", callInfo->callId, callInfo->callingParty, callInfo->calledParty, callInfo->lineInstance);
 			}
 			RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(callInfo, ipHeader);
 		}
@@ -2009,7 +2009,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		if(SkinnyValidateSoftKeyEvent(softKeyEvent, packetEnd))
 		{
 			useful = true;
-			logMsg.Format(" eventString:%s eventNum:%d lineInstance:%lu callId:%lu",
+			logMsg.Format(" eventString:%s eventNum:%d line:%lu callId:%lu",
 					SoftKeyEvent::SoftKeyEventToString(softKeyEvent->softKeyEvent),
 					softKeyEvent->softKeyEvent,
 					softKeyEvent->lineInstance,

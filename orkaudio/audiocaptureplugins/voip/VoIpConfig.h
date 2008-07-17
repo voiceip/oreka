@@ -91,6 +91,7 @@ public:
 	bool m_skinnyAllowCallInfoUpdate;
 	bool m_skinnyAllowLateCallInfo;
 	bool m_skinnyNameAsLocalParty;
+	bool m_skinnyCallInfoStopsPrevious;
 	std::list<CStdString> m_skinnyReportTags;
 
 	std::list<CStdString> m_dnisNumbers;
