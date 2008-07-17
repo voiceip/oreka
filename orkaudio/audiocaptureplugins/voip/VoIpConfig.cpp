@@ -56,6 +56,7 @@ VoIpConfig::VoIpConfig()
 	m_skinnyAllowCallInfoUpdate = false;
 	m_skinnyAllowLateCallInfo = false;
 	m_skinnyNameAsLocalParty = false;
+	m_skinnyCallInfoStopsPrevious = false;
 
 	m_sangomaEnable = false;
 	m_sangomaRxTcpPortStart = 0;
@@ -118,6 +119,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("SkinnyTcpPort", m_skinnyTcpPort);
 	s->BoolValue("SkinnyAllowLateCallInfo", m_skinnyAllowLateCallInfo);
 	s->BoolValue("SkinnyNameAsLocalParty", m_skinnyNameAsLocalParty);
+	s->BoolValue("SkinnyCallInfoStopsPrevious", m_skinnyCallInfoStopsPrevious);
 	s->CsvValue("SkinnyReportTags", m_skinnyReportTags);
 
 	s->IntValue("SangomaRxTcpPortStart", m_sangomaRxTcpPortStart);

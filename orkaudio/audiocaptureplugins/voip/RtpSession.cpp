@@ -64,6 +64,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_currentDtmfVolume = 0;
 	m_sessionTelephoneEventPtDefined = false;
 	m_rtpIp.s_addr = 0;
+	m_skinnyLineInstance = 0;
 }
 
 void RtpSession::Stop()
@@ -1226,6 +1227,8 @@ void RtpSessions::ReportSipBye(SipByeInfo bye)
 
 void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessionRef& session)
 {
+	session->m_skinnyLineInstance = callInfo->lineInstance;
+
 	switch(callInfo->callType)
 	{
 	case SKINNY_CALL_TYPE_INBOUND:
@@ -1338,16 +1341,29 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 		LOG4CXX_INFO(m_log, logMsg);
 	}
 
+	char szEndPointIp[16];
+	szEndPointIp[0] = '\0';
+
 	if(m_log->isInfoEnabled())
 	{
 		CStdString logMsg;
 		CStdString dir = CaptureEvent::DirectionToString(session->m_direction);
-		char szEndPointIp[16];
 		ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
 
-		logMsg.Format("[%s] Skinny CallInfo callId %s local:%s remote:%s dir:%s endpoint:%s", session->m_trackingId,
-			session->m_callId, session->m_localParty, session->m_remoteParty, dir, szEndPointIp);
+		logMsg.Format("[%s] Skinny CallInfo callId %s local:%s remote:%s dir:%s line:%d endpoint:%s", session->m_trackingId,
+			session->m_callId, session->m_localParty, session->m_remoteParty, dir, session->m_skinnyLineInstance, szEndPointIp);
 		LOG4CXX_INFO(m_log, logMsg);
+	}
+
+	if(DLLCONFIG.m_skinnyCallInfoStopsPrevious == true)
+	{
+		RtpSessionRef previousSession = findByEndpointIpAndLineInstance(ipHeader->ip_dest, callInfo->lineInstance);
+		if(previousSession.get())
+		{
+			logMsg.Format("[%s] CallInfo stops [%s] line:%u endpoint:%s", session->m_trackingId, previousSession->m_trackingId, callInfo->lineInstance, szEndPointIp);
+			LOG4CXX_INFO(m_log, logMsg);
+			Stop(previousSession);
+		}
 	}
 
 	m_byCallId.insert(std::make_pair(session->m_callId, session));
@@ -1401,6 +1417,29 @@ RtpSessionRef RtpSessions::findByEndpointIp(struct in_addr endpointIpAddr, int p
 		}
 	}
 
+	return session;
+}
+
+// Find a session by Skinny endpoint IP address and by Skinny Line ID
+RtpSessionRef RtpSessions::findByEndpointIpAndLineInstance(struct in_addr endpointIpAddr, int lineInstance)
+{
+	RtpSessionRef session;
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+
+	// Scan all sessions and try to find a session on the same IP endpoint
+	for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
+	{
+		RtpSessionRef tmpSession = pair->second;
+
+		if((unsigned int)tmpSession->m_endPointIp.s_addr == (unsigned int)endpointIpAddr.s_addr)
+		{
+			if(tmpSession->m_skinnyLineInstance == lineInstance)
+			{
+				session = tmpSession;
+				break;
+			}
+		}
+	}
 	return session;
 }
 
