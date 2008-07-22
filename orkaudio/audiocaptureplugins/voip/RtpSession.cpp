@@ -705,8 +705,17 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	// If we are on hold, unmark this
 	if(m_onHold)
 	{
-		logMsg =  "[" + m_trackingId + "] Session going off hold due to RTP activity";
-		m_onHold = false;
+		if(m_lastRtpPacket.get())
+		{
+			if( (rtpPacket->m_arrivalTimestamp - m_lastRtpPacket->m_arrivalTimestamp) >  1)
+			{
+				// There's been an RTP interruption of a least 1 second, 
+				// presence of new RTP indicates session has gone out of hold
+				logMsg =  "[" + m_trackingId + "] Session going off hold due to RTP activity";
+				LOG4CXX_INFO(m_log, logMsg);
+				m_onHold = false;
+			}
+		}
 	}
 
 	if(m_lastRtpPacket.get() == NULL)
