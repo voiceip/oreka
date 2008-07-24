@@ -360,14 +360,22 @@ void BatchProcessing::ThreadHandler(void *args)
 					}
 				}
 				
-				if(CONFIG.m_deleteNativeFile)
+				if(CONFIG.m_deleteNativeFile && numSamplesOut)
 				{
 					fileRef->Delete();
 					LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " deleting native: " + audioTapeRef->GetIdentifier());
 				}
+				else if(CONFIG.m_deleteFailedCaptureFile)
+				{
+					fileRef->Delete();
+					LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " deleting native that could not be transcoded: " + audioTapeRef->GetIdentifier());
+				}
 
 				// Finished processing the tape, pass on to next processor
-				pBatchProcessing->RunNextProcessor(audioTapeRef);
+				if(numSamplesOut)
+				{
+					pBatchProcessing->RunNextProcessor(audioTapeRef);
+				}
 			}
 		}
 		catch (CStdString& e)
