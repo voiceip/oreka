@@ -1305,8 +1305,12 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 	std::list<SipTcpStreamRef> toErase;
 	u_char* startTcpPayload;
 
-	if(ntohs(tcpHeader->source) != 5060 && ntohs(tcpHeader->dest) != 5060)
+	if(ntohs(tcpHeader->source) != 5060 && ntohs(tcpHeader->dest) != 5060 &&
+		ntohs(tcpHeader->source) != 8060 && ntohs(tcpHeader->dest) != 8060    )	 
+	{
+		// interactive intelligence sometimes sends SIP traffic on port 8060
 		return false;
+	}
 
 	startTcpPayload = (u_char*)tcpHeader + (tcpHeader->off * 4);
 	tcpLengthPayloadLength = ((u_char*)ipHeader+ntohs(ipHeader->ip_len)) - startTcpPayload;
