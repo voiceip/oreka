@@ -154,6 +154,7 @@ bool SkinnyValidateCallInfo(SkCallInfoStruct* sci, u_char* packetEnd)
 
 bool SkinnyValidateCcm5CallInfo(SkCcm5CallInfoStruct *sci, u_char* packetEnd)
 {
+	int partiesLen = 0;
 	bool valid = true;
 	if(((u_char*)sci + sizeof(SkCcm5CallInfoStruct)) > packetEnd)
 	{
@@ -163,19 +164,23 @@ bool SkinnyValidateCcm5CallInfo(SkCcm5CallInfoStruct *sci, u_char* packetEnd)
 	{
 		valid = false;
 	}
+	partiesLen = (int)packetEnd - (int)sci - sizeof(SkCcm5CallInfoStruct);
 	if(valid)
 	{
-		valid = checkPartyString(sci->parties, SKINNY_CCM5_PARTIES_BLOCK_SIZE);
+		valid = checkPartyString(sci->parties, partiesLen);
 	}
 	if(valid)
 	{
 		// Find the first null char separating the calling and called parties (at this point, we know there's one)
 		char* nullChar = (char*)&sci->parties;
+		int skip = 0;
 		while(*nullChar != '\0')
 		{
 			nullChar++;
+			skip++;
 		}
-		valid = checkPartyString(nullChar+1, SKINNY_CCM5_PARTIES_BLOCK_SIZE);
+		skip += 1;
+		valid = checkPartyString(nullChar+1, (partiesLen - skip));
 	}
 	return valid;
 }

@@ -166,7 +166,7 @@ typedef struct
 	unsigned long callId;
 	unsigned long callType;
 	char unknown2[20];
-	char parties[SKINNY_CCM5_PARTIES_BLOCK_SIZE];
+	char parties[0];
 } SkCcm5CallInfoStruct;
 
 bool SkinnyValidateCcm5CallInfo(SkCcm5CallInfoStruct *, u_char* packetEnd);

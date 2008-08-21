@@ -1917,10 +1917,13 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		{
 			// Extract Calling and Called number.
 			CStdString callingParty;
+			int partiesLen = 0;
 			char* parties = (char*)(&ccm5CallInfo->parties);
-			GrabToken(parties, parties+SKINNY_CCM5_PARTIES_BLOCK_SIZE, callingParty);
+
+			partiesLen = (int)packetEnd - (int)ccm5CallInfo - sizeof(SkCcm5CallInfoStruct);
+			GrabToken(parties, parties+partiesLen, callingParty);
 			CStdString calledParty;
-			GrabToken(parties+callingParty.size()+1, parties+SKINNY_CCM5_PARTIES_BLOCK_SIZE, calledParty);
+			GrabToken(parties+callingParty.size()+1, parties+partiesLen, calledParty);
 			CStdString callingPartyName;
 
 			if(DLLCONFIG.m_skinnyNameAsLocalParty)
@@ -1930,10 +1933,10 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 				char *partiesPtr = NULL;
 
 				partiesPtr = parties;
-				while(tokenNr < 9 && partiesPtr < parties+SKINNY_CCM5_PARTIES_BLOCK_SIZE)
+				while(tokenNr < 9 && partiesPtr < parties+partiesLen)
 				{
 					callingPartyName = "";
-					GrabTokenAcceptSpace(partiesPtr, parties+SKINNY_CCM5_PARTIES_BLOCK_SIZE, callingPartyName);
+					GrabTokenAcceptSpace(partiesPtr, parties+partiesLen, callingPartyName);
 					partiesPtr += callingPartyName.size() + 1;
 					tokenNr += 1;
 				}
