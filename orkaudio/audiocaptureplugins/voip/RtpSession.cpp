@@ -1173,6 +1173,20 @@ void RtpSessions::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
 	return;
 }
 
+void RtpSessions::ReportSipSessionProgress(SipSessionProgressInfoRef& info)
+{
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+
+	pair = m_byCallId.find(info->m_callId);
+	if (pair != m_byCallId.end())
+	{
+		RtpSessionRef session = pair->second;
+		unsigned short mediaPort = ACE_OS::atoi(info->m_mediaPort);
+
+		SetMediaAddress(session, info->m_mediaIp, mediaPort);
+	}
+}
+
 void RtpSessions::ReportSip200Ok(Sip200OkInfoRef info)
 {
 	std::map<CStdString, RtpSessionRef>::iterator pair;
@@ -2327,4 +2341,25 @@ void Sip200OkInfo::ToString(CStdString& string)
 	{
 		string.Format("sender:%s from:%s to:%s rcvr:%s callid:%s", senderIp, m_from, m_to, receiverIp, m_callId);
 	}
+}
+
+SipSessionProgressInfo::SipSessionProgressInfo()
+{
+	m_mediaIp.s_addr = 0;
+	m_senderIp.s_addr = 0;
+	m_receiverIp.s_addr = 0;
+}
+
+void SipSessionProgressInfo::ToString(CStdString& string)
+{
+	char mediaIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_mediaIp, mediaIp, sizeof(mediaIp));
+
+	char senderIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+
+	char receiverIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+
+	string.Format("sender:%s from:%s RTP:%s,%s to:%s rcvr:%s callid:%s", senderIp, m_from, mediaIp, m_mediaPort, m_to, receiverIp, m_callId);
 }
