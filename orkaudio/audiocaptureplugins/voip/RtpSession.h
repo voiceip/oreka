@@ -92,9 +92,25 @@ public:
 	CStdString m_from;
 	CStdString m_to;
 };
-
 typedef boost::shared_ptr<Sip200OkInfo> Sip200OkInfoRef;
 
+
+class SipSessionProgressInfo
+{
+public:
+	SipSessionProgressInfo();
+	void ToString(CStdString& string);
+
+	CStdString m_callId;
+	struct in_addr m_mediaIp;
+	CStdString m_mediaPort;
+
+	struct in_addr m_senderIp;
+	struct in_addr m_receiverIp;
+	CStdString m_from;
+	CStdString m_to;
+};
+typedef boost::shared_ptr<SipSessionProgressInfo> SipSessionProgressInfoRef;
 
 //=============================================================
 
@@ -226,6 +242,7 @@ public:
 	void ReportRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void ReportSipErrorPacket(SipFailureMessageInfoRef& sipError);
 	void ReportSip200Ok(Sip200OkInfoRef info);
+	void ReportSipSessionProgress(SipSessionProgressInfoRef& info);
 	void Hoover(time_t now);
 	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp);
 	void StartCapture(CStdString& party);

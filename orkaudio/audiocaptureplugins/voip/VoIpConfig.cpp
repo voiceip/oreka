@@ -43,6 +43,7 @@ VoIpConfig::VoIpConfig()
 	m_sipOverTcpSupport = false;  // Disabled by default
 	m_sipLogFailedCalls = false;
 	m_sipUse200OkMediaAddress = false;
+	m_sipDetectSessionProgress = true; // Enabled by default
 	m_sipReportFullAddress = false;
 	m_sipDynamicMediaAddress = false;
 
@@ -104,6 +105,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SipOverTcpSupport", m_sipOverTcpSupport);
 	s->BoolValue("SipLogFailedCalls", m_sipLogFailedCalls);
 	s->BoolValue("SipUse200OkMediaAddress", m_sipUse200OkMediaAddress);
+	s->BoolValue("SipDetectSessionProgress", m_sipDetectSessionProgress);
 	s->BoolValue("SipReportFullAddress", m_sipReportFullAddress);
 	s->BoolValue("SipDynamicMediaAddress", m_sipDynamicMediaAddress);
 	s->IpRangesValue("SipIgnoredMediaAddresses", m_sipIgnoredMediaAddresses);

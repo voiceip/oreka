@@ -1454,6 +1454,152 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 	return result;
 }
 
+bool TrySipSessionProgress(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
+{
+	bool result = false;
+
+	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
+	char* sipEnd = (char*)udpPayload + sipLength;
+
+	if(sipLength < SIP_RESPONSE_SESSION_PROGRESS_SIZE || sipEnd > (char*)packetEnd)
+	{
+		;	// packet too short
+	}
+	else if(memcmp(SIP_RESPONSE_SESSION_PROGRESS, (void*)udpPayload, SIP_RESPONSE_SESSION_PROGRESS_SIZE) == 0)
+	{
+		bool hasSdp = false;
+		SipSessionProgressInfoRef info(new SipSessionProgressInfo());
+
+		result = true;
+
+		char* fromField = memFindAfter("From:", (char*)udpPayload, sipEnd);
+		if(!fromField)
+		{
+			fromField = memFindAfter("\nf:", (char*)udpPayload, sipEnd);
+		}
+		char* toField = memFindAfter("To:", (char*)udpPayload, sipEnd);
+		if(!toField)
+		{
+			toField = memFindAfter("\nt:", (char*)udpPayload, sipEnd);
+		}
+
+		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
+		if(!callIdField)
+		{
+			callIdField = memFindAfter("\ni:", (char*)udpPayload, sipEnd);
+		}
+
+		char* audioField = NULL;
+		char* connectionAddressField = NULL;
+
+		if(callIdField)
+		{
+			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
+			audioField = memFindAfter("m=audio ", callIdField, sipEnd);
+			connectionAddressField = memFindAfter("c=IN IP4 ", callIdField, sipEnd);
+		}
+		if(audioField && connectionAddressField)
+		{
+			hasSdp = true;
+
+			GrabToken(audioField, sipEnd, info->m_mediaPort);
+
+			CStdString connectionAddress;
+			GrabToken(connectionAddressField, sipEnd, connectionAddress);
+			struct in_addr mediaIp;
+			if(connectionAddress.size())
+			{
+				if(ACE_OS::inet_aton((PCSTR)connectionAddress, &mediaIp))
+				{
+					info->m_mediaIp = mediaIp;
+				}
+			}
+		}
+
+		if(fromField)
+		{
+			if(s_sipExtractionLog->isDebugEnabled())
+			{
+				CStdString from;
+				GrabLine(fromField, sipEnd, from);
+				LOG4CXX_DEBUG(s_sipExtractionLog, "from: " + from);
+			}
+
+			char* fromFieldEnd = memFindEOL(fromField, sipEnd);
+
+			char* sipUser = memFindAfter("sip:", fromField, fromFieldEnd);
+			if(sipUser)
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sipUser, fromFieldEnd, info->m_from);
+				}
+				else
+				{
+					GrabSipUriUser(sipUser, fromFieldEnd, info->m_from);
+				}
+			}
+			else
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(fromField, fromFieldEnd, info->m_from);
+				}
+				else
+				{
+					GrabSipUriUser(fromField, fromFieldEnd, info->m_from);
+				}
+			}
+		}
+		if(toField)
+		{
+			CStdString to;
+			char* toFieldEnd = GrabLine(toField, sipEnd, to);
+			LOG4CXX_DEBUG(s_sipExtractionLog, "to: " + to);
+
+			char* sipUser = memFindAfter("sip:", toField, toFieldEnd);
+			if(sipUser)
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sipUser, toFieldEnd, info->m_to);
+				}
+				else
+				{
+					GrabSipUriUser(sipUser, toFieldEnd, info->m_to);
+				}
+			}
+			else
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(toField, toFieldEnd, info->m_to);
+				}
+				else
+				{
+					GrabSipUriUser(toField, toFieldEnd, info->m_to);
+				}
+			}
+		}
+		info->m_senderIp = ipHeader->ip_src;
+		info->m_receiverIp = ipHeader->ip_dest;
+
+		CStdString logMsg;
+
+		info->ToString(logMsg);
+		logMsg = "183 Session Progress: " + logMsg;
+		if(!hasSdp)
+		{
+			logMsg = logMsg + " dropped because it lacks the SDP";
+		}
+		else
+		{
+			RtpSessionsSingleton::instance()->ReportSipSessionProgress(info);
+		}
+		LOG4CXX_INFO(s_sipPacketLog, logMsg);
+	}
+}
+
 bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
 	bool result = false;
@@ -2206,6 +2352,13 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 
 			if(!detectedUsefulPacket) {
 				detectedUsefulPacket= TrySip200Ok(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+			}
+
+			if(!detectedUsefulPacket) {
+				if(DLLCONFIG.m_sipDetectSessionProgress == true)
+				{
+					TrySipSessionProgress(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+				}
 			}
 
 			if(!detectedUsefulPacket) {
