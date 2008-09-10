@@ -578,9 +578,17 @@ void RtpSession::RecordRtpEvent()
 {
 	CaptureEventRef event(new CaptureEvent());
 	CStdString dtmfEventString, dtmfEventKey;
+	ACE_Time_Value timeNow;
+	ACE_Time_Value beginTime;
+	ACE_Time_Value timeDiff;
+	int msDiff = 0;
 
-	dtmfEventString.Format("event:%d timestamp:%d duration:%d volume:%d seqno:%d", m_currentRtpEvent, m_currentRtpEventTs,
- m_currentDtmfDuration, m_currentDtmfVolume, m_currentSeqNo);
+	beginTime.set(m_beginDate, 0);
+	timeNow = ACE_OS::gettimeofday();
+	timeDiff = timeNow - beginTime;
+	msDiff = (timeDiff.sec() * 1000) + (timeDiff.usec() / 1000);
+
+	dtmfEventString.Format("event:%d timestamp:%d duration:%d volume:%d seqno:%d offsetms:%d", m_currentRtpEvent, m_currentRtpEventTs, m_currentDtmfDuration, m_currentDtmfVolume, m_currentSeqNo, msDiff);
 	dtmfEventKey.Format("%d_RtpDtmfEvent", m_currentRtpEventTs);
 	event->m_type = CaptureEvent::EtKeyValue;
 	event->m_key = dtmfEventKey;
