@@ -2820,7 +2820,7 @@ void VoIp::Run()
 
 	for(std::list<pcap_t*>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
 	{
-		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(SingleDeviceCaptureThreadHandler), *it))
+		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(SingleDeviceCaptureThreadHandler), *it, THR_DETACHED))
 		{
 			LOG4CXX_INFO(s_packetLog, CStdString("Failed to create pcap capture thread"));
 		}
