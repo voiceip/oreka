@@ -1598,6 +1598,7 @@ bool TrySipSessionProgress(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 		}
 		LOG4CXX_INFO(s_sipPacketLog, logMsg);
 	}
+	return result;
 }
 
 bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
