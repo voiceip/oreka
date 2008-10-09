@@ -58,5 +58,22 @@ public:
 };
 typedef boost::shared_ptr<RtpEventInfo> RtpEventInfoRef;
 
+class RtcpSrcDescriptionPacketInfo
+{
+public:
+	void ToString(CStdString& string);
+
+	struct in_addr m_sourceIp;
+	struct in_addr m_destIp;
+	unsigned short m_sourcePort;
+	unsigned short m_destPort;
+
+	CStdString m_cnameUsername;
+	CStdString m_cnameDomain;
+	CStdString m_cnamePort;
+	CStdString m_fullCname;
+};
+typedef boost::shared_ptr<RtcpSrcDescriptionPacketInfo> RtcpSrcDescriptionPacketInfoRef;
+
 #endif
 

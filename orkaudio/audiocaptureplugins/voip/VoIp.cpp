@@ -54,6 +54,7 @@ static LoggerPtr s_sipTcpPacketLog;
 static LoggerPtr s_skinnyPacketLog;
 static LoggerPtr s_sipExtractionLog;
 static LoggerPtr s_voipPluginLog;
+static LoggerPtr s_rtcpPacketLog;
 static time_t s_lastHooveringTime;
 static time_t s_lastPause;
 static time_t s_lastPacketTimestamp;
@@ -1080,6 +1081,206 @@ bool TryIax2MiniVoiceFrame(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 
         return Iax2SessionsSingleton::instance()->ReportIax2Packet(info);
 }
+
+bool TryRtcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload)
+{
+	RtcpCommonHeaderStruct* rtcpHeader = (RtcpCommonHeaderStruct*)udpPayload;
+	RtcpCommonHeaderStruct* r = NULL;
+	RtcpCommonHeaderStruct* rtcpEnd = NULL;
+	RtcpCommonHeaderStruct* rtcpThisPktEnd = NULL;
+	CStdString logMsg;
+
+	if(!DLLCONFIG.m_rtcpDetect)
+	{
+		return false;
+	}
+
+	if((ntohs(udpHeader->len)-sizeof(UdpHeaderStruct)) < sizeof(RtcpCommonHeaderStruct))
+	{
+		// Packet too small
+		return false;
+	}
+
+	unsigned short version = (rtcpHeader->vpc & 0x00c0) >> 6;
+	unsigned short p = (rtcpHeader->vpc & 0x0020) >> 5;
+	unsigned short count = (rtcpHeader->vpc & 0x001f);
+
+	if(version != 2)
+	{
+		// Failed first header validity check in RFC1889 A.2
+		return false;
+	}
+
+	if(rtcpHeader->pt != 200 && rtcpHeader->pt != 201)
+	{
+		// Failed second header validity check in RFC1889 A.2
+		return false;
+	}
+
+	if(p != 0)
+	{
+		// Failed third header validity check in RFC1889 A.2
+		return false;
+	}
+
+	rtcpEnd = (RtcpCommonHeaderStruct*)((char*)udpPayload + (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct)));
+	r = rtcpHeader;
+	unsigned short mv = 0;
+
+	r = (RtcpCommonHeaderStruct*)((unsigned int *)r + ntohs(r->length) + 1);
+	while(r < rtcpEnd && ((rtcpEnd - r) >= sizeof(RtcpCommonHeaderStruct)))
+	{
+		mv = (r->vpc & 0x00c0) >> 6;
+		if(mv != 2)
+		{
+			break;
+		}
+		r = (RtcpCommonHeaderStruct*)((unsigned int *)r + ntohs(r->length) + 1);
+	}
+
+	if(r != rtcpEnd)
+	{
+		// Failed final header validity check in RFC1889 A.2
+		return false;
+	}
+
+	char sourceIp[16], destIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, sourceIp, sizeof(sourceIp));
+	ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_dest, destIp, sizeof(destIp));
+
+	// As per RFC we should be fairly sure we have an RTCP packet and
+	// henceforth our return value will be true
+
+	// Now let's see whether we can obtain an SDES packet
+	char cname[256];
+	RtcpSdesCsrcItem *csrcItem = NULL;
+	r = rtcpHeader;
+
+	memset(cname, 0, sizeof(cname));
+
+	r = (RtcpCommonHeaderStruct*)((unsigned int *)r + ntohs(r->length) + 1);
+	while(r < rtcpEnd && ((rtcpEnd - r) >= sizeof(RtcpCommonHeaderStruct)))
+	{
+		version = (r->vpc & 0x00c0) >> 6;
+		p = (r->vpc & 0x0020) >> 5;
+		count = (r->vpc & 0x001f);
+
+		rtcpThisPktEnd = (RtcpCommonHeaderStruct*)((unsigned int *)r + ntohs(r->length) + 1);
+
+		if(r->pt == 202 && count)
+		{
+			// Check if we have CNAME in the first CSRC
+			csrcItem = (RtcpSdesCsrcItem *)((unsigned int *)r + 2);
+
+			while((csrcItem < (RtcpSdesCsrcItem *)rtcpThisPktEnd) && (csrcItem->type != 1) && (csrcItem->type != 0))
+			{
+				csrcItem = (RtcpSdesCsrcItem *)((char*)csrcItem + (int)csrcItem->length);
+			}
+
+			if(csrcItem < (RtcpSdesCsrcItem *)rtcpThisPktEnd && csrcItem->type == 1)
+			{
+				break;
+			}
+
+			csrcItem = NULL;
+		}
+
+		r = (RtcpCommonHeaderStruct*)((unsigned int *)r + ntohs(r->length) + 1);
+	}
+
+	if(csrcItem == NULL)
+	{
+		// No CNAME
+		return true;
+	}
+
+	RtcpSrcDescriptionPacketInfoRef info(new RtcpSrcDescriptionPacketInfo());
+
+	info->m_sourceIp = ipHeader->ip_src;
+	info->m_destIp =  ipHeader->ip_dest;
+	info->m_sourcePort = ntohs(udpHeader->source);
+	info->m_destPort = ntohs(udpHeader->dest);
+
+	memcpy(cname, csrcItem->data, ((csrcItem->length > 254) ? 254 : csrcItem->length));
+
+	if(csrcItem->length == 0 || strncasecmp(cname, "ext", ((3 > csrcItem->length) ? csrcItem->length : 3)))
+	{
+		if(DLLCONFIG.m_inInMode == false)
+		{
+			// Not an extension
+			return true;
+		}
+		else
+		{
+			if(csrcItem->length == 0)
+			{
+				return true;
+			}
+		}
+	}
+
+	info->m_fullCname = cname;
+
+	/*
+	 * Now parse the CNAME. As per RFC1889, 6.4.1, the CNAME is either
+	 * in the format "user@host" or "host".  However we will also support
+	 * "user@host:port" or "host:port"
+	 */
+	char *x = NULL, *y = NULL, *z = NULL;
+
+	x = cname;
+	y = ACE_OS::strchr(cname, '@');
+	if(!y)
+	{
+		// CNAME is in the "host" or "host:port" format only, no user
+		y = ACE_OS::strchr(cname, ':');
+		if(!y)
+		{
+			// We have no port
+			GrabToken(cname, cname+strlen(cname), info->m_cnameDomain);
+		}
+		else
+		{
+			*y++ = '\0';
+			GrabToken(x, x+strlen(x), info->m_cnameDomain);
+			if(*y)
+			{
+				GrabToken(y, y+strlen(y), info->m_cnamePort);
+			}
+		}
+	}
+	else
+	{
+		*y++ = '\0';
+		GrabToken(x, x+strlen(x), info->m_cnameUsername);
+		if(*y)
+		{
+			z = ACE_OS::strchr(y, ':');
+			if(!z)
+			{
+				// We have no port
+				GrabToken(y, y+strlen(y), info->m_cnameDomain);
+			}
+			else
+			{
+				*z++ = '\0';
+				GrabToken(y, y+strlen(y), info->m_cnameDomain);
+				if(*z)
+				{
+					GrabToken(z, z+strlen(z), info->m_cnamePort);
+				}
+			}
+		}
+	}
+
+	info->ToString(logMsg);
+	LOG4CXX_DEBUG(s_rtcpPacketLog, logMsg);
+
+	RtpSessionsSingleton::instance()->ReportRtcpSrcDescription(info);
+
+	return true;
+}
+
 
 bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload)
 {
@@ -2370,6 +2571,13 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 				detectedUsefulPacket = TryLogFailedSip(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
 			}
 
+			if(!detectedUsefulPacket) {
+				if(DLLCONFIG.m_rtcpDetect == true)
+				{
+					detectedUsefulPacket = TryRtcp(ethernetHeader, ipHeader, udpHeader, udpPayload);
+				}
+			}
+
 			if(DLLCONFIG.m_iax2Support == false)
 			{
 				detectedUsefulPacket = true;	// Stop trying to detect if this UDP packet could be of interest
@@ -2763,6 +2971,7 @@ void VoIp::Initialize()
 	s_packetLog = Logger::getLogger("packet");
 	s_packetStatsLog = Logger::getLogger("packet.pcapstats");
 	s_rtpPacketLog = Logger::getLogger("packet.rtp");
+	s_rtcpPacketLog = Logger::getLogger("packet.rtcp");
 	s_sipPacketLog = Logger::getLogger("packet.sip");
 	s_sipTcpPacketLog = Logger::getLogger("packet.tcpsip");
 	s_skinnyPacketLog = Logger::getLogger("packet.skinny");
