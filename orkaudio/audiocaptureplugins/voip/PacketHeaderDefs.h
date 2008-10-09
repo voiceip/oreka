@@ -101,6 +101,19 @@ typedef struct
 	unsigned short duration;
 } RtpEventPayloadFormat;
 
+// Structure of common header for RTCP
+typedef struct {
+	unsigned char vpc;		// version (2 bits), padding (1 bit), count (5 bits)
+	unsigned char pt;		// RTCP packet type
+	unsigned short length;		// RTCP packet length in words without this word (i.e minus 1)
+} RtcpCommonHeaderStruct;
+
+typedef struct {
+	unsigned char type;
+	unsigned char length;
+	unsigned char data[0];
+} RtcpSdesCsrcItem;
+
 //===================================================================
 // Cisco Callmanager -> endpoint messages
 typedef struct

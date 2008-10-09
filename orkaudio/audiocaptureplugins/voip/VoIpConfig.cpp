@@ -46,6 +46,8 @@ VoIpConfig::VoIpConfig()
 	m_sipDetectSessionProgress = true; // Enabled by default
 	m_sipReportFullAddress = false;
 	m_sipDynamicMediaAddress = false;
+	m_rtcpDetect = false;
+	m_inInMode = false;
 
 	m_useMacIfNoLocalParty = false; // Uses IP address by default
 	m_localPartyForceLocalIp = false;
@@ -109,6 +111,8 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SipReportFullAddress", m_sipReportFullAddress);
 	s->BoolValue("SipDynamicMediaAddress", m_sipDynamicMediaAddress);
 	s->IpRangesValue("SipIgnoredMediaAddresses", m_sipIgnoredMediaAddresses);
+	s->BoolValue("RtcpDetect", m_rtcpDetect);
+	s->BoolValue("InInMode", m_inInMode);
 
 	s->BoolValue("UseMacIfNoLocalParty", m_useMacIfNoLocalParty);
 	s->BoolValue("LocalPartyForceLocalIp", m_localPartyForceLocalIp);
@@ -339,6 +343,14 @@ void VoIpConfig::Validate()
 		m_sangomaTcpPortDelta = m_sangomaTxTcpPortStart - m_sangomaRxTcpPortStart;
 		m_sangomaEnable = true;
 		m_rtpDetectOnOddPorts = true;
+	}
+
+	if(m_inInMode == true)
+	{
+		CStdString inInVar = "ININCrn";
+
+		m_rtcpDetect = true;
+		m_sipExtractFields.push_back(inInVar);
 	}
 }
 

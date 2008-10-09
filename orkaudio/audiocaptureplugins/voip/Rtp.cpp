@@ -47,3 +47,14 @@ void RtpEventInfo::ToString(CStdString& string)
 {
 	string.Format("event:%d e:%d r:%d volume:%d duration:%d timestamp:%u", m_event, m_e, m_r, m_volume, m_duration, m_startTimestamp);
 }
+
+void RtcpSrcDescriptionPacketInfo::ToString(CStdString& string)
+{
+	char sourceIp[16];
+	char destIp[16];
+
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_sourceIp, sourceIp, sizeof(sourceIp));
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_destIp, destIp, sizeof(destIp));
+
+	string.Format("%s,%d %s,%d username:%s domain:%s port:%s", sourceIp, m_sourcePort, destIp, m_destPort, m_cnameUsername, m_cnameDomain, m_cnamePort);
+}

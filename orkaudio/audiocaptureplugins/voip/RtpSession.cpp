@@ -62,6 +62,10 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_currentDtmfDuration = 0;
 	m_currentRtpEventTs = 0;
 	m_currentDtmfVolume = 0;
+	m_rtcpLocalParty = false;
+	m_rtcpRemoteParty = false;
+	m_remotePartyReported = false;
+	m_localPartyReported = false;
 	m_sessionTelephoneEventPtDefined = false;
 	m_rtpIp.s_addr = 0;
 	m_skinnyLineInstance = 0;
@@ -80,6 +84,93 @@ void RtpSession::Stop()
 		stopEvent->m_timestamp = m_lastUpdated;
 		g_captureEventCallBack(stopEvent, m_capturePort);
 		m_stopped = true;
+	}
+}
+
+void RtpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo)
+{
+	if(!m_rtcpLocalParty)
+	{
+		m_rtcpLocalParty = true;
+
+		if(DLLCONFIG.m_inInMode == true)
+		{
+			char realm[256], *d = NULL;
+
+			memset(realm, 0, sizeof(realm));
+			snprintf(realm, sizeof(realm), "%s", (PCSTR)rtcpInfo->m_cnameDomain);
+
+			if((d = ACE_OS::strchr(realm, '.')))
+			{
+				*d = '\0';
+			}
+
+			m_localParty.Format("%s@%s", rtcpInfo->m_cnameUsername, realm);
+		}
+		else
+		{
+			m_localParty = rtcpInfo->m_cnameUsername;
+		}
+			
+		LOG4CXX_INFO(m_log, "[" + m_trackingId + "] Set local party to RTCP CNAME:" + m_localParty);
+		
+		// In some cases, we obtain this information after the session
+		// has long started.  Therefore, in order for the reporting
+		// to reflect the RTCP CNAME information, we need to report.
+		if(m_localPartyReported)
+		{
+			CaptureEventRef event(new CaptureEvent());
+			event->m_type = CaptureEvent::EtLocalParty;
+			event->m_value = m_localParty;
+			g_captureEventCallBack(event, m_capturePort);
+		}
+	}
+	else if(!m_rtcpRemoteParty)
+	{
+		CStdString testParty;
+
+		if(DLLCONFIG.m_inInMode == true)
+		{
+			char realm[256], *d = NULL;
+
+			memset(realm, 0, sizeof(realm));
+			snprintf(realm, sizeof(realm), "%s", (PCSTR)rtcpInfo->m_cnameDomain);
+
+			if((d = ACE_OS::strchr(realm, '.')))
+			{
+				*d = '\0';
+			}
+
+			testParty.Format("%s@%s", rtcpInfo->m_cnameUsername, realm);
+		}
+		else
+		{
+			testParty = rtcpInfo->m_cnameUsername;
+		}
+			
+		if(testParty.Equals(m_localParty) == false)
+		{
+			m_rtcpRemoteParty = true;
+
+			if(DLLCONFIG.m_inInMode == true)
+			{
+				m_remoteParty = testParty;
+			}
+			else
+			{
+				m_remoteParty = rtcpInfo->m_cnameUsername;
+			}
+
+			LOG4CXX_INFO(m_log, "[" + m_trackingId + "] Set remote party to RTCP CNAME:" + m_remoteParty);
+
+			if(m_remotePartyReported)
+			{
+				CaptureEventRef event(new CaptureEvent());
+				event->m_type = CaptureEvent::EtRemoteParty;
+				event->m_value = m_remoteParty;
+				g_captureEventCallBack(event, m_capturePort);
+			}
+		}
 	}
 }
 
@@ -156,18 +247,24 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 
 	if(sourceIsLocal)
 	{
-                /* With Raw RTP, the local party is not obtained through any intelligent
-                 * signalling so we should probably do this check here? */
-                if(DLLCONFIG.m_useMacIfNoLocalParty)
-                {
-                        MemMacToHumanReadable((unsigned char*)rtpPacket->m_sourceMac, m_localParty);
-                }
-                else
-                {
-                        m_localParty = szSourceIp;
-                }
+		if(!m_rtcpLocalParty)
+		{
+	                /* With Raw RTP, the local party is not obtained through any intelligent
+        	         * signalling so we should probably do this check here? */
+                	if(DLLCONFIG.m_useMacIfNoLocalParty)
+	                {
+        	                MemMacToHumanReadable((unsigned char*)rtpPacket->m_sourceMac, m_localParty);
+                	}
+	                else
+        	        {
+                	        m_localParty = szSourceIp;
+	                }
+		}
+		if(!m_rtcpRemoteParty)
+		{
+			m_remoteParty = szDestIp;
+		}
 
-		m_remoteParty = szDestIp;
 		m_localIp = rtpPacket->m_sourceIp;
 		m_remoteIp = rtpPacket->m_destIp;
 		memcpy(m_localMac, rtpPacket->m_sourceMac, sizeof(m_localMac));
@@ -175,18 +272,24 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 	}
 	else
 	{
-                /* With Raw RTP, the local party is not obtained through any intelligent
-                 * signalling so we should probably do this check here? */
-		if(DLLCONFIG.m_useMacIfNoLocalParty)
-                {
-                        MemMacToHumanReadable((unsigned char*)rtpPacket->m_destMac, m_localParty);
-		}
-		else
+		if(!m_rtcpLocalParty)
 		{
-			m_localParty = szDestIp;
+	                /* With Raw RTP, the local party is not obtained through any intelligent
+        	         * signalling so we should probably do this check here? */
+			if(DLLCONFIG.m_useMacIfNoLocalParty)
+        	        {
+                	        MemMacToHumanReadable((unsigned char*)rtpPacket->m_destMac, m_localParty);
+			}
+			else
+			{
+				m_localParty = szDestIp;
+			}
+		}
+		if(!m_rtcpRemoteParty)
+		{
+			m_remoteParty = szSourceIp;
 		}
 
-		m_remoteParty = szSourceIp;
 		m_localIp = rtpPacket->m_destIp;
 		m_remoteIp = rtpPacket->m_sourceIp;
                 memcpy(m_localMac, rtpPacket->m_destMac, sizeof(m_localMac));
@@ -521,12 +624,14 @@ void RtpSession::ReportMetadata()
 		event->m_value = m_localParty;
 	}
 	g_captureEventCallBack(event, m_capturePort);
+	m_localPartyReported = true;
 
 	// Report remote party
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtRemoteParty;
 	event->m_value = m_remoteParty;
 	g_captureEventCallBack(event, m_capturePort);
+	m_remotePartyReported = true;
 
 	// Report direction
 	event.reset(new CaptureEvent());
@@ -1902,6 +2007,47 @@ void RtpSessions::Stop(RtpSessionRef& session)
 	{
 		m_byCallId.erase(session->m_callId);
 	}
+}
+
+bool RtpSessions::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo)
+{
+	CStdString port = IntToString((rtcpInfo->m_sourcePort - 1));
+	char szSourceIp[16];
+	char szDestIp[16];
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	RtpSessionRef session;
+
+	ACE_OS::inet_ntop(AF_INET, (void*)&rtcpInfo->m_sourceIp, szSourceIp, sizeof(szSourceIp));
+	CStdString sourceIpAndPort = CStdString(szSourceIp) + "," + port;
+
+	pair = m_byIpAndPort.find(sourceIpAndPort);
+	if (pair != m_byIpAndPort.end())
+	{
+		session = pair->second;
+		if(session.get() != NULL)
+		{
+			session->ReportRtcpSrcDescription(rtcpInfo);
+			return true;
+		}
+	}
+
+	// Does a session exist with this destination Ip+Port
+	port = IntToString(rtcpInfo->m_destPort - 1);
+	ACE_OS::inet_ntop(AF_INET, (void*)&rtcpInfo->m_destIp, szDestIp, sizeof(szDestIp));
+	CStdString destIpAndPort = CStdString(szDestIp) + "," + port;
+
+	pair = m_byIpAndPort.find(destIpAndPort);
+	if (pair != m_byIpAndPort.end())
+	{
+		session = pair->second;
+		if(session.get() != NULL)
+		{
+			session->ReportRtcpSrcDescription(rtcpInfo);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 

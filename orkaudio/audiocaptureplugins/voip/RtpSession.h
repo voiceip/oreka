@@ -141,6 +141,7 @@ public:
 	bool AddRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void ReportSipInvite(SipInviteInfoRef& invite);
 	void ReportSipErrorPacket(SipFailureMessageInfoRef& info);
+	void ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo);
 	bool OrkUidMatches(CStdString &oUid);
 	bool PartyMatches(CStdString &party);
 	void UpdateMetadataSkinny();
@@ -159,6 +160,10 @@ public:
 	CStdString m_localParty;
 	CStdString m_remoteParty;
 	CStdString m_localPartyName;
+	bool m_localPartyReported;
+	bool m_remotePartyReported;
+	bool m_rtcpLocalParty;
+	bool m_rtcpRemoteParty;
 	CaptureEvent::DirectionEnum m_direction;
 	int m_numRtpPackets;
 	struct in_addr m_endPointIp;		// only used for Skinny
@@ -240,6 +245,7 @@ public:
 	void ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader);
 	void ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader);
 	void ReportRtpPacket(RtpPacketInfoRef& rtpPacket);
+	bool ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo);
 	void ReportSipErrorPacket(SipFailureMessageInfoRef& sipError);
 	void ReportSip200Ok(Sip200OkInfoRef info);
 	void ReportSipSessionProgress(SipSessionProgressInfoRef& info);
