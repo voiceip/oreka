@@ -98,9 +98,9 @@ void RtpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpI
 			char realm[256], *d = NULL;
 
 			memset(realm, 0, sizeof(realm));
-			snprintf(realm, sizeof(realm), "%s", (PCSTR)rtcpInfo->m_cnameDomain);
+			ACE_OS::snprintf(realm, sizeof(realm), "%s", (PCSTR)rtcpInfo->m_cnameDomain);
 
-			if((d = ACE_OS::strchr(realm, '.')))
+			if((d = strchr(realm, '.')))
 			{
 				*d = '\0';
 			}
@@ -134,9 +134,9 @@ void RtpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpI
 			char realm[256], *d = NULL;
 
 			memset(realm, 0, sizeof(realm));
-			snprintf(realm, sizeof(realm), "%s", (PCSTR)rtcpInfo->m_cnameDomain);
+			ACE_OS::snprintf(realm, sizeof(realm), "%s", (PCSTR)rtcpInfo->m_cnameDomain);
 
-			if((d = ACE_OS::strchr(realm, '.')))
+			if((d = strchr(realm, '.')))
 			{
 				*d = '\0';
 			}
