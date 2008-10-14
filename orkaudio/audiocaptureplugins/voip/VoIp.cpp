@@ -1203,7 +1203,7 @@ bool TryRtcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, Udp
 
 	memcpy(cname, csrcItem->data, ((csrcItem->length > 254) ? 254 : csrcItem->length));
 
-	if(csrcItem->length == 0 || strncasecmp(cname, "ext", ((3 > csrcItem->length) ? csrcItem->length : 3)))
+	if(csrcItem->length == 0 || ACE_OS::strncasecmp(cname, "ext", ((3 > csrcItem->length) ? csrcItem->length : 3)))
 	{
 		if(DLLCONFIG.m_inInMode == false)
 		{
