@@ -86,6 +86,10 @@ public:
 	void StartCapture(CStdString& port);
 	void StopCapture(CStdString& port);
 	void ReportPcapStats();
+	pcap_t* OpenDevice(CStdString& name);
+	void AddPcapDeviceToMap(CStdString& deviceName, pcap_t* pcapHandle);
+	void RemovePcapDeviceFromMap(pcap_t* pcapHandle);
+	CStdString GetPcapDeviceName(pcap_t* pcapHandle);
 private:
 	void OpenDevices();
 	void OpenPcapFile(CStdString& filename);
@@ -95,6 +99,9 @@ private:
 
 	pcap_t* m_pcapHandle;
 	std::list<pcap_t*> m_pcapHandles;
+
+	std::map<pcap_t*, CStdString> m_pcapDeviceMap;
+	ACE_Thread_Mutex m_pcapDeviceMapMutex;
 };
 
 typedef ACE_Singleton<VoIp, ACE_Thread_Mutex> VoIpSingleton;
@@ -2695,6 +2702,56 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 		}
 		log.Format("Stop Capturing: pcap handle:%x", pcapHandle);
 		LOG4CXX_INFO(s_packetLog, log);
+
+		if(s_liveCapture == true)
+		{
+			CStdString deviceName;
+			pcap_t* oldHandle = NULL;
+
+			deviceName = VoIpSingleton::instance()->GetPcapDeviceName(pcapHandle);
+			if(deviceName.size())
+			{
+				oldHandle = pcapHandle;
+				VoIpSingleton::instance()->RemovePcapDeviceFromMap(pcapHandle);
+				pcap_close(pcapHandle); // XXX this can cause a crash if later other code is added to close all handles in the m_pcapHandles list
+
+				while(1)
+				{
+					struct timespec ts;
+
+					ts.tv_sec = 60; // Try re-open after a minute
+					ts.tv_nsec = 0;
+					ACE_OS::nanosleep (&ts, NULL);
+
+					log.Format("Attempting to re-open device:%s - old handle:%x was closed", deviceName, oldHandle);
+					LOG4CXX_INFO(s_packetLog, log);
+
+					pcapHandle = VoIpSingleton::instance()->OpenDevice(deviceName);
+					if(pcapHandle != NULL)
+					{
+						VoIpSingleton::instance()->AddPcapDeviceToMap(deviceName, pcapHandle);
+
+						log.Format("Start Capturing: pcap handle:%x", pcapHandle);
+						LOG4CXX_INFO(s_packetLog, log);
+
+						pcap_loop(pcapHandle, 0, HandlePacket, NULL);
+
+						log.Format("Stop Capturing: pcap handle:%x", pcapHandle);
+						LOG4CXX_INFO(s_packetLog, log);
+
+						oldHandle = pcapHandle;
+						VoIpSingleton::instance()->RemovePcapDeviceFromMap(pcapHandle);
+						pcap_close(pcapHandle);
+					}
+				}
+			}
+			else
+			{
+				log.Format("Running in live capture mode but unable to determine which device handle:%x belongs to. Will not restart capture", pcapHandle);
+				LOG4CXX_INFO(s_packetLog, log);
+				pcap_close(pcapHandle); // XXX this can cause a crash if later other code is added to close all handles in the m_pcapHandles list
+			}
+		}
 	}
 	else
 	{
@@ -2855,6 +2912,68 @@ void VoIp::SetPcapSocketBufferSize(pcap_t* pcapHandle)
 #endif
 }
 
+void VoIp::AddPcapDeviceToMap(CStdString& deviceName, pcap_t* pcapHandle)
+{
+	MutexSentinel mutexSentinel(m_pcapDeviceMapMutex);
+
+	m_pcapDeviceMap.insert(std::make_pair(pcapHandle, deviceName));
+}
+
+void VoIp::RemovePcapDeviceFromMap(pcap_t* pcapHandle)
+{
+	MutexSentinel mutexSentinel(m_pcapDeviceMapMutex);
+
+	m_pcapDeviceMap.erase(pcapHandle);
+}
+
+CStdString VoIp::GetPcapDeviceName(pcap_t* pcapHandle)
+{
+	MutexSentinel mutexSentinel(m_pcapDeviceMapMutex);
+	std::map<pcap_t*, CStdString>::iterator pair;
+	CStdString deviceName;
+
+	pair = m_pcapDeviceMap.find(pcapHandle);
+	if(pair != m_pcapDeviceMap.end())
+	{
+		deviceName = pair->second;
+	}
+
+	return deviceName;
+}
+
+pcap_t* VoIp::OpenDevice(CStdString& name)
+{
+	char error[PCAP_ERRBUF_SIZE];
+	char *perror = NULL;
+	MutexSentinel mutexSentinel(m_pcapDeviceMapMutex);
+	CStdString logMsg;
+
+	m_pcapHandle = NULL;
+	memset(error, 0, sizeof(error));
+	m_pcapHandle = pcap_open_live((char*)name.c_str(), 1500, PROMISCUOUS, 500, error);
+
+	if(!strlen(error))
+	{
+		perror = ApplyPcapFilter();
+		if(perror != NULL)
+		{
+			snprintf(error, PCAP_ERRBUF_SIZE, "%s", perror);
+		}
+	}
+	if(strlen(error))
+	{
+		LOG4CXX_ERROR(s_packetLog, CStdString("pcap error when opening device; error message:") + error);
+	}
+	else
+	{
+		logMsg.Format("Successfully opened device. pcap handle:%x", m_pcapHandle);
+		LOG4CXX_INFO(s_packetLog, logMsg);
+		SetPcapSocketBufferSize(m_pcapHandle);
+	}
+
+	return m_pcapHandle;
+}
+
 void VoIp::OpenDevices()
 {
 	pcap_if_t* devices = NULL;
@@ -2910,12 +3029,15 @@ void VoIp::OpenDevices()
 					}
 					else
 					{
-						CStdString logMsg;
+						CStdString logMsg, deviceName;
+
+						deviceName = device->name;
 						logMsg.Format("Successfully opened device. pcap handle:%x", m_pcapHandle);
 						LOG4CXX_INFO(s_packetLog, logMsg);
 						SetPcapSocketBufferSize(m_pcapHandle);
 
 						m_pcapHandles.push_back(m_pcapHandle);
+						AddPcapDeviceToMap(deviceName, m_pcapHandle);
 					}
 				}
 			}
@@ -2942,11 +3064,15 @@ void VoIp::OpenDevices()
 					}
 					else
 					{
+						CStdString deviceName;
+
 						logMsg.Format("Successfully opened default device:%s pcap handle:%x", defaultDevice->name, m_pcapHandle);
 						LOG4CXX_INFO(s_packetLog, logMsg);
 						SetPcapSocketBufferSize(m_pcapHandle);
 
 						m_pcapHandles.push_back(m_pcapHandle);
+						deviceName = defaultDevice->name;
+						AddPcapDeviceToMap(deviceName, m_pcapHandle);
 					}
 				}
 				else
