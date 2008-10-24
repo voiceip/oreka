@@ -1235,8 +1235,6 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	// create new session and insert into both maps
 	CStdString trackingId = m_alphaCounter.GetNext();
 	RtpSessionRef session(new RtpSession(trackingId));
-	session->m_ipAndPort = ipAndPort;
-	session->m_rtpIp = invite->m_fromRtpIp;
 	session->m_callId = invite->m_callId;
 	session->m_protocol = RtpSession::ProtSip;
 	session->ReportSipInvite(invite);
@@ -1644,6 +1642,11 @@ RtpSessionRef RtpSessions::findNewestByEndpointIp(struct in_addr endpointIpAddr)
 
 void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort)
 {
+	if(mediaPort == 0)
+	{
+		return;
+	}
+
 	CStdString logMsg;
 	CStdString ipAndPort;
 	char szMediaIp[16];
