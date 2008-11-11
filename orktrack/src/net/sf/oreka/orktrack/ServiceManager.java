@@ -34,11 +34,11 @@ public class ServiceManager {
 			service.setFileServeProtocol("http");
 			service.setFileServeTcpPort(8080);
 			service.setRecordMaster(true);
+			hbnSession.save(service);
 		}
 		else {
 			//service.setHostname(hostname);	// update hostname in case it has changed
 		}
-		hbnSession.save(service);
 		return service;
 	}
 	
