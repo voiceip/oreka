@@ -10,7 +10,7 @@
 	<property name="hibernate.connection.password">password</property>
 	<property name="hibernate.connection.username">root</property>
 	
-	<!--<property name="hibernate.hbm2ddl.auto">update</property>--> <!-- update, create, create-drop -->
+	<property name="hibernate.hbm2ddl.auto">update</property> <!-- update, create, create-drop -->
 	<property name="hibernate.show_sql">false</property>	
 	
 	<property name="hibernate.max_fetch_depth">1</property>
