@@ -217,7 +217,31 @@ void __CDECL__ CapturePluginProxy::CaptureEventCallBack(CaptureEventRef eventRef
 	{
 		if (eventRef->m_type == CaptureEvent::EtStart || eventRef->m_type == CaptureEvent::EtStop)
 		{
-			LOG4CXX_ERROR(LOG.portLog, "#" + capturePort + ": received start or stop while in VAD or audio segmentation mode");
+			if(CONFIG.m_audioSegmentation == true)
+			{
+				// find the right port and give it the event
+				// If this is EtStop, we clear the event cache
+				CapturePortRef portRef = CapturePortsSingleton::instance()->AddAndReturnPort(capturePort);
+				if(eventRef->m_type == CaptureEvent::EtStop)
+				{
+					portRef->ClearEventQueue();
+				}
+				portRef->AddCaptureEvent(eventRef);
+			}
+			else
+			{
+				LOG4CXX_ERROR(LOG.portLog, "#" + capturePort + ": received start or stop while in VAD mode");
+			}
+		}
+		else
+		{
+			if(CONFIG.m_audioSegmentation == true)
+			{
+				// find the right port and give it the event
+				CapturePortRef portRef = CapturePortsSingleton::instance()->AddAndReturnPort(capturePort);
+				portRef->QueueCaptureEvent(eventRef);
+				portRef->AddCaptureEvent(eventRef);
+			}
 		}
 	}
 	else

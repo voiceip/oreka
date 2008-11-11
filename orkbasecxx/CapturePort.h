@@ -41,11 +41,14 @@ public:
 	void AddCaptureEvent(CaptureEventRef eventRef);
 	bool IsExpired(time_t now);
 	void Finalize();
+	void QueueCaptureEvent(CaptureEventRef& eventRef);
+	void ClearEventQueue();
 
 private:
 	void LoadFilters();
 	void FilterAudioChunk(AudioChunkRef& chunkRef);
 	void FilterCaptureEvent(CaptureEventRef& eventRef);
+	void ReportEventBacklog(AudioTapeRef& audioTape);
 
 	CStdString m_id;
 	AudioTapeRef m_audioTapeRef;
@@ -55,7 +58,9 @@ private:
 	bool m_vadUp;
 	time_t m_lastUpdated;
 	std::list<FilterRef> m_filters;
+	std::list<CaptureEventRef> m_captureEvents;
 	bool m_needSendStop;
+	int m_segmentNumber;
 };
 
 typedef boost::shared_ptr<CapturePort> CapturePortRef;

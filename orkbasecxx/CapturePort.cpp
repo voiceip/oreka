@@ -31,6 +31,7 @@ CapturePort::CapturePort(CStdString& id)
 	m_capturing = false;
 	m_lastUpdated = 0;
 	m_needSendStop = false;
+	m_segmentNumber = 0;
 
 	LoadFilters();
 }
@@ -89,6 +90,44 @@ void CapturePort::FilterCaptureEvent(CaptureEventRef& eventRef)
 	}
 }
 
+void CapturePort::QueueCaptureEvent(CaptureEventRef& eventRef)
+{
+	m_captureEvents.push_back(eventRef);
+}
+
+void CapturePort::ClearEventQueue()
+{
+	m_captureEvents.clear();
+}
+
+void CapturePort::ReportEventBacklog(AudioTapeRef& audioTape)
+{
+	std::list<CaptureEventRef>::iterator it;
+
+	for(it = m_captureEvents.begin(); it != m_captureEvents.end(); it++)
+	{
+		CaptureEventRef eventRef = *it;
+
+		if(eventRef->m_type == CaptureEvent::EtOrkUid)
+		{
+			CStdString newOrkUid;
+			CaptureEventRef eventRef2(new CaptureEvent());
+
+			m_segmentNumber += 1;
+			newOrkUid.Format("%s_%d", eventRef->m_value, m_segmentNumber);
+
+			eventRef2->m_type = CaptureEvent::EtOrkUid;
+			eventRef2->m_value = newOrkUid;
+
+			AddCaptureEvent(eventRef2);
+		}
+		else
+		{
+			AddCaptureEvent(eventRef);
+		}
+	}
+}
+
 void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 {
 	FilterAudioChunk(chunkRef);
@@ -114,8 +153,10 @@ void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 				// signal new tape start event
 				eventRef.reset(new CaptureEvent);
 				eventRef->m_type = CaptureEvent::EtStart;
+				eventRef->m_value = m_id;
 				eventRef->m_timestamp = now;
 				AddCaptureEvent(eventRef);
+				ReportEventBacklog(m_audioTapeRef);
 			}
 		}	
 		else
@@ -127,7 +168,9 @@ void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 			CaptureEventRef eventRef(new CaptureEvent);
 			eventRef->m_type = CaptureEvent::EtStart;
 			eventRef->m_timestamp = now;
+			eventRef->m_value = m_id;
 			AddCaptureEvent(eventRef);
+			ReportEventBacklog(m_audioTapeRef);
 		}
 	}
 	else if (CONFIG.m_vad)
