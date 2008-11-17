@@ -3,7 +3,7 @@ package net.sf.oreka.srvc;
 import java.util.List;
 
 import net.sf.oreka.bo.UserBo;
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkUser;
 
 public interface UserService {
 
@@ -18,7 +18,7 @@ public interface UserService {
 	public String getUserLoginStrings(int userId);
 	public void setUserLoginStrings(int userId, String loginStringsCsv);
 	
-	public User getUserByLoginString(String loginString);
+	public OrkUser getUserByLoginString(String loginString);
 	
 	public int getNumNonDisabledUsers();
 }

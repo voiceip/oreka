@@ -21,16 +21,16 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 
-import net.sf.oreka.persistent.Domain;
-import net.sf.oreka.persistent.LoginString;
-import net.sf.oreka.persistent.RecPort;
-import net.sf.oreka.persistent.RecPortFace;
-import net.sf.oreka.persistent.RecProgram;
-import net.sf.oreka.persistent.RecSegment;
-import net.sf.oreka.persistent.RecSession;
-import net.sf.oreka.persistent.RecTape;
-import net.sf.oreka.persistent.Service;
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkDomain;
+import net.sf.oreka.persistent.OrkLoginString;
+import net.sf.oreka.persistent.OrkPort;
+import net.sf.oreka.persistent.OrkPortFace;
+import net.sf.oreka.persistent.OrkProgram;
+import net.sf.oreka.persistent.OrkSegment;
+import net.sf.oreka.persistent.OrkSession;
+import net.sf.oreka.persistent.OrkTape;
+import net.sf.oreka.persistent.OrkService;
+import net.sf.oreka.persistent.OrkUser;
 
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
@@ -84,16 +84,16 @@ public class HibernateManager {
 		config.setProperty("hibernate.proxool.pool_alias", alias);
 		config.setProperty("hibernate.proxool.existing_pool", "true");
 		
-		config.addAnnotatedClass(RecProgram.class);
-		config.addAnnotatedClass(RecSession.class);
-		config.addAnnotatedClass(RecSegment.class);
-		config.addAnnotatedClass(RecTape.class);
-		config.addAnnotatedClass(User.class);
-		config.addAnnotatedClass(LoginString.class);
-		config.addAnnotatedClass(Domain.class);		
-		config.addAnnotatedClass(Service.class);
-		config.addAnnotatedClass(RecPort.class);
-		config.addAnnotatedClass(RecPortFace.class);
+		config.addAnnotatedClass(OrkProgram.class);
+		config.addAnnotatedClass(OrkSession.class);
+		config.addAnnotatedClass(OrkSegment.class);
+		config.addAnnotatedClass(OrkTape.class);
+		config.addAnnotatedClass(OrkUser.class);
+		config.addAnnotatedClass(OrkLoginString.class);
+		config.addAnnotatedClass(OrkDomain.class);		
+		config.addAnnotatedClass(OrkService.class);
+		config.addAnnotatedClass(OrkPort.class);
+		config.addAnnotatedClass(OrkPortFace.class);
 		sessionFactory = config.buildSessionFactory();
 		
 		// Add admin user if does not exist yet
@@ -103,13 +103,13 @@ public class HibernateManager {
 		{
 			hbnSession = getSession();
 			tx = hbnSession.beginTransaction();
-			User admin = (User)hbnSession.get(User.class, 1);
+			OrkUser admin = (OrkUser)hbnSession.get(OrkUser.class, 1);
 			if(admin == null) {
-				admin = new User();
+				admin = new OrkUser();
 				admin.setPassword("admin");
 				admin.setFirstname("adminfn");
 				admin.setLastname("adminln");
-				LoginString ls = new LoginString();
+				OrkLoginString ls = new OrkLoginString();
 				ls.setUser(admin);
 				ls.setLoginString("admin");
 				hbnSession.save(admin);

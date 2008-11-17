@@ -24,7 +24,7 @@ import net.sf.oreka.orktrack.Port;
 import net.sf.oreka.orktrack.PortManager;
 import net.sf.oreka.orktrack.ServiceManager;
 import net.sf.oreka.orktrack.messages.TapeMessage.CaptureStage;
-import net.sf.oreka.persistent.Service;
+import net.sf.oreka.persistent.OrkService;
 import net.sf.oreka.serializers.OrkSerializer;
 import net.sf.oreka.serializers.SingleLineSerializer;
 
@@ -65,7 +65,7 @@ public class MetadataMessage  extends SyncMessage {
 	        SingleLineSerializer ser = new SingleLineSerializer();
 	        log.info("Message: " + ser.serialize(this));
 	        
-			Service service = ServiceManager.retrieveByName(this.service, session);
+			OrkService service = ServiceManager.retrieveByName(this.service, session);
 			
 			if (service != null) {
 				Port port = PortManager.instance().getAndCreatePort(this.getCapturePort(), session, service);

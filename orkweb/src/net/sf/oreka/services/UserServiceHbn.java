@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import net.sf.oreka.HibernateManager;
 import net.sf.oreka.orkweb.ContextListener;
 import net.sf.oreka.orkweb.OrkWeb;
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkUser;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -18,10 +18,10 @@ public class UserServiceHbn implements UserService {
 
 	static Logger logger = Logger.getLogger(UserServiceHbn.class);	
 	
-	public User login(String username, String password) {
+	public OrkUser login(String username, String password) {
 		
 		Session hbnSession = null;
-		User user = null;
+		OrkUser user = null;
 		
 		logger.debug("Trying to login user:" + username + " with passwd:" + password);
 		
@@ -29,7 +29,7 @@ public class UserServiceHbn implements UserService {
 		{
 			hbnSession = OrkWeb.hibernateManager.getSession();
 			
-			String queryString = new String("from LoginString as ls left join ls.user as user where ls.loginString=:ls");
+			String queryString = new String("from OrkLoginString as ls left join ls.user as user where ls.loginString=:ls");
 			if (ContextListener.debugSwitch == false) {
 				queryString = queryString + " and user.password=:password";
 			}
@@ -41,7 +41,7 @@ public class UserServiceHbn implements UserService {
 			ArrayList results = (ArrayList)query.list();
 			Object[] row = (Object[])query.uniqueResult();
 			if (row != null) {
-				user = (User)row[1];
+				user = (OrkUser)row[1];
 				logger.debug("Found userid:" + user.getId() + " for login string:" + username);
 			}
 		}
@@ -62,7 +62,7 @@ public class UserServiceHbn implements UserService {
 		
 		Session hbnSession = null;
 		Transaction tx = null;
-		User user = null;
+		OrkUser user = null;
 		boolean success = false;
 		
 		logger.debug("Trying to change password for userid:" + userId);
@@ -72,7 +72,7 @@ public class UserServiceHbn implements UserService {
 			hbnSession = OrkWeb.hibernateManager.getSession();
 
 			
-			user = (User)hbnSession.get(User.class, userId);
+			user = (OrkUser)hbnSession.get(OrkUser.class, userId);
 			if(user == null) {
 				logger.warn("Userid:" + userId + " does not exist");
 			}

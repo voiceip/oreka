@@ -77,16 +77,16 @@ public class AnnotationsTest {
     	config.configure("hsqldb.hbm.xml");
     	
     	config.addAnnotatedClass(AnnotatedTestClass.class);
-		config.addAnnotatedClass(RecProgram.class);
-		config.addAnnotatedClass(RecSession.class);
-		config.addAnnotatedClass(RecSegment.class);
-		config.addAnnotatedClass(RecTape.class);
-		config.addAnnotatedClass(User.class);
-		config.addAnnotatedClass(LoginString.class);
-		config.addAnnotatedClass(Domain.class);		
-		config.addAnnotatedClass(Service.class);
-		config.addAnnotatedClass(RecPort.class);
-		config.addAnnotatedClass(RecPortFace.class);
+		config.addAnnotatedClass(OrkProgram.class);
+		config.addAnnotatedClass(OrkSession.class);
+		config.addAnnotatedClass(OrkSegment.class);
+		config.addAnnotatedClass(OrkTape.class);
+		config.addAnnotatedClass(OrkUser.class);
+		config.addAnnotatedClass(OrkLoginString.class);
+		config.addAnnotatedClass(OrkDomain.class);		
+		config.addAnnotatedClass(OrkService.class);
+		config.addAnnotatedClass(OrkPort.class);
+		config.addAnnotatedClass(OrkPortFace.class);
     	
         SessionFactory sessions = config.buildSessionFactory();
         Session session = sessions.openSession();
@@ -279,7 +279,7 @@ public class AnnotationsTest {
         	
         	tx = session.beginTransaction();
         	System.out.println("hello");
-        	RecSegment seg = new RecSegment();
+        	OrkSegment seg = new OrkSegment();
          	GregorianCalendar cal = new GregorianCalendar();
         	Date now = cal.getTime();
          	seg.setTimestamp(now);
@@ -296,7 +296,7 @@ public class AnnotationsTest {
 	    	.list()
 	    	.iterator();
 		if(segments.hasNext()) {
-			RecSegment seg2 = (RecSegment)segments.next();
+			OrkSegment seg2 = (OrkSegment)segments.next();
 			System.out.println("db timestamp:" + seg2.getTimestamp().getTime() + " my:" + now.getTime());
 		}
 		else {

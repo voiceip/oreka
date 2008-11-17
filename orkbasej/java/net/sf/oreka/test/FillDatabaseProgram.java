@@ -3,7 +3,7 @@ package net.sf.oreka.test;
 import java.util.List;
 
 import net.sf.oreka.HibernateManager;
-import net.sf.oreka.persistent.RecProgram;
+import net.sf.oreka.persistent.OrkProgram;
 
 import org.hibernate.Criteria;
 import org.hibernate.Session;
@@ -20,12 +20,12 @@ public class FillDatabaseProgram {
 		Session hbnSession = hibernateManager.getSession();
 		Transaction tx = hbnSession.beginTransaction();
 		
-		RecProgram prg = new RecProgram();
+		OrkProgram prg = new OrkProgram();
 		prg.setDescription("my program 1");
 		prg.setName("myprog1");
 		hbnSession.save(prg);
 		
-		prg = new RecProgram();
+		prg = new OrkProgram();
 		prg.setDescription("my program 2");
 		prg.setName("myprog2");
 		hbnSession.save(prg);
@@ -33,7 +33,7 @@ public class FillDatabaseProgram {
 		tx.commit();
 		
 		List recPrograms;
-		Criteria crit = hbnSession.createCriteria(RecProgram.class);
+		Criteria crit = hbnSession.createCriteria(OrkProgram.class);
 		//crit.add( Expression.eq( "color", eg.Color.BLACK ) );
 		//crit.setMaxResults(10);
 		recPrograms = crit.list();

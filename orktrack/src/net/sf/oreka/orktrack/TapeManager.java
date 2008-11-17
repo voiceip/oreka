@@ -3,10 +3,10 @@ package net.sf.oreka.orktrack;
 import java.util.Date;
 
 import net.sf.oreka.orktrack.messages.TapeMessage;
-import net.sf.oreka.persistent.RecSegment;
-import net.sf.oreka.persistent.RecTape;
-import net.sf.oreka.persistent.Service;
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkSegment;
+import net.sf.oreka.persistent.OrkTape;
+import net.sf.oreka.persistent.OrkService;
+import net.sf.oreka.persistent.OrkUser;
 
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
@@ -33,7 +33,7 @@ public class TapeManager {
 	 * @param srv
 	 * @return	false if the tape is rejected and should be deleted, otherwise true
 	 */
-	public boolean notifyTapeMessage(TapeMessage tapeMessage, Session hbnSession, Service srv) {
+	public boolean notifyTapeMessage(TapeMessage tapeMessage, Session hbnSession, OrkService srv) {
 		
 		boolean keepTape = true;
 		
@@ -46,31 +46,31 @@ public class TapeManager {
 			Date timestamp = new Date(date);
             
 			// create a new tape record
-			RecTape recTape = new RecTape();
+			OrkTape recTape = new OrkTape();
 			recTape.setDirection(tapeMessage.getDirection());
 			recTape.setDuration(tapeMessage.getDuration());
 			recTape.setExpiryTimestamp(new Date());
 			recTape.setFilename(tapeMessage.getFilename());
 			recTape.setLocalParty(tapeMessage.getLocalParty());
-			recTape.setRecPortName(tapeMessage.getCapturePort());
+			recTape.setPortName(tapeMessage.getCapturePort());
 			recTape.setRemoteParty(tapeMessage.getRemoteParty());
 			recTape.setTimestamp(timestamp);
 			recTape.setService(srv);
 			hbnSession.save(recTape);
 			logger.info("Written tape:" + tapeMessage.getRecId() + " as " + recTape.getId());
 			
-			RecSegment recSegment = new RecSegment();
+			OrkSegment recSegment = new OrkSegment();
 			recSegment.setTimestamp(timestamp);
 			recSegment.setDirection(tapeMessage.getDirection());
 			recSegment.setDuration(tapeMessage.getDuration());
 			recSegment.setRemoteParty(tapeMessage.getRemoteParty());
 			recSegment.setLocalParty(tapeMessage.getLocalParty());
 			recSegment.setLocalEntryPoint(tapeMessage.getLocalEntryPoint());
-			recSegment.setRecTape(recTape);
-			recSegment.setRecPortName(recTape.getRecPortName());
+			recSegment.setTape(recTape);
+			recSegment.setPortName(recTape.getPortName());
 			
 			if(tapeMessage.getLocalParty() != "") {
-				User user = UserManager.instance().getByLoginString(tapeMessage.getLocalParty(), hbnSession);
+				OrkUser user = UserManager.instance().getByLoginString(tapeMessage.getLocalParty(), hbnSession);
 				recSegment.setUser(user);
 			}
 			if (ProgramManager.instance().filterSegmentAgainstAllPrograms(recSegment, hbnSession)) {

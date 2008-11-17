@@ -3,15 +3,15 @@ package net.sf.oreka.bo;
 import java.io.Serializable;
 import java.util.Iterator;
 
-import net.sf.oreka.persistent.LoginString;
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkLoginString;
+import net.sf.oreka.persistent.OrkUser;
 
 import org.apache.log4j.Logger;
 
 public class UserBo implements Serializable {
 	
 	static Logger logger = Logger.getLogger(UserBo.class);	
-	private User user = new User();
+	private OrkUser user = new OrkUser();
 	
 	private boolean selected = false;
 
@@ -36,11 +36,11 @@ public class UserBo implements Serializable {
 		return false;
 	}
 	
-	public User getUser() {
+	public OrkUser getUser() {
 		return user;
 	}
 
-	public void setUser(User user) {
+	public void setUser(OrkUser user) {
 		this.user = user;
 	}
 	

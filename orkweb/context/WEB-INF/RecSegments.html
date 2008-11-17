@@ -124,13 +124,13 @@
 											    </td>
 											    <td><span jwcid="@Insert" value="ognl:item.recSegment.remoteParty">remote party</span></td>
 											    <td>
-											    	<span jwcid="@If" condition="ognl:item.recSegment.recTape != null">
-											      		<span jwcid="@Insert" value="ognl:item.recSegment.recTape.id">tape id</span>
+											    	<span jwcid="@If" condition="ognl:item.recSegment.tape != null">
+											      		<span jwcid="@Insert" value="ognl:item.recSegment.tape.id">tape id</span>
 											      	</span>
 											    </td>
 											    <td>
-											    	<span jwcid="@If" condition="ognl:item.recSegment.recTape != null">
-											      		<a jwcid="@Any" href="ognl:item.recSegment.recTape.playUrl"><img jwcid="@Image" image="asset:play" alt="Play"/></a>
+											    	<span jwcid="@If" condition="ognl:item.recSegment.tape != null">
+											      		<a jwcid="@Any" href="ognl:item.recSegment.tape.playUrl"><img jwcid="@Image" image="asset:play" alt="Play"/></a>
 											      	</span>											    
 											    </td>
 											</tr>

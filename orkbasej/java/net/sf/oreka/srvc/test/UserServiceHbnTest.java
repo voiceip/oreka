@@ -4,8 +4,8 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import net.sf.oreka.HibernateManager;
-import net.sf.oreka.persistent.LoginString;
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkLoginString;
+import net.sf.oreka.persistent.OrkUser;
 import net.sf.oreka.srvc.ObjectService;
 import net.sf.oreka.srvc.ObjectServiceHbn;
 import net.sf.oreka.srvc.UserService;
@@ -46,15 +46,15 @@ public class UserServiceHbnTest extends TestCase {
 		
 		Session hbnSession = hibernateManager.getSession();
 		Transaction tx = hbnSession.beginTransaction();
-		User user1 = new User();
+		OrkUser user1 = new OrkUser();
 		user1.setFirstname("fn1");
 		hbnSession.save(user1);
 		
-		User user2 = new User();
+		OrkUser user2 = new OrkUser();
 		user2.setFirstname("fn2");
 		hbnSession.save(user2);
 		
-		User deletedUser = new User();
+		OrkUser deletedUser = new OrkUser();
 		deletedUser.setFirstname("dlt");
 		//deletedUser.setDeleted(true);
 		hbnSession.save(deletedUser);

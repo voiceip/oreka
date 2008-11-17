@@ -21,7 +21,7 @@ import java.util.List;
 
 import net.sf.oreka.Direction;
 import net.sf.oreka.orkweb.OrkWeb;
-import net.sf.oreka.persistent.RecSegment;
+import net.sf.oreka.persistent.OrkSegment;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -94,12 +94,17 @@ public class RecSegmentServiceHbn implements RecSegmentService{
 		{
 			session = OrkWeb.hibernateManager.getSession();
 
-			StringBuffer queryString = new StringBuffer("from RecSegment as seg left join seg.recTape as tape left join tape.service as srv ");
+			StringBuffer queryString = new StringBuffer("from OrkSegment as seg left join seg.tape as tape left join tape.service as srv ");
 			//StringBuffer queryString = new StringBuffer("from RecSegment as seg ");
 
 			//boolean firstCriterium = false;
 			
-			queryString.append(" where seg.timestamp between :startDate and :endDate ");
+			if (filter.getStartDate() != null && filter.getEndDate() != null)
+				queryString.append(" where seg.timestamp between :startDate and :endDate ");
+			else if (filter.getStartDate() != null)
+				queryString.append(" where seg.timestamp > :startDate ");
+			else if (filter.getEndDate() != null)
+				queryString.append(" where seg.timestamp < :endDate ");
 			
 			if(filter.getLocalParty().length() > 0) {
 				queryString.append(" and seg.localParty=:localParty ");
@@ -132,11 +137,14 @@ public class RecSegmentServiceHbn implements RecSegmentService{
 			Query query = session.createQuery(queryString.toString());
 			
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-			logger.debug("Filter start date:" + dateFormat.format(filter.getStartDate()));
-			query.setTimestamp("startDate", filter.getStartDate());
-			logger.debug("Filter end date:" + dateFormat.format(filter.getEndDate()));
-			query.setTimestamp("endDate", filter.getEndDate());
-			
+			if (filter.getStartDate() != null) {
+				logger.debug("Filter start date:" + dateFormat.format(filter.getStartDate()));
+				query.setTimestamp("startDate", filter.getStartDate());
+			}	
+			if (filter.getEndDate() != null) {
+				logger.debug("Filter end date:" + dateFormat.format(filter.getEndDate()));
+				query.setTimestamp("endDate", filter.getEndDate());
+			}	
 			
 			if(filter.getLocalParty().length() > 0) {
 				query.setString("localParty", filter.getLocalParty());
@@ -174,7 +182,7 @@ public class RecSegmentServiceHbn implements RecSegmentService{
 			while (scrollDocs.get()!= null && rowsSoFar<number)
 			{
 				rowsSoFar++;
-				RecSegment seg = (RecSegment)scrollDocs.get(0);
+				OrkSegment seg = (OrkSegment)scrollDocs.get(0);
 				
 				//logger.log(Level.ERROR, seg.getRecTape().getUrl());
 				

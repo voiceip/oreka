@@ -17,12 +17,12 @@ import java.util.Date;
 
 import net.sf.oreka.Direction;
 import net.sf.oreka.HibernateManager;
-import net.sf.oreka.persistent.LoginString;
-import net.sf.oreka.persistent.RecProgram;
-import net.sf.oreka.persistent.RecSegment;
-import net.sf.oreka.persistent.RecTape;
-import net.sf.oreka.persistent.Service;
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkLoginString;
+import net.sf.oreka.persistent.OrkProgram;
+import net.sf.oreka.persistent.OrkSegment;
+import net.sf.oreka.persistent.OrkTape;
+import net.sf.oreka.persistent.OrkService;
+import net.sf.oreka.persistent.OrkUser;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -38,7 +38,7 @@ public class FillDatabase {
 		Session hbnSession = hibernateManager.getSession();
 		Transaction tx = hbnSession.beginTransaction();
 		
-		Service service = new Service();
+		OrkService service = new OrkService();
 		service.setFileServePath("");
 		service.setFileServeProtocol("http");
 		service.setFileServeTcpPort(8080);
@@ -48,17 +48,17 @@ public class FillDatabase {
 		hbnSession.save(service);
 		
 		// user 1
-		User user = new User();
+		OrkUser user = new OrkUser();
 		user.setFirstname("Raymond");
 		user.setLastname("Stein");
 		user.setPassword("raymond");
-		LoginString ls = new LoginString();
+		OrkLoginString ls = new OrkLoginString();
 		ls.setUser(user);
 		ls.setLoginString("2005");
-		LoginString lsA = new LoginString();
+		OrkLoginString lsA = new OrkLoginString();
 		lsA.setUser(user);
 		lsA.setLoginString("2006");
-		LoginString lsB = new LoginString();
+		OrkLoginString lsB = new OrkLoginString();
 		lsB.setUser(user);
 		lsB.setLoginString("raymond");
 		hbnSession.save(user);
@@ -67,17 +67,17 @@ public class FillDatabase {
 		hbnSession.save(lsB);
 		
 		// user 2
-		User user2 = new User();
+		OrkUser user2 = new OrkUser();
 		user2.setFirstname("Bert");
 		user2.setLastname("Nolte");		
 		user2.setPassword("bert");
-		LoginString ls2 = new LoginString();
+		OrkLoginString ls2 = new OrkLoginString();
 		ls2.setUser(user2);
 		ls2.setLoginString("2000");
-		LoginString ls2A = new LoginString();
+		OrkLoginString ls2A = new OrkLoginString();
 		ls2A.setUser(user2);
 		ls2A.setLoginString("2001");
-		LoginString ls2B = new LoginString();
+		OrkLoginString ls2B = new OrkLoginString();
 		ls2B.setUser(user2);
 		ls2B.setLoginString("bert");
 		hbnSession.save(user2);
@@ -86,7 +86,7 @@ public class FillDatabase {
 		hbnSession.save(ls2B);
 		
 		// create program that does not filter anything
-		RecProgram prog1 = new RecProgram();
+		OrkProgram prog1 = new OrkProgram();
 		prog1.setName("Test program");
 		hbnSession.save(prog1);
 		
@@ -94,8 +94,8 @@ public class FillDatabase {
 		String lastParty = "123-234-5678";
 		java.util.Random generator = new java.util.Random();
 		for(int i=0; i<500; i++) {
-			RecSegment seg = new RecSegment();
-			RecTape tape = new RecTape();
+			OrkSegment seg = new OrkSegment();
+			OrkTape tape = new OrkTape();
 			
 			tape.setService(service);
 			tape.setFilename("f1.mp3");
@@ -142,7 +142,7 @@ public class FillDatabase {
 			seg.setDuration(duration);
 			tape.setDuration(duration+1);
 			
-			seg.setRecTape(tape);
+			seg.setTape(tape);
 			hbnSession.save(tape);
 			hbnSession.save(seg);
 		}
