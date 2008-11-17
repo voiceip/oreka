@@ -20,34 +20,34 @@ import java.util.LinkedList;
 
 import net.sf.oreka.orktrack.messages.MetadataMessage;
 import net.sf.oreka.orktrack.messages.TapeMessage;
-import net.sf.oreka.persistent.RecPort;
-import net.sf.oreka.persistent.RecPortFace;
-import net.sf.oreka.persistent.RecSegment;
-import net.sf.oreka.persistent.RecTape;
-import net.sf.oreka.persistent.Service;
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkPort;
+import net.sf.oreka.persistent.OrkPortFace;
+import net.sf.oreka.persistent.OrkSegment;
+import net.sf.oreka.persistent.OrkTape;
+import net.sf.oreka.persistent.OrkService;
+import net.sf.oreka.persistent.OrkUser;
 
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
 public class Port {
 
-	public ArrayList<RecPortFace> portFaces = new ArrayList<RecPortFace>();
-	private RecPort recPort = null;
+	public ArrayList<OrkPortFace> portFaces = new ArrayList<OrkPortFace>();
+	private OrkPort recPort = null;
 	private TapeMessage lastTapeMessage = null;
 	private MetadataMessage lastMetadataMessage = null;
-	private User user = null;
+	private OrkUser user = null;
 	
-	private LinkedList<RecSegment> recSegments = new LinkedList<RecSegment> ();
-	private LinkedList<RecTape> recTapes = new LinkedList<RecTape> ();
+	private LinkedList<OrkSegment> recSegments = new LinkedList<OrkSegment> ();
+	private LinkedList<OrkTape> recTapes = new LinkedList<OrkTape> ();
 	
 	static Logger logger = Logger.getLogger(ProgramManager.class);
 	
-	public Port(RecPort recPort) {
+	public Port(OrkPort recPort) {
 		this.recPort = recPort;
 	}
 	
-	private synchronized void addTapeToLocalCache(RecTape tape) {
+	private synchronized void addTapeToLocalCache(OrkTape tape) {
 		
 		if (recTapes.size() > 50) {
 			recTapes.removeLast();
@@ -55,7 +55,7 @@ public class Port {
 		recTapes.addFirst(tape);
 	}
 	
-	private synchronized void addSegmentToLocalCache(RecSegment seg) {
+	private synchronized void addSegmentToLocalCache(OrkSegment seg) {
 		
 		if (recSegments.size() > 50) {
 			recSegments.removeLast();
@@ -63,7 +63,7 @@ public class Port {
 		recSegments.addFirst(seg);
 	}
 	
-	private boolean areTogether(RecTape tape, RecSegment seg) {
+	private boolean areTogether(OrkTape tape, OrkSegment seg) {
 		
 		boolean result = false;
 		long segStartTime = seg.getTimestamp().getTime();
@@ -83,21 +83,21 @@ public class Port {
 		return result;
 	}
 	
-	private void joinTogether(RecTape tape, RecSegment seg, Session hbnSession) {
+	private void joinTogether(OrkTape tape, OrkSegment seg, Session hbnSession) {
 
-		seg.setRecTape(tape);
-		seg.setRecTapeOffset(seg.getTimestamp().getTime() - tape.getTimestamp().getTime());
+		seg.setTape(tape);
+		seg.setTapeOffset(seg.getTimestamp().getTime() - tape.getTimestamp().getTime());
 		hbnSession.save(seg);
 	}
 	
-	private synchronized void findAndAssociateTape(RecSegment segment, Session hbnSession) {
+	private synchronized void findAndAssociateTape(OrkSegment segment, Session hbnSession) {
 		
 		// Iterate over tapes and find the ones corresponding to this segment
-		Iterator<RecTape> it = recTapes.iterator();
+		Iterator<OrkTape> it = recTapes.iterator();
 		boolean foundOne = false;
 		boolean done = false;
 		while (it.hasNext() && !done) {
-			RecTape tape = it.next();
+			OrkTape tape = it.next();
 			if (areTogether(tape, segment)) {
 				joinTogether(tape, segment, hbnSession);
 				logger.info("#" + recPort.getId() + ": associating segment:" + segment.getId() + " with tape:" + tape.getId());
@@ -111,14 +111,14 @@ public class Port {
 		}
 	}
 	
-	private synchronized void findAndAssociateSegment(RecTape tape, Session hbnSession) {
+	private synchronized void findAndAssociateSegment(OrkTape tape, Session hbnSession) {
 		
 		// Iterate over segments and find the ones corresponding to this tape
-		Iterator<RecSegment> it = recSegments.iterator();
+		Iterator<OrkSegment> it = recSegments.iterator();
 		boolean foundOne = false;
 		boolean done = false;
 		while (it.hasNext() && !done) {
-			RecSegment segment = it.next();
+			OrkSegment segment = it.next();
 			if (areTogether(tape, segment)) {
 				joinTogether(tape, segment, hbnSession);
 				logger.info("#" + recPort.getId() + ": associating segment:" + segment.getId() + " with tape:" + tape.getId());
@@ -132,7 +132,7 @@ public class Port {
 		}
 	}
 	
-	public void notifyMetadataMessage(MetadataMessage metadataMessage, Session hbnSession, Service srv) {
+	public void notifyMetadataMessage(MetadataMessage metadataMessage, Session hbnSession, OrkService srv) {
 		
 		long duration = 0;
 		Date startDate = null;
@@ -156,17 +156,17 @@ public class Port {
 			
 			if (srv.isRecordMaster()) {
 				// create segment
-				RecSegment recSegment = new RecSegment();
+				OrkSegment recSegment = new OrkSegment();
 				recSegment.setTimestamp(startDate);
 				recSegment.setDirection(metadataMessage.getDirection());
 				recSegment.setDuration(duration);
 				recSegment.setLocalParty(metadataMessage.getLocalParty());
 				recSegment.setLocalEntryPoint(metadataMessage.getLocalEntryPoint());
-				recSegment.setRecSessionOffset(0);
-				recSegment.setRecPort(recPort);
+				recSegment.setSessionOffset(0);
+				recSegment.setPort(recPort);
 				
 				if(metadataMessage.getLocalParty() != "") {
-					User user = UserManager.instance().getByLoginString(metadataMessage.getLocalParty(), hbnSession);
+					OrkUser user = UserManager.instance().getByLoginString(metadataMessage.getLocalParty(), hbnSession);
 					recSegment.setUser(user);
 				}
 				
@@ -185,7 +185,7 @@ public class Port {
 		}
 	}
 	
-	public void notifyTapeMessage(TapeMessage tapeMessage, Session hbnSession, Service srv) {
+	public void notifyTapeMessage(TapeMessage tapeMessage, Session hbnSession, OrkService srv) {
 		
 		if (tapeMessage.getStage() == TapeMessage.CaptureStage.START) {
 			lastTapeMessage = tapeMessage;
@@ -212,13 +212,13 @@ public class Port {
 				Date timestamp = new Date(date);
 	            
 				// create a new tape record
-				RecTape recTape = new RecTape();
+				OrkTape recTape = new OrkTape();
 				recTape.setDirection(stopMessage.getDirection());
 				recTape.setDuration(duration);
 				recTape.setExpiryTimestamp(new Date());
 				recTape.setFilename(stopMessage.getFilename());
 				recTape.setLocalParty(stopMessage.getLocalParty());
-				recTape.setRecPort(recPort);
+				recTape.setPort(recPort);
 				recTape.setRemoteParty(stopMessage.getRemoteParty());
 				recTape.setTimestamp(timestamp);
 				recTape.setService(srv);
@@ -226,18 +226,18 @@ public class Port {
 				logger.info("#" + tapeMessage.getCapturePort() + ": written tape " + recTape.getId());
 				
 				if (generateSegment) {
-					RecSegment recSegment = new RecSegment();
+					OrkSegment recSegment = new OrkSegment();
 					recSegment.setTimestamp(timestamp);
 					recSegment.setDirection(stopMessage.getDirection());
 					recSegment.setDuration(duration);
 					recSegment.setRemoteParty(stopMessage.getRemoteParty());
 					recSegment.setLocalParty(stopMessage.getLocalParty());
 					recSegment.setLocalEntryPoint(stopMessage.getLocalEntryPoint());
-					recSegment.setRecTape(recTape);
-					recSegment.setRecPort(recPort);
+					recSegment.setTape(recTape);
+					recSegment.setPort(recPort);
 					
 					if(stopMessage.getLocalParty() != "") {
-						User user = UserManager.instance().getByLoginString(stopMessage.getLocalParty(), hbnSession);
+						OrkUser user = UserManager.instance().getByLoginString(stopMessage.getLocalParty(), hbnSession);
 						recSegment.setUser(user);
 					}
 					if (ProgramManager.instance().filterSegmentAgainstAllPrograms(recSegment, hbnSession)) {
@@ -256,19 +256,19 @@ public class Port {
 		}
 	}
 
-	public RecPort getRecPort() {
+	public OrkPort getRecPort() {
 		return recPort;
 	}
 
-	public void setRecPort(RecPort recPort) {
+	public void setRecPort(OrkPort recPort) {
 		this.recPort = recPort;
 	}
 
-	public User getUser() {
+	public OrkUser getUser() {
 		return user;
 	}
 
-	public void setUser(User user) {
+	public void setUser(OrkUser user) {
 		this.user = user;
 	}
 	

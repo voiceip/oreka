@@ -23,7 +23,7 @@ import net.sf.oreka.orktrack.OrkTrack;
 import net.sf.oreka.orktrack.Port;
 import net.sf.oreka.orktrack.PortManager;
 import net.sf.oreka.orktrack.UserManager;
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkUser;
 import net.sf.oreka.serializers.OrkSerializer;
 
 import org.apache.log4j.Logger;
@@ -57,7 +57,7 @@ public class UserStateMessage extends SyncMessage {
 			hbnSession = OrkTrack.hibernateManager.getSession();
 	        tx = hbnSession.beginTransaction();
 	        // find out user
-	        User user = UserManager.instance().getByLoginString(loginString, hbnSession);
+	        OrkUser user = UserManager.instance().getByLoginString(loginString, hbnSession);
 	        if (user == null) {
 	        	comment = "Could not find user for login string:" + loginString;
 	        	log.warn(comment);

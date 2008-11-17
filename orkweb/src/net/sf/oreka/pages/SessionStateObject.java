@@ -1,10 +1,10 @@
 package net.sf.oreka.pages;
 
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkUser;
 
 public class SessionStateObject {
 
-	private User user = null;
+	private OrkUser user = null;
 	
 	public boolean isUserLoggedIn() {
 		if(user == null) {
@@ -13,12 +13,12 @@ public class SessionStateObject {
 		return true;
 	}
 
-	public User getUser() {
+	public OrkUser getUser() {
 		return user;
 	}
 	
 
-	public void setUser(User user) {
+	public void setUser(OrkUser user) {
 		this.user = user;
 	}
 	

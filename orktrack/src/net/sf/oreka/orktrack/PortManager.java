@@ -17,9 +17,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import net.sf.oreka.persistent.RecPort;
-import net.sf.oreka.persistent.RecPortFace;
-import net.sf.oreka.persistent.Service;
+import net.sf.oreka.persistent.OrkPort;
+import net.sf.oreka.persistent.OrkPortFace;
+import net.sf.oreka.persistent.OrkService;
 
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
@@ -49,7 +49,7 @@ public class PortManager {
 		return portByName.get(name);
 	}
 	
-	public Port getAndCreatePort(String name, Session hbnSession, Service service) {
+	public Port getAndCreatePort(String name, Session hbnSession, OrkService service) {
 		
 		Port port = portByName.get(name);
 		if (port == null) {
@@ -59,24 +59,24 @@ public class PortManager {
 		return port; 
 	}
 	
-	public synchronized Port createPort(String name, Session hbnSession, Service service) {
+	public synchronized Port createPort(String name, Session hbnSession, OrkService service) {
 		
-		RecPort recPort = null;
+		OrkPort recPort = null;
 
-		RecPortFace portFace = (RecPortFace)hbnSession.get(RecPortFace.class, name);
+		OrkPortFace portFace = (OrkPortFace)hbnSession.get(OrkPortFace.class, name);
 		if (portFace == null) {
-			portFace  = new RecPortFace();
+			portFace  = new OrkPortFace();
 			portFace.setName(name);
-			portFace.setRecPort(recPort);
+			portFace.setPort(recPort);
 			portFace.setService(service);
 			
-			recPort = new RecPort();
-			portFace.setRecPort(recPort);
+			recPort = new OrkPort();
+			portFace.setPort(recPort);
 		}
 		else {
-			portFace.setRecPort(recPort);
+			portFace.setPort(recPort);
 			portFace.setService(service);
-			recPort = portFace.getRecPort();
+			recPort = portFace.getPort();
 		}
 		
 		hbnSession.save(recPort);
@@ -94,14 +94,14 @@ public class PortManager {
 	// for testing purposes
 	public void addPort(String face1, String face2, Session hbnSession) {
 		
-		RecPort recPort = new RecPort();
+		OrkPort recPort = new OrkPort();
 		Port port = new Port(recPort);
-		RecPortFace portFace1 = new RecPortFace();
+		OrkPortFace portFace1 = new OrkPortFace();
 		portFace1.setName(face1);
-		portFace1.setRecPort(recPort);
-		RecPortFace portFace2 = new RecPortFace();
+		portFace1.setPort(recPort);
+		OrkPortFace portFace2 = new OrkPortFace();
 		portFace2.setName(face2);
-		portFace2.setRecPort(recPort);
+		portFace2.setPort(recPort);
 		
 		hbnSession.save(recPort);
 		hbnSession.save(portFace1);
@@ -123,17 +123,17 @@ public class PortManager {
 			Transaction tx = hbnSession.beginTransaction();
 			
 			Iterator portFaces = hbnSession.createQuery(
-        	"from RecPortFace")
+        	"from OrkPortFace")
         	.list()
         	.iterator();
 
 			while ( portFaces.hasNext() ) {
-			    RecPortFace portFace = (RecPortFace)portFaces.next();
+			    OrkPortFace portFace = (OrkPortFace)portFaces.next();
 			    
-			    int portId = portFace.getRecPort().getId();
+			    int portId = portFace.getPort().getId();
 			    Port port = portById.get(portId);
 			    if(port == null) {
-			    	RecPort recPort = (RecPort)hbnSession.get(RecPort.class, portId);
+			    	OrkPort recPort = (OrkPort)hbnSession.get(OrkPort.class, portId);
 			    	if (recPort != null) {
 				    	port = new Port(recPort);
 				    	portById.put(portId, port);
@@ -154,16 +154,16 @@ public class PortManager {
 		return success;
 	}
 	
-	public RecPort getRecPortByFace(String face, Session hbnSession) {
-		RecPort port = null;
+	public OrkPort getRecPortByFace(String face, Session hbnSession) {
+		OrkPort port = null;
 		List ports = hbnSession.createQuery(
-	    "from RecPortFace as pf join pf.recPort as p where pf.name=:face")
+	    "from OrkPortFace as pf join pf.port as p where pf.name=:face")
 	    .setString("face", face)
 	    .list();
 		if (ports.size() > 0) {
 			Object[] row =  (Object[])ports.get(0);
 			if (row.length > 1) {
-				port = (RecPort)row[1];
+				port = (OrkPort)row[1];
 			}
 		}
 		return port;

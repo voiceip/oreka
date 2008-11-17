@@ -10,8 +10,8 @@ import net.sf.oreka.HibernateManager;
 import net.sf.oreka.OrkBase;
 import net.sf.oreka.OrkException;
 import net.sf.oreka.bo.UserBo;
-import net.sf.oreka.persistent.LoginString;
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkLoginString;
+import net.sf.oreka.persistent.OrkUser;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -38,7 +38,7 @@ public class UserServiceHbn implements UserService {
 		{
 			hbnSession = HibernateManager.instance().getSession();
 			
-			String queryString = new String("from LoginString as ls left join ls.user as user where ls.loginString=:ls and user.deleted=0 ");
+			String queryString = new String("from OrkLoginString as ls left join ls.user as user where ls.loginString=:ls and user.deleted=0 ");
 			if (OrkBase.instance().isDebugSwitch() == false) {
 				queryString = queryString + " and user.password=:password";
 			}
@@ -51,7 +51,7 @@ public class UserServiceHbn implements UserService {
 			Object[] row = (Object[])query.uniqueResult();
 			if (row != null) {
 				userBo = new UserBo();
-				userBo.setUser((User)row[1]);
+				userBo.setUser((OrkUser)row[1]);
 				logger.debug("Found userid:" + userBo.getUser().getId() + " for login string:" + username);
 			}
 		}
@@ -72,7 +72,7 @@ public class UserServiceHbn implements UserService {
 		
 		Session hbnSession = null;
 		Transaction tx = null;
-		User user = null;
+		OrkUser user = null;
 		boolean success = false;
 		
 		logger.debug("Trying to change password for userid:" + userId);
@@ -82,7 +82,7 @@ public class UserServiceHbn implements UserService {
 			hbnSession = HibernateManager.instance().getSession();
 
 			
-			user = (User)hbnSession.get(User.class, userId);
+			user = (OrkUser)hbnSession.get(OrkUser.class, userId);
 			if(user == null) {
 				logger.warn("Userid:" + userId + " does not exist");
 			}
@@ -115,7 +115,7 @@ public class UserServiceHbn implements UserService {
 		Session hbnSession = null;
 		Transaction tx = null;
 		logger.debug("Entering getUsers");
-		List<User> users;
+		List<OrkUser> users;
 		int numResults = 0;
 		
 		try
@@ -145,7 +145,7 @@ public class UserServiceHbn implements UserService {
 			}
 			*/
 			
-			StringBuffer queryString = new StringBuffer("from User as user where user.deleted=0 ");
+			StringBuffer queryString = new StringBuffer("from OrkUser as user where user.deleted=0 ");
 			Query query = hbnSession.createQuery(queryString.toString());
 			
 			ScrollableResults scrollRes = query.scroll();
@@ -160,7 +160,7 @@ public class UserServiceHbn implements UserService {
 			while(scrollRes.next() && numRetrieved<number) {
 				numRetrieved++;
 				UserBo ubo = new UserBo();
-				ubo.setUser((User)scrollRes.get()[0]);
+				ubo.setUser((OrkUser)scrollRes.get()[0]);
 				results.add(ubo);
 			}
 			
@@ -183,7 +183,7 @@ public class UserServiceHbn implements UserService {
 		
 		Session hbnSession = null;
 		Transaction tx = null;
-		User user = null;
+		OrkUser user = null;
 		
 		logger.debug("Deleting userid:" + userId);
 		
@@ -192,7 +192,7 @@ public class UserServiceHbn implements UserService {
 			hbnSession = HibernateManager.instance().getSession();
 
 			
-			user = (User)hbnSession.get(User.class, userId);
+			user = (OrkUser)hbnSession.get(OrkUser.class, userId);
 			if(user == null) {
 				logger.warn("Userid:" + userId + " does not exist");
 			}
@@ -219,14 +219,14 @@ public class UserServiceHbn implements UserService {
 		
 		Session hbnSession = null;
 		Transaction tx = null;
-		User user = null;
+		OrkUser user = null;
 		
 		logger.debug("Disabling userid:" + userId);
 		
 		try
 		{
 			hbnSession = HibernateManager.instance().getSession();
-			user = (User)hbnSession.get(User.class, userId);
+			user = (OrkUser)hbnSession.get(OrkUser.class, userId);
 			if(user == null) {
 				logger.warn("Userid:" + userId + " does not exist");
 			}
@@ -258,7 +258,7 @@ public class UserServiceHbn implements UserService {
 		
 		HashSet<String> oldLoginStrings = new HashSet<String>();
 		HashSet<String> newLoginStrings = new HashSet<String>();
-		HashMap<String, LoginString> loginStringMap = new HashMap<String, LoginString>();
+		HashMap<String, OrkLoginString> loginStringMap = new HashMap<String, OrkLoginString>();
 		
 		Session hbnSession = null;
 		Transaction tx = null;
@@ -274,14 +274,14 @@ public class UserServiceHbn implements UserService {
 				newLoginStrings.add(loginStrings[i]);
 				
 				// see if the login string exists for another user
-				String queryString = new String("from LoginString as ls where ls.loginString=:loginString");
+				String queryString = new String("from OrkLoginString as ls where ls.loginString=:loginString");
 				Query query = hbnSession.createQuery(queryString);
 				query.setString("loginString", loginStrings[i]);
 				List list = query.list();
-				LoginString ls = null;
+				OrkLoginString ls = null;
 				
 				if(list.size() > 0) {
-					ls = (LoginString)list.get(0);
+					ls = (OrkLoginString)list.get(0);
 					if(ls != null) {
 						if(ls.getUser() != null) {
 							if(ls.getUser().getId() != userId && !ls.getUser().isDeleted()) {
@@ -293,7 +293,7 @@ public class UserServiceHbn implements UserService {
 				}
 				// Create a new login string if it does not exist yet in the DB
 				if(ls == null) {
-					ls = new LoginString();
+					ls = new OrkLoginString();
 					ls.setLoginString(loginStrings[i]);
 					hbnSession.save(ls);
 				}
@@ -301,17 +301,17 @@ public class UserServiceHbn implements UserService {
 			}
 			
 			// 2. get the user and extract all old login strings
-			User user = (User)hbnSession.get(User.class, userId);
+			OrkUser user = (OrkUser)hbnSession.get(OrkUser.class, userId);
 			if(user == null) {
 				throw new OrkException("UserId:" + userId + " does not exist");			
 			}
-			String queryString = new String("from LoginString as ls where ls.user=:user");
+			String queryString = new String("from OrkLoginString as ls where ls.user=:user");
 			Query query = hbnSession.createQuery(queryString);
 			query.setEntity("user", user);
 			List list = query.list();
 			Iterator it = list.iterator();
 			while(it.hasNext()) {
-				LoginString ls = (LoginString)it.next();
+				OrkLoginString ls = (OrkLoginString)it.next();
 				oldLoginStrings.add(ls.getLoginString());
 				loginStringMap.put(ls.getLoginString(), ls);
 			}
@@ -321,7 +321,7 @@ public class UserServiceHbn implements UserService {
 			while(it.hasNext()) {
 				String ls = (String)it.next();
 				if(oldLoginStrings.contains(ls) == false) {
-					LoginString lso = loginStringMap.get(ls);
+					OrkLoginString lso = loginStringMap.get(ls);
 					lso.setUser(user);
 					logger.debug("Added loginstring:" + lso.getLoginString() + " to user:" + user.getFirstname());
 				}
@@ -332,7 +332,7 @@ public class UserServiceHbn implements UserService {
 			while(it.hasNext()) {
 				String ls = (String)it.next();
 				if(newLoginStrings.contains(ls) == false) {
-					LoginString lso = loginStringMap.get(ls);
+					OrkLoginString lso = loginStringMap.get(ls);
 					lso.setUser(null);
 					logger.debug("Removed loginstring:" + lso.getLoginString() + " from user:" + user.getFirstname());
 				}
@@ -359,24 +359,24 @@ public class UserServiceHbn implements UserService {
 	public String getUserLoginStrings(int userId) {
 		
 		Session hbnSession = null;
-		User user = null;
+		OrkUser user = null;
 		String loginStringsCsv = "";
 		
 		try
 		{
 			hbnSession = HibernateManager.instance().getSession();
-			user = (User)hbnSession.get(User.class, userId);
-			String queryString = new String("from LoginString as ls where ls.user=:user");
+			user = (OrkUser)hbnSession.get(OrkUser.class, userId);
+			String queryString = new String("from OrkLoginString as ls where ls.user=:user");
 			Query query = hbnSession.createQuery(queryString);
 			query.setEntity("user", user);
 			List list = query.list();
 			
 			Iterator it = list.iterator();
 			if(it.hasNext()) {
-				loginStringsCsv = ((LoginString)it.next()).getLoginString();
+				loginStringsCsv = ((OrkLoginString)it.next()).getLoginString();
 			}
 			while(it.hasNext()) {
-				loginStringsCsv += ", " + ((LoginString)it.next()).getLoginString();
+				loginStringsCsv += ", " + ((OrkLoginString)it.next()).getLoginString();
 			}
 		}
 		catch ( HibernateException he ) {
@@ -401,7 +401,7 @@ public class UserServiceHbn implements UserService {
 		{
 			hbnSession = HibernateManager.instance().getSession();
 
-			Criteria crit = hbnSession.createCriteria(User.class);
+			Criteria crit = hbnSession.createCriteria(OrkUser.class);
 			crit.add( Expression.eq( "disabled", false ) );
 			crit.add( Expression.eq( "deleted", false ) );			
 			
@@ -425,20 +425,20 @@ public class UserServiceHbn implements UserService {
 		return numUsers;
 	}
 	
-	public User getUserByLoginString(String loginString) {
+	public OrkUser getUserByLoginString(String loginString) {
 		Session hbnSession = null;
-		User user = null;
+		OrkUser user = null;
 		
 		try
 		{
 			hbnSession = HibernateManager.instance().getSession();
-			String queryString = new String("from LoginString as ls where ls.loginstring=:ls");
+			String queryString = new String("from OrkLoginString as ls where ls.loginstring=:ls");
 			Query query = hbnSession.createQuery(queryString);
 			query.setString("ls", loginString);
 			List list = query.list();
 			Iterator it = list.iterator();
 			if (it.hasNext()) {
-				LoginString ls = (LoginString)it.next();
+				OrkLoginString ls = (OrkLoginString)it.next();
 				user = ls.getUser();
 			}
 		}

@@ -4,8 +4,8 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import net.sf.oreka.HibernateManager;
-import net.sf.oreka.persistent.LoginString;
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkLoginString;
+import net.sf.oreka.persistent.OrkUser;
 
 import org.apache.log4j.PropertyConfigurator;
 import org.hibernate.Session;
@@ -17,7 +17,7 @@ public class FillDatabaseUser {
 	
 	public static void main(String args[]) throws Exception
 	{
-		User usr = null;
+		OrkUser usr = null;
 		
 		try {
 			PropertyConfigurator.configure("c:/oreka/test/log4j.properties");
@@ -28,19 +28,19 @@ public class FillDatabaseUser {
 			Transaction tx = hbnSession.beginTransaction();
 			
 			for(int i=0; i<100; i++) {
-				User user = new User();
+				OrkUser user = new OrkUser();
 				user.setFirstname("fn" + i);
 				user.setLastname("ln" + i);
 				user.setPassword("password");
 				hbnSession.save(user);
 				
-				LoginString ls = new LoginString();
+				OrkLoginString ls = new OrkLoginString();
 				ls.setLoginString("ls" + i);
 				//ls.bidirSetUser(user);
 				ls.setUser(user);
 				hbnSession.save(ls);
 				
-				LoginString ls2 = new LoginString();
+				OrkLoginString ls2 = new OrkLoginString();
 				ls2.setLoginString("ls2" + i);
 				//ls2.bidirSetUser(user);
 				ls2.setUser(user);

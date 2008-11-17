@@ -21,20 +21,20 @@ import net.sf.oreka.persistent.*;
 
 public class RecSegmentResult {
 
-	private RecSegment RecSegment;
-	private RecTape RecTape;
+	private OrkSegment RecSegment;
+	private OrkTape RecTape;
 	
 	private String foo = "henri";
 
 	public RecSegmentResult() {
-		RecSegment = new RecSegment();
-		RecTape = new RecTape();
+		RecSegment = new OrkSegment();
+		RecTape = new OrkTape();
 	}
 
 	/**
 	 * @return Returns the recSegment.
 	 */
-	public RecSegment getRecSegment() {
+	public OrkSegment getRecSegment() {
 		return RecSegment;
 	}
 	
@@ -42,14 +42,14 @@ public class RecSegmentResult {
 	/**
 	 * @param recSegment The recSegment to set.
 	 */
-	public void setRecSegment(RecSegment recSegment) {
+	public void setRecSegment(OrkSegment recSegment) {
 		RecSegment = recSegment;
 	}
 
 	/**
 	 * @return Returns the recTape.
 	 */
-	public RecTape getRecTape() {
+	public OrkTape getRecTape() {
 		return RecTape;
 	}
 	
@@ -57,7 +57,7 @@ public class RecSegmentResult {
 	/**
 	 * @param recTape The recTape to set.
 	 */
-	public void setRecTape(RecTape recTape) {
+	public void setRecTape(OrkTape recTape) {
 		RecTape = recTape;
 	}
 

@@ -22,7 +22,7 @@ import net.sf.oreka.orktrack.LogManager;
 import net.sf.oreka.orktrack.OrkTrack;
 import net.sf.oreka.orktrack.ServiceManager;
 import net.sf.oreka.orktrack.TapeManager;
-import net.sf.oreka.persistent.Service;
+import net.sf.oreka.persistent.OrkService;
 import net.sf.oreka.serializers.OrkSerializer;
 import net.sf.oreka.serializers.SingleLineSerializer;
 
@@ -81,7 +81,7 @@ public class TapeMessage extends SyncMessage {
 	        SingleLineSerializer ser = new SingleLineSerializer();
 	        logger.info("Message: " + ser.serialize(this));
 	        
-			Service service = ServiceManager.retrieveOrCreate(this.service, this.getHostname(), session);
+			OrkService service = ServiceManager.retrieveOrCreate(this.service, this.getHostname(), session);
 			
 			//Port port = PortManager.instance().getAndCreatePort(this.getCapturePort(), session, service);
 			//port.notifyTapeMessage(this, session, service);

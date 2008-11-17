@@ -28,12 +28,12 @@ import net.sf.oreka.orktrack.ProgramManager;
 import net.sf.oreka.orktrack.ServiceManager;
 import net.sf.oreka.orktrack.messages.MetadataMessage;
 import net.sf.oreka.orktrack.messages.TapeMessage;
-import net.sf.oreka.persistent.LoginString;
-import net.sf.oreka.persistent.RecProgram;
-import net.sf.oreka.persistent.RecSegment;
-import net.sf.oreka.persistent.RecTape;
-import net.sf.oreka.persistent.Service;
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkLoginString;
+import net.sf.oreka.persistent.OrkProgram;
+import net.sf.oreka.persistent.OrkSegment;
+import net.sf.oreka.persistent.OrkTape;
+import net.sf.oreka.persistent.OrkService;
+import net.sf.oreka.persistent.OrkUser;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -190,14 +190,14 @@ public class PortTest extends TestCase {
 		
 		Session hbnSession = OrkTrack.hibernateManager.getSession();
 		Transaction tx = hbnSession.beginTransaction();
-		Service recService = ServiceManager.retrieveOrCreate("recservice", "localhost", hbnSession);
-		Service ctiService = ServiceManager.retrieveOrCreate("ctiservice", "localhost", hbnSession);		
+		OrkService recService = ServiceManager.retrieveOrCreate("recservice", "localhost", hbnSession);
+		OrkService ctiService = ServiceManager.retrieveOrCreate("ctiservice", "localhost", hbnSession);		
 		ctiService.setRecordMaster(true);
 		hbnSession.save(recService);
 		
-		User user = new User();
+		OrkUser user = new OrkUser();
 		user.setFirstname("salisse");
-		LoginString ls = new LoginString();
+		OrkLoginString ls = new OrkLoginString();
 		ls.setUser(user);
 		ls.setLoginString("1973");
 		hbnSession.save(user);
@@ -206,7 +206,7 @@ public class PortTest extends TestCase {
 		PortManager.instance().addPort("recport", "ctiport", hbnSession);
 		
 		// create program that does not filter anything
-		RecProgram prog1 = new RecProgram();
+		OrkProgram prog1 = new OrkProgram();
 		hbnSession.save(prog1);
 		ProgramManager.instance().addProgram(prog1);
 		
@@ -264,21 +264,21 @@ public class PortTest extends TestCase {
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setTimeInMillis(time);
 			
-		RecSegment seg = null;
+		OrkSegment seg = null;
 		Iterator segments = hbnSession.createQuery(
 	    	"from RecSegment as seg where seg.timestamp=:date")
 	    	.setCalendar("date", cal)
 	    	.list()
 	    	.iterator();
 		if(segments.hasNext()) {
-			seg = (RecSegment)segments.next();
+			seg = (OrkSegment)segments.next();
 			assertTrue(seg.getLocalParty().equals("1973"));
-			assertTrue(seg.getRecTapeOffset() == 3000);
+			assertTrue(seg.getTapeOffset() == 3000);
 			
-			RecTape tape = seg.getRecTape();
+			OrkTape tape = seg.getTape();
 			assertTrue(tape.getFilename().equals("test.wav"));
 			
-			User user2 = seg.getUser();
+			OrkUser user2 = seg.getUser();
 			assertTrue(user.getId() == user2.getId());
 		}
 		else {

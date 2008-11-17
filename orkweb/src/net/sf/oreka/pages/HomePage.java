@@ -15,7 +15,7 @@
 package net.sf.oreka.pages;
 
 import net.sf.oreka.orkweb.ContextListener;
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkUser;
 import net.sf.oreka.services.UserServiceHbn;
 
 import org.apache.tapestry.IRequestCycle;
@@ -49,7 +49,7 @@ public abstract class HomePage extends OrkPage implements PageBeginRenderListene
 			setUsername("admin");
 		}
 		
-		User user = srv.login(getUsername(), getPassword());
+		OrkUser user = srv.login(getUsername(), getPassword());
 		if (user != null) {
 			getSessionStateObject().setUser(user);
 			cycle.activate("RecSegments");

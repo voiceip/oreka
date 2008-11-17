@@ -16,7 +16,7 @@ package net.sf.oreka.orktrack;
 import java.util.HashMap;
 import java.util.List;
 
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkUser;
 
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
@@ -26,7 +26,7 @@ public class UserManager {
 	private static Logger log = null;
 	private static UserManager userManager = null;
 	
-	private HashMap<User, Port> userLocations = new HashMap<User, Port>();
+	private HashMap<OrkUser, Port> userLocations = new HashMap<OrkUser, Port>();
 	
 	private UserManager() {
 		log = LogManager.getInstance().getUserLogger();
@@ -40,27 +40,27 @@ public class UserManager {
 		return userManager;
 	}
 	
-	public User getByLoginString(String loginString, Session hbnSession) {
+	public OrkUser getByLoginString(String loginString, Session hbnSession) {
 		
-		User user = null;
+		OrkUser user = null;
 		List users = hbnSession.createQuery(
-	    "from LoginString as ls join ls.user as usr where ls.loginString=:loginstring")
+	    "from OrkLoginString as ls join ls.user as usr where ls.loginString=:loginstring")
 	    .setString("loginstring", loginString)
 	    .list();
 		if (users.size() > 0) {
 			Object[] row =  (Object[])users.get(0);
 			if (row.length > 1) {
-				user = (User)row[1];
+				user = (OrkUser)row[1];
 			}
 		}
 		return user;
 	}
 	
-	public synchronized void setUserLocation(User user, Port port) {
+	public synchronized void setUserLocation(OrkUser user, Port port) {
 		userLocations.put(user, port);
 	}
 	
-	public synchronized Port getUserLocation(User user) {
+	public synchronized Port getUserLocation(OrkUser user) {
 		return userLocations.get(user);
 	}
 }

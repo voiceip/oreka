@@ -20,8 +20,8 @@ import java.util.List;
 import net.sf.oreka.Cycle;
 import net.sf.oreka.Direction;
 import net.sf.oreka.HibernateManager;
-import net.sf.oreka.persistent.RecProgram;
-import net.sf.oreka.persistent.RecSegment;
+import net.sf.oreka.persistent.OrkProgram;
+import net.sf.oreka.persistent.OrkSegment;
 
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
@@ -32,7 +32,7 @@ public class ProgramManager {
 	static Logger logger = Logger.getLogger(ProgramManager.class);
 	
 	private static ProgramManager programManager = null;
-	private ArrayList<RecProgram> recPrograms = new ArrayList<RecProgram>();
+	private ArrayList<OrkProgram> recPrograms = new ArrayList<OrkProgram>();
 	
 	private ProgramManager() {
 	}
@@ -56,12 +56,12 @@ public class ProgramManager {
 			tx = hbnSession.beginTransaction();
 			
 			List progs = hbnSession.createQuery(
-		    "from RecProgram as prg where prg.active=:active and prg.discarded=:discarded")
+		    "from OrkProgram as prg where prg.active=:active and prg.discarded=:discarded")
 		    .setBoolean("active", true)
 		    .setBoolean("discarded", false)
 		    .list();
 			
-			recPrograms = new ArrayList<RecProgram>(progs);
+			recPrograms = new ArrayList<OrkProgram>(progs);
 			tx.commit();
 			success = true;
 		}
@@ -74,16 +74,16 @@ public class ProgramManager {
 		return success;
 	}
 	
-	public void addProgram(RecProgram prog) {
+	public void addProgram(OrkProgram prog) {
 		
 		recPrograms.add(prog);
 	}
 	
-	public boolean filterSegmentAgainstAllPrograms(RecSegment seg, Session hbnSession) {
+	public boolean filterSegmentAgainstAllPrograms(OrkSegment seg, Session hbnSession) {
 		
 		boolean result = false;
 		// Iterate over programs
-		ArrayList<RecProgram> progs = recPrograms;
+		ArrayList<OrkProgram> progs = recPrograms;
 		if(recPrograms.size() == 0) {
 			// If there are no programs specified, keep everything
 			result = true;
@@ -98,7 +98,7 @@ public class ProgramManager {
 		return result;
 	}
 	
-	public boolean filterSegmentAgainstProgram(RecSegment seg, RecProgram prog, Session hbnSession) {
+	public boolean filterSegmentAgainstProgram(OrkSegment seg, OrkProgram prog, Session hbnSession) {
 		
 		boolean drop = false;
 		boolean result = false;
@@ -151,7 +151,7 @@ public class ProgramManager {
 		
 		if (	!drop &&
 				(prog.getTargetPort() != null) &&
-				(seg.getRecPort().getId() != prog.getTargetPort().getId())   ) {
+				(seg.getPort().getId() != prog.getTargetPort().getId())   ) {
 			dropReason = "Target Port";
 			drop = true;
 		}
@@ -184,7 +184,7 @@ public class ProgramManager {
 		return result;
 	}
 	
-	public boolean filterSegmentAgainstProgramSchedule(RecSegment seg, RecProgram prog) {
+	public boolean filterSegmentAgainstProgramSchedule(OrkSegment seg, OrkProgram prog) {
 		
 		if(prog.getCycle() == Cycle.PERMANENT) {
 			return true;

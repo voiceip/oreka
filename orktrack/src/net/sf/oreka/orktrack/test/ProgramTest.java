@@ -26,10 +26,10 @@ import net.sf.oreka.Direction;
 import net.sf.oreka.HibernateManager;
 import net.sf.oreka.orktrack.OrkTrack;
 import net.sf.oreka.orktrack.ProgramManager;
-import net.sf.oreka.persistent.LoginString;
-import net.sf.oreka.persistent.RecProgram;
-import net.sf.oreka.persistent.RecSegment;
-import net.sf.oreka.persistent.User;
+import net.sf.oreka.persistent.OrkLoginString;
+import net.sf.oreka.persistent.OrkProgram;
+import net.sf.oreka.persistent.OrkSegment;
+import net.sf.oreka.persistent.OrkUser;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -53,16 +53,16 @@ public class ProgramTest extends TestCase {
 		Transaction tx = hbnSession.beginTransaction();
 	
 		// create a user
-		User user = new User();
+		OrkUser user = new OrkUser();
 		user.setFirstname("mawagade");
 		hbnSession.save(user);
-		LoginString ls = new LoginString();
+		OrkLoginString ls = new OrkLoginString();
 		ls.setLoginString("1234");
 		ls.setUser(user);
 		hbnSession.save(ls);
 		
 		// create a program
-		RecProgram prog1 = new RecProgram();
+		OrkProgram prog1 = new OrkProgram();
 		prog1.setDirection(Direction.IN);
 		prog1.setTargetUser(user);
 		hbnSession.save(prog1);
@@ -73,7 +73,7 @@ public class ProgramTest extends TestCase {
 		ProgramManager.instance().load();
 		
 		// segment 1: should pass
-		RecSegment seg = new RecSegment();
+		OrkSegment seg = new OrkSegment();
 		seg.setDirection(Direction.IN);
 		seg.setUser(user);
 		
@@ -88,9 +88,9 @@ public class ProgramTest extends TestCase {
 
 		hbnSession = OrkTrack.hibernateManager.getSession();
 		tx = hbnSession.beginTransaction();
-		RecProgram prog = (RecProgram)hbnSession.load(RecProgram.class, prog1.getId());
+		OrkProgram prog = (OrkProgram)hbnSession.load(OrkProgram.class, prog1.getId());
 		assertTrue(prog.getRecordedSoFar() == 1);
-		Iterator<RecSegment> it = prog.getRecSegments().iterator();
+		Iterator<OrkSegment> it = prog.getRecSegments().iterator();
 		assertTrue(it.next().getId() == seg.getId());
 		tx.commit();
 		hbnSession.close();
@@ -99,14 +99,14 @@ public class ProgramTest extends TestCase {
 	public void testSchedule() throws Exception {
 		
 		// create a "daily" program
-		RecProgram progDaily = new RecProgram();
+		OrkProgram progDaily = new OrkProgram();
 		progDaily.setDirection(Direction.ALL);
 		progDaily.setCycle(Cycle.DAILY);
 		progDaily.setStartTime(new Date(10*3600*1000));	// 10:00 am
 		progDaily.setStopTime(new Date(11*3600*1000));  // 11:00 am
 		
 		// create a "weekly" program
-		RecProgram progWeekly = new RecProgram();
+		OrkProgram progWeekly = new OrkProgram();
 		progWeekly.setDirection(Direction.ALL);
 		progWeekly.setCycle(Cycle.WEEKLY);
 		progWeekly.setStartDay(Day.TUESDAY);
@@ -116,7 +116,7 @@ public class ProgramTest extends TestCase {
 
 
 		// segment 1: should pass
-		RecSegment seg = new RecSegment();
+		OrkSegment seg = new OrkSegment();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Date segTimestamp = sdf.parse("2005-11-29 10:30:00");
 		seg.setTimestamp(segTimestamp);  // 10:30
