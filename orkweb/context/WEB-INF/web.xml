@@ -7,14 +7,18 @@
 
 <web-app>
     <display-name>orkweb</display-name>
-    <context-param>
-    	<param-name>Log4jConfigFile</param-name>
-    	<param-value>c:/oreka/orkweb/log4j.properties</param-value>
+   	<context-param>
+		  <param-name>ConfigDirectory</param-name>
+		  <param-value>c:/oreka/</param-value>
+	  </context-param>
+	  <context-param>
+		  <param-name>Log4jConfigFile</param-name>
+		  <param-value>logging.properties</param-value>
     </context-param>
-    <context-param>
-    	<param-name>HibernateConfigFile</param-name>
-    	<param-value>c:/oreka/orkweb/mysql.hbm.xml</param-value>
-    </context-param>
+	  <context-param>
+		  <param-name>HibernateConfigFile</param-name>
+		  <param-value>database.hbm.xml</param-value>
+    </context-param>  
     <context-param>
     	<param-name>Debug</param-name>
     	<param-value>false</param-value>

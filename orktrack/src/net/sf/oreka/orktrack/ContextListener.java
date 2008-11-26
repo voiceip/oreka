@@ -31,54 +31,34 @@ public class ContextListener implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent servletContextEvent) {
 		
 		ServletContext context = servletContextEvent.getServletContext();
-		String log4jConfigFile = context.getInitParameter("Log4jConfigFile");
 		
-//		boolean complainAboutLog4jConfigFile = false;
-//		if (log4jConfigFile != null) {
-//			LogManager.getInstance().configure(log4jConfigFile);
-//		}
-//		else {
-//			complainAboutLog4jConfigFile = true;
-//		}
+		String configFolder = context.getInitParameter("ConfigDirectory");
+		if (configFolder == null) {
+			configFolder = "c:/oreka/";
+		}
+
+		String log4jConfigFile = context.getInitParameter("Log4jConfigFile");	
 		if (log4jConfigFile == null) {
-			System.out.println("Log4jConfigFile context-param missing in web.xml");
+			log.error("Log4jConfigFile context-param missing in web.xml");
+		} else {
+			log.info("log4jConfigFile is " + log4jConfigFile);
+			log4jConfigFile = configFolder + "/" + log4jConfigFile; 
 		}
-		
-//		log.info("========================================");
-//		log.info(OrkTrack.APP_NAME + " starting ...");
-		
-//		if(complainAboutLog4jConfigFile) {
-//			log.warn("contextInitialized: Log4jConfigFile context-param missing in web.xml");
-//		}
-		
-		// Register all OrkObjects
-//		OrkObjectFactory.instance().registerOrkObject(new OrkTrackConfig());	
-		
+
 		String configFile = context.getInitParameter("ConfigFile");
-//		if (configFile != null) {
-//			ConfigManager.getInstance().load(configFile);
-//		}
-//		else {
-//			log.error("contextInitialized: ConfigFile context-param missing in web.xml");			
-//		}
 		if (configFile == null) {
-			System.out.println("ConfigFile context-param missing in web.xml");
+			log.error("ConfigFile context-param missing in web.xml");
+		} else {
+			log.info("configFile is " + configFile);
+			configFile = configFolder + "/" + configFile; 
 		}
-		
+
 		String hibernateConfigFile = context.getInitParameter("HibernateConfigFile");
-//		if (hibernateConfigFile != null) {
-//			try {
-//				HibernateManager.configure(hibernateConfigFile);
-//			}
-//			catch (Exception e) {
-//				log.error("contextInitialized: Error configuring Hibernate:" + e.getMessage());				
-//			}
-//		}
-//		else {
-//			log.error("contextInitialized: HibernateConfigFile context-param missing in web.xml");			
-//		}
 		if (hibernateConfigFile == null) {
-			System.out.println("HibernateConfigFile context-param missing in web.xml");
+			log.error("HibernateConfigFile context-param missing in web.xml");
+		} else {
+			log.info("HibernateConfigFile is " + hibernateConfigFile);
+			hibernateConfigFile  = configFolder + "/" + hibernateConfigFile ; 
 		}
 		
 		//PortManager.instance().initialize();

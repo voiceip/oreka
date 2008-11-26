@@ -5,16 +5,20 @@
 <web-app>
     <display-name>orktrack</display-name>
     <context-param>
+    	<param-name>ConfigDirectory</param-name>
+    	<param-value>c:/oreka/</param-value>
+    </context-param>
+    <context-param>
     	<param-name>Log4jConfigFile</param-name>
-    	<param-value>c:/oreka/orktrack/log4j.properties</param-value>
+    	<param-value>logging.properties</param-value>
     </context-param>
     <context-param>
     	<param-name>ConfigFile</param-name>
-    	<param-value>c:/oreka/orktrack/orktrack.config.xml</param-value>
+    	<param-value>orktrack.config.xml</param-value>
     </context-param>
     <context-param>
     	<param-name>HibernateConfigFile</param-name>
-    	<param-value>c:/oreka/orktrack/mysql.hbm.xml</param-value>
+    	<param-value>database.hbm.xml</param-value>
     </context-param>
     <filter>
         <filter-name>redirect</filter-name>
