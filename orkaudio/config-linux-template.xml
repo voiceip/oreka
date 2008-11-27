@@ -3,8 +3,7 @@
 	<!-- Copy this to config.xml and modify according to taste -->
 
 	<!-- Change this to point to Tomcat if you run the OrkWeb user interface -->
-	<AudioOutputPath>/var/log/orkaudio</AudioOutputPath>
-	<!--<AudioOutputPath>/opt/tomcat5/webapps/ROOT</AudioOutputPath>-->
+	<AudioOutputPath>/var/log/orkaudio/audio</AudioOutputPath>
 
 	<!-- Uncomment the plugin you want to use: -->
 	<!-- Use libvoip.so for SIP, Cisco Skinny and pure RTP -->
@@ -22,7 +21,7 @@
 	<DeleteNativeFile>yes</DeleteNativeFile>
 	
 	<TrackerHostname>localhost</TrackerHostname>
-	<EnableReporting>true</EnableReporting>
+    <TrackerTcpPort>8080</TrackerTcpPort>
 
 	<CapturePortFilters>LiveMonitoring</CapturePortFilters>
 	<TapeProcessors>BatchProcessing, Reporting</TapeProcessors>
@@ -64,7 +63,7 @@
 		<!--<SipDomains>company.com, 65.34.25.87</SipDomains>-->
 		<!--<SipDirectionRefenceIpAddresses>65.34.98.56, 65.34.98.57</SipDirectionRefenceIpAddresses>-->
                 
-		<!-- Sangoma RTP tap for TDM boards -->
+		<!-- Sangoma wanpipe RTP tap for TDM boards -->
 		<!--<SangomaRxTcpPortStart>9000</SangomaRxTcpPortStart>-->
 		<!--<SangomaTxTcpPortStart>11000</SangomaTxTcpPortStart>-->
 	</VoIpPlugin>
