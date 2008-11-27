@@ -1,6 +1,8 @@
 ; orkaudio.nsi
 ;--------------------------------
 
+!include "MUI2.nsh"
+
 ; The name of the installer
 Name "Orkaudio"
 
@@ -20,6 +22,7 @@ InstallDirRegKey HKLM "Software\Orkaudio" "Install_Dir"
 
 ; Pages
 
+!insertmacro MUI_PAGE_LICENSE ..\..\LICENSE.txt
 Page components
 Page directory
 Page instfiles
@@ -49,7 +52,7 @@ file "logging.properties"
 file "OrkBase.dll"
 file "orkaudio.log"
 file "tapelist.log"
-file "WinPcap_3_1.exe"
+file "WinPcap_4_0_2.exe"
 file "LICENSE.txt"
 file "README.txt"
 file "VERSION.txt"
@@ -76,11 +79,12 @@ file "xerces-c-version.incl"
 file "xerces-c_2_6.dll"
 
   SetOutPath $INSTDIR\audiocaptureplugins
-file "audiocaptureplugins\Generator.dll"
-file "audiocaptureplugins\SoundDevice.dll"
 file "audiocaptureplugins\VoIp.dll"  
+
+  SetOutPath $INSTDIR\plugins
+file "plugins\RtpMixer.dll"  
   
-  SetOutPath $INSTDIR\AudioRecordings
+  SetOutPath c:\oreka\audio  
   
   nsSCM::Install orkaudio orkaudio 16 2 "$INSTDIR\orkaudio.exe" "" "" "" ""
   Pop $0
@@ -104,7 +108,7 @@ SectionEnd
 Section "Start Menu Shortcuts"
 
   CreateDirectory "$SMPROGRAMS\Orkaudio"
-  CreateShortCut "$SMPROGRAMS\Orkaudio\Orkaudio Recordings.lnk" "$INSTDIR\AudioRecordings" "" "$INSTDIR\AudioRecordings" 0
+  CreateShortCut "$SMPROGRAMS\Orkaudio\Orkaudio Recordings.lnk" "c:\oreka\audio" "" "c:\oreka\audio" 0
   CreateShortCut "$SMPROGRAMS\Orkaudio\Orkaudio Recordings List.lnk" "$INSTDIR\tapelist.log" "" "$INSTDIR\tapelist.log" 0  
   CreateShortCut "$SMPROGRAMS\Orkaudio\Orkaudio Logfile.lnk" "$INSTDIR\orkaudio.log" "" "$INSTDIR\orkaudio.log" 0  
   CreateShortCut "$SMPROGRAMS\Orkaudio\Orkaudio Install Directory.lnk" "$INSTDIR\" "" "$INSTDIR\" 0
@@ -112,8 +116,8 @@ Section "Start Menu Shortcuts"
   
 SectionEnd
 
-Section "Install WinPcap 3.1"
-	ExecWait "$INSTDIR\WinPcap_3_1.exe"
+Section "Install WinPcap 4.0.2"
+	ExecWait "$INSTDIR\WinPcap_4_0_2.exe"
 SectionEnd
 
 Section "Run orkaudio NT service"
@@ -134,7 +138,7 @@ Section "Uninstall"
   nsSCM::Stop orkaudio
   Pop $0
   StrCmp $0 "success" stopOk  
-	MessageBox MB_OK "Orkaudio NT Service stop failed"
+	MessageBox MB_OK "Could not stop Orkaudio NT Service, maybe it was not running?"
   stopOk:
   ; wait for the service to stop
   sleep 4000
@@ -142,7 +146,7 @@ Section "Uninstall"
   nsSCM::Remove orkaudio
   Pop $0
   StrCmp $0 "success" uninstallOk  
-	MessageBox MB_OK "Orkaudio NT Service uninstallation failed - service has probably been removed earlier"
+	MessageBox MB_OK "Orkaudio NT Service uninstallation failed - OrkAudio NT service has probably been removed earlier"
   uninstallOk:
   
   ; Remove registry keys
@@ -152,6 +156,8 @@ Section "Uninstall"
   ; Remove files
   Delete "$INSTDIR\audiocaptureplugins\*.*"  
   RMDir "$INSTDIR\audiocaptureplugins"
+  Delete "$INSTDIR\plugins\*.*"  
+  RMDir "$INSTDIR\plugins"
   Delete "$INSTDIR\*.*"
   RMDir "$INSTDIR"
   
