@@ -21,7 +21,7 @@
 	<DeleteNativeFile>yes</DeleteNativeFile>
 	
 	<TrackerHostname>localhost</TrackerHostname>
-    <TrackerTcpPort>8080</TrackerTcpPort>
+	<TrackerTcpPort>8080</TrackerTcpPort>
 
 	<CapturePortFilters>LiveMonitoring</CapturePortFilters>
 	<TapeProcessors>BatchProcessing, Reporting</TapeProcessors>
