@@ -4,19 +4,19 @@
 !include "MUI2.nsh"
 
 ; The name of the installer
-Name "Orkaudio"
+Name "OrkAudio"
 
 ; The file to write
-OutFile "OrkaudioInstaller.exe"
+OutFile "OrkAudioInstaller.exe"
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\Orkaudio
+InstallDir $PROGRAMFILES\OrkAudio
 
 ShowInstDetails show
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\Orkaudio" "Install_Dir"
+InstallDirRegKey HKLM "Software\OrkAudio" "Install_Dir"
 
 ;--------------------------------
 
@@ -31,8 +31,149 @@ UninstPage uninstConfirm
 UninstPage instfiles
 
 ;--------------------------------
+Function GetTime
+	!define GetTime `!insertmacro GetTimeCall`
+ 
+	!macro GetTimeCall _FILE _OPTION _R1 _R2 _R3 _R4 _R5 _R6 _R7
+		Push `${_FILE}`
+		Push `${_OPTION}`
+		Call GetTime
+		Pop ${_R1}
+		Pop ${_R2}
+		Pop ${_R3}
+		Pop ${_R4}
+		Pop ${_R5}
+		Pop ${_R6}
+		Pop ${_R7}
+	!macroend
+ 
+	Exch $1
+	Exch
+	Exch $0
+	Exch
+	Push $2
+	Push $3
+	Push $4
+	Push $5
+	Push $6
+	Push $7
+	ClearErrors
+ 
+	StrCmp $1 'L' gettime
+	StrCmp $1 'A' getfile
+	StrCmp $1 'C' getfile
+	StrCmp $1 'M' getfile
+	StrCmp $1 'LS' gettime
+	StrCmp $1 'AS' getfile
+	StrCmp $1 'CS' getfile
+	StrCmp $1 'MS' getfile
+	goto error
+ 
+	getfile:
+	IfFileExists $0 0 error
+	System::Call /NOUNLOAD '*(i,l,l,l,i,i,i,i,&t260,&t14) i .r6'
+	System::Call /NOUNLOAD 'kernel32::FindFirstFileA(t,i)i(r0,r6) .r2'
+	System::Call /NOUNLOAD 'kernel32::FindClose(i)i(r2)'
+ 
+	gettime:
+	System::Call /NOUNLOAD '*(&i2,&i2,&i2,&i2,&i2,&i2,&i2,&i2) i .r7'
+	StrCmp $1 'L' 0 systemtime
+	System::Call /NOUNLOAD 'kernel32::GetLocalTime(i)i(r7)'
+	goto convert
+	systemtime:
+	StrCmp $1 'LS' 0 filetime
+	System::Call /NOUNLOAD 'kernel32::GetSystemTime(i)i(r7)'
+	goto convert
+ 
+	filetime:
+	System::Call /NOUNLOAD '*$6(i,l,l,l,i,i,i,i,&t260,&t14)i(,.r4,.r3,.r2)'
+	System::Free /NOUNLOAD $6
+	StrCmp $1 'A' 0 +3
+	StrCpy $2 $3
+	goto tolocal
+	StrCmp $1 'C' 0 +3
+	StrCpy $2 $4
+	goto tolocal
+	StrCmp $1 'M' tolocal
+ 
+	StrCmp $1 'AS' tosystem
+	StrCmp $1 'CS' 0 +3
+	StrCpy $3 $4
+	goto tosystem
+	StrCmp $1 'MS' 0 +3
+	StrCpy $3 $2
+	goto tosystem
+ 
+	tolocal:
+	System::Call /NOUNLOAD 'kernel32::FileTimeToLocalFileTime(*l,*l)i(r2,.r3)'
+	tosystem:
+	System::Call /NOUNLOAD 'kernel32::FileTimeToSystemTime(*l,i)i(r3,r7)'
+ 
+	convert:
+	System::Call /NOUNLOAD '*$7(&i2,&i2,&i2,&i2,&i2,&i2,&i2,&i2)i(.r5,.r6,.r4,.r0,.r3,.r2,.r1,)'
+	System::Free $7
+ 
+	IntCmp $0 9 0 0 +2
+	StrCpy $0 '0$0'
+	IntCmp $1 9 0 0 +2
+	StrCpy $1 '0$1'
+	IntCmp $2 9 0 0 +2
+	StrCpy $2 '0$2'
+	IntCmp $6 9 0 0 +2
+	StrCpy $6 '0$6'
+ 
+	StrCmp $4 0 0 +3
+	StrCpy $4 Sunday
+	goto end
+	StrCmp $4 1 0 +3
+	StrCpy $4 Monday
+	goto end
+	StrCmp $4 2 0 +3
+	StrCpy $4 Tuesday
+	goto end
+	StrCmp $4 3 0 +3
+	StrCpy $4 Wednesday
+	goto end
+	StrCmp $4 4 0 +3
+	StrCpy $4 Thursday
+	goto end
+	StrCmp $4 5 0 +3
+	StrCpy $4 Friday
+	goto end
+	StrCmp $4 6 0 error
+	StrCpy $4 Saturday
+	goto end
+ 
+	error:
+	SetErrors
+	StrCpy $0 ''
+	StrCpy $1 ''
+	StrCpy $2 ''
+	StrCpy $3 ''
+	StrCpy $4 ''
+	StrCpy $5 ''
+	StrCpy $6 ''
+ 
+	end:
+	Pop $7
+	Exch $6
+	Exch
+	Exch $5
+	Exch 2
+	Exch $4
+	Exch 3
+	Exch $3
+	Exch 4
+	Exch $2
+	Exch 5
+	Exch $1
+	Exch 6
+	Exch $0
+FunctionEnd
+
+;--------------------------------
 ; The stuff to install
-Section "Orkaudio (required)"
+Section "OrkAudio (required)"
 
   SectionIn RO
   
@@ -44,8 +185,31 @@ Section "Orkaudio (required)"
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
   
-  ; Files
+; Generate installer generation timestamp 
+;   %B represents month name 
+;   %b abbreviated month name
+!define /date INSTALLER_TIMESTAMP "%Y%m%d_%H%M%S"
 
+; Generate current timestamp
+${GetTime} "" "L" $0 $1 $2 $3 $4 $5 $6
+; $0="01"      day
+; $1="04"      month
+; $2="2005"    year
+; $3="Friday"  day of week name
+; $4="16"      hour
+; $5="05"      minute
+; $6="50"      seconds
+
+
+BackupConfigXml:
+IfFileExists config.xml 0 BackupLoggingProperties
+    CopyFiles "$INSTDIR\config.xml" "$INSTDIR\config.xml.$2$1$0_$4$5$6"
+
+BackupLoggingProperties:
+IfFileExists logging.properties 0 InstallAllFiles
+    CopyFiles "$INSTDIR\logging.properties" "$INSTDIR\logging.properties.$2$1$0_$4$5$6"
+
+InstallAllFiles:
 file "OrkAudio.exe"
 file "config.xml"
 file "logging.properties"
@@ -89,17 +253,17 @@ file "plugins\RtpMixer.dll"
   nsSCM::Install orkaudio orkaudio 16 2 "$INSTDIR\orkaudio.exe" "" "" "" ""
   Pop $0
   StrCmp $0 "success" serviceOk  
-	MessageBox MB_OK "Orkaudio NT Service installation failed - service probably existing before running this installer"
+	MessageBox MB_OK "OrkAudio NT Service installation failed - service probably existing before running this installer"
   serviceOk:
   
   ; Write the installation path into the registry
-  WriteRegStr HKLM SOFTWARE\Orkaudio "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM SOFTWARE\OrkAudio "Install_Dir" "$INSTDIR"
   
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Orkaudio" "DisplayName" "Orkaudio"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Orkaudio" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Orkaudio" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Orkaudio" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\OrkAudio" "DisplayName" "OrkAudio"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\OrkAudio" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\OrkAudio" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\OrkAudio" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
   
 SectionEnd
@@ -107,12 +271,12 @@ SectionEnd
 ; Optional section (can be disabled by the user)
 Section "Start Menu Shortcuts"
 
-  CreateDirectory "$SMPROGRAMS\Orkaudio"
-  CreateShortCut "$SMPROGRAMS\Orkaudio\Orkaudio Recordings.lnk" "c:\oreka\audio" "" "c:\oreka\audio" 0
-  CreateShortCut "$SMPROGRAMS\Orkaudio\Orkaudio Recordings List.lnk" "$INSTDIR\tapelist.log" "" "$INSTDIR\tapelist.log" 0  
-  CreateShortCut "$SMPROGRAMS\Orkaudio\Orkaudio Logfile.lnk" "$INSTDIR\orkaudio.log" "" "$INSTDIR\orkaudio.log" 0  
-  CreateShortCut "$SMPROGRAMS\Orkaudio\Orkaudio Install Directory.lnk" "$INSTDIR\" "" "$INSTDIR\" 0
-  CreateShortCut "$SMPROGRAMS\Orkaudio\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
+  CreateDirectory "$SMPROGRAMS\OrkAudio"
+  CreateShortCut "$SMPROGRAMS\OrkAudio\OrkAudio Recordings.lnk" "c:\oreka\audio" "" "c:\oreka\audio" 0
+  CreateShortCut "$SMPROGRAMS\OrkAudio\OrkAudio Recordings List.lnk" "$INSTDIR\tapelist.log" "" "$INSTDIR\tapelist.log" 0  
+  CreateShortCut "$SMPROGRAMS\OrkAudio\OrkAudio Logfile.lnk" "$INSTDIR\orkaudio.log" "" "$INSTDIR\orkaudio.log" 0  
+  CreateShortCut "$SMPROGRAMS\OrkAudio\OrkAudio Install Directory.lnk" "$INSTDIR\" "" "$INSTDIR\" 0
+  CreateShortCut "$SMPROGRAMS\OrkAudio\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
   
 SectionEnd
 
@@ -124,7 +288,7 @@ Section "Run orkaudio NT service"
   nsSCM::Start orkaudio
   Pop $0
   StrCmp $0 "success" startOk  
-	MessageBox MB_OK "Orkaudio NT Service start failed"
+	MessageBox MB_OK "OrkAudio NT Service start failed"
   startOk:
 SectionEnd
 
@@ -138,7 +302,7 @@ Section "Uninstall"
   nsSCM::Stop orkaudio
   Pop $0
   StrCmp $0 "success" stopOk  
-	MessageBox MB_OK "Could not stop Orkaudio NT Service, maybe it was not running?"
+	MessageBox MB_OK "Could not stop OrkAudio NT Service, maybe it was not running?"
   stopOk:
   ; wait for the service to stop
   sleep 4000
@@ -146,12 +310,12 @@ Section "Uninstall"
   nsSCM::Remove orkaudio
   Pop $0
   StrCmp $0 "success" uninstallOk  
-	MessageBox MB_OK "Orkaudio NT Service uninstallation failed - OrkAudio NT service has probably been removed earlier"
+	MessageBox MB_OK "OrkAudio NT Service uninstallation failed - OrkAudio NT service has probably been removed earlier"
   uninstallOk:
   
   ; Remove registry keys
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Orkaudio"
-  DeleteRegKey HKLM SOFTWARE\Orkaudio
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\OrkAudio"
+  DeleteRegKey HKLM SOFTWARE\OrkAudio
 
   ; Remove files
   Delete "$INSTDIR\audiocaptureplugins\*.*"  
@@ -162,8 +326,8 @@ Section "Uninstall"
   RMDir "$INSTDIR"
   
   ; Remove shortcuts, if any
-  Delete "$SMPROGRAMS\Orkaudio\*.*"
-  RMDir "$SMPROGRAMS\Orkaudio"
+  Delete "$SMPROGRAMS\OrkAudio\*.*"
+  RMDir "$SMPROGRAMS\OrkAudio"
 
 
 SectionEnd
