@@ -128,6 +128,7 @@ or download sources tarballs from the listed websites.
 	</section>
 	<section>
 		<title>Building OrkTrack and OrkWeb</title>
+    <para>As of Oreka version 1.0, installers for some platforms are available, e.g. Windows, CentOS 5 (32-bit), CentOS 4.4 (32-bit), Linux SuSE (32-bit), ....  The steps below are still useful for building for other platforms.</para>		
 		<para>
 <emphasis>Install required software</emphasis>
 		</para>
@@ -135,6 +136,7 @@ or download sources tarballs from the listed websites.
 <itemizedlist>
 <listitem>Install Java 5 JDK</listitem>
 <listitem>Install Eclipse 3.1 or later</listitem>
+<listitem>Download OrkTrack and OrkWeb open source code and unzip to a work folder</listitem> 
 </itemizedlist>
 		</para>
 		<para>
@@ -143,13 +145,13 @@ or download sources tarballs from the listed websites.
 		<para>
 <itemizedlist>
 <listitem>Run Eclipse</listitem>
-<listitem>/File/Switch workspace/ -> select folder containing this file</listitem>
+<listitem>/File/Switch workspace/ -> select folder containing the orkweb and orktrack code</listitem>
 <listitem>Set the compiler compliance for the worskspace to Java 5 (Java 1.5)  /Window/preferences/ -> /java/compiler/</listitem>
 <listitem>Import user libraries:
 	<itemizedlist>
 	<listitem>Get the external java dependencies pack from http://sourceforge.net/projects/oreka and unzip it into {WORKSPACE}/lib</listitem>
 	<listitem>Edit oreka.userlibraries, search and replace the absolute path to jar files with your own.</listitem>
-	<listitem>/Window/preferences/ -> /java/buidpath/user libraries/ -> import -> select your modified oreka.userlibraries file</listitem>
+	<listitem>/Window/preferences/ -> /java/buildpath/user libraries/ -> import -> select your modified oreka.userlibraries file</listitem>
 	</itemizedlist>
 </listitem>
 <listitem>/File/import existing project into workspace/ -> select 1. orkbasej, 2. orktrack 3. orkweb</listitem>
@@ -186,12 +188,15 @@ or download sources tarballs from the listed websites.
 		<title>Installing Prerequisite Software for OrkTrack and OrkWeb</title>
 		<para>
 <itemizedlist>
+<listitem>Install MySQL or any <ulink url="http://www.hibernate.org/hib_docs/v3/reference/en/html/session-configuration.html#configuration-optional-dialects">database compatible with hibernate</ulink></listitem>
+</itemizedlist>
+  <emphasis>Note: installers for some platforms are available to you, e.g. Windows, CentOS 5 (32-bit), CentOS 4 (32-bit) and Linux SuSE (32-bit).  If your platform does not have an installer, use the steps below.</emphasis>
+<itemizedlist>
 <listitem>Install Java 5 JDK</listitem>
 <listitem>Install Tomcat 5.5 or later, point it the the Java 5 JDK by setting the JAVA_HOME environment variable to the root of the JDK</listitem>
 <listitem>Make note of the Tomcat admin password</listitem>
-<listitem>Get the external java dependencies pakage from <ulink url="http://www.sourceforge.net/projects/oreka">http://www.sourceforge.net/projects/oreka</ulink></listitem>
+<listitem>Get the external java dependencies package from <ulink url="http://www.sourceforge.net/projects/oreka">http://www.sourceforge.net/projects/oreka</ulink></listitem>
 <listitem>Copy all jar files from the external java dependencies package to {TOMCAT_HOME}/shared/lib</listitem>
-<listitem>Install MySQL or any <ulink url="http://www.hibernate.org/hib_docs/v3/reference/en/html/session-configuration.html#configuration-optional-dialects">database compatible with hibernate</ulink></listitem>
 <listitem>Create a database for storing oreka data</listitem>
 <listitem>Create a user/password for reading/writing the newly created database</listitem>
 <listitem>Install Eclipse 3.1 or later</listitem>
@@ -201,14 +206,16 @@ or download sources tarballs from the listed websites.
 	<section id="installingorktrack">
 		<title>Installing OrkTrack</title>
 		<para>
+  <emphasis>Note: these steps are only required if you did not use an installer.</emphasis>
 <itemizedlist>
-<listitem>Create a folder for configuration and logging such as c:\oreka\orktrack</listitem>
-<listitem>Copy orkbasej/java/log4j.template.properties to this folder and change according to needs</listitem>
-<listitem>Copy orkbasej/java/mysql.hbm.template.xml to this folder and change according to needs</listitem>
+<listitem>Create a folder for configuration and logging such as c:\oreka\</listitem>
+<listitem>Copy orkbasej/java/logging.template.properties to this folder, rename it to logging.properties and change according to needs</listitem>
+<listitem>Copy orkbasej/java/database.hbm.template.xml to this folder, rename it to database.hbm.xml and change according to needs</listitem>
 <listitem>Copy orktrack/orktrack.config.xml to this folder and change according to needs</listitem> 
 <listitem>Modify orktrack/WEB-INF/web.xml and make it point to those newly created config files</listitem>
 <listitem>Copy orktrack/deploy-template.xml to orktrack/deploy.xml and change deploy.xml according to your setup.</listitem>
-<listitem>Run deploy.xml as ant script (Right click/Run as). This should result in the following message:
+<listitem>Run Tomcat</listitem>
+<listitem>Run deploy.xml as ant script in Eclipse (Right click/Run as). This should result in the following message:
 	<para><emphasis>"[echo] OK - Deployed application at context path /orktrack"</emphasis></para></listitem>
 <listitem>Point your browser to your Tomcat manager (e.g. http://localhost:8080/manager/html) and check that orktrack has started, otherwise, check Tomcat logs</listitem>
 </itemizedlist>
@@ -217,14 +224,16 @@ or download sources tarballs from the listed websites.
 	<section>
 		<title>Installing OrkWeb</title>
 		<para>
+<emphasis>Note: these steps are only required if you did not use an installer.</emphasis>		
 <itemizedlist>
-<listitem>Create a folder for configuration and logging such as c:\oreka\orkweb</listitem>
-<listitem>Copy orkbasej/java/log4j.template.properties to this folder and change according to needs</listitem>
-<listitem>Copy orkbasej/java/mysql.hbm.template.xml to this folder and change according to needs</listitem>
+<listitem>Create a folder for configuration and logging such as c:\oreka\ (use the same one as orktrack)</listitem>
+<listitem>Copy orkbasej/java/logging.template.properties to this folder, rename it to logging.properties and change according to needs</listitem>
+<listitem>Copy orkbasej/java/database.hbm.template.xml to this folder, rename it database.hbm.xml and change according to needs</listitem>
 <listitem>Modify orkweb/WEB-INF/web.xml and make it point to those newly created config files</listitem>
 <listitem>Copy orktrack/deploy-template.xml to orktrack/deploy.xml and change deploy.xml according to your setup.</listitem>
-<listitem>Run deploy.xml as ant script (Right click/Run as). This should result in the following message:
-	<para><emphasis>"[echo] OK - Deployed application at context path /orktrack"</emphasis></para></listitem>
+<listitem>Run Tomcat</listitem>
+<listitem>Run deploy.xml as ant script in Eclipse (Right click/Run as). This should result in the following message:
+	<para><emphasis>"[echo] OK - Deployed application at context path /orkweb"</emphasis></para></listitem>
 <listitem>Point your browser to your Tomcat manager (e.g. http://localhost:8080/manager/html) and check that orkweb has started, otherwise, check Tomcat logs</listitem>
 <listitem>Point your browser to the newly deployed application (e.g. http://localhost:8080/orkweb/app)</listitem>
 </itemizedlist>
