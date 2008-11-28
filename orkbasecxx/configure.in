@@ -1,7 +1,7 @@
 AC_INIT(configure.in)
 
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(orkbase, 0.6)
+AM_INIT_AUTOMAKE(orkbase, 1.0)
 
 AC_PREFIX_DEFAULT(/usr)
 
