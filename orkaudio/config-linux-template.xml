@@ -1,8 +1,7 @@
 <config>
-	<!-- This is an example configuration file for the Oreka orkaudio capture service on Windows -->
+	<!-- This is an example configuration file for the Oreka orkaudio capture service on Linux -->
 	<!-- Copy this to config.xml and modify according to taste -->
 
-	<!-- Change this to point to Tomcat if you run the OrkWeb user interface -->
 	<AudioOutputPath>/var/log/orkaudio/audio</AudioOutputPath>
 
 	<!-- Uncomment the plugin you want to use: -->
