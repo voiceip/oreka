@@ -3,15 +3,15 @@
 "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
 <book>
 
-  <title>Oreka 0.6 Open Source User Manual</title>
+  <title>Oreka 1.0 Open Source User Manual</title>
 
-  <subtitle>Revision 2</subtitle>
+  <subtitle>Revision 3</subtitle>
 
   <bookinfo>
     <copyright>
       <holder>OrecX LLC</holder>
 
-      <year>2007</year>
+      <year>2008</year>
     </copyright>
   </bookinfo>
 
@@ -334,7 +334,13 @@ with a native call ID of FDBCE@69.13.45.6 will result in the following file name
         quality, 44100 can be used. Recorded file size will be directly
         proportional to this number.</para>
       </section>
+      <section>
+        <title>Logging recordings to the database</title>
+  
+        <para>Refer to section below in OrkWeb - OrkTrack for more details.</para>
+      </section>
     </section>
+
 
     <section>
       <title>Running OrkAudio</title>
@@ -428,89 +434,80 @@ with a native call ID of FDBCE@69.13.45.6 will result in the following file name
     <section>
       <title id="orkwebinstalling">Installing</title>
 
-      <para>OrkWeb/OrkTrack need the following prerequiste
-      software:<emphasis></emphasis></para>
+      <section>
+        <title id="orkwebprerequisites">Pre-requisites</title>
 
-      <para><itemizedlist>
-          <listitem>
-            <para>The Java Runtime Environment JRE 5.0 from <ulink url="http://java.sun.com">http://java.sun.com</ulink></para>
-          </listitem>
+        <para>OrkWeb/OrkTrack need the following prerequiste
+        software:<emphasis></emphasis></para>
+  
+        <para>
+        <itemizedlist>
+            <listitem> The Java Runtime Environment JRE 5.0 from <ulink url="http://java.sun.com">http://java.sun.com</ulink></listitem>
+            <listitem> The Apache Tomcat servlet container version 5.X from <ulink url="http://tomcat.apache.org">http://tomcat.apache.org</ulink></listitem>
+            <listitem> The MySQL server version 4.X from <ulink url="http://www.mysql.com">http://www.mysql.com</ulink></listitem>
+        </itemizedlist>
+        </para>
+      </section>
+      
+      <section>      
+        <title id="orkwebinstallers">Using Installers</title>
 
-          <listitem>
-            <para>The Apache Tomcat servlet container version 5.X from <ulink
-            url="http://tomcat.apache.org">http://tomcat.apache.org</ulink></para>
-          </listitem>
+        <para>Installers for several platforms are provided, e.g. Windows, 
+        CentOS 5 (32-bit), CentOS 4 (32-bit), Linux SuSE (32-bit).  
+        If your platform does not have an installer, use the manual installation
+        steps described below.
+        </para>
+      </section>
 
-          <listitem>
-            <para>The MySQL server version 4.X from <ulink
-            url="http://www.mysql.com">http://www.mysql.com</ulink></para>
-          </listitem>
-        </itemizedlist>Install the prerequisite software with all defaults and
-      make note of the Tomcat admin password as well as the MySQL root
-      password.</para>
+      <section>      
+        <title id="orkwebmanualinstall">Manual Installation</title>
+      
+        <para>Install the prerequisite software above, accepting all defaults, and
+        make note of the Tomcat admin password as well as the MySQL root password.
+        </para>
+        
+        <para>OrkWeb/OrkTrack comes in the form of a zip file such as
+        <emphasis>oreka-1.0-orkweb-orktrack.zip</emphasis>. Unzip this file
+        into a temporary directory and execute the following steps:</para>
 
-      <para>OrkWeb/OrkTrack comes in the form of a zip file such as
-      <emphasis>oreka-0.5-2-orkweb-orktrack.zip</emphasis>. Unzip this file
-      into a temporary directory and execute the following steps:</para>
-
-      <para><itemizedlist>
-          <listitem>
-            <para>Copy lib.zip to {TOMCAT_HOME}/shared/lib and "unzip here".
+        <para><itemizedlist>
+          <listitem>Copy lib.zip to {TOMCAT_HOME}/shared/lib and "unzip here".
             You should now have an additional collection of jar files directly
-            under this shared/lib directory.</para>
-          </listitem>
-
-          <listitem>
-            <para>Copy ConfigFiles.zip to c:\ and "unzip to here" so as to get
+            under this shared/lib directory.</listitem>
+          <listitem>Copy ConfigFiles.zip to c:\ and "unzip to here" so as to get
             a c:\oreka folder with orkaudio and orkweb subdirectories. Under
-            Linux, you can unzip to a folder such as /etc/oreka/</para>
-          </listitem>
-
-          <listitem>
-            <para>Edit c:\oreka\orkweb\mysql.hbm.xml and
-            c:\oreka\orktrack\mysql.hbm.xml or the linux equivalent files in
-            order to supply the right DB username, DB password and JDBC
-            URL.</para>
-          </listitem>
-
-          <listitem>
-            <para>Copy orkweb.war and orktrack.war to the
-            {TOMCAT_HOME}/webapps folder</para>
-          </listitem>
-
-          <listitem>
-            <para>Start Tomcat</para>
-          </listitem>
-
-          <listitem>
-            <para>Tomcat should automatically deploy orktrack and orkweb to
+            Linux, you can unzip to a folder such as /etc/oreka/</listitem>
+          <listitem>Edit /etc/orkweb/database.hbm.xml file (c:\oreka\database.hbm.xml 
+            on Windows) in order to supply the right DB username, DB password 
+            and JDBC URL.</listitem>
+          <listitem>Copy orkweb.war and orktrack.war to the 
+          {TOMCAT_HOME}/webapps folder</listitem>
+          <listitem>Start MySQL (or whatever database engine you are using)</listitem>
+          <listitem>Start Tomcat</listitem>
+          <listitem>Tomcat should automatically deploy orktrack and orkweb to
             {TOMCAT_HOME}/webapps/orktrack and {TOMCAT_HOME}/webapps/orkweb
-            folders</para>
+            folders</listitem>
+          <listitem>Edit {TOMCAT_HOME}/webapps/orktrack/WEB-INF/web.xml and
+            {TOMCAT_HOME}/webapps/orkweb/WEB-INF/web.xml and ensure that the 
+            paths to the config files (logging.properties, database.hbm.xml and
+            orktrack.config.xml) are correct, e.g. /etc/orkweb/ for Linux
           </listitem>
-
-          <listitem>
-            <para>Under Linux only, edit
-            {TOMCAT_HOME}/webapps/orktrack/WEB-INF/web.xml and
-            {TOMCAT_HOME}/webapps/orkweb/WEB-INF/web.xml and change the paths
-            to the config files (log4j.properties, mysql.hbm.xml and
-            orktrack.config.xml) to /etc/oreka/...</para>
-          </listitem>
-
-          <listitem>
-            <para>Restart Tomcat</para>
-          </listitem>
+          <listitem>Restart Tomcat</listitem>
         </itemizedlist></para>
+      </section>  
     </section>
 
     <section>
       <title>Running</title>
 
-      <para>Start the database server. Start the Tomcat servlet container and
-      point your browser to <ulink
-      url="http://localhost:8080/orkweb">http://localhost:8080/orkweb</ulink>. This will bring up a
-      login screen. Login as admin/admin.</para>
-
-      <para></para>
+      <para><itemizedlist>
+        <listitem>Start the database server.</listitem> 
+        <listitem>Start Tomcat.</listitem>
+        <listitem>Point your browser to <ulink url="http://localhost:8080/orkweb">
+        http://localhost:8080/orkweb</ulink>. This will bring up a
+        login screen.</listitem> 
+        <listitem>Login as admin/admin.</listitem>
+      </itemizedlist></para>
     </section>
 
     <section>
@@ -520,19 +517,13 @@ with a native call ID of FDBCE@69.13.45.6 will result in the following file name
       do the followig changes to OrkAudio's config.xml:</para>
 
       <para><itemizedlist>
-          <listitem>
-            <para>Set <emphasis>EnableReporting</emphasis> to true.</para>
-          </listitem>
-
-          <listitem>
-            <para>If OrkTrack is deployed on a different server than OrkAudio,
-            set <emphasis>TrackerHostname</emphasis> OrkTrack's
-            hostname.</para>
-          </listitem>
+          <listitem>Set <emphasis>EnableReporting</emphasis> to true.</listitem>
+          <listitem>If OrkTrack is deployed on a different server than OrkAudio,
+            set <emphasis>TrackerHostname</emphasis> OrkTrack's hostname.</listitem>
         </itemizedlist></para>
 
-      <para>Make sure c:\oreka\orktrack\mysql.hbm.xml or the equivalent Linux
-      file contains the right database access URL and credentials. If OrkTrack
+      <para>Make sure /etc/orkweb/ (Linux) or c:\oreka\database.hbm.xml (Windows)     
+      contains the right database access URL and credentials. If OrkTrack
       is up and running under Tomcat and the OrkAudio service is recording
       traffic, database entries should start appearing. Use OrkWeb to browse
       them.</para>
@@ -561,7 +552,7 @@ with a native call ID of FDBCE@69.13.45.6 will result in the following file name
       <section>
         <title id="replayingrecordings">Replaying recordings</title>
 
-        <para>Replaying recordings via OrkWeb is currrently only possible
+        <para>Replaying recordings via OrkWeb is currently only possible
         using Internet Explorer. Audio Files need to be accessible via http.
         Here is what needs to be done for that (repeat for each instance of
         OrkAudio):</para>
