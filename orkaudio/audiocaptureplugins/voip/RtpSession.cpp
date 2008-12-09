@@ -1306,11 +1306,14 @@ void RtpSessions::ReportSip200Ok(Sip200OkInfoRef info)
 	if (pair != m_byCallId.end())
 	{
 		RtpSessionRef session = pair->second;
+		unsigned short mediaPort = ACE_OS::atoi(info->m_mediaPort);
 
-		if(info->m_hasSdp && DLLCONFIG.m_sipUse200OkMediaAddress && !session->m_numRtpPackets) 
+		if(info->m_hasSdp && DLLCONFIG.m_sipUse200OkMediaAddress && DLLCONFIG.m_sipDynamicMediaAddress)
 		{
-			unsigned short mediaPort = ACE_OS::atoi(info->m_mediaPort);
-
+			SetMediaAddress(session, info->m_mediaIp, mediaPort);
+		}
+		else if(info->m_hasSdp && DLLCONFIG.m_sipUse200OkMediaAddress && !session->m_numRtpPackets) 
+		{
 			if(!session->m_rtpIp.s_addr)
 			{
 				// Session has empty RTP address
