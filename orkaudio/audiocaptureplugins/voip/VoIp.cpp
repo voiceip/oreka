@@ -1388,8 +1388,13 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 		{
 			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info.m_callId);
 		}
-		LOG4CXX_INFO(s_sipPacketLog, "BYE: callid:" + info.m_callId);
-		if(callIdField)
+		info.m_senderIp = ipHeader->ip_src;
+		info.m_receiverIp = ipHeader->ip_dest;
+
+		CStdString logMsg;
+		info.ToString(logMsg);
+		LOG4CXX_INFO(s_sipPacketLog, "BYE: " + logMsg);
+		if(callIdField && DLLCONFIG.m_sipIgnoreBye == false)
 		{
 			RtpSessionsSingleton::instance()->ReportSipBye(info);
 		}
@@ -1941,7 +1946,14 @@ bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 
 		info->ToString(logMsg);
 		logMsg = "200 OK: " + logMsg;
-		LOG4CXX_INFO(s_sipPacketLog, logMsg);
+		if(info->m_hasSdp)
+		{
+			LOG4CXX_INFO(s_sipPacketLog, logMsg);
+		}
+		else
+		{
+			LOG4CXX_DEBUG(s_sipPacketLog, logMsg);
+		}
 
 		RtpSessionsSingleton::instance()->ReportSip200Ok(info);
 	}

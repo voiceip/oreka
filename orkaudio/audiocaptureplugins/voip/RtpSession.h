@@ -72,7 +72,12 @@ typedef boost::shared_ptr<SipFailureMessageInfo> SipFailureMessageInfoRef;
 class SipByeInfo
 {
 public:
+	SipByeInfo();
+	void ToString(CStdString& string);
+
 	CStdString m_callId;
+	struct in_addr m_senderIp;
+	struct in_addr m_receiverIp;
 };
 
 
