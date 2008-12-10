@@ -46,6 +46,8 @@ VoIpConfig::VoIpConfig()
 	m_sipDetectSessionProgress = true; // Enabled by default
 	m_sipReportFullAddress = false;
 	m_sipDynamicMediaAddress = false;
+	m_sipIgnoreBye = false;
+
 	m_rtcpDetect = false;
 	m_inInMode = false;
 
@@ -111,6 +113,8 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SipReportFullAddress", m_sipReportFullAddress);
 	s->BoolValue("SipDynamicMediaAddress", m_sipDynamicMediaAddress);
 	s->IpRangesValue("SipIgnoredMediaAddresses", m_sipIgnoredMediaAddresses);
+	s->BoolValue("SipIgnoreBye", m_sipIgnoreBye);
+
 	s->BoolValue("RtcpDetect", m_rtcpDetect);
 	s->BoolValue("InInMode", m_inInMode);
 

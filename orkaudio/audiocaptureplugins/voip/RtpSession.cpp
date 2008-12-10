@@ -2476,6 +2476,7 @@ void SipFailureMessageInfo::ToString(CStdString& string, SipInviteInfoRef invite
 	string.Format("sender:%s from:%s to:%s rcvr:%s callid:%s errorcode:%s reason:\"%s\"", senderIp, inviteInfo->m_from, inviteInfo->m_to, receiverIp, inviteInfo->m_callId, m_errorCode, m_errorString);
 }
 
+//============================
 Sip200OkInfo::Sip200OkInfo()
 {
 	m_mediaIp.s_addr = 0;
@@ -2503,6 +2504,8 @@ void Sip200OkInfo::ToString(CStdString& string)
 	}
 }
 
+
+//================================================
 SipSessionProgressInfo::SipSessionProgressInfo()
 {
 	m_mediaIp.s_addr = 0;
@@ -2523,3 +2526,22 @@ void SipSessionProgressInfo::ToString(CStdString& string)
 
 	string.Format("sender:%s from:%s RTP:%s,%s to:%s rcvr:%s callid:%s", senderIp, m_from, mediaIp, m_mediaPort, m_to, receiverIp, m_callId);
 }
+
+//================================================
+SipByeInfo::SipByeInfo()
+{
+	m_senderIp.s_addr = 0;
+	m_receiverIp.s_addr = 0;
+}
+
+void SipByeInfo::ToString(CStdString& string)
+{
+	char senderIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+
+	char receiverIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+
+	string.Format("sender:%s rcvr:%s callid:%s", senderIp, receiverIp, m_callId);
+}
+

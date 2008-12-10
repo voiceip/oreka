@@ -81,6 +81,8 @@ public:
 	bool m_sipReportFullAddress;
 	bool m_sipDynamicMediaAddress;
 	IpRanges m_sipIgnoredMediaAddresses;
+	bool m_sipIgnoreBye;
+
 	bool m_rtcpDetect;
 	bool m_inInMode;
 
