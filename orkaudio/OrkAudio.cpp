@@ -41,6 +41,7 @@
 #include "Filter.h"
 #include "GsmFilters.h"
 #include "IlbcFilters.h"
+#include "AudioGain.h"
 #include "TapeProcessor.h"
 #include <list>
 
@@ -101,6 +102,9 @@ void LoadPlugins(std::list<ACE_DLL>& pluginDlls)
 				if(error)
 				{
 					LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load plugin: ") + pluginPath);
+					CStdString logMsg;
+					logMsg.Format("DLL Error: %s", dlerror());
+					LOG4CXX_ERROR(LOG.rootLog, logMsg);
 				}
 				else
 				{
@@ -145,6 +149,8 @@ void Transcode(CStdString &file)
 	FilterRegistry::instance()->RegisterFilter(filter);
 	filter.reset(new IlbcToPcmFilter());
         FilterRegistry::instance()->RegisterFilter(filter);
+	filter.reset(new AudioGainFilter());
+	FilterRegistry::instance()->RegisterFilter(filter);
 
 	// Register in-built tape processors and build the processing chain
 	BatchProcessing::Initialize();
@@ -225,6 +231,8 @@ void MainThread()
 	filter.reset(new GsmToPcmFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
 	filter.reset(new IlbcToPcmFilter());
+	FilterRegistry::instance()->RegisterFilter(filter);
+	filter.reset(new AudioGainFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
 
 	// Register in-built tape processors and build the processing chain

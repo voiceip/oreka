@@ -162,6 +162,7 @@ void BatchProcessing::ThreadHandler(void *args)
 				FilterRef decoder1;
 				FilterRef decoder2;
 				FilterRef decoder;
+				FilterRef audiogain;
 
 				std::bitset<RTP_PAYLOAD_TYPE_MAX> seenRtpPayloadTypes;
 				std::vector<FilterRef> decoders1;
@@ -181,6 +182,15 @@ void BatchProcessing::ThreadHandler(void *args)
 				size_t numSamplesS2 = 0;
 				size_t numSamplesOut = 0;
 
+				CStdString filterName("AudioGain");
+
+				audiogain = FilterRegistry::instance()->GetNewFilter(filterName);
+				if(audiogain.get() == NULL)
+				{
+					debug = "Could not instanciate AudioGain filter";
+					throw(debug);
+				}
+
 				while(fileRef->ReadChunkMono(chunkRef))
 				{
 					// ############ HACK
@@ -190,6 +200,7 @@ void BatchProcessing::ThreadHandler(void *args)
 					// ############ HACK
 
 					AudioChunkDetails details = *chunkRef->GetDetails();
+
 					decoder.reset();
 
 					if(details.m_rtpPayloadType < -1 || details.m_rtpPayloadType >= RTP_PAYLOAD_TYPE_MAX)
@@ -280,6 +291,10 @@ void BatchProcessing::ThreadHandler(void *args)
 						filter->AudioChunkIn(tmpChunkRef);
 						filter->AudioChunkOut(tmpChunkRef);
 					}
+
+					audiogain->AudioChunkIn(tmpChunkRef);
+					audiogain->AudioChunkOut(tmpChunkRef);
+
 					outFileRef->WriteChunk(tmpChunkRef);
 					if(tmpChunkRef.get())
 					{
@@ -325,11 +340,16 @@ void BatchProcessing::ThreadHandler(void *args)
 					filter->AudioChunkIn(stopChunk);
 					filter->AudioChunkOut(tmpChunkRef);
 
+					audiogain->AudioChunkIn(tmpChunkRef);
+					audiogain->AudioChunkOut(tmpChunkRef);
+
 					while(tmpChunkRef.get())
 					{
 						outFileRef->WriteChunk(tmpChunkRef);
 						numSamplesOut += tmpChunkRef->GetNumSamples();
 						filter->AudioChunkOut(tmpChunkRef);
+						audiogain->AudioChunkIn(tmpChunkRef);
+						audiogain->AudioChunkOut(tmpChunkRef);
 					}
 				}
 
