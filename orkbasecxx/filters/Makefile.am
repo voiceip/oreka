@@ -1,1 +1,1 @@
-SUBDIRS = gsm ilbc
+SUBDIRS = gsm ilbc audiogain
