@@ -98,6 +98,8 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("RtpSessionWithSignallingInitialTimeoutSec", m_rtpSessionWithSignallingInitialTimeoutSec);
 	s->IntValue("RtpSessionOnHoldTimeOutSec", m_rtpSessionOnHoldTimeOutSec);
 	s->BoolValue("RtpReportDtmf", m_rtpReportDtmf);
+	s->IpRangesValue("RtpBlockedIpRanges", m_rtpBlockedIpRanges);
+
 	s->BoolValue("PcapTest", m_pcapTest);
 	s->StringValue("PcapFilter", m_pcapFilter);
 	s->BoolValue("RtpDiscontinuityDetect", m_rtpDiscontinuityDetect);

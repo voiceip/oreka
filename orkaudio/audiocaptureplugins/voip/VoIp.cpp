@@ -1309,35 +1309,51 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 			// pt=34 is H263
 			// pt=97 is IAX2 iLBC payload
 			// pt > 98 is telephone-event in SIP
-			{													// pt=13 is CN (Comfort Noise)
-				result = true;
-				u_char* payload = (u_char *)rtpHeader + sizeof(RtpHeaderStruct);
-				u_char* packetEnd = (u_char *)ipHeader + ntohs(ipHeader->ip_len);
-				u_int payloadLength = packetEnd - payload;
-
-				RtpPacketInfoRef rtpInfo(new RtpPacketInfo());
-				rtpInfo->m_sourceIp = ipHeader->ip_src;
-				rtpInfo->m_destIp =  ipHeader->ip_dest;
-				rtpInfo->m_sourcePort = ntohs(udpHeader->source);
-				rtpInfo->m_destPort = ntohs(udpHeader->dest);
-				rtpInfo->m_payloadSize = payloadLength;
-				rtpInfo->m_payloadType = rtpHeader->pt;
-				rtpInfo->m_seqNum = ntohs(rtpHeader->seq);
-				rtpInfo->m_timestamp = ntohl(rtpHeader->ts);
-				rtpInfo->m_payload = payload;
-				rtpInfo->m_arrivalTimestamp = time(NULL);
-				memcpy(rtpInfo->m_sourceMac, ethernetHeader->sourceMac, sizeof(rtpInfo->m_sourceMac));
-				memcpy(rtpInfo->m_destMac, ethernetHeader->destinationMac, sizeof(rtpInfo->m_destMac));
-
-				if(s_rtpPacketLog->isDebugEnabled())
+			{
+				if(DLLCONFIG.m_rtpBlockedIpRanges.Matches(ipHeader->ip_src) || DLLCONFIG.m_rtpBlockedIpRanges.Matches(ipHeader->ip_dest))
 				{
-					CStdString logMsg;
-					rtpInfo->ToString(logMsg);
-					LOG4CXX_DEBUG(s_rtpPacketLog, logMsg);
+					if(s_rtpPacketLog->isDebugEnabled())
+					{
+						CStdString logMsg;
+						char sourceIp[16];
+						ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, sourceIp, sizeof(sourceIp));
+						char destIp[16];
+						ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_dest, destIp, sizeof(destIp));
+						logMsg.Format("RTP packet filtered by rtpBlockedIpRanges: src:%s dst:%s", sourceIp, destIp);
+						LOG4CXX_DEBUG(s_rtpPacketLog, logMsg);
+					}
 				}
-				if(payloadLength < 900)		// sanity check, speech RTP payload should always be smaller
+				else
 				{
-					RtpSessionsSingleton::instance()->ReportRtpPacket(rtpInfo);
+					result = true;
+					u_char* payload = (u_char *)rtpHeader + sizeof(RtpHeaderStruct);
+					u_char* packetEnd = (u_char *)ipHeader + ntohs(ipHeader->ip_len);
+					u_int payloadLength = packetEnd - payload;
+
+					RtpPacketInfoRef rtpInfo(new RtpPacketInfo());
+					rtpInfo->m_sourceIp = ipHeader->ip_src;
+					rtpInfo->m_destIp =  ipHeader->ip_dest;
+					rtpInfo->m_sourcePort = ntohs(udpHeader->source);
+					rtpInfo->m_destPort = ntohs(udpHeader->dest);
+					rtpInfo->m_payloadSize = payloadLength;
+					rtpInfo->m_payloadType = rtpHeader->pt;
+					rtpInfo->m_seqNum = ntohs(rtpHeader->seq);
+					rtpInfo->m_timestamp = ntohl(rtpHeader->ts);
+					rtpInfo->m_payload = payload;
+					rtpInfo->m_arrivalTimestamp = time(NULL);
+					memcpy(rtpInfo->m_sourceMac, ethernetHeader->sourceMac, sizeof(rtpInfo->m_sourceMac));
+					memcpy(rtpInfo->m_destMac, ethernetHeader->destinationMac, sizeof(rtpInfo->m_destMac));
+
+					if(s_rtpPacketLog->isDebugEnabled())
+					{
+						CStdString logMsg;
+						rtpInfo->ToString(logMsg);
+						LOG4CXX_DEBUG(s_rtpPacketLog, logMsg);
+					}
+					if(payloadLength < 900)		// sanity check, speech RTP payload should always be smaller
+					{
+						RtpSessionsSingleton::instance()->ReportRtpPacket(rtpInfo);
+					}
 				}
 			}
 			else
