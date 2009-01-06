@@ -41,7 +41,7 @@
 #include "Filter.h"
 #include "GsmFilters.h"
 #include "IlbcFilters.h"
-#include "AudioGain.h"
+#include "filters/audiogain/AudioGain.h"
 #include "TapeProcessor.h"
 #include <list>
 
@@ -102,9 +102,11 @@ void LoadPlugins(std::list<ACE_DLL>& pluginDlls)
 				if(error)
 				{
 					LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load plugin: ") + pluginPath);
+#ifndef WIN32
 					CStdString logMsg;
 					logMsg.Format("DLL Error: %s", dlerror());
 					LOG4CXX_ERROR(LOG.rootLog, logMsg);
+#endif
 				}
 				else
 				{

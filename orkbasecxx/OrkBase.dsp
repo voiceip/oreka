@@ -514,6 +514,18 @@ SOURCE=.\filters\ilbc\IlbcFilters.cpp
 SOURCE=.\filters\ilbc\IlbcFilters.h
 # End Source File
 # End Group
+# Begin Group "audiogain"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\filters\audiogain\AudioGain.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\audiogain\AudioGain.h
+# End Source File
+# End Group
 # End Group
 # Begin Source File
 
