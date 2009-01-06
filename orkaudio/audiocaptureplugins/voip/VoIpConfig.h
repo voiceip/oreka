@@ -73,6 +73,8 @@ public:
 	int  m_rtpDiscontinuityMinSeqDelta;
 	bool m_rtpDetectOnOddPorts;
 	bool m_rtpReportDtmf;
+	IpRanges m_rtpBlockedIpRanges;
+
 	bool m_iax2Support;
 	bool m_sipOverTcpSupport;
 	bool m_sipLogFailedCalls;
