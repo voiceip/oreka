@@ -28,6 +28,21 @@ public:
 	ObjectRef Process();
 
 	CStdString m_party;
+	CStdString m_orkuid;
+};
+
+class DLL_IMPORT_EXPORT_ORKBASE PauseMsg : public SyncMessage
+{
+public:
+	void Define(Serializer* s);
+	inline void Validate() {};
+
+	CStdString GetClassName();
+	ObjectRef NewInstance();
+	ObjectRef Process();
+
+	CStdString m_party;
+	CStdString m_orkuid;
 };
 
 #endif

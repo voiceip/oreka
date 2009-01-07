@@ -2383,6 +2383,36 @@ void RtpSessions::Hoover(time_t now)
 	}
 }
 
+void RtpSessions::StartCaptureOrkuid(CStdString& orkuid)
+{
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	bool found = false;
+	CStdString logMsg;
+	RtpSessionRef session;
+
+	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
+	{
+		session = pair->second;
+
+		if(session->OrkUidMatches(orkuid))
+		{
+			session->m_keep = true;
+			found = true;
+		}
+	}
+
+	if(found)
+	{
+		logMsg.Format("[%s] StartCaptureOrkuid: Started capture, orkuid:%s", session->m_trackingId, orkuid);
+	}
+	else
+	{
+		logMsg.Format("StartCaptureOrkuid: No session has orkuid:%s", orkuid);
+	}
+
+	LOG4CXX_INFO(m_log, logMsg);
+}
+
 void RtpSessions::StartCapture(CStdString& party)
 {
 	std::map<CStdString, RtpSessionRef>::iterator pair;
@@ -2403,13 +2433,73 @@ void RtpSessions::StartCapture(CStdString& party)
 
 	if(found)
 	{
-		logMsg.Format("[%s] Started capture, party:%s", session->m_trackingId, party);
+		logMsg.Format("[%s] StartCapture: Started capture, party:%s", session->m_trackingId, party);
 	}	
 	else
 	{
-		logMsg.Format("No session has party %s", party);
+		logMsg.Format("StartCapture: No session has party %s", party);
 	}
 	
+	LOG4CXX_INFO(m_log, logMsg);
+}
+
+void RtpSessions::PauseCapture(CStdString& party)
+{
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	bool found = false;
+	CStdString logMsg;
+	RtpSessionRef session;
+
+	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
+	{
+		session = pair->second;
+
+		if (session->PartyMatches(party))
+		{
+			session->m_keep = false;
+			found = true;
+		}
+	}
+
+	if(found)
+	{
+		logMsg.Format("[%s] PauseCapture: Paused capture, party:%s", session->m_trackingId, party);
+	}	
+	else
+	{
+		logMsg.Format("PauseCapture: No session has party %s", party);
+	}
+	
+	LOG4CXX_INFO(m_log, logMsg);
+}
+
+void RtpSessions::PauseCaptureOrkuid(CStdString& orkuid)
+{
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	bool found = false;
+	CStdString logMsg;
+	RtpSessionRef session;
+
+	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
+	{
+		session = pair->second;
+
+		if(session->OrkUidMatches(orkuid))
+		{
+			session->m_keep = false;
+			found = true;
+		}
+	}
+
+	if(found)
+	{
+		logMsg.Format("[%s] PauseCaptureOrkuid: Paused capture, orkuid:%s", session->m_trackingId, orkuid);
+	}
+	else
+	{
+		logMsg.Format("PauseCaptureOrkuid: No session has orkuid:%s", orkuid);
+	}
+
 	LOG4CXX_INFO(m_log, logMsg);
 }
 

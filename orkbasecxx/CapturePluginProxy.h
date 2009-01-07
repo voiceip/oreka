@@ -28,7 +28,8 @@ public:
 
 	void Run();
 	void Shutdown();
-	void StartCapture(CStdString& party);
+	void StartCapture(CStdString& party, CStdString& orkuid);
+	void PauseCapture(CStdString& party, CStdString& orkuid);
 	void StopCapture(CStdString& party);
 
 	static void __CDECL__  AudioChunkCallBack(AudioChunkRef chunkRef, CStdString& capturePort);
@@ -44,6 +45,7 @@ private:
 	RunFunction m_runFunction;
 	StartCaptureFunction m_startCaptureFunction;
 	StopCaptureFunction m_stopCaptureFunction;
+	PauseCaptureFunction m_pauseCaptureFunction;
 
 	ACE_DLL m_dll;
 	bool m_loaded;

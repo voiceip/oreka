@@ -30,8 +30,9 @@ DLL_EXPORT void __CDECL__  Run();
 DLL_EXPORT void __CDECL__  Initialize();
 DLL_EXPORT void __CDECL__  Shutdown();
 DLL_EXPORT void __CDECL__  Configure(DOMNode*);
-DLL_EXPORT void __CDECL__  StartCapture(CStdString& party);
+DLL_EXPORT void __CDECL__  StartCapture(CStdString& party, CStdString& orkuid);
 DLL_EXPORT void __CDECL__  StopCapture(CStdString& party);
+DLL_EXPORT void __CDECL__  PauseCapture(CStdString& party, CStdString& orkuid);
 }
 
 #endif

@@ -96,6 +96,8 @@
 #define COMMAND_LINE_SERVER_PORT_DEFAULT 59130
 #define HTTP_SERVER_PORT_PARAM "HttpServerPort"
 #define HTTP_SERVER_PORT_DEFAULT 59140
+#define STREAMING_SERVER_PORT_PARAM "EventStreamingServerPort"
+#define STREAMING_SERVER_PORT_DEFAULT 59150
 #define LOOKBACK_RECORDING_PARAM "LookBackRecording"
 #define LOOKBACK_RECORDING_DEFAULT true
 #define ALLOW_AUTOMATIC_RECORDING_PARAM "AllowAutomaticRecording"
@@ -175,6 +177,7 @@ public:
 	CStdString m_remoteProcessingServiceName;
 	int m_commandLineServerPort;
 	int m_httpServerPort;
+	int m_eventStreamingServerPort;
 	bool m_lookBackRecording;
 	bool m_allowAutomaticRecording;
 	int m_captureFileSizeLimitKb;

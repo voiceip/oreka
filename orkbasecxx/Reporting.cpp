@@ -23,6 +23,7 @@
 #include "Daemon.h"
 #include "CapturePluginProxy.h"
 #include "ace/Thread_Manager.h"
+#include "EventStreaming.h"
 
 #ifdef WIN32
 # ifndef snprintf
@@ -186,6 +187,28 @@ void Reporting::AddTapeMessage(MessageRef& messageRef)
 			}
 		}
 	}
+
+	// Send this message to the event streaming system
+	reportingMsgRef.reset(new TapeMsg);
+	pRptTapeMsg = (TapeMsg*)reportingMsgRef.get();
+
+	pRptTapeMsg->m_recId = pTapeMsg->m_recId;
+	pRptTapeMsg->m_fileName = pTapeMsg->m_fileName;
+	pRptTapeMsg->m_stage = pTapeMsg->m_stage;
+	pRptTapeMsg->m_capturePort = pTapeMsg->m_capturePort;
+	pRptTapeMsg->m_localParty = pTapeMsg->m_localParty;
+	pRptTapeMsg->m_localEntryPoint = pTapeMsg->m_localEntryPoint;
+	pRptTapeMsg->m_remoteParty = pTapeMsg->m_remoteParty;
+	pRptTapeMsg->m_direction = pTapeMsg->m_direction;
+	pRptTapeMsg->m_duration = pTapeMsg->m_duration;
+	pRptTapeMsg->m_timestamp = pTapeMsg->m_timestamp;
+	pRptTapeMsg->m_localIp = pTapeMsg->m_localIp;
+	pRptTapeMsg->m_remoteIp = pTapeMsg->m_remoteIp;
+	pRptTapeMsg->m_nativeCallId = pTapeMsg->m_nativeCallId;
+	// Copy the tags!
+	std::copy(pTapeMsg->m_tags.begin(), pTapeMsg->m_tags.end(), std::inserter(pRptTapeMsg->m_tags, pRptTapeMsg->m_tags.begin()));
+
+	EventStreamingSingleton::instance()->AddTapeMessage(reportingMsgRef);
 }
 
 void Reporting::AddAudioTape(AudioTapeRef& audioTapeRef)
@@ -348,8 +371,9 @@ void ReportingThread::Run()
 								// Tape is wanted
 								if(CONFIG.m_lookBackRecording == false && CONFIG.m_allowAutomaticRecording && ptapeMsg->m_stage.Equals("start"))
 								{
-									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_localParty);
-									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_remoteParty);
+									CStdString orkuid = "";
+									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_localParty, orkuid);
+									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_remoteParty, orkuid);
 								}
 							}
 							//else

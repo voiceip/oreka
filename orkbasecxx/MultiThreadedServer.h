@@ -61,5 +61,25 @@ private:
 };
 typedef ACE_Acceptor<HttpServer, ACE_SOCK_ACCEPTOR> HttpAcceptor;
 
+//==========================================================
+
+/** This server is a lightweight http server that prints out the single line
+    format of all events from a given port, one thread per connection e.g
+	http://localhost:23000/message=streamevents
+*/
+class EventStreamingServer : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>
+{
+public:
+	virtual int open (void *);
+	/** daemon thread */
+	static void run(void *args);
+	/** service routine */
+	virtual int svc (void);
+
+private:
+	static log4cxx::LoggerPtr s_log;
+};
+typedef ACE_Acceptor<EventStreamingServer, ACE_SOCK_ACCEPTOR> EventStreamingAcceptor;
+
 #endif
 
