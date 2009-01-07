@@ -83,8 +83,9 @@ public:
 	void Initialize();
 	void Run();
 	void Shutdown();
-	void StartCapture(CStdString& port);
+	void StartCapture(CStdString& port, CStdString& orkuid);
 	void StopCapture(CStdString& port);
+	void PauseCapture(CStdString& port, CStdString& orkuid);
 	void ReportPcapStats();
 	pcap_t* OpenDevice(CStdString& name);
 	void AddPcapDeviceToMap(CStdString& deviceName, pcap_t* pcapHandle);
@@ -3199,7 +3200,12 @@ void VoIp::Shutdown()
 #endif
 }
 
-void VoIp::StartCapture(CStdString& port)
+void VoIp::StartCapture(CStdString& port, CStdString& orkuid)
+{
+	;
+}
+
+void VoIp::PauseCapture(CStdString& port, CStdString& orkuid)
 {
 	;
 }
@@ -3225,15 +3231,42 @@ void __CDECL__ Shutdown()
 	VoIpSingleton::instance()->Shutdown();
 }
 
-void __CDECL__ StartCapture(CStdString& party)
+void __CDECL__ StartCapture(CStdString& party, CStdString& orkuid)
 {
 	CStdString logMsg;
 
-	//logMsg.Format("StartCapture:%s", party);
-	//LOG4CXX_INFO(s_voipPluginLog, logMsg);
+	logMsg.Format("StartCapture: party:%s orkuid:%s", party, orkuid);
+	LOG4CXX_INFO(s_voipPluginLog, logMsg);
 
 	MutexSentinel mutexSentinel(s_mutex);
-	RtpSessionsSingleton::instance()->StartCapture(party);
+
+	if(orkuid.size())
+	{
+		RtpSessionsSingleton::instance()->StartCaptureOrkuid(orkuid);
+	}
+	else
+	{
+		RtpSessionsSingleton::instance()->StartCapture(party);
+	}
+}
+
+void __CDECL__ PauseCapture(CStdString& party, CStdString& orkuid)
+{
+	CStdString logMsg;
+
+	logMsg.Format("PauseCapture: party:%s orkuid:%s", party, orkuid);
+	LOG4CXX_INFO(s_voipPluginLog, logMsg);
+
+	MutexSentinel mutexSentinel(s_mutex);
+
+	if(orkuid.size())
+	{
+		RtpSessionsSingleton::instance()->PauseCaptureOrkuid(orkuid);
+	}
+	else
+	{
+		RtpSessionsSingleton::instance()->PauseCapture(party);
+	}
 }
 
 void __CDECL__ StopCapture(CStdString& party)

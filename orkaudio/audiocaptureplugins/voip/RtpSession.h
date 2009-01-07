@@ -257,6 +257,9 @@ public:
 	void Hoover(time_t now);
 	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp);
 	void StartCapture(CStdString& party);
+	void StartCaptureOrkuid(CStdString& orkuid);
+	void PauseCapture(CStdString& party);
+	void PauseCaptureOrkuid(CStdString& orkuid);
 
 private:
 	RtpSessionRef findByEndpointIp(struct in_addr endpointIpAddr, int passThruPartyId = 0);

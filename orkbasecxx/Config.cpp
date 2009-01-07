@@ -76,6 +76,7 @@ Config::Config()
 	m_audioGain = AUDIO_GAIN_DEFAULT;
 	m_audioGainChannel1 = AUDIO_GAIN_CHANNEL_1_DEFAULT;
 	m_audioGainChannel2 = AUDIO_GAIN_CHANNEL_2_DEFAULT;
+	m_eventStreamingServerPort = STREAMING_SERVER_PORT_DEFAULT;
 }
 
 void Config::Define(Serializer* s)
@@ -156,6 +157,7 @@ void Config::Define(Serializer* s)
 	s->DoubleValue(AUDIO_GAIN_PARAM, m_audioGain);
 	s->DoubleValue(AUDIO_GAIN_CHANNEL_1_PARAM, m_audioGainChannel1);
 	s->DoubleValue(AUDIO_GAIN_CHANNEL_2_PARAM, m_audioGainChannel2);
+	s->IntValue(STREAMING_SERVER_PORT_PARAM, m_eventStreamingServerPort);
 }
 
 void Config::Validate()

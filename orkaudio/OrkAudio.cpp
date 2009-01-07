@@ -44,7 +44,7 @@
 #include "filters/audiogain/AudioGain.h"
 #include "TapeProcessor.h"
 #include <list>
-
+#include "EventStreaming.h"
 
 static volatile bool serviceStop = false;
 
@@ -213,6 +213,8 @@ void MainThread()
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	objRef.reset(new RecordMsg);
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
+	objRef.reset(new PauseMsg);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	//objRef.reset(new TestMsg);
 	//ObjectFactory::GetSingleton()->RegisterObject(objRef);
 
@@ -274,6 +276,12 @@ void MainThread()
 	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(HttpServer::run), (void *)CONFIG.m_httpServerPort))
 	{
 		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create Http server"));
+	}
+
+	// Create streaming server on port 59150 (default)
+	if(!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(EventStreamingServer::run), (void *)CONFIG.m_eventStreamingServerPort))
+	{
+		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create event streaming server"));
 	}
 
 	if(capturePluginOk)

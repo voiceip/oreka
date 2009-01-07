@@ -122,7 +122,15 @@ bool CapturePluginProxy::Init()
 							m_stopCaptureFunction = (StopCaptureFunction)m_dll.symbol("StopCapture");
 							if (m_stopCaptureFunction)
 							{
-								m_loaded = true;
+								m_pauseCaptureFunction = (PauseCaptureFunction)m_dll.symbol("PauseCapture");
+								if(m_stopCaptureFunction)
+								{
+									m_loaded = true;
+								}
+								else
+								{
+									LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find PauseCapture function in ") + pluginPath);
+								}
 							}
 							else
 							{
@@ -180,11 +188,11 @@ void CapturePluginProxy::Shutdown()
 	}
 }
 
-void CapturePluginProxy::StartCapture(CStdString& party)
+void CapturePluginProxy::StartCapture(CStdString& party, CStdString& orkuid)
 {
 	if(m_loaded)
 	{
-		m_startCaptureFunction(party);
+		m_startCaptureFunction(party, orkuid);
 	}
 	else
 	{
@@ -201,6 +209,18 @@ void CapturePluginProxy::StopCapture(CStdString& party)
 	else
 	{
 		throw(CStdString("StopCapture: Capture plugin not yet loaded"));
+	}
+}
+
+void CapturePluginProxy::PauseCapture(CStdString& party, CStdString& orkuid)
+{
+	if(m_loaded)
+	{
+		m_pauseCaptureFunction(party, orkuid);
+	}
+	else
+	{
+		throw(CStdString("PauseCapture: Capture plugin not yet loaded"));
 	}
 }
 
