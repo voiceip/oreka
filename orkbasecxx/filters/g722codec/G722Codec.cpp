@@ -17,9 +17,16 @@
 #include "G722Codec.h"
 
 static log4cxx::LoggerPtr s_log;
+static bool s_initialized = false;
 
 G722Decoder::G722Decoder()
 {
+#ifdef WIN32
+	if(s_initialized == false)
+	{
+		s_log = log4cxx::Logger::getLogger("codec.g722");
+	}
+#endif
 	// Initialize decoder
 	memset(&m_ctx, 0, sizeof(m_ctx));
 	g722_decode_init(&m_ctx, 64000, G722_SAMPLE_RATE_8000);
@@ -151,7 +158,9 @@ extern "C"
 /*! \file */
 
 #include <stdio.h>
+#ifndef WIN32
 #include <inttypes.h>
+#endif
 #include <memory.h>
 #include <stdlib.h>
 #if 0
@@ -165,7 +174,11 @@ extern "C"
 #define TRUE (!FALSE)
 #endif
 
+#ifdef WIN32
+static inline int16_t saturate(int32_t amp)
+#else
 static __inline__ int16_t saturate(int32_t amp)
+#endif
 {
     int16_t amp16;
 

@@ -144,6 +144,12 @@ typedef struct
     int out_bits;
 } g722_decode_state_t;
 
+#ifdef WIN32
+#define int16_t short
+#define uint8_t unsigned char
+#define int32_t int
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
