@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MD /W3 /GX /Zi /O2 /Ob0 /I "." /I ".\filters\gsm" /I ".\filters\gsm\gsm610" /I ".\filters\ilbc" /I ".\filters\ilbc\ilbc" /I "C:\devExt\libsndfile\src" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /D "BUILD_ORKBASE" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D inline=__inline /FD /c
+# ADD CPP /nologo /MD /W3 /GX /Zi /O2 /Ob0 /I "." /I ".\filters\gsm" /I ".\filters\gsm\gsm610" /I ".\filters\ilbc" /I ".\filters\ilbc\ilbc" /I "C:\devExt\libsndfile\src" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /I ".\filters\g722codec" /D "BUILD_ORKBASE" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D inline=__inline /FD /c
 # SUBTRACT CPP /YX /Yc /Yu
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
@@ -74,7 +74,7 @@ PostBuild_Cmds=copy Release\OrkBase.dll ..\OrkAudio\OrkBase.dll
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /I "." /I ".\filters\gsm" /I ".\filters\gsm\gsm610" /I ".\filters\ilbc" /I ".\filters\ilbc\ilbc" /I "C:\devExt\libsndfile\src" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /D "BUILD_ORKBASE" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D inline=__inline /FR /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /I "." /I ".\filters\gsm" /I ".\filters\gsm\gsm610" /I ".\filters\ilbc" /I ".\filters\ilbc\ilbc" /I "C:\devExt\libsndfile\src" /I "C:\devExt\boost\boost_1_32_0" /I "C:\devExt\ACE_wrappers" /I "C:\devExt\xerces++\xerces-c_2_6_0-windows_nt-msvc_60\include" /I "C:\devExt\log4cxx\log4cxx-0.9.7\include" /I ".\filters\g722codec" /D "BUILD_ORKBASE" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D inline=__inline /FR /FD /GZ /c
 # SUBTRACT CPP /YX /Yc /Yu
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -526,6 +526,22 @@ SOURCE=.\filters\audiogain\AudioGain.cpp
 SOURCE=.\filters\audiogain\AudioGain.h
 # End Source File
 # End Group
+# Begin Group "g722codec"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\filters\g722codec\G722.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\g722codec\G722Codec.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\filters\g722codec\G722Codec.h
+# End Source File
+# End Group
 # End Group
 # Begin Source File
 
@@ -598,6 +614,14 @@ SOURCE=.\Daemon.h
 # Begin Source File
 
 SOURCE=.\dll.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\EventStreaming.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\EventStreaming.h
 # End Source File
 # Begin Source File
 

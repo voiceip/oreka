@@ -24,10 +24,11 @@
 #include "ConfigManager.h"
 #include "CapturePluginProxy.h"
 #include "AudioTape.h"
+#include "dll.h"
 
 //==========================================================
 
-class EventStreamingSession
+class DLL_IMPORT_EXPORT_ORKBASE EventStreamingSession
 {
 public:
 	EventStreamingSession();
@@ -45,7 +46,7 @@ typedef boost::shared_ptr<EventStreamingSession> EventStreamingSessionRef;
 
 //==========================================================
 
-class EventStreaming
+class DLL_IMPORT_EXPORT_ORKBASE EventStreaming
 {
 public:
 	EventStreaming();

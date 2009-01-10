@@ -67,7 +67,7 @@ typedef ACE_Acceptor<HttpServer, ACE_SOCK_ACCEPTOR> HttpAcceptor;
     format of all events from a given port, one thread per connection e.g
 	http://localhost:23000/message=streamevents
 */
-class EventStreamingServer : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>
+class DLL_IMPORT_EXPORT_ORKBASE EventStreamingServer : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>
 {
 public:
 	virtual int open (void *);
