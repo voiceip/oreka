@@ -77,46 +77,34 @@ void AudioGainFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 	short* outputBuffer = (short*)m_outputAudioChunk->CreateBuffer(outputDetails);
 	short* inputBuffer = (short*)inputAudioChunk->m_pBuffer;
 	int sample = 0;
+	double multiplier, multiplier1, multiplier2;
+
+	multiplier = 0.0;
+	multiplier1 = 0.0;
+	multiplier2 = 0.0;
+
+	multiplier = pow(10, (CONFIG.m_audioGainDb / 20.0));
+	multiplier1 = pow(10, (CONFIG.m_audioGainChannel1Db / 20.0));
+	multiplier2 = pow(10, (CONFIG.m_audioGainChannel2Db / 20.0));
 
 	for(i = 0; i < r_samples; i++) {
 		sample = inputBuffer[i];
-		if(CONFIG.m_audioGain != 0)
+		if(CONFIG.m_audioGainDb != 0)
 		{
-			if(CONFIG.m_audioGain < 0)
-			{
-				sample = (int)((double)sample / sqrt(fabs(CONFIG.m_audioGain)));
-			}
-			else
-			{
-				sample = (int)((double)sample * sqrt(fabs(CONFIG.m_audioGain)));
-			}
+			sample = sample * multiplier;
 		}
-		if(CONFIG.m_audioGainChannel1 != 0)
+		if(CONFIG.m_audioGainChannel1Db != 0)
 		{
 			if(outputDetails.m_channel == 1)
 			{
-				if(CONFIG.m_audioGainChannel1 < 0)
-				{
-					sample = (int)((double)sample / sqrt(fabs(CONFIG.m_audioGainChannel1)));
-				}
-				else
-				{
-					sample = (int)((double)sample * sqrt(fabs(CONFIG.m_audioGainChannel1)));
-				}
+				sample = sample * multiplier1;
 			}
 		}
-		if(CONFIG.m_audioGainChannel2 != 0)
+		if(CONFIG.m_audioGainChannel2Db != 0)
 		{
 			if(outputDetails.m_channel == 2)
 			{
-				if(CONFIG.m_audioGainChannel2 < 0)
-				{
-					sample = (int)((double)sample / sqrt(fabs(CONFIG.m_audioGainChannel2)));
-				}
-				else
-				{
-					sample = (int)((double)sample / sqrt(fabs(CONFIG.m_audioGainChannel2)));
-				}
+				sample = sample * multiplier2;
 			}
 		}
 
@@ -124,9 +112,9 @@ void AudioGainFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 		{
 			sample = -32768;
 		}
-		if(sample > 32768)
+		if(sample > 32767)
 		{
-			sample = 32768;
+			sample = 32767;
 		}
 
 		outputBuffer[i] = sample;

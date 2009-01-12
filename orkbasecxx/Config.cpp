@@ -73,9 +73,9 @@ Config::Config()
 	m_tapeDurationMinimumSec = TAPE_DURATION_MINIMUM_SEC_DEFAULT;
 	m_transcodingSleepEveryNumFrames = TRANSCODING_SLEEP_EVERY_NUM_FRAMES_DEFAULT;
 	m_transcodingSleepUs = TRANSCODING_SLEEP_US_DEFAULT;
-	m_audioGain = AUDIO_GAIN_DEFAULT;
-	m_audioGainChannel1 = AUDIO_GAIN_CHANNEL_1_DEFAULT;
-	m_audioGainChannel2 = AUDIO_GAIN_CHANNEL_2_DEFAULT;
+	m_audioGainDb = AUDIO_GAIN_DB_DEFAULT;
+	m_audioGainChannel1Db = AUDIO_GAIN_CHANNEL_1_DB_DEFAULT;
+	m_audioGainChannel2Db = AUDIO_GAIN_CHANNEL_2_DB_DEFAULT;
 	m_eventStreamingServerPort = STREAMING_SERVER_PORT_DEFAULT;
 }
 
@@ -154,9 +154,9 @@ void Config::Define(Serializer* s)
 	s->IntValue(TAPE_DURATION_MINIMUM_SEC_PARAM, m_tapeDurationMinimumSec);
 	s->IntValue(TRANSCODING_SLEEP_EVERY_NUM_FRAMES_PARAM, m_transcodingSleepEveryNumFrames);
 	s->IntValue(TRANSCODING_SLEEP_US_PARAM, m_transcodingSleepUs);
-	s->DoubleValue(AUDIO_GAIN_PARAM, m_audioGain);
-	s->DoubleValue(AUDIO_GAIN_CHANNEL_1_PARAM, m_audioGainChannel1);
-	s->DoubleValue(AUDIO_GAIN_CHANNEL_2_PARAM, m_audioGainChannel2);
+	s->DoubleValue(AUDIO_GAIN_DB_PARAM, m_audioGainDb);
+	s->DoubleValue(AUDIO_GAIN_CHANNEL_1_DB_PARAM, m_audioGainChannel1Db);
+	s->DoubleValue(AUDIO_GAIN_CHANNEL_2_DB_PARAM, m_audioGainChannel2Db);
 	s->IntValue(STREAMING_SERVER_PORT_PARAM, m_eventStreamingServerPort);
 }
 
