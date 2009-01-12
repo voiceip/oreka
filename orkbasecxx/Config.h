@@ -116,12 +116,12 @@
 #define TRANSCODING_SLEEP_EVERY_NUM_FRAMES_DEFAULT 0
 #define TRANSCODING_SLEEP_US_PARAM "TranscodingSleepUs"
 #define TRANSCODING_SLEEP_US_DEFAULT 0
-#define AUDIO_GAIN_PARAM "AudioGain"
-#define AUDIO_GAIN_DEFAULT 0
-#define AUDIO_GAIN_CHANNEL_1_PARAM "AudioGainChannel1"
-#define AUDIO_GAIN_CHANNEL_1_DEFAULT 0
-#define AUDIO_GAIN_CHANNEL_2_PARAM "AudioGainChannel2"
-#define AUDIO_GAIN_CHANNEL_2_DEFAULT 0
+#define AUDIO_GAIN_DB_PARAM "AudioGainDb"
+#define AUDIO_GAIN_DB_DEFAULT 0
+#define AUDIO_GAIN_CHANNEL_1_DB_PARAM "AudioGainChannel1Db"
+#define AUDIO_GAIN_CHANNEL_1_DB_DEFAULT 0
+#define AUDIO_GAIN_CHANNEL_2_DB_PARAM "AudioGainChannel2Db"
+#define AUDIO_GAIN_CHANNEL_2_DB_DEFAULT 0
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -187,9 +187,9 @@ public:
 	int m_tapeDurationMinimumSec;
 	int m_transcodingSleepEveryNumFrames;
 	int m_transcodingSleepUs;
-	double m_audioGain;
-	double m_audioGainChannel1;
-	double m_audioGainChannel2;
+	double m_audioGainDb;
+	double m_audioGainChannel1Db;
+	double m_audioGainChannel2Db;
 
 private:
 	log4cxx::LoggerPtr m_log;

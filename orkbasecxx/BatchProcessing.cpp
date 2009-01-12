@@ -288,12 +288,15 @@ void BatchProcessing::ThreadHandler(void *args)
 								numSamplesS1 += tmpChunkRef->GetNumSamples();
 							}
 						}
+
+						audiogain->AudioChunkIn(tmpChunkRef);
+						audiogain->AudioChunkOut(tmpChunkRef);
 						filter->AudioChunkIn(tmpChunkRef);
 						filter->AudioChunkOut(tmpChunkRef);
+					} else {
+						audiogain->AudioChunkIn(tmpChunkRef);
+						audiogain->AudioChunkOut(tmpChunkRef);
 					}
-
-					audiogain->AudioChunkIn(tmpChunkRef);
-					audiogain->AudioChunkOut(tmpChunkRef);
 
 					outFileRef->WriteChunk(tmpChunkRef);
 					if(tmpChunkRef.get())
@@ -340,16 +343,11 @@ void BatchProcessing::ThreadHandler(void *args)
 					filter->AudioChunkIn(stopChunk);
 					filter->AudioChunkOut(tmpChunkRef);
 
-					audiogain->AudioChunkIn(tmpChunkRef);
-					audiogain->AudioChunkOut(tmpChunkRef);
-
 					while(tmpChunkRef.get())
 					{
 						outFileRef->WriteChunk(tmpChunkRef);
 						numSamplesOut += tmpChunkRef->GetNumSamples();
 						filter->AudioChunkOut(tmpChunkRef);
-						audiogain->AudioChunkIn(tmpChunkRef);
-						audiogain->AudioChunkOut(tmpChunkRef);
 					}
 				}
 
