@@ -17,11 +17,11 @@
 #include "Filter.h"
 #include "G722.h"
 
-class DLL_IMPORT_EXPORT_ORKBASE G722Decoder : public Filter
+class DLL_IMPORT_EXPORT_ORKBASE G722ToPcmFilter : public Filter
 {
 public:
-	G722Decoder();
-	~G722Decoder();
+	G722ToPcmFilter();
+	~G722ToPcmFilter();
 
 	FilterRef __CDECL__ Instanciate();
 	void __CDECL__ AudioChunkIn(AudioChunkRef& chunk);
