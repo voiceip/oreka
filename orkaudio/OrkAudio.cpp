@@ -41,13 +41,11 @@
 #include "Filter.h"
 #include "GsmFilters.h"
 #include "IlbcFilters.h"
+#include "G722Codec.h"
 #include "filters/audiogain/AudioGain.h"
 #include "TapeProcessor.h"
 #include <list>
 #include "EventStreaming.h"
-#ifdef WIN32
-#include "G722Codec.h"
-#endif
 
 static volatile bool serviceStop = false;
 
@@ -156,10 +154,8 @@ void Transcode(CStdString &file)
 	FilterRegistry::instance()->RegisterFilter(filter);
 	filter.reset(new AudioGainFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
-#ifdef WIN32
-	filter.reset(new G722Decoder());
+	filter.reset(new G722ToPcmFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
-#endif
 
 	// Register in-built tape processors and build the processing chain
 	BatchProcessing::Initialize();
@@ -245,10 +241,8 @@ void MainThread()
 	FilterRegistry::instance()->RegisterFilter(filter);
 	filter.reset(new AudioGainFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
-#ifdef WIN32
-	filter.reset(new G722Decoder());
+	filter.reset(new G722ToPcmFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
-#endif
 
 	// Register in-built tape processors and build the processing chain
 	BatchProcessing::Initialize();

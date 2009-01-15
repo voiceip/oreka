@@ -16,34 +16,25 @@
 
 #include "G722Codec.h"
 
-static log4cxx::LoggerPtr s_log;
-static bool s_initialized = false;
-
-G722Decoder::G722Decoder()
+G722ToPcmFilter::G722ToPcmFilter()
 {
-#ifdef WIN32
-	if(s_initialized == false)
-	{
-		s_log = log4cxx::Logger::getLogger("codec.g722");
-	}
-#endif
 	// Initialize decoder
 	memset(&m_ctx, 0, sizeof(m_ctx));
 	g722_decode_init(&m_ctx, 64000, G722_SAMPLE_RATE_8000);
 }
 
-G722Decoder::~G722Decoder()
+G722ToPcmFilter::~G722ToPcmFilter()
 {
 	memset(&m_ctx, 0, sizeof(m_ctx));
 }
 
-FilterRef G722Decoder::Instanciate()
+FilterRef G722ToPcmFilter::Instanciate()
 {
-	FilterRef Filter(new G722Decoder());
+	FilterRef Filter(new G722ToPcmFilter());
 	return Filter;
 }
 
-void G722Decoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
+void G722ToPcmFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 {
 	int in_samples = 0;
 	int out_samples = 0;
@@ -82,55 +73,42 @@ void G722Decoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 	memcpy(outputBuffer, pcmdata, out_samples*2);
 }
 
-void G722Decoder::AudioChunkOut(AudioChunkRef& chunk)
+void G722ToPcmFilter::AudioChunkOut(AudioChunkRef& chunk)
 {
 	chunk = m_outputAudioChunk;
 }
 
-AudioEncodingEnum G722Decoder::GetInputAudioEncoding()
+AudioEncodingEnum G722ToPcmFilter::GetInputAudioEncoding()
 {
 	return G722Audio;
 }
 
-AudioEncodingEnum G722Decoder::GetOutputAudioEncoding()
+AudioEncodingEnum G722ToPcmFilter::GetOutputAudioEncoding()
 {
 	return PcmAudio;
 }
 
-CStdString G722Decoder::GetName()
+CStdString G722ToPcmFilter::GetName()
 {
 	return "G722ToPcm";
 }
 
-int G722Decoder::GetInputRtpPayloadType(void)
+int G722ToPcmFilter::GetInputRtpPayloadType(void)
 {
 	return 9;
 }
 
-void G722Decoder::CaptureEventIn(CaptureEventRef& event)
+void G722ToPcmFilter::CaptureEventIn(CaptureEventRef& event)
 {
 	;
 }
 
-void G722Decoder::CaptureEventOut(CaptureEventRef& event)
+void G722ToPcmFilter::CaptureEventOut(CaptureEventRef& event)
 {
 	;
 }
 
 //=====================================================================
-
-extern "C"
-{
-	DLL_EXPORT void __CDECL__ OrkInitialize()
-	{
-		s_log = log4cxx::Logger::getLogger("codec.g722");
-
-		FilterRef filter(new G722Decoder());
-		FilterRegistry::instance()->RegisterFilter(filter);
-		
-		LOG4CXX_INFO(s_log, "G.722 codec plugin initialized.");
-	}
-}
 
 /*
  * SpanDSP - a series of DSP components for telephony
