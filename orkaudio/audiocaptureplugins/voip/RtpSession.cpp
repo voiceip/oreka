@@ -1188,6 +1188,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 				if(session->m_onHold)
 				{
 					session->m_onHold = false;
+					session->m_lastUpdated = time(NULL);	// so that timeout countdown is reset
 					LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going off hold");
 					return;
 				}
@@ -1220,6 +1221,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			if(session->m_onHold)
 			{
 				session->m_onHold = false;
+				session->m_lastUpdated = time(NULL);	// so that timeout countdown is reset
 				LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going off hold");
 				return;
 			}
@@ -1972,6 +1974,7 @@ void RtpSessions::ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent
     if(session.get())
     {
 		session->m_onHold = false;
+		session->m_lastUpdated = time(NULL);	// so that timeout countdown is reset
 		logMsg.Format("[%s] Going off hold due to SoftKeyEvent: RESUME", session->m_trackingId);
 		LOG4CXX_INFO(m_log, logMsg);
     }
