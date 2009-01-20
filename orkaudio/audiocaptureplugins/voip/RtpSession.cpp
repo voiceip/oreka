@@ -464,7 +464,7 @@ bool RtpSession::MatchesReferenceAddresses(struct in_addr inAddr)
 	char szInAddr[16];
 
 	ACE_OS::inet_ntop(AF_INET, (void*)&inAddr, szInAddr, sizeof(szInAddr));
-	for(std::list<CStdString>::iterator it = DLLCONFIG.m_sipDirectionRefenceIpAddresses.begin(); it != DLLCONFIG.m_sipDirectionRefenceIpAddresses.end(); it++)
+	for(std::list<CStdString>::iterator it = DLLCONFIG.m_sipDirectionReferenceIpAddresses.begin(); it != DLLCONFIG.m_sipDirectionReferenceIpAddresses.end(); it++)
 	{
 		CStdString element = *it;
 
@@ -503,7 +503,7 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 		LOG4CXX_WARN(m_log,  "[" + m_trackingId + "] " + m_ipAndPort + " alien RTP packet");
 	}
 
-	if(DLLCONFIG.m_sipDirectionRefenceIpAddresses.size())
+	if(DLLCONFIG.m_sipDirectionReferenceIpAddresses.size())
 	{
 		if(MatchesReferenceAddresses(m_invite->m_senderIp))
 		{
