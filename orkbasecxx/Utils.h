@@ -78,7 +78,7 @@ bool DLL_IMPORT_EXPORT_ORKBASE FileCanOpen(CStdString& path);
 void DLL_IMPORT_EXPORT_ORKBASE FileRecursiveMkdir(CStdString& path, int permissions, CStdString owner, CStdString group, CStdString rootDirectory);
 int DLL_IMPORT_EXPORT_ORKBASE FileSetPermissions(CStdString filename, int permissions);
 int DLL_IMPORT_EXPORT_ORKBASE FileSetOwnership(CStdString filename, CStdString owner, CStdString group);
-
+void DLL_IMPORT_EXPORT_ORKBASE FileEscapeName(CStdString& in, CStdString& out);
 
 //=====================================================
 // threading related stuff

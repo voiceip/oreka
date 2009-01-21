@@ -838,6 +838,11 @@ void AudioTape::GenerateFinalFilePathAndIdentifier()
 
 		if(fileIdentifier.size() > 0)
 		{
+			CStdString newFileId;
+
+			FileEscapeName(fileIdentifier, newFileId);
+
+			fileIdentifier = newFileId;
 			m_fileIdentifier = fileIdentifier;
 		}
 	}
