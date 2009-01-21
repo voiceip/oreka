@@ -209,6 +209,28 @@ int FileSetOwnership(CStdString filename, CStdString owner, CStdString group)
 	return res;
 }
 
+static char file_ok_chars[] = "-.0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+static char hex_digits[17] = "0123456789ABCDEF";
+
+void FileEscapeName(CStdString& in, CStdString& out)
+{
+	// Translates all the characters that are not in file_ok_chars string into %xx sequences
+	// %xx specifies the character ascii code in hexadecimal
+	out = "";
+	for (int i = 0 ; i<in.size() ; i++)
+	{
+		if (strchr(file_ok_chars, in.GetAt(i)))
+		{
+			out += in.GetAt(i);
+		}
+		else
+		{
+			out += '%';
+			out += hex_digits[((unsigned char) in.GetAt(i)) >> 4];
+			out += hex_digits[in.GetAt(i) & 0x0F];
+		}
+	}
+}
 
 //=====================================================
 // TcpAddress

@@ -46,6 +46,8 @@ public:
 	bool m_telephoneEventPtDefined;
 	CStdString m_fromDomain;
 	CStdString m_toDomain;
+	CStdString m_fromName;
+	CStdString m_toName;
 
 	time_t m_recvTime;
 };
@@ -165,6 +167,7 @@ public:
 	CStdString m_localParty;
 	CStdString m_remoteParty;
 	CStdString m_localPartyName;
+	CStdString m_remotePartyName;
 	bool m_localPartyReported;
 	bool m_remotePartyReported;
 	bool m_rtcpLocalParty;

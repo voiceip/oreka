@@ -331,6 +331,19 @@ void RtpSession::ProcessMetadataSipIncoming()
 {
 	m_remoteParty = m_invite->m_from;
 	m_localParty = m_invite->m_to;
+
+	m_remotePartyName = m_invite->m_fromName;
+	m_localPartyName = m_invite->m_toName;
+
+	if(!m_remotePartyName.size())
+	{
+		m_remotePartyName = m_remoteParty;
+	}
+	if(!m_localPartyName.size())
+	{
+		m_localPartyName = m_localParty;
+	}
+
 	m_direction = CaptureEvent::DirIn;
 	char szInviteeIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_inviteeIp, szInviteeIp, sizeof(szInviteeIp));
@@ -346,6 +359,19 @@ void RtpSession::ProcessMetadataSipOutgoing()
 {
 	m_remoteParty = m_invite->m_to;
 	m_localParty = m_invite->m_from;
+
+	m_remotePartyName = m_invite->m_toName;
+	m_localPartyName = m_invite->m_fromName;
+
+	if(!m_remotePartyName.size())
+	{
+		m_remotePartyName = m_remoteParty;
+	}
+	if(!m_localPartyName.size())
+	{
+		m_localPartyName = m_localParty;
+	}
+
 	m_direction = CaptureEvent::DirOut;
 	char szInvitorIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_invitorIp, szInvitorIp, sizeof(szInvitorIp));
@@ -420,6 +446,19 @@ void RtpSession::UpdateMetadataSip(RtpPacketInfoRef& rtpPacket, bool sourceRtpAd
 		// Update session metadata with INVITE info
 		m_remoteParty = invite->m_from;
 		m_localParty = invite->m_to;
+
+		m_remotePartyName = m_invite->m_fromName;
+		m_localPartyName = m_invite->m_toName;
+
+		if(!m_remotePartyName.size())
+		{
+			m_remotePartyName = m_remoteParty;
+		}
+		if(!m_localPartyName.size())
+		{
+			m_localPartyName = m_localParty;
+		}
+
 		m_localIp = invite->m_receiverIp;
 		memcpy(m_localMac, invite->m_receiverMac, sizeof(m_localMac));
 
@@ -443,6 +482,27 @@ void RtpSession::UpdateMetadataSip(RtpPacketInfoRef& rtpPacket, bool sourceRtpAd
 		event->m_type = CaptureEvent::EtRemoteParty;
 		event->m_value = m_remoteParty;
 		g_captureEventCallBack(event, m_capturePort);
+
+		if(DLLCONFIG.m_sipReportNamesAsTags == true)
+		{
+			CStdString key, value;
+
+			key = "localname";
+			value = m_localPartyName;
+			event.reset(new CaptureEvent());
+			event->m_type = CaptureEvent::EtKeyValue;
+			event->m_key = key;
+			event->m_value = value;
+			g_captureEventCallBack(event, m_capturePort);
+
+			key = "remotename";
+			value = m_remotePartyName;
+			event.reset(new CaptureEvent());
+			event->m_type = CaptureEvent::EtKeyValue;
+			event->m_key = key;
+			event->m_value = value;
+			g_captureEventCallBack(event, m_capturePort);
+		}
 
 		// Report Local IP
 		char szLocalIp[16];
@@ -632,6 +692,27 @@ void RtpSession::ReportMetadata()
 	event->m_value = m_remoteParty;
 	g_captureEventCallBack(event, m_capturePort);
 	m_remotePartyReported = true;
+
+	if(DLLCONFIG.m_sipReportNamesAsTags == true)
+	{
+		CStdString key, value;
+
+		key = "localname";
+		value = m_localPartyName;
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtKeyValue;
+		event->m_key = key;
+		event->m_value = value;
+		g_captureEventCallBack(event, m_capturePort);
+
+		key = "remotename";
+		value = m_remotePartyName;
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtKeyValue;
+		event->m_key = key;
+		event->m_value = value;
+		g_captureEventCallBack(event, m_capturePort);
+	}
 
 	// Report direction
 	event.reset(new CaptureEvent());
@@ -2531,7 +2612,7 @@ void SipInviteInfo::ToString(CStdString& string)
 	MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
 	MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
 
-	string.Format("sender:%s from:%s@%s RTP:%s,%s to:%s@%s rcvr:%s callid:%s smac:%s rmac:%s", senderIp, m_from, m_fromDomain, fromRtpIp, m_fromRtpPort, m_to, m_toDomain, receiverIp, m_callId, senderMac, receiverMac);
+	string.Format("sender:%s from:%s@%s RTP:%s,%s to:%s@%s rcvr:%s callid:%s smac:%s rmac:%s fromname:%s toname:%s", senderIp, m_from, m_fromDomain, fromRtpIp, m_fromRtpPort, m_to, m_toDomain, receiverIp, m_callId, senderMac, receiverMac, m_fromName, m_toName);
 }
 
 //==========================================================

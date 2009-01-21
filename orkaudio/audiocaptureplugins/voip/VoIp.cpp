@@ -119,6 +119,18 @@ void memToHex(unsigned char* input, size_t len, CStdString&output)
 	}
 }
 
+static char* memFindStr(char* toFind, char* start, char* stop)
+{
+	for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop-ptr)))
+	{
+		if(strncasecmp(toFind, ptr, (strlen(toFind) > (stop-ptr) ? (stop-ptr) : strlen(toFind))) == 0)
+		{
+			return (ptr);
+		}
+	}
+	return NULL;
+}
+
 // find the address that follows the given search string between start and stop pointers - case insensitive
 char* memFindAfter(char* toFind, char* start, char* stop)
 {
@@ -237,6 +249,45 @@ void GrabSipUriDomain(char* in, char* limit, CStdString& out)
 
 	for(char *c = domainStart; (ACE_OS::ace_isalnum(*c) || *c == '.' || *c == '-' || *c == '_') && (c < limit); c = c+1)
 	{
+		out += *c;
+	}
+}
+
+void GrabSipName(char* in, char* limit, CStdString& out)
+{
+	char* nameStart = SkipWhitespaces(in, limit);
+	char* nameEnd = memFindStr("<sip:", nameStart, limit);
+
+	if(nameStart >= limit)
+	{
+		return;
+	}
+
+	if(nameEnd == NULL)
+	{
+		return;
+	}
+
+	if(nameEnd <= nameStart)
+	{
+		return;
+	}
+
+	// Get all characters before the <sip:
+	for(char *c = nameStart; c < nameEnd; c = c+1)
+	{
+		if(c == nameStart && *c == '"')
+		{
+			continue;
+		}
+		if(c+2 == nameEnd && *c == '"')
+		{
+			break;
+		}
+		if(c+1 == nameEnd && *c == ' ')
+		{
+			break;
+		}
 		out += *c;
 	}
 }
@@ -2026,6 +2077,11 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 
 			char* fromFieldEnd = memFindEOL(fromField, sipEnd);
 
+			if(DLLCONFIG.m_sipReportNamesAsTags == true)
+			{
+				GrabSipName(fromField, fromFieldEnd, info->m_fromName);
+			}
+
 			char* sipUser = memFindAfter("sip:", fromField, fromFieldEnd);
 			if(sipUser)
 			{
@@ -2057,6 +2113,11 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			CStdString to;
 			char* toFieldEnd = GrabLine(toField, sipEnd, to);
 			LOG4CXX_DEBUG(s_sipExtractionLog, "to: " + to);
+
+			if(DLLCONFIG.m_sipReportNamesAsTags == true)
+			{
+				GrabSipName(toField, toFieldEnd, info->m_toName);
+			}
 
 			char* sipUser = memFindAfter("sip:", toField, toFieldEnd);
 			if(sipUser)
