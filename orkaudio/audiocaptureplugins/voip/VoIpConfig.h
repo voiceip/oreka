@@ -113,6 +113,7 @@ public:
 	std::list<CStdString> m_sipDomains;
 	std::list<CStdString> m_sipDirectionReferenceIpAddresses;
 	IpRanges m_lanIpRanges;
+	IpRanges m_mediaAddressBlockedIpRanges;
 };
 
 //========================================
