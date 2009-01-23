@@ -123,7 +123,7 @@ static char* memFindStr(char* toFind, char* start, char* stop)
 {
 	for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop-ptr)))
 	{
-		if(strncasecmp(toFind, ptr, (strlen(toFind) > (stop-ptr) ? (stop-ptr) : strlen(toFind))) == 0)
+		if(ACE_OS::strncasecmp(toFind, ptr, (strlen(toFind) > (stop-ptr) ? (stop-ptr) : strlen(toFind))) == 0)
 		{
 			return (ptr);
 		}
