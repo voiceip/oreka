@@ -142,6 +142,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->CsvValue("SipDomains", m_sipDomains);
 	s->CsvValue("SipDirectionReferenceIpAddresses", m_sipDirectionReferenceIpAddresses);
 	s->IpRangesValue("LanIpRanges", m_lanIpRanges);
+	s->IpRangesValue("MediaAddressBlockedIpRanges", m_mediaAddressBlockedIpRanges);
 }
 
 void VoIpConfig::Validate()

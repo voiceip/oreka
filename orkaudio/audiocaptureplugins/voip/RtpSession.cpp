@@ -1732,6 +1732,17 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 	{
 		return;
 	}
+	if(DLLCONFIG.m_mediaAddressBlockedIpRanges.Matches(mediaIp))
+	{
+		char szMediaIp[16];
+		CStdString logMsg;
+		ACE_OS::inet_ntop(AF_INET, (void*)&mediaIp, szMediaIp, sizeof(szMediaIp));
+
+		logMsg.Format("[%s] %s,%d rejected by MediaAddressBlockedIpRanges", session->m_trackingId, szMediaIp, mediaPort);
+		LOG4CXX_INFO(m_log, logMsg);
+
+		return;
+	}
 
 	CStdString logMsg;
 	CStdString ipAndPort;
