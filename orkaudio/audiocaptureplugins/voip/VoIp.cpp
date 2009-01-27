@@ -3046,6 +3046,10 @@ pcap_t* VoIp::OpenDevice(CStdString& name)
 	if(m_pcapHandle)
 	{
 		error = ApplyPcapFilter();
+		if(error == NULL)
+		{
+			error = errorBuf;
+		}
 	}
 	if(m_pcapHandle == NULL)
 	{
@@ -3053,7 +3057,7 @@ pcap_t* VoIp::OpenDevice(CStdString& name)
 	}
 	else
 	{
-		logMsg.Format("Successfully opened device. pcap handle:%x", m_pcapHandle);
+		logMsg.Format("Successfully opened device. pcap handle:%x message:%s", m_pcapHandle, error);
 		LOG4CXX_INFO(s_packetLog, logMsg);
 		SetPcapSocketBufferSize(m_pcapHandle);
 	}
@@ -3113,6 +3117,10 @@ void VoIp::OpenDevices()
 					if(m_pcapHandle)
 					{
 						error = ApplyPcapFilter();
+						if(error == NULL)
+						{
+							error = errorBuf;
+						}
 					}
 					if(m_pcapHandle == NULL)
 					{
@@ -3123,7 +3131,7 @@ void VoIp::OpenDevices()
 						CStdString logMsg, deviceName;
 
 						deviceName = device->name;
-						logMsg.Format("Successfully opened device. pcap handle:%x", m_pcapHandle);
+						logMsg.Format("Successfully opened device. pcap handle:%x message:%s", m_pcapHandle, error);
 						LOG4CXX_INFO(s_packetLog, logMsg);
 						SetPcapSocketBufferSize(m_pcapHandle);
 
@@ -3147,6 +3155,10 @@ void VoIp::OpenDevices()
 					if(m_pcapHandle)
 					{
 						error = ApplyPcapFilter();
+						if(error == NULL)
+						{
+							error = errorBuf;
+						}
 					}
 					if(m_pcapHandle == NULL)
 					{
@@ -3157,7 +3169,7 @@ void VoIp::OpenDevices()
 					{
 						CStdString deviceName;
 
-						logMsg.Format("Successfully opened default device:%s pcap handle:%x", defaultDevice->name, m_pcapHandle);
+						logMsg.Format("Successfully opened default device:%s pcap handle:%x message:%s", defaultDevice->name, m_pcapHandle, error);
 						LOG4CXX_INFO(s_packetLog, logMsg);
 						SetPcapSocketBufferSize(m_pcapHandle);
 
