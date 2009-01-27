@@ -3033,24 +3033,21 @@ CStdString VoIp::GetPcapDeviceName(pcap_t* pcapHandle)
 
 pcap_t* VoIp::OpenDevice(CStdString& name)
 {
-	char error[PCAP_ERRBUF_SIZE];
-	char *perror = NULL;
+	char errorBuf[PCAP_ERRBUF_SIZE];
+	memset(errorBuf, 0, sizeof(errorBuf));
+	char * error = errorBuf;
+
 	MutexSentinel mutexSentinel(m_pcapDeviceMapMutex);
 	CStdString logMsg;
 
 	m_pcapHandle = NULL;
-	memset(error, 0, sizeof(error));
-	m_pcapHandle = pcap_open_live((char*)name.c_str(), 1500, PROMISCUOUS, 500, error);
+	m_pcapHandle = pcap_open_live((char*)name.c_str(), 1500, PROMISCUOUS, 500, errorBuf);
 
-	if(!strlen(error))
+	if(m_pcapHandle)
 	{
-		perror = ApplyPcapFilter();
-		if(perror != NULL)
-		{
-			snprintf(error, PCAP_ERRBUF_SIZE, "%s", perror);
-		}
+		error = ApplyPcapFilter();
 	}
-	if(strlen(error))
+	if(m_pcapHandle == NULL)
 	{
 		LOG4CXX_ERROR(s_packetLog, CStdString("pcap error when opening device; error message:") + error);
 	}
@@ -3076,11 +3073,15 @@ void VoIp::OpenDevices()
 	s_numPacketsPerSecond = 0;
 	s_minPacketsPerSecond = 0;
 	s_maxPacketsPerSecond = 0;
+	m_pcapHandle = NULL;
 
 	CStdString logMsg;
 
-	char * error = NULL;
-	if (pcap_findalldevs(&devices, error) == -1)
+	char errorBuf[PCAP_ERRBUF_SIZE];
+	memset(errorBuf, 0, sizeof(errorBuf));
+	char * error = errorBuf;
+
+	if (pcap_findalldevs(&devices, errorBuf) == -1)
 	{
 		LOG4CXX_ERROR(s_packetLog, CStdString("pcap error when discovering devices: ") + error);
 	}
@@ -3107,13 +3108,13 @@ void VoIp::OpenDevices()
 				if(DLLCONFIG.IsDeviceWanted(device->name))
 				{
 					// Open device
-					m_pcapHandle = pcap_open_live(device->name, 1500, PROMISCUOUS, 500, error);
+					m_pcapHandle = pcap_open_live(device->name, 1500, PROMISCUOUS, 500, errorBuf);
 					
-					if(error == NULL)
+					if(m_pcapHandle)
 					{
 						error = ApplyPcapFilter();
 					}
-					if(error)
+					if(m_pcapHandle == NULL)
 					{
 						LOG4CXX_ERROR(s_packetLog, CStdString("pcap error when opening device; error message:") + error);
 					}
@@ -3135,21 +3136,21 @@ void VoIp::OpenDevices()
 			{
 				if(DLLCONFIG.m_devices.size() > 0)
 				{
-					LOG4CXX_ERROR(s_packetLog, "Could not find any of the devices listed in config file");
+					LOG4CXX_ERROR(s_packetLog, "Could not find any of the devices listed in config file or error, trying default device...");
 				}
 
 				// Let's open the default device
 				if(defaultDevice)
 				{
-					m_pcapHandle = pcap_open_live(defaultDevice->name, 1500, PROMISCUOUS, 500, error);
+					m_pcapHandle = pcap_open_live(defaultDevice->name, 1500, PROMISCUOUS, 500, errorBuf);
 
-					if(error == NULL)
+					if(m_pcapHandle)
 					{
 						error = ApplyPcapFilter();
 					}
-					if(error)
+					if(m_pcapHandle == NULL)
 					{
-						logMsg.Format("pcap error when opening default device:%s", defaultDevice->name);
+						logMsg.Format("pcap error when opening default device:%s error message:", defaultDevice->name, error);
 						LOG4CXX_ERROR(s_packetLog, logMsg);
 					}
 					else
