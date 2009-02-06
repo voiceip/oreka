@@ -2362,10 +2362,10 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		{
 			// Extract Calling and Called number.
 			CStdString callingParty;
-			int partiesLen = 0;
+			long partiesLen = 0;
 			char* parties = (char*)(&ccm5CallInfo->parties);
 
-			partiesLen = (int)packetEnd - (int)ccm5CallInfo - sizeof(SkCcm5CallInfoStruct);
+			partiesLen = (long)packetEnd - (long)ccm5CallInfo - sizeof(SkCcm5CallInfoStruct);
 			GrabToken(parties, parties+partiesLen, callingParty);
 			CStdString calledParty;
 			GrabToken(parties+callingParty.size()+1, parties+partiesLen, calledParty);

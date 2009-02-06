@@ -154,7 +154,7 @@ bool SkinnyValidateCallInfo(SkCallInfoStruct* sci, u_char* packetEnd)
 
 bool SkinnyValidateCcm5CallInfo(SkCcm5CallInfoStruct *sci, u_char* packetEnd)
 {
-	int partiesLen = 0;
+	long partiesLen = 0;
 	bool valid = true;
 	if(((u_char*)sci + sizeof(SkCcm5CallInfoStruct)) > packetEnd)
 	{
@@ -164,7 +164,7 @@ bool SkinnyValidateCcm5CallInfo(SkCcm5CallInfoStruct *sci, u_char* packetEnd)
 	{
 		valid = false;
 	}
-	partiesLen = (int)packetEnd - (int)sci - sizeof(SkCcm5CallInfoStruct);
+	partiesLen = (long)packetEnd - (long)sci - sizeof(SkCcm5CallInfoStruct);
 	if(valid)
 	{
 		valid = checkPartyString(sci->parties, partiesLen);
