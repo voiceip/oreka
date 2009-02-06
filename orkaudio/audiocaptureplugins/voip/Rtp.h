@@ -50,8 +50,8 @@ public:
 	void ToString(CStdString& string);
 
 	unsigned short m_event;
-	unsigned short m_e;
-	unsigned short m_r;
+	unsigned short m_end;
+	unsigned short m_reserved;
 	unsigned short m_volume;
 	unsigned short m_duration;
 	unsigned int m_startTimestamp;

@@ -45,7 +45,8 @@ void RtpPacketInfo::ToString(CStdString& string)
 
 void RtpEventInfo::ToString(CStdString& string)
 {
-	string.Format("event:%d e:%d r:%d volume:%d duration:%d timestamp:%u", m_event, m_e, m_r, m_volume, m_duration, m_startTimestamp);
+	string.Format("digit:%d duration:%d end:%d timestamp:%u volume:%d reserved:%d", 
+		m_event, m_duration, m_end, m_startTimestamp, m_volume, m_reserved);
 }
 
 void RtcpSrcDescriptionPacketInfo::ToString(CStdString& string)

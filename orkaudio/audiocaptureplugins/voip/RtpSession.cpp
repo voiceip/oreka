@@ -781,7 +781,7 @@ void RtpSession::RecordRtpEvent()
 	event->m_value = dtmfEventString;
 	g_captureEventCallBack(event, m_capturePort);
 
-	//LOG4CXX_INFO(m_log, "[" + m_trackingId + "] Recording RTP event [ " + dtmfEventString + " ]");
+	LOG4CXX_INFO(m_log, "[" + m_trackingId + "] RTP DTMF event [ " + dtmfEventString + " ]");
 }
 
 void RtpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket)
@@ -798,17 +798,25 @@ void RtpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket)
 	RtpEventInfoRef rtpEventInfo(new RtpEventInfo());
 
 	rtpEventInfo->m_event = (unsigned short)payloadFormat->event;
-	rtpEventInfo->m_e = (payloadFormat->er_volume & 0x80) ? 1 : 0;
-	rtpEventInfo->m_r = (payloadFormat->er_volume & 0x40) ? 1 : 0;
+	rtpEventInfo->m_end = (payloadFormat->er_volume & 0x80) ? 1 : 0;
+	rtpEventInfo->m_reserved = (payloadFormat->er_volume & 0x40) ? 1 : 0;
 	rtpEventInfo->m_volume = (unsigned short)(payloadFormat->er_volume & 0x3F);
 	rtpEventInfo->m_duration = ntohs(payloadFormat->duration);
 	rtpEventInfo->m_startTimestamp = rtpPacket->m_timestamp;
+
+	if(m_log->isDebugEnabled())
+	{
+		CStdString eventString;
+		rtpEventInfo->ToString(eventString);
+		logMsg.Format("[%s] RTP DTMF Event Packet: %s", m_trackingId, eventString);
+		LOG4CXX_DEBUG(m_log, logMsg);
+	}
 
 	if((m_currentRtpEvent != 65535) && (m_currentRtpEvent != rtpEventInfo->m_event))
 	{
 		RecordRtpEvent();
 	}
-	else if(rtpEventInfo->m_e)
+	else if(rtpEventInfo->m_end)
 	{
 		if((m_currentRtpEvent != 65535))
 		{
@@ -834,7 +842,7 @@ void RtpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket)
 		RecordRtpEvent();
 	}
 
-	if(!rtpEventInfo->m_e)
+	if(!rtpEventInfo->m_end)
 	{
 		m_currentRtpEvent = rtpEventInfo->m_event;
 	}

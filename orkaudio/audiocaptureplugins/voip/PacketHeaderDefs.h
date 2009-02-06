@@ -97,7 +97,7 @@ typedef struct
 typedef struct
 {
 	unsigned char event;
-	unsigned char er_volume;
+	unsigned char er_volume;	// Also contains end and error booleans on bit 8 and 7 respectively.
 	unsigned short duration;
 } RtpEventPayloadFormat;
 
