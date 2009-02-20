@@ -1596,13 +1596,14 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 	startTcpPayload = (u_char*)tcpHeader + (tcpHeader->off * 4);
 	tcpLengthPayloadLength = ((u_char*)ipHeader+ntohs(ipHeader->ip_len)) - startTcpPayload;
 
-        if(tcpLengthPayloadLength < SIP_METHOD_INVITE_SIZE+3)
-        {
-		LOG4CXX_INFO(s_sipTcpPacketLog, "Payload shorter");
-                return false;
-        }
+    if(tcpLengthPayloadLength < SIP_METHOD_INVITE_SIZE+3)
+    {
+		LOG4CXX_DEBUG(s_sipTcpPacketLog, "Payload shorter");
+		return false;
+    }
 
 	if((memcmp(SIP_METHOD_INVITE, (void*)startTcpPayload, SIP_METHOD_INVITE_SIZE) == 0) ||
+	   (memcmp(SIP_METHOD_ACK, (void*)startTcpPayload, SIP_METHOD_ACK_SIZE) == 0) ||
 	   (memcmp(SIP_METHOD_BYE, (void*)startTcpPayload, SIP_METHOD_BYE_SIZE) == 0) ||
 	   (memcmp("SIP/2.0 4", (void*)startTcpPayload, 9) == 0) ||
 	   (memcmp("SIP/2.0 5", (void*)startTcpPayload, 9) == 0) ||
@@ -2032,14 +2033,28 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 {
 	bool result = false;
 	bool drop = false;
-        
+	CStdString sipMethod;
+
 	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
 	char* sipEnd = (char*)udpPayload + sipLength;
-	if(sipLength < SIP_METHOD_INVITE_SIZE || sipEnd > (char*)packetEnd)
+	if(sipLength < 3 || sipEnd > (char*)packetEnd)
 	{
-		;	// packet too short
+		drop = true;	// packet too short
 	}
-	else if (memcmp(SIP_METHOD_INVITE, (void*)udpPayload, SIP_METHOD_INVITE_SIZE) == 0)
+	else if(memcmp(SIP_METHOD_INVITE, (void*)udpPayload, SIP_METHOD_INVITE_SIZE) == 0)
+	{
+		sipMethod = SIP_METHOD_INVITE;
+	}
+	else if(memcmp(SIP_METHOD_ACK, (void*)udpPayload, SIP_METHOD_ACK_SIZE) == 0)
+	{
+		sipMethod = SIP_METHOD_ACK;
+	}
+	else
+	{
+		drop = true;
+	}
+
+	if (drop == false)
 	{
 		result = true;
 
@@ -2265,7 +2280,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 
 		CStdString logMsg;
 		info->ToString(logMsg);
-		logMsg = "INVITE: " + logMsg;
+		logMsg = sipMethod + ": " + logMsg;
 		LOG4CXX_INFO(s_sipPacketLog, logMsg);
 
 		if(drop == false && info->m_fromRtpPort.size() && info->m_from.size() && info->m_to.size() && info->m_callId.size())
