@@ -76,8 +76,8 @@ ObjectRef RecordMsg::Process()
 	ObjectRef ref(msg);
 	CStdString logMsg;
 
-	logMsg.Format("Starting capture for party:%s orkuid:%s", m_party, m_orkuid);
 	CapturePluginProxy::Singleton()->StartCapture(m_party, m_orkuid);
+	logMsg.Format("Starting capture for party:%s orkuid:%s", m_party, m_orkuid);
 	msg->m_success = true;
 	msg->m_comment = logMsg;
 

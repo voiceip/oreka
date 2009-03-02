@@ -1221,6 +1221,11 @@ void RtpSession::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct
 	}
 }
 
+CStdString RtpSession::GetOrkUid()
+{
+	return m_orkUid;
+}
+
 //=====================================================================
 RtpSessions::RtpSessions()
 {
@@ -2516,12 +2521,13 @@ void RtpSessions::StartCaptureOrkuid(CStdString& orkuid)
 	LOG4CXX_INFO(m_log, logMsg);
 }
 
-void RtpSessions::StartCapture(CStdString& party)
+CStdString RtpSessions::StartCapture(CStdString& party)
 {
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
 	RtpSessionRef session;
+	CStdString orkUid = CStdString("");
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
 	{
@@ -2531,6 +2537,7 @@ void RtpSessions::StartCapture(CStdString& party)
 		{
 			session->m_keep = true;
 			found = true;
+			orkUid = session->GetOrkUid();
 		}
 	}
 
@@ -2544,6 +2551,8 @@ void RtpSessions::StartCapture(CStdString& party)
 	}
 	
 	LOG4CXX_INFO(m_log, logMsg);
+
+	return orkUid;
 }
 
 void RtpSessions::PauseCapture(CStdString& party)
