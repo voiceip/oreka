@@ -3335,7 +3335,7 @@ void __CDECL__ StartCapture(CStdString& party, CStdString& orkuid)
 	}
 	else
 	{
-		RtpSessionsSingleton::instance()->StartCapture(party);
+		orkuid = RtpSessionsSingleton::instance()->StartCapture(party);
 	}
 }
 

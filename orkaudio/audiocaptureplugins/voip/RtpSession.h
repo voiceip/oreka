@@ -153,6 +153,7 @@ public:
 	bool PartyMatches(CStdString &party);
 	void UpdateMetadataSkinny();
 	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader);
+	CStdString GetOrkUid();
 
 	CStdString m_capturePort;
 	CStdString m_trackingId;
@@ -259,7 +260,7 @@ public:
 	void ReportSipSessionProgress(SipSessionProgressInfoRef& info);
 	void Hoover(time_t now);
 	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp);
-	void StartCapture(CStdString& party);
+	CStdString StartCapture(CStdString& party);
 	void StartCaptureOrkuid(CStdString& orkuid);
 	void PauseCapture(CStdString& party);
 	void PauseCaptureOrkuid(CStdString& orkuid);
