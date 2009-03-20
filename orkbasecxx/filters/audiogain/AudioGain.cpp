@@ -21,7 +21,7 @@ AudioGainFilter::AudioGainFilter()
 {
 	m_log = Logger::getLogger("audiogain");
 	m_numEncodingErrors = 0;
-	LOG4CXX_INFO(this->m_log, "Initialized AudioGain filter");
+	LOG4CXX_DEBUG(this->m_log, "Initialized AudioGain filter");
 }
 
 AudioGainFilter::~AudioGainFilter()
@@ -32,7 +32,7 @@ AudioGainFilter::~AudioGainFilter()
 		logMsg.Format("Encoding error happened %d time(s)", m_numEncodingErrors);
 		LOG4CXX_WARN(m_log, logMsg);
 	}
-	LOG4CXX_INFO(this->m_log, "Decommissioned AudioGain filter");
+	LOG4CXX_DEBUG(this->m_log, "Decommissioned AudioGain filter");
 }
 
 FilterRef AudioGainFilter::Instanciate()

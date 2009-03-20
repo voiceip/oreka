@@ -171,17 +171,19 @@ void Reporting::AddTapeMessage(MessageRef& messageRef)
 		// Copy the tags!
 		std::copy(pTapeMsg->m_tags.begin(), pTapeMsg->m_tags.end(), std::inserter(pRptTapeMsg->m_tags, pRptTapeMsg->m_tags.begin()));
 
+		CStdString msgAsSingleLineString = reportingMsgRef->SerializeSingleLine();
+
 		if(reportingThread->m_messageQueue.push(reportingMsgRef))
 		{
 			reportingThread->m_queueFullError = false;
-			logMsg.Format("[%s] added %s tape message to queue: %s", reportingThread->m_threadId, pTapeMsg->m_stage, pTapeMsg->m_recId);
+			logMsg.Format("[%s] enqueued: %s", reportingThread->m_threadId, msgAsSingleLineString);
 			LOG4CXX_INFO(LOG.reportingLog, logMsg);
 		}
 		else
 		{
 			if(reportingThread->m_queueFullError == false)
 			{
-				logMsg.Format("[%s] queue full, could not add tape message %s", reportingThread->m_threadId, pTapeMsg->m_recId);
+				logMsg.Format("[%s] queue full, rejected: %s", reportingThread->m_threadId, msgAsSingleLineString);
 				LOG4CXX_WARN(LOG.reportingLog, logMsg);
 				reportingThread->m_queueFullError = true;
 			}
@@ -332,7 +334,7 @@ void ReportingThread::Run()
 					}
 
 					CStdString msgAsSingleLineString = msgRef->SerializeSingleLine();
-					LOG4CXX_INFO(LOG.reportingLog, "[" + m_threadId + "] " + msgAsSingleLineString);
+					LOG4CXX_INFO(LOG.reportingLog, "[" + m_threadId + "] sending: " + msgAsSingleLineString);
 
 					OrkHttpSingleLineClient c;
 					TapeResponseRef tr(new TapeResponse());
