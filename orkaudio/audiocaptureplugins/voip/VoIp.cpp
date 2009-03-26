@@ -2361,7 +2361,9 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		{
 			if(s_skinnyPacketLog->isInfoEnabled())
 			{
-				logMsg.Format(" CallId:%u calling:%s called:%s line:%d", callInfo->callId, callInfo->callingParty, callInfo->calledParty, callInfo->lineInstance);
+				logMsg.Format(" CallId:%u calling:%s called:%s callingname:%s calledname:%s line:%d", 
+								callInfo->callId, callInfo->callingParty, callInfo->calledParty, 
+								callInfo->callingPartyName, callInfo->calledPartyName, callInfo->lineInstance);
 			}
 			RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(callInfo, ipHeader);
 		}
@@ -2386,21 +2388,24 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			GrabToken(parties+callingParty.size()+1, parties+partiesLen, calledParty);
 			CStdString callingPartyName;
 
-			if(DLLCONFIG.m_skinnyNameAsLocalParty)
+			// It appears that the calling party name is the 9th token.
+			// Tokens separated by a single null char. Multiple sequential null chars result in empty tokens.
+			// further tokens seem to be the called party name but not exploited so far.
+			int tokenNr = 0;
+			char *partiesPtr = NULL;
+			partiesPtr = parties;
+			while(tokenNr < 9 && partiesPtr < parties+partiesLen)
 			{
-				// It appears that the calling party name is the 9th token
-				int tokenNr = 0;
-				char *partiesPtr = NULL;
-
-				partiesPtr = parties;
-				while(tokenNr < 9 && partiesPtr < parties+partiesLen)
+				callingPartyName = "";
+				GrabTokenAcceptSpace(partiesPtr, parties+partiesLen, callingPartyName);
+				if(s_skinnyPacketLog->isDebugEnabled())
 				{
-					callingPartyName = "";
-					GrabTokenAcceptSpace(partiesPtr, parties+partiesLen, callingPartyName);
-					partiesPtr += callingPartyName.size() + 1;
-					tokenNr += 1;
+					logMsg = logMsg + callingPartyName + ", ";
 				}
+				partiesPtr += callingPartyName.size() + 1;
+				tokenNr += 1;
 			}
+			LOG4CXX_DEBUG(s_skinnyPacketLog, "parties tokens:" + logMsg);
 
 			// Emulate a regular CCM CallInfo message
 			SkCallInfoStruct callInfo;
@@ -2411,16 +2416,9 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			callInfo.lineInstance = 0;
 			callInfo.calledPartyName[0] = '\0';
 
-			if(DLLCONFIG.m_skinnyNameAsLocalParty)
+			if(callingPartyName.size())
 			{
-				if(callingPartyName.size())
-				{
-					strncpy(callInfo.callingPartyName, (PCSTR)callingPartyName, sizeof(callInfo.callingPartyName));
-				}
-				else
-				{
-					callInfo.callingPartyName[0] = '\0';
-				}
+				strncpy(callInfo.callingPartyName, (PCSTR)callingPartyName, sizeof(callInfo.callingPartyName));
 			}
 			else
 			{
@@ -2429,7 +2427,8 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 
 			if(s_skinnyPacketLog->isInfoEnabled())
 			{
-				logMsg.Format(" CallId:%u calling:%s called:%s", callInfo.callId, callInfo.callingParty, callInfo.calledParty);
+				logMsg.Format(" CallId:%u calling:%s called:%s callingname:%s", callInfo.callId, 
+								callInfo.callingParty, callInfo.calledParty, callingPartyName);
 			}
 			RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(&callInfo, ipHeader);
 		}
