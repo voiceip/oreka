@@ -58,8 +58,8 @@ VoIpConfig::VoIpConfig()
 
 	m_skinnyIgnoreStopMediaTransmission = false;
 	m_skinnyIgnoreOpenReceiveChannelAck = false;
-	m_skinnyDynamicMediaAddress = false;
-	m_skinnyAllowCallInfoUpdate = false;
+	m_skinnyDynamicMediaAddress = true;
+	m_skinnyAllowCallInfoUpdate = true;
 	m_skinnyAllowLateCallInfo = false;
 	m_skinnyNameAsLocalParty = false;
 	m_skinnyCallInfoStopsPrevious = false;
