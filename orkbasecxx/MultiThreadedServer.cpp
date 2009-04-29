@@ -219,6 +219,8 @@ int HttpServer::svc(void)
 					CStdString httpOk("HTTP/1.0 200 OK\r\nContent-type: text/xml\r\n\r\n");
 					peer().send(httpOk, httpOk.GetLength());
 					peer().send(pingResponse, pingResponse.GetLength());
+
+					myDoc->release();
 				}
 			}
 			else
