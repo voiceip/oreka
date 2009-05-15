@@ -329,8 +329,19 @@ bool RtpSession::IsInSkinnyReportingList(CStdString item)
 
 void RtpSession::ProcessMetadataSipIncoming()
 {
-	m_remoteParty = m_invite->m_from;
-	m_localParty = m_invite->m_to;
+	if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0))
+	{
+		m_localParty = m_invite->m_requestUri;
+		m_remoteParty = m_invite->m_from;
+		m_direction = CaptureEvent::DirIn;
+		m_localEntryPoint = m_invite->m_to;
+	}
+	else
+	{
+		m_remoteParty = m_invite->m_from;
+		m_localParty = m_invite->m_to;
+		m_direction = CaptureEvent::DirIn;
+	}
 
 	m_remotePartyName = m_invite->m_fromName;
 	m_localPartyName = m_invite->m_toName;
@@ -344,7 +355,6 @@ void RtpSession::ProcessMetadataSipIncoming()
 		m_localPartyName = m_localParty;
 	}
 
-	m_direction = CaptureEvent::DirIn;
 	char szInviteeIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_inviteeIp, szInviteeIp, sizeof(szInviteeIp));
 	//m_capturePort.Format("%s,%d", szInviteeIp, m_inviteeTcpPort);
@@ -357,8 +367,19 @@ void RtpSession::ProcessMetadataSipIncoming()
 
 void RtpSession::ProcessMetadataSipOutgoing()
 {
-	m_remoteParty = m_invite->m_to;
-	m_localParty = m_invite->m_from;
+	if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0))
+	{
+		m_localParty = m_invite->m_requestUri;
+		m_remoteParty = m_invite->m_from;
+		m_direction = CaptureEvent::DirIn;
+		m_localEntryPoint = m_invite->m_to;
+	}
+	else
+	{
+		m_remoteParty = m_invite->m_to;
+		m_localParty = m_invite->m_from;
+		m_direction = CaptureEvent::DirOut;
+	}
 
 	m_remotePartyName = m_invite->m_toName;
 	m_localPartyName = m_invite->m_fromName;
@@ -444,8 +465,18 @@ void RtpSession::UpdateMetadataSip(RtpPacketInfoRef& rtpPacket, bool sourceRtpAd
 		invite->m_validated = true;
 
 		// Update session metadata with INVITE info
-		m_remoteParty = invite->m_from;
-		m_localParty = invite->m_to;
+		if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0))
+		{
+			m_localParty = m_invite->m_requestUri;
+			m_remoteParty = m_invite->m_from;
+			m_direction = CaptureEvent::DirIn;
+			m_localEntryPoint = m_invite->m_to;
+		}
+		else
+		{
+			m_remoteParty = invite->m_from;
+			m_localParty = invite->m_to;
+		}
 
 		m_remotePartyName = m_invite->m_fromName;
 		m_localPartyName = m_invite->m_toName;
@@ -692,6 +723,15 @@ void RtpSession::ReportMetadata()
 	event->m_value = m_remoteParty;
 	g_captureEventCallBack(event, m_capturePort);
 	m_remotePartyReported = true;
+
+	// Report local entry point
+	if(m_localEntryPoint.size())
+	{
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtLocalEntryPoint;
+		event->m_value = m_localEntryPoint;
+		g_captureEventCallBack(event, m_capturePort);
+	}
 
 	if(DLLCONFIG.m_sipReportNamesAsTags == true)
 	{

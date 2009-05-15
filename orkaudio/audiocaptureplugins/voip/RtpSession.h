@@ -39,6 +39,7 @@ public:
 	CStdString m_from;
 	CStdString m_to;
 	CStdString m_callId;
+	CStdString m_requestUri;
 	bool m_validated;		// true when an RTP stream has been seen for the INVITE
 	bool m_attrSendonly;		// true if the SDP has a:sendonly
 	std::map<CStdString, CStdString> m_extractedFields;
@@ -167,6 +168,7 @@ public:
 	ProtocolEnum m_protocol;
 	CStdString m_localParty;
 	CStdString m_remoteParty;
+	CStdString m_localEntryPoint;
 	CStdString m_localPartyName;
 	CStdString m_remotePartyName;
 	bool m_localPartyReported;
