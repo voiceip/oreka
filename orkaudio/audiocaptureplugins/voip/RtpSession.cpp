@@ -393,7 +393,6 @@ void RtpSession::ProcessMetadataSipOutgoing()
 		m_localPartyName = m_localParty;
 	}
 
-	m_direction = CaptureEvent::DirOut;
 	char szInvitorIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_invitorIp, szInvitorIp, sizeof(szInvitorIp));
 	//m_capturePort.Format("%s,%d", szInvitorIp, m_invitorTcpPort);
