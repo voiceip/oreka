@@ -48,6 +48,7 @@ VoIpConfig::VoIpConfig()
 	m_sipDynamicMediaAddress = false;
 	m_sipIgnoreBye = false;
 	m_sipReportNamesAsTags = false;
+	m_sipRequestUriAsLocalParty = true;
 
 	m_rtcpDetect = false;
 	m_inInMode = false;
@@ -118,6 +119,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->IpRangesValue("SipIgnoredMediaAddresses", m_sipIgnoredMediaAddresses);
 	s->BoolValue("SipIgnoreBye", m_sipIgnoreBye);
 	s->BoolValue("SipReportNamesAsTags", m_sipReportNamesAsTags);
+	s->BoolValue("SipRequestUriAsLocalParty", m_sipRequestUriAsLocalParty);
 
 	s->BoolValue("RtcpDetect", m_rtcpDetect);
 	s->BoolValue("InInMode", m_inInMode);

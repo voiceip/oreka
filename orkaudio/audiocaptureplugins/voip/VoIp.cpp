@@ -2081,6 +2081,52 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		char* attribSendonly = memFindAfter("a=sendonly", (char*)udpPayload, sipEnd);
 		char* rtpmapAttribute = memFindAfter("\na=rtpmap:", (char*)udpPayload, sipEnd);
 
+		if(DLLCONFIG.m_sipRequestUriAsLocalParty == true)
+		{
+			char* sipUriAttribute = memFindAfter("INVITE ", (char*)udpPayload, sipEnd);
+
+			if(sipUriAttribute)
+			{
+				if(s_sipExtractionLog->isDebugEnabled())
+				{
+					CStdString uri;
+					GrabLine(sipUriAttribute, sipEnd, uri);
+					LOG4CXX_DEBUG(s_sipExtractionLog, "uri: " + uri);
+				}
+
+				char* sipUriAttributeEnd = memFindEOL(sipUriAttribute, sipEnd);
+				char* sipUser = memFindAfter("sip:", sipUriAttribute, sipUriAttributeEnd);
+
+				if(sipUser)
+				{
+					if(DLLCONFIG.m_sipReportFullAddress)
+					{
+						GrabSipUserAddress(sipUser, sipUriAttributeEnd, info->m_requestUri);
+					}
+					else
+					{
+						GrabSipUriUser(sipUser, sipUriAttributeEnd, info->m_requestUri);
+					}
+				}
+				else
+				{
+					if(DLLCONFIG.m_sipReportFullAddress)
+					{
+						GrabSipUserAddress(sipUriAttribute, sipUriAttributeEnd, info->m_requestUri);
+					}
+					else
+					{
+						GrabSipUriUser(sipUriAttribute, sipUriAttributeEnd, info->m_requestUri);
+					}
+				}
+
+				if(s_sipExtractionLog->isDebugEnabled())
+				{
+					LOG4CXX_DEBUG(s_sipExtractionLog, "extracted uri: " + info->m_requestUri);
+				}
+			}
+		}
+
 		if(fromField)
 		{
 			if(s_sipExtractionLog->isDebugEnabled())
