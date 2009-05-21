@@ -84,6 +84,7 @@ AudioTape::AudioTape(CStdString &portId)
 	m_bytesWritten = 0;
 	m_lastLogWarning = 0;
 	m_passedPartyFilterTest = false;
+	m_numErrors = 0;
 
 	GenerateCaptureFilePathAndIdentifier();
 }
@@ -128,7 +129,7 @@ void AudioTape::Write()
 		if(!m_passedPartyFilterTest)
 		{
 			logMsg.Format("[%s] rejected by PartyFilter", m_trackingId);
-			LOG4CXX_INFO(LOG.portLog, logMsg);
+			LOG4CXX_INFO(LOG.tapeLog, logMsg);
 		}
 	}
 
@@ -227,7 +228,7 @@ void AudioTape::Write()
 							CStdString logMsg;
 
 							logMsg.Format("[%s] capture file %s.mcf is over size limit (%u KBytes) - ignoring new data", m_trackingId, GetIdentifier(), CONFIG.m_captureFileSizeLimitKb);
-							LOG4CXX_INFO(LOG.portLog, logMsg);
+							LOG4CXX_ERROR(LOG.tapeLog, logMsg);
 							m_lastLogWarning = time(NULL);
 						}
 					}
@@ -242,14 +243,20 @@ void AudioTape::Write()
 						// Compute RMS, RMS dB and log
 						CStdString rmsString;
 						rmsString.Format("%.1f dB:%.1f", chunkRef.get()->ComputeRms(), chunkRef.get()->ComputeRmsDb());
-						LOG4CXX_INFO(LOG.portLog, "[" + m_trackingId + "] RMS: " + rmsString);
+						LOG4CXX_INFO(LOG.tapeLog, "[" + m_trackingId + "] RMS: " + rmsString);
 					}
 				}
 			}
 			catch (CStdString& e)
 			{
-				LOG4CXX_INFO(LOG.portLog, "[" + m_trackingId + "] " + e);
-				m_state = StateError;
+				m_numErrors++;
+
+				if(m_numErrors <= 3)
+				{
+					logMsg.Format("[%s] bytesWritten:%d %s", m_trackingId, m_bytesWritten, e);
+					LOG4CXX_ERROR(LOG.tapeLog, logMsg);
+				}
+				//m_state = StateError;	// removed this for now, otherwise sends the tape straight to batchProcessing instead of waiting for end of session
 			}
 		}
 	}
@@ -326,7 +333,7 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 			if(m_passedPartyFilterTest)
 			{
 				logMsg.Format("[%s] remote party passed PartyFilter test", m_trackingId);
-				LOG4CXX_INFO(LOG.portLog, logMsg);
+				LOG4CXX_INFO(LOG.tapeLog, logMsg);
 			}
 		}
 		break;
@@ -338,7 +345,7 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 			if(m_passedPartyFilterTest)
 			{
 				logMsg.Format("[%s] local party passed PartyFilter test", m_trackingId);
-				LOG4CXX_INFO(LOG.portLog, logMsg);
+				LOG4CXX_INFO(LOG.tapeLog, logMsg);
 			}
 		}
 		break;
