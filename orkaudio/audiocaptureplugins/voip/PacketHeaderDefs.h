@@ -118,18 +118,18 @@ typedef struct {
 // Cisco Callmanager -> endpoint messages
 typedef struct
 {
-	unsigned long len;
-	unsigned long reserved;
-	unsigned long messageType;
+	unsigned int len;
+	unsigned int reserved;
+	unsigned int messageType;
 } SkinnyHeaderStruct;
 
 typedef struct
 {
 	SkinnyHeaderStruct header;
-	unsigned long conferenceId;
-	unsigned long passThruPartyId;
+	unsigned int conferenceId;
+	unsigned int passThruPartyId;
 	struct in_addr remoteIpAddr;
-	unsigned long remoteTcpPort;
+	unsigned int remoteTcpPort;
 	// and some more fields
 } SkStartMediaTransmissionStruct;
 
@@ -139,8 +139,8 @@ bool SkinnyValidateStartMediaTransmission(SkStartMediaTransmissionStruct *, u_ch
 typedef struct
 {
 	SkinnyHeaderStruct header;
-	unsigned long conferenceId;
-	unsigned long passThruPartyId;
+	unsigned int conferenceId;
+	unsigned int passThruPartyId;
 } SkStopMediaTransmissionStruct;
 
 bool SkinnyValidateStopMediaTransmission(SkStopMediaTransmissionStruct*, u_char* packetEnd);
@@ -148,8 +148,8 @@ bool SkinnyValidateStopMediaTransmission(SkStopMediaTransmissionStruct*, u_char*
 typedef struct
 {
 	SkinnyHeaderStruct header;
-	unsigned long conferenceId;
-	unsigned long passThruPartyId;
+	unsigned int conferenceId;
+	unsigned int passThruPartyId;
 } SkCloseReceiveChannelStruct;
 
 #define SKINNY_CALLING_PARTY_SIZE 24
@@ -163,9 +163,9 @@ typedef struct
 	char callingParty[SKINNY_CALLING_PARTY_SIZE];
 	char calledPartyName[SKINNY_CALLED_PARTY_NAME_SIZE];
 	char calledParty[SKINNY_CALLED_PARTY_SIZE];
-	unsigned long lineInstance;
-	unsigned long callId;
-	unsigned long callType;
+	unsigned int lineInstance;
+	unsigned int callId;
+	unsigned int callType;
 } SkCallInfoStruct;
 
 bool SkinnyValidateCallInfo(SkCallInfoStruct *, u_char* packetEnd);
@@ -175,9 +175,9 @@ bool SkinnyValidateCallInfo(SkCallInfoStruct *, u_char* packetEnd);
 typedef struct
 {
 	SkinnyHeaderStruct header;
-	unsigned long unknown1;
-	unsigned long callId;
-	unsigned long callType;
+	unsigned int unknown1;
+	unsigned int callId;
+	unsigned int callType;
 	char unknown2[20];
 	char parties[0];
 } SkCcm5CallInfoStruct;
@@ -200,10 +200,10 @@ bool SkinnyValidateLineStat(SkLineStatStruct*, u_char* packetEnd);
 typedef struct
 {
 	SkinnyHeaderStruct header;
-	unsigned long openReceiveChannelStatus;
+	unsigned int openReceiveChannelStatus;
 	struct in_addr endpointIpAddr;
-	unsigned long endpointTcpPort;
-	unsigned long passThruPartyId;
+	unsigned int endpointTcpPort;
+	unsigned int passThruPartyId;
 } SkOpenReceiveChannelAckStruct;
 
 bool SkinnyValidateOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct *, u_char* packetEnd);
@@ -211,9 +211,9 @@ bool SkinnyValidateOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct *, u_char
 typedef struct
 {
 	SkinnyHeaderStruct header;
-	unsigned long softKeyEvent;
-	unsigned long lineInstance;
-	unsigned long callIdentifier;
+	unsigned int softKeyEvent;
+	unsigned int lineInstance;
+	unsigned int callIdentifier;
 } SkSoftKeyEventMessageStruct;
 
 bool SkinnyValidateSoftKeyEvent(SkSoftKeyEventMessageStruct *, u_char* packetEnd);
