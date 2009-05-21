@@ -2424,32 +2424,61 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		if(SkinnyValidateCcm5CallInfo(ccm5CallInfo, packetEnd))
 		{
 			// Extract Calling and Called number.
-			CStdString callingParty;
-			long partiesLen = 0;
 			char* parties = (char*)(&ccm5CallInfo->parties);
+			char* partiesPtr = parties;
+			long partiesLen = partiesLen = (long)packetEnd - (long)ccm5CallInfo - sizeof(SkCcm5CallInfoStruct);
 
-			partiesLen = (long)packetEnd - (long)ccm5CallInfo - sizeof(SkCcm5CallInfoStruct);
-			GrabToken(parties, parties+partiesLen, callingParty);
+			CStdString callingParty;
 			CStdString calledParty;
-			GrabToken(parties+callingParty.size()+1, parties+partiesLen, calledParty);
 			CStdString callingPartyName;
+			CStdString calledPartyName;
 
-			// It appears that the calling party name is the 9th token.
 			// Tokens separated by a single null char. Multiple sequential null chars result in empty tokens.
-			// further tokens seem to be the called party name but not exploited so far.
+			// There are 12 tokens:
+			// calling general number, called long num, called long num, called long num
+			// calling extension (1), called ext num, called ext num, called ext num 
+			// calling name, called name (2), called name, called name
+			//(1) not always available, in this case, use calling general number
+			//(2) not always available
 			int tokenNr = 0;
-			char *partiesPtr = NULL;
-			partiesPtr = parties;
-			while(tokenNr < 9 && partiesPtr < parties+partiesLen)
+			while(tokenNr < 10 && partiesPtr < parties+partiesLen)
 			{
-				callingPartyName = "";
-				GrabTokenAcceptSpace(partiesPtr, parties+partiesLen, callingPartyName);
+				CStdString party;
+				GrabTokenAcceptSpace(partiesPtr, parties+partiesLen, party);
 				if(s_skinnyPacketLog->isDebugEnabled())
 				{
-					logMsg = logMsg + callingPartyName + ", ";
+					logMsg = logMsg + party + ", ";
 				}
-				partiesPtr += callingPartyName.size() + 1;
+				partiesPtr += party.size() + 1;
 				tokenNr += 1;
+
+				switch(tokenNr)
+				{
+				case 1:
+					// Token 1 can be the general office number for outbound
+					// TODO, report this as local entry point
+					callingParty = party;
+					break;
+				case 2:
+					calledParty = party;
+					break;
+				case 5:
+					// Token 5 is the calling extension, use this if outbound for callingParty instead of general number
+					if(party.size()>0 && ccm5CallInfo->callType == SKINNY_CALL_TYPE_OUTBOUND)
+					{
+						callingParty = party;
+					}
+					break;
+				case 6:
+					// This is the called party extension, not used for now
+					break;
+				case 9:
+					callingPartyName = party;
+					break;
+				case 10:
+					calledPartyName = party;
+					break;
+				}
 			}
 			LOG4CXX_DEBUG(s_skinnyPacketLog, "parties tokens:" + logMsg);
 
@@ -2460,8 +2489,14 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			callInfo.callId = ccm5CallInfo->callId;
 			callInfo.callType = ccm5CallInfo->callType;
 			callInfo.lineInstance = 0;
-			callInfo.calledPartyName[0] = '\0';
-
+			if(calledPartyName.size())
+			{
+				strncpy(callInfo.calledPartyName, (PCSTR)calledPartyName, sizeof(callInfo.calledPartyName));
+			}
+			else
+			{
+				callInfo.calledPartyName[0] = '\0';
+			}
 			if(callingPartyName.size())
 			{
 				strncpy(callInfo.callingPartyName, (PCSTR)callingPartyName, sizeof(callInfo.callingPartyName));
@@ -2473,8 +2508,8 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 
 			if(s_skinnyPacketLog->isInfoEnabled())
 			{
-				logMsg.Format(" CallId:%u calling:%s called:%s callingname:%s", callInfo.callId, 
-								callInfo.callingParty, callInfo.calledParty, callingPartyName);
+				logMsg.Format(" CallId:%u calling:%s called:%s callingname:%s calledname:%s", callInfo.callId, 
+								callInfo.callingParty, callInfo.calledParty, callInfo.callingPartyName, callInfo.calledPartyName);
 			}
 			RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(&callInfo, ipHeader);
 		}
