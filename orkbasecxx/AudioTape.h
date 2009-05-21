@@ -95,6 +95,7 @@ public:
 	CStdString m_trackingId;
 	CStdString m_nativeCallId;
 	StateEnum m_state;
+	int m_numErrors;
 
 	TapeResponseRef m_tapeResponse;
 
