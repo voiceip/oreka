@@ -1815,7 +1815,7 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 	{
 		// A session exists on the same IP+port
 		RtpSessionRef oldSession = pair->second;
-		if(oldSession->m_protocol == RtpSession::ProtRawRtp)
+		if(oldSession->m_protocol == RtpSession::ProtRawRtp || oldSession->m_numRtpPackets == 0)
 		{
 			logMsg.Format("[%s] on %s replaces [%s]", 
 							session->m_trackingId, ipAndPort, oldSession->m_trackingId); 
