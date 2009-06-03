@@ -86,6 +86,8 @@ public:
 	void StartCapture(CStdString& port, CStdString& orkuid);
 	void StopCapture(CStdString& port);
 	void PauseCapture(CStdString& port, CStdString& orkuid);
+	void SetOnHold(CStdString& port, CStdString& orkuid);
+	void SetOffHold(CStdString& port, CStdString& orkuid);
 	void ReportPcapStats();
 	pcap_t* OpenDevice(CStdString& name);
 	void AddPcapDeviceToMap(CStdString& deviceName, pcap_t* pcapHandle);
@@ -3384,6 +3386,15 @@ void VoIp::StopCapture(CStdString& port)
 	;
 }
 
+void VoIp::SetOnHold(CStdString& port, CStdString& orkuid)
+{
+	;
+}
+
+void VoIp::SetOffHold(CStdString& port, CStdString& orkuid)
+{
+	;
+}
 
 void __CDECL__ Initialize()
 {
@@ -3443,4 +3454,13 @@ void __CDECL__ StopCapture(CStdString& party)
 	;
 }
 
+void __CDECL__ SetOnHold(CStdString& port, CStdString& orkuid)
+{
+	;
+}
+
+void __CDECL__ SetOffHold(CStdString& port, CStdString& orkuid)
+{
+	;
+}
 
