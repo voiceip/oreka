@@ -237,6 +237,30 @@ void CapturePluginProxy::StopCapture(CStdString& party)
 	}
 }
 
+void CapturePluginProxy::SetOnHold(CStdString& party, CStdString& orkuid)
+{
+	if(m_loaded)
+	{
+		m_setOnHoldFunction(party, orkuid);
+	}
+	else
+	{
+		throw(CStdString("SetOnHold: Capture plugin not yet loaded"));
+	}
+}
+
+void CapturePluginProxy::SetOffHold(CStdString& party, CStdString& orkuid)
+{
+	if(m_loaded)
+	{
+		m_setOffHoldFunction(party, orkuid);
+	}
+	else
+	{
+		throw(CStdString("SetOffHold: Capture plugin not yet loaded"));
+	}
+}
+
 void CapturePluginProxy::PauseCapture(CStdString& party, CStdString& orkuid)
 {
 	if(m_loaded)
