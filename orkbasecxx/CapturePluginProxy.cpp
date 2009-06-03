@@ -137,7 +137,7 @@ bool CapturePluginProxy::Init()
 									m_setOnHoldFunction = (SetOnHoldFunction)m_dll.symbol("SetOnHold");
 									if(m_setOnHoldFunction)
 									{
-										m_setOffHoldFunction = (SetOnHoldFunction)m_dll.symbol("SetOffHold");
+										m_setOffHoldFunction = (SetOffHoldFunction)m_dll.symbol("SetOffHold");
 										if(m_setOffHoldFunction)
 										{
 											m_loaded = true;
