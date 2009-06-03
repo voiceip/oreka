@@ -33,6 +33,8 @@ DLL_EXPORT void __CDECL__  Configure(DOMNode*);
 DLL_EXPORT void __CDECL__  StartCapture(CStdString& party, CStdString& orkuid);
 DLL_EXPORT void __CDECL__  StopCapture(CStdString& party);
 DLL_EXPORT void __CDECL__  PauseCapture(CStdString& party, CStdString& orkuid);
+DLL_EXPORT void __CDECL__  SetOnHold(CStdString& port, CStdString& orkuid);
+DLL_EXPORT void __CDECL__  SetOffHold(CStdString& port, CStdString& orkuid);
 }
 
 #endif
