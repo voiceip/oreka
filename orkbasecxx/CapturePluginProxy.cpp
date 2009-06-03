@@ -90,9 +90,18 @@ bool CapturePluginProxy::Init()
 	{
 		m_dll.open((PCSTR)pluginPath);
 		ACE_TCHAR* error = m_dll.error();
+#ifndef WIN32
+		char *errorstr;
+#endif
 		if(error)
 		{
+#ifndef WIN32
+			errorstr = dlerror();
+			CStdString errorcstds(errorstr);
+			LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load the following plugin: ") + pluginPath + " " + errorcstds);
+#else
 			LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load the following plugin: ") + pluginPath);
+#endif
 		}
 		else
 		{
@@ -123,9 +132,25 @@ bool CapturePluginProxy::Init()
 							if (m_stopCaptureFunction)
 							{
 								m_pauseCaptureFunction = (PauseCaptureFunction)m_dll.symbol("PauseCapture");
-								if(m_stopCaptureFunction)
+								if(m_pauseCaptureFunction)
 								{
-									m_loaded = true;
+									m_setOnHoldFunction = (SetOnHoldFunction)m_dll.symbol("SetOnHold");
+									if(m_setOnHoldFunction)
+									{
+										m_setOffHoldFunction = (SetOnHoldFunction)m_dll.symbol("SetOffHold");
+										if(m_setOffHoldFunction)
+										{
+											m_loaded = true;
+										}
+										else
+										{
+											LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find SetOffHold function in ") + pluginPath);
+										}
+									}
+									else
+									{
+										LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find SetOnHold function in ") + pluginPath);
+									}
 								}
 								else
 								{

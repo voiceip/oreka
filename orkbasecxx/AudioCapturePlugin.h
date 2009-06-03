@@ -44,7 +44,8 @@ typedef void (__CDECL__* ConfigureFunction)(DOMNode*);
 typedef void (__CDECL__* StartCaptureFunction)(CStdString& port, CStdString& orkUid);
 typedef void (__CDECL__* StopCaptureFunction)(CStdString& port);
 typedef void (__CDECL__* PauseCaptureFunction)(CStdString& port, CStdString& orkUid);
-
+typedef void (__CDECL__* SetOnHoldFunction)(CStdString& port, CStdString& orkUid);
+typedef void (__CDECL__* SetOffHoldFunction)(CStdString& port, CStdString& orkUid);
 
 
 #endif
