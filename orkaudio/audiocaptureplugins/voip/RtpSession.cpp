@@ -705,7 +705,8 @@ void RtpSession::ReportMetadata()
 	// Report Local party
 	CaptureEventRef event(new CaptureEvent());
 	event->m_type = CaptureEvent::EtLocalParty;
-	if(m_protocol == ProtSkinny && DLLCONFIG.m_skinnyNameAsLocalParty == true && m_localPartyName.size())
+	if( ( m_protocol == ProtSkinny && DLLCONFIG.m_skinnyNameAsLocalParty == true && m_localPartyName.size() )   || 
+		( DLLCONFIG.m_partiesUseName == true && m_localPartyName.size() )		 )
 	{
 		event->m_value = m_localPartyName;
 	}
@@ -719,7 +720,14 @@ void RtpSession::ReportMetadata()
 	// Report remote party
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtRemoteParty;
-	event->m_value = m_remoteParty;
+	if(DLLCONFIG.m_partiesUseName == true && m_remotePartyName.size())
+	{
+		event->m_value = m_remotePartyName;
+	}
+	else
+	{
+		event->m_value = m_remoteParty;
+	}
 	g_captureEventCallBack(event, m_capturePort);
 	m_remotePartyReported = true;
 

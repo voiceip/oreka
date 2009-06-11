@@ -2140,10 +2140,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 
 			char* fromFieldEnd = memFindEOL(fromField, sipEnd);
 
-			if(DLLCONFIG.m_sipReportNamesAsTags == true)
-			{
-				GrabSipName(fromField, fromFieldEnd, info->m_fromName);
-			}
+			GrabSipName(fromField, fromFieldEnd, info->m_fromName);
 
 			char* sipUser = memFindAfter("sip:", fromField, fromFieldEnd);
 			if(sipUser)
@@ -2177,10 +2174,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			char* toFieldEnd = GrabLine(toField, sipEnd, to);
 			LOG4CXX_DEBUG(s_sipExtractionLog, "to: " + to);
 
-			if(DLLCONFIG.m_sipReportNamesAsTags == true)
-			{
-				GrabSipName(toField, toFieldEnd, info->m_toName);
-			}
+			GrabSipName(toField, toFieldEnd, info->m_toName);
 
 			char* sipUser = memFindAfter("sip:", toField, toFieldEnd);
 			if(sipUser)
