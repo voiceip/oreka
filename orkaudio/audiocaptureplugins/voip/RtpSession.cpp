@@ -705,8 +705,9 @@ void RtpSession::ReportMetadata()
 	// Report Local party
 	CaptureEventRef event(new CaptureEvent());
 	event->m_type = CaptureEvent::EtLocalParty;
+	// TODO, we might consider deprecating m_skinnyNameAsLocalParty in favour of m_localPartyUseName at some point
 	if( ( m_protocol == ProtSkinny && DLLCONFIG.m_skinnyNameAsLocalParty == true && m_localPartyName.size() )   || 
-		( DLLCONFIG.m_partiesUseName == true && m_localPartyName.size() )		 )
+		( (DLLCONFIG.m_partiesUseName || DLLCONFIG.m_localPartyUseName) == true && m_localPartyName.size() )		 )
 	{
 		event->m_value = m_localPartyName;
 	}

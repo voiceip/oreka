@@ -93,6 +93,7 @@ public:
 	bool m_useMacIfNoLocalParty;
 	bool m_localPartyForceLocalIp;
 	bool m_localPartyForceLocalMac;
+	bool m_localPartyUseName;
 	bool m_partiesUseName;
 
 	bool m_skinnyIgnoreStopMediaTransmission;
