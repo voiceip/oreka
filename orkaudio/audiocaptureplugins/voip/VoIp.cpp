@@ -2082,6 +2082,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		char* connectionAddressField = NULL;
 		char* attribSendonly = memFindAfter("a=sendonly", (char*)udpPayload, sipEnd);
 		char* rtpmapAttribute = memFindAfter("\na=rtpmap:", (char*)udpPayload, sipEnd);
+		char* userAgentField = memFindAfter("\nUser-Agent:", (char*)udpPayload, sipEnd);
 
 		if(DLLCONFIG.m_sipRequestUriAsLocalParty == true)
 		{
@@ -2216,6 +2217,10 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			{
 				info->m_from = localExtension;
 			}
+		}
+		if(userAgentField)
+		{
+			GrabTokenSkipLeadingWhitespaces(userAgentField, sipEnd, info->m_userAgent);
 		}
 		if(audioField)
 		{

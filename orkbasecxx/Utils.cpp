@@ -24,6 +24,23 @@ bool StringIsDigit(CStdString& string)
 	return true;
 }
 
+bool MatchesStringList(CStdString& string, std::list<CStdString>& stringList)
+{
+	if(string.size() == 0)
+	{
+		return false;
+	}
+	for(std::list<CStdString>::iterator it = stringList.begin(); it != stringList.end(); it++)
+	{
+		CStdString element = *it;
+
+		if(element.CompareNoCase(string) == 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
 
 //========================================================
 // file related stuff
