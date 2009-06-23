@@ -147,6 +147,8 @@ void VoIpConfig::Define(Serializer* s)
 
 	s->CsvValue("SipDomains", m_sipDomains);
 	s->CsvValue("SipDirectionReferenceIpAddresses", m_sipDirectionReferenceIpAddresses);
+	s->CsvValue("SipDirectionReferenceUserAgents", m_sipDirectionReferenceUserAgents);
+	
 	s->IpRangesValue("LanIpRanges", m_lanIpRanges);
 	s->IpRangesValue("MediaAddressBlockedIpRanges", m_mediaAddressBlockedIpRanges);
 }
@@ -366,6 +368,10 @@ void VoIpConfig::Validate()
 
 		m_rtcpDetect = true;
 		m_sipExtractFields.push_back(inInVar);
+	}
+	if(m_sipDirectionReferenceUserAgents.size() == 0)
+	{
+		m_sipDirectionReferenceUserAgents.push_back("Asterisk");
 	}
 }
 

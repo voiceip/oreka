@@ -67,6 +67,7 @@ inline double StringToDouble(CStdString& value)
 }
 
 bool DLL_IMPORT_EXPORT_ORKBASE StringIsDigit(CStdString& string);
+bool DLL_IMPORT_EXPORT_ORKBASE MatchesStringList(CStdString& string, std::list<CStdString>& stringList);
 
 //========================================================
 // file related stuff

@@ -308,7 +308,6 @@ bool RtpSession::MatchesSipDomain(CStdString& domain)
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -622,10 +621,14 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 			// Only to domain matches
 			ProcessMetadataSipIncoming();
 		}
+		else if(MatchesStringList(m_invite->m_userAgent, DLLCONFIG.m_sipDirectionReferenceUserAgents))
+		{
+			ProcessMetadataSipIncoming();
+		}
 		else
 		{
 			// Default to outgoing whereby m_from is the local party and m_to is
-			// the remote party - neither from nor to domains match
+			// the remote party
 			ProcessMetadataSipOutgoing();
 		}
 	}
@@ -2695,7 +2698,7 @@ void SipInviteInfo::ToString(CStdString& string)
 	MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
 	MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
 
-	string.Format("sender:%s from:%s@%s RTP:%s,%s to:%s@%s rcvr:%s callid:%s smac:%s rmac:%s fromname:%s toname:%s", senderIp, m_from, m_fromDomain, fromRtpIp, m_fromRtpPort, m_to, m_toDomain, receiverIp, m_callId, senderMac, receiverMac, m_fromName, m_toName);
+	string.Format("sender:%s from:%s@%s RTP:%s,%s to:%s@%s rcvr:%s callid:%s smac:%s rmac:%s fromname:%s toname:%s ua:%s", senderIp, m_from, m_fromDomain, fromRtpIp, m_fromRtpPort, m_to, m_toDomain, receiverIp, m_callId, senderMac, receiverMac, m_fromName, m_toName, m_userAgent);
 }
 
 //==========================================================

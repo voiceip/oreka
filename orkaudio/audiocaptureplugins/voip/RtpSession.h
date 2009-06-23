@@ -49,6 +49,7 @@ public:
 	CStdString m_toDomain;
 	CStdString m_fromName;
 	CStdString m_toName;
+	CStdString m_userAgent;
 
 	time_t m_recvTime;
 };
