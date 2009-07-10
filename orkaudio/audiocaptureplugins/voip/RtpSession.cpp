@@ -109,7 +109,7 @@ void RtpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpI
 		}
 		else
 		{
-			m_localParty = rtcpInfo->m_cnameUsername;
+			m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(rtcpInfo->m_cnameUsername);
 		}
 			
 		LOG4CXX_INFO(m_log, "[" + m_trackingId + "] Set local party to RTCP CNAME:" + m_localParty);
@@ -257,7 +257,8 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
                 	}
 	                else
         	        {
-                	        m_localParty = szSourceIp;
+				CStdString lp(szSourceIp);
+                	        m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(lp);
 	                }
 		}
 		if(!m_rtcpRemoteParty)
@@ -282,7 +283,8 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 			}
 			else
 			{
-				m_localParty = szDestIp;
+				CStdString lp(szDestIp);
+				m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(lp);
 			}
 		}
 		if(!m_rtcpRemoteParty)
@@ -330,7 +332,7 @@ void RtpSession::ProcessMetadataSipIncoming()
 {
 	if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0))
 	{
-		m_localParty = m_invite->m_requestUri;
+		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_requestUri);
 		m_remoteParty = m_invite->m_from;
 		m_direction = CaptureEvent::DirIn;
 		m_localEntryPoint = m_invite->m_to;
@@ -338,7 +340,7 @@ void RtpSession::ProcessMetadataSipIncoming()
 	else
 	{
 		m_remoteParty = m_invite->m_from;
-		m_localParty = m_invite->m_to;
+		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_to);
 		m_direction = CaptureEvent::DirIn;
 	}
 
@@ -368,7 +370,7 @@ void RtpSession::ProcessMetadataSipOutgoing()
 {
 	if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0))
 	{
-		m_localParty = m_invite->m_requestUri;
+		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_requestUri);
 		m_remoteParty = m_invite->m_from;
 		m_direction = CaptureEvent::DirIn;
 		m_localEntryPoint = m_invite->m_to;
@@ -376,7 +378,7 @@ void RtpSession::ProcessMetadataSipOutgoing()
 	else
 	{
 		m_remoteParty = m_invite->m_to;
-		m_localParty = m_invite->m_from;
+		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
 		m_direction = CaptureEvent::DirOut;
 	}
 
@@ -465,7 +467,7 @@ void RtpSession::UpdateMetadataSip(RtpPacketInfoRef& rtpPacket, bool sourceRtpAd
 		// Update session metadata with INVITE info
 		if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0))
 		{
-			m_localParty = m_invite->m_requestUri;
+			m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_requestUri);
 			m_remoteParty = m_invite->m_from;
 			m_direction = CaptureEvent::DirIn;
 			m_localEntryPoint = m_invite->m_to;
@@ -473,7 +475,7 @@ void RtpSession::UpdateMetadataSip(RtpPacketInfoRef& rtpPacket, bool sourceRtpAd
 		else
 		{
 			m_remoteParty = invite->m_from;
-			m_localParty = invite->m_to;
+			m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_to);
 		}
 
 		m_remotePartyName = m_invite->m_fromName;
@@ -671,7 +673,8 @@ void RtpSession::ReportMetadata()
 
 	if(DLLCONFIG.m_localPartyForceLocalIp)
 	{
-		m_localParty = szLocalIp;
+		CStdString lp(szLocalIp);
+		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(lp);
 	}
 	// Check if we don't have the local party based on the endpoint IP address
 	else if(m_localParty.IsEmpty())
@@ -681,7 +684,7 @@ void RtpSession::ReportMetadata()
 			EndpointInfoRef endpointInfo = RtpSessionsSingleton::instance()->GetEndpointInfo(m_endPointIp);
 			if(endpointInfo.get())
 			{
-				m_localParty = endpointInfo->m_extension;
+				m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(endpointInfo->m_extension);
 			}
 		}
 	}
@@ -695,7 +698,8 @@ void RtpSession::ReportMetadata()
 		}
 		else
 		{
-			m_localParty = szLocalIp;
+			CStdString lp(szLocalIp);
+			m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(lp);
 		}
 	}
 
@@ -703,6 +707,7 @@ void RtpSession::ReportMetadata()
 	{
 		m_localParty = "";
 		MemMacToHumanReadable((unsigned char*)m_localMac, m_localParty);
+		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_localParty);
 	}
 
 	// Report Local party
@@ -1519,22 +1524,26 @@ void RtpSessions::ReportSipBye(SipByeInfo bye)
 void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessionRef& session)
 {
 	session->m_skinnyLineInstance = callInfo->lineInstance;
+	CStdString lp;
 
 	switch(callInfo->callType)
 	{
 	case SKINNY_CALL_TYPE_INBOUND:
 	case SKINNY_CALL_TYPE_FORWARD:
-		session->m_localParty = callInfo->calledParty;
+		lp = callInfo->calledParty;
+		session->m_localParty = GetLocalPartyMap(lp);
 		session->m_remoteParty = callInfo->callingParty;
 		session->m_direction = CaptureEvent::DirIn;
 		break;
 	case SKINNY_CALL_TYPE_OUTBOUND:
-		session->m_localParty = callInfo->callingParty;
+		lp = callInfo->callingParty;
+		session->m_localParty = GetLocalPartyMap(lp);
 		session->m_remoteParty = callInfo->calledParty;
 		session->m_direction = CaptureEvent::DirOut;
 		break;
 	default:
-		session->m_localParty = callInfo->calledParty;
+		lp = callInfo->calledParty;
+		session->m_localParty = GetLocalPartyMap(lp);
 		session->m_remoteParty = callInfo->callingParty;		
 	}
 }
@@ -1919,11 +1928,12 @@ void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruc
 
 				if(endpoint.get())
 				{
-					session->m_localParty = endpoint->m_extension;
+					session->m_localParty = GetLocalPartyMap(endpoint->m_extension);
 				}
 				else
 				{
-					session->m_localParty = szEndpointIp;
+					CStdString lp(szEndpointIp);
+					session->m_localParty = GetLocalPartyMap(lp);
 				}
 	
 				m_byIpAndPort.erase(ipAndPort);
@@ -1984,11 +1994,12 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 
 				if(endpoint.get())
 				{
-					session->m_localParty = endpoint->m_extension;
+					session->m_localParty = GetLocalPartyMap(endpoint->m_extension);
 				}
 				else
 				{
-					session->m_localParty = szEndpointIp;
+					CStdString lp(szEndpointIp);
+					session->m_localParty = GetLocalPartyMap(lp);
 				}
 	
 				m_byIpAndPort.erase(ipAndPort);
@@ -2671,6 +2682,35 @@ void RtpSessions::PauseCaptureOrkuid(CStdString& orkuid)
 	}
 
 	LOG4CXX_INFO(m_log, logMsg);
+}
+
+void RtpSessions::SaveLocalPartyMap(char *oldparty, char *newparty)
+{
+	CStdString oldp;
+	CStdString newp;
+
+	oldp = oldparty;
+	newp = newparty;
+
+	m_localPartyMap.insert(std::make_pair(oldparty, newparty));
+	LOG4CXX_DEBUG(m_log, "Saved map oldparty:" + oldp + " newparty:" + newp);
+}
+
+CStdString RtpSessions::GetLocalPartyMap(CStdString& oldlocalparty)
+{
+	CStdString newlocalparty;
+	std::map<CStdString, CStdString>::iterator pair;
+
+	newlocalparty = oldlocalparty;
+
+	pair = m_localPartyMap.find(oldlocalparty);
+	if(pair != m_localPartyMap.end())
+	{
+		newlocalparty = pair->second;
+		LOG4CXX_DEBUG(m_log, "Mapped oldparty:" + oldlocalparty + " to newparty:" + newlocalparty);
+	}
+
+	return newlocalparty;
 }
 
 //==========================================================

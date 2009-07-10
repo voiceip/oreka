@@ -74,6 +74,8 @@ VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
 
 #define PROMISCUOUS 1
+#define LOCAL_PARTY_MAP_FILE	"localpartymap.csv"
+#define ETC_LOCAL_PARTY_MAP_FILE	"/etc/orkaudio/localpartymap.csv"
 
 //========================================================
 class VoIp
@@ -93,6 +95,10 @@ public:
 	void AddPcapDeviceToMap(CStdString& deviceName, pcap_t* pcapHandle);
 	void RemovePcapDeviceFromMap(pcap_t* pcapHandle);
 	CStdString GetPcapDeviceName(pcap_t* pcapHandle);
+	void ProcessLocalPartyMap(char *line, int ln);
+	void LoadPartyMaps();
+	void TrimCString(char **s);
+
 private:
 	void OpenDevices();
 	void OpenPcapFile(CStdString& filename);
@@ -3287,6 +3293,113 @@ void VoIp::OpenDevices()
 	}
 }
 
+void VoIp::TrimCString(char **s)
+{
+	char *x = NULL;
+	char *y = NULL;
+
+	if(*s == NULL || !strlen(*s))
+	{
+		*s = "";
+		return;
+	}
+
+	x = *s;
+	y = *s+strlen(*s);
+
+	while(x < y && isblank(*x))
+	{
+		x += 1;
+	}
+
+	if(!strlen(x))
+	{
+		*s = x;
+		return;
+	}
+
+	y -= 1;
+	while(y >= x && isblank(*y))
+	{
+		*y = '\0';
+		y -= 1;
+	}
+
+	*s = x;
+	return;
+
+}
+
+void VoIp::ProcessLocalPartyMap(char *line, int ln)
+{
+	char *oldparty = NULL;
+	char *newparty = NULL;
+	CStdString logMsg;
+
+	oldparty = line;
+	newparty = strchr(line, ',');
+
+	if(!newparty || !oldparty)
+	{
+		logMsg.Format("ProcessLocalPartyMap: invalid format of line:%d in the local party maps file", ln);
+		LOG4CXX_WARN(s_packetLog, logMsg);
+
+		return;
+	}
+
+	*(newparty++) = '\0';
+
+	TrimCString(&oldparty);
+	TrimCString(&newparty);
+
+	RtpSessionsSingleton::instance()->SaveLocalPartyMap(oldparty, newparty);
+}
+
+void VoIp::LoadPartyMaps()
+{
+	FILE *maps = NULL;
+	char buf[1024];
+	int i = 0;
+	int ln = 0;
+	CStdString logMsg;
+
+	memset(buf, 0, sizeof(buf));
+	maps = fopen(LOCAL_PARTY_MAP_FILE, "r");
+	if(!maps)
+	{
+		logMsg.Format("LoadPartyMaps: Could not open file:%s -- trying:%s now", LOCAL_PARTY_MAP_FILE, ETC_LOCAL_PARTY_MAP_FILE);
+		LOG4CXX_WARN(s_packetLog, logMsg);
+
+		maps = fopen(ETC_LOCAL_PARTY_MAP_FILE, "r");
+		if(!maps)
+		{
+			logMsg.Format("LoadPartyMaps: Could not open file:%s either -- giving up", ETC_LOCAL_PARTY_MAP_FILE);
+			LOG4CXX_INFO(s_packetLog, logMsg);
+
+			return;
+		}
+	}
+
+	while(fgets(buf, sizeof(buf), maps))
+	{
+		ln += 1;
+
+		// Minimum line of x,y\n
+		if(strlen(buf) > 4)
+		{
+			if(buf[strlen(buf)-1] == '\n')
+			{
+				buf[strlen(buf)-1] = '\0';
+			}
+
+			ProcessLocalPartyMap(buf, ln);
+		}
+	}
+
+	fclose(maps);
+
+	return;
+}
 
 void VoIp::Initialize()
 {
@@ -3331,6 +3444,8 @@ void VoIp::Initialize()
 		OpenDevices();
 		s_liveCapture = true;
 	}
+
+	LoadPartyMaps();
 }
 
 void VoIp::ReportPcapStats()

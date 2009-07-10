@@ -267,6 +267,8 @@ public:
 	void StartCaptureOrkuid(CStdString& orkuid);
 	void PauseCapture(CStdString& party);
 	void PauseCaptureOrkuid(CStdString& orkuid);
+	void SaveLocalPartyMap(char *oldparty, char *newparty);
+	CStdString GetLocalPartyMap(CStdString& oldlocalparty);
 
 private:
 	RtpSessionRef findByEndpointIp(struct in_addr endpointIpAddr, int passThruPartyId = 0);
@@ -281,6 +283,7 @@ private:
 	std::map<CStdString, RtpSessionRef> m_byIpAndPort;
 	std::map<CStdString, RtpSessionRef> m_byCallId;
 	std::map<unsigned int, EndpointInfoRef> m_endpoints;
+	std::map<CStdString, CStdString> m_localPartyMap;
 	LoggerPtr m_log;
 	AlphaCounter m_alphaCounter;
 };
