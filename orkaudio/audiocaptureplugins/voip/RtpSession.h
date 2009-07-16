@@ -267,7 +267,7 @@ public:
 	void StartCaptureOrkuid(CStdString& orkuid);
 	void PauseCapture(CStdString& party);
 	void PauseCaptureOrkuid(CStdString& orkuid);
-	void SaveLocalPartyMap(char *oldparty, char *newparty);
+	void SaveLocalPartyMap(CStdString& oldparty, CStdString& newparty);
 	CStdString GetLocalPartyMap(CStdString& oldlocalparty);
 
 private:
