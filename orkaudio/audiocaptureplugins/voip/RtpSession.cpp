@@ -1857,7 +1857,7 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 		{
 			char szEndPointIp[16];
 			ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
-			logMsg.Format("[%s] media address:%s callId:%s endpoint:%s", session->m_trackingId, ipAndPort, session->m_callId, szEndPointIp);
+			logMsg.Format("[%s] media address:%s %s callId:%s endpoint:%s", session->m_trackingId, ipAndPort, RtpSession::ProtocolToString(session->m_protocol),session->m_callId, szEndPointIp);
 			LOG4CXX_INFO(m_log, logMsg);
 		}
 
@@ -1934,10 +1934,8 @@ void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruc
 				{
 					CStdString lp(szEndpointIp);
 					session->m_localParty = GetLocalPartyMap(lp);
-				}
-	
-				m_byIpAndPort.erase(ipAndPort);
-				m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
+				}	
+				SetMediaAddress(session, openReceive->endpointIpAddr, openReceive->endpointTcpPort);
 			}
 		}
 		else
@@ -2000,10 +1998,8 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 				{
 					CStdString lp(szEndpointIp);
 					session->m_localParty = GetLocalPartyMap(lp);
-				}
-	
-				m_byIpAndPort.erase(ipAndPort);
-				m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
+				}	
+				SetMediaAddress(session, startMedia->remoteIpAddr, startMedia->remoteTcpPort);
 			}
 		}
 		else
@@ -2432,27 +2428,34 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		// Make sure the session is tracked by the right IP address
 		CStdString ipAndPort;
 		struct in_addr rtpIp;
+		unsigned short rtpPort;
 
 		if(DLLCONFIG.IsRtpTrackingIpAddress(rtpPacket->m_sourceIp))
 		{
 			ipAndPort = sourceIpAndPort;
 			rtpIp = rtpPacket->m_sourceIp;
+			rtpPort = rtpPacket->m_sourcePort;
 		}
 		else if(DLLCONFIG.m_sangomaEnable)
 		{
 			ipAndPort = sourceIpAndPort;
 			rtpIp = rtpPacket->m_sourceIp;
+			rtpPort = rtpPacket->m_sourcePort;
 		}
 		else
 		{
 			ipAndPort = destIpAndPort;
 			rtpIp = rtpPacket->m_destIp;
+			rtpPort = rtpPacket->m_destPort;
 		}
-		session->m_ipAndPort = ipAndPort;	// (1) In the case of a PSTN Gateway automated answer, This is the destination IP+Port of the first packet which is good, because it is usually the IP+Port of the PSTN Gateway.
-		session->m_rtpIp = rtpIp;
+		// (1) In the case of a PSTN Gateway automated answer, The media address
+		// is the destination IP+Port of the first packet which is good, 
+		// because it is usually the IP+Port of the PSTN Gateway.
+
+		session->m_endPointIp = rtpIp;
+		SetMediaAddress(session, rtpIp, rtpPort);
 
 		session->AddRtpPacket(rtpPacket);
-		m_byIpAndPort.insert(std::make_pair(ipAndPort, session));
 
 		CStdString numSessions = IntToString(m_byIpAndPort.size());
 		LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
