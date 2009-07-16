@@ -2684,16 +2684,10 @@ void RtpSessions::PauseCaptureOrkuid(CStdString& orkuid)
 	LOG4CXX_INFO(m_log, logMsg);
 }
 
-void RtpSessions::SaveLocalPartyMap(char *oldparty, char *newparty)
+void RtpSessions::SaveLocalPartyMap(CStdString& oldparty, CStdString& newparty)
 {
-	CStdString oldp;
-	CStdString newp;
-
-	oldp = oldparty;
-	newp = newparty;
-
 	m_localPartyMap.insert(std::make_pair(oldparty, newparty));
-	LOG4CXX_DEBUG(m_log, "Saved map oldparty:" + oldp + " newparty:" + newp);
+	LOG4CXX_DEBUG(m_log, "Saved map oldparty:" + oldparty + " newparty:" + newparty);
 }
 
 CStdString RtpSessions::GetLocalPartyMap(CStdString& oldlocalparty)

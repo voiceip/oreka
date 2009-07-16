@@ -97,7 +97,6 @@ public:
 	CStdString GetPcapDeviceName(pcap_t* pcapHandle);
 	void ProcessLocalPartyMap(char *line, int ln);
 	void LoadPartyMaps();
-	void TrimCString(char **s);
 
 private:
 	void OpenDevices();
@@ -3293,43 +3292,6 @@ void VoIp::OpenDevices()
 	}
 }
 
-void VoIp::TrimCString(char **s)
-{
-	char *x = NULL;
-	char *y = NULL;
-
-	if(*s == NULL || !strlen(*s))
-	{
-		*s = "";
-		return;
-	}
-
-	x = *s;
-	y = *s+strlen(*s);
-
-	while(x < y && isblank(*x))
-	{
-		x += 1;
-	}
-
-	if(!strlen(x))
-	{
-		*s = x;
-		return;
-	}
-
-	y -= 1;
-	while(y >= x && isblank(*y))
-	{
-		*y = '\0';
-		y -= 1;
-	}
-
-	*s = x;
-	return;
-
-}
-
 void VoIp::ProcessLocalPartyMap(char *line, int ln)
 {
 	char *oldparty = NULL;
@@ -3349,10 +3311,15 @@ void VoIp::ProcessLocalPartyMap(char *line, int ln)
 
 	*(newparty++) = '\0';
 
-	TrimCString(&oldparty);
-	TrimCString(&newparty);
+	CStdString oldpty, newpty;
 
-	RtpSessionsSingleton::instance()->SaveLocalPartyMap(oldparty, newparty);
+	oldpty = oldparty;
+	newpty = newparty;
+
+	oldpty.Trim();
+	newpty.Trim();
+
+	RtpSessionsSingleton::instance()->SaveLocalPartyMap(oldpty, newpty);
 }
 
 void VoIp::LoadPartyMaps()
