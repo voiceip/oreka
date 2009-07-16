@@ -2463,7 +2463,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 void RtpSessions::StopAll()
 {
-	time_t forceExpiryTime = time(NULL) + 2*DLLCONFIG.m_rtpSessionWithSignallingInitialTimeoutSec;
+	time_t forceExpiryTime = time(NULL) + 2*DLLCONFIG.m_rtpSessionOnHoldTimeOutSec;
 	Hoover(forceExpiryTime);
 }
 
