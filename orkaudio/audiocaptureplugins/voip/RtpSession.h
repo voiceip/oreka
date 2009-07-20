@@ -271,6 +271,8 @@ public:
 	CStdString GetLocalPartyMap(CStdString& oldlocalparty);
 
 private:
+	void CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort);
+	RtpSessionRef findByMediaAddress(struct in_addr ipAddress, unsigned short udpPort);
 	RtpSessionRef findByEndpointIp(struct in_addr endpointIpAddr, int passThruPartyId = 0);
 	RtpSessionRef findNewestByEndpointIp(struct in_addr endpointIpAddr);
 	RtpSessionRef findByEndpointIpUsingIpAndPort(struct in_addr endpointIpAddr);
