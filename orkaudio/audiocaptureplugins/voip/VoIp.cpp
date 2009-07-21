@@ -126,6 +126,22 @@ void memToHex(unsigned char* input, size_t len, CStdString&output)
 	}
 }
 
+// Same as standard memchr but case insensitive
+inline char* memnchr(void *s, int c, size_t len)
+{
+	char lowerCase = tolower(c);
+	char upperCase = toupper(c);
+	char* stop = (char*)s + len;
+	for(char* ptr = (char*)s ; ptr < stop; ptr++)
+	{
+		if(*ptr == lowerCase || *ptr == upperCase)
+		{
+			return ptr;
+		}
+	}
+	return NULL;
+}
+
 static char* memFindStr(char* toFind, char* start, char* stop)
 {
 	for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop-ptr)))
@@ -141,7 +157,7 @@ static char* memFindStr(char* toFind, char* start, char* stop)
 // find the address that follows the given search string between start and stop pointers - case insensitive
 char* memFindAfter(char* toFind, char* start, char* stop)
 {
-	for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop - ptr)))
+	for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memnchr(ptr+1, toFind[0],(stop - ptr)))
 	{
 		if(ACE_OS::strncasecmp(toFind, ptr, strlen(toFind)) == 0)
 		{
