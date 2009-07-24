@@ -1910,6 +1910,11 @@ bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 {
 	bool result = false;
 
+	if(DLLCONFIG.m_sipTreat200OkAsInvite == true)
+	{
+		return false;
+	}
+
 	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
 	char* sipEnd = (char*)udpPayload + sipLength;
 	if(sipLength < SIP_RESPONSE_200_OK_SIZE || sipEnd > (char*)packetEnd)
@@ -2071,6 +2076,11 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 	else if(memcmp(SIP_METHOD_ACK, (void*)udpPayload, SIP_METHOD_ACK_SIZE) == 0)
 	{
 		sipMethod = SIP_METHOD_ACK;
+	}
+	else if((DLLCONFIG.m_sipTreat200OkAsInvite == true) && (memcmp(SIP_RESPONSE_200_OK, (void*)udpPayload, SIP_RESPONSE_200_OK_SIZE) == 0))
+	{
+		sipMethod = SIP_METHOD_200_OK;
+		LOG4CXX_DEBUG(s_sipExtractionLog, "TrySipInvite: packet matches 200 OK and SipTreat200OkAsInvite is enabled");
 	}
 	else
 	{

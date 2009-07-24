@@ -365,6 +365,7 @@ struct Iax2MetaTrunkEntryTs {
 #define SIP_METHOD_INVITE "INVITE"
 #define SIP_METHOD_ACK "ACK"
 #define SIP_METHOD_BYE "BYE"
+#define SIP_METHOD_200_OK "200 OK"
 #define SIP_RESPONSE_200_OK "SIP/2.0 200"
 #define SIP_RESPONSE_SESSION_PROGRESS "SIP/2.0 183 Session Progress"
 

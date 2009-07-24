@@ -86,6 +86,7 @@ public:
 	bool m_sipIgnoreBye;
 	bool m_sipReportNamesAsTags;
 	bool m_sipRequestUriAsLocalParty;
+	bool m_sipTreat200OkAsInvite;
 
 	bool m_rtcpDetect;
 	bool m_inInMode;
