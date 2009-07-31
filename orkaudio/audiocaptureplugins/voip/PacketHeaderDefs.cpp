@@ -88,6 +88,20 @@ bool SkinnyValidateStartMediaTransmission(SkStartMediaTransmissionStruct* smt, u
 	return valid;
 }
 
+bool SkinnyValidateCcm7_1StartMediaTransmission(SkCcm7_1StartMediaTransmissionStruct *smt, u_char* packetEnd)
+{
+	bool valid = true;
+	if(((u_char*)smt + sizeof(SkCcm7_1StartMediaTransmissionStruct)) > packetEnd)
+	{
+		valid = false;
+	}
+	else if (smt->remoteTcpPort > 65535)
+	{
+		valid = false;
+	}
+	return valid;
+}
+
 bool SkinnyValidateStopMediaTransmission(SkStopMediaTransmissionStruct* smt, u_char* packetEnd)
 {
 	bool valid = true;
@@ -190,6 +204,20 @@ bool SkinnyValidateOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct* orca, u_
 {
 	bool valid = true;
 	if(((u_char*)orca + sizeof(SkOpenReceiveChannelAckStruct)) > packetEnd)
+	{
+		valid = false;
+	}
+	else if (orca->endpointTcpPort > 65535)
+	{
+		valid = false;
+	}
+	return valid;
+}
+
+bool SkinnyValidateCcm7_1SkOpenReceiveChannelAckStruct(SkCcm7_1SkOpenReceiveChannelAckStruct *orca, u_char* packetEnd)
+{
+	bool valid = true;
+	if(((u_char*)orca + sizeof(SkCcm7_1SkOpenReceiveChannelAckStruct)) > packetEnd)
 	{
 		valid = false;
 	}

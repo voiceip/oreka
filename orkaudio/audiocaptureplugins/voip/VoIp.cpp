@@ -2385,9 +2385,11 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 	CStdString logMsg;
 	
 	SkStartMediaTransmissionStruct* startMedia;
+	SkStartMediaTransmissionStruct smtmp;
 	SkStopMediaTransmissionStruct* stopMedia;
 	SkCallInfoStruct* callInfo;
 	SkOpenReceiveChannelAckStruct* openReceiveAck;
+	SkOpenReceiveChannelAckStruct orcatmp;
 	SkLineStatStruct* lineStat;
 	SkCcm5CallInfoStruct* ccm5CallInfo;
 	SkSoftKeyEventMessageStruct* softKeyEvent;
@@ -2395,24 +2397,61 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 	char szEndpointIp[16];
 	struct in_addr endpointIp = ipHeader->ip_dest;	// most of the interesting skinny messages are CCM -> phone
 
+	memset(&smtmp, 0, sizeof(smtmp));
+	memset(&orcatmp, 0, sizeof(orcatmp));
+
 	switch(skinnyHeader->messageType)
 	{
 	case SkStartMediaTransmission:
-		startMedia = (SkStartMediaTransmissionStruct*)skinnyHeader;
-		if(SkinnyValidateStartMediaTransmission(startMedia, packetEnd))
+		if(DLLCONFIG.m_cucm7_1Mode == true)
 		{
-			if(s_skinnyPacketLog->isInfoEnabled())
+			SkCcm7_1StartMediaTransmissionStruct *ccm7_1sm;
+
+			ccm7_1sm = (SkCcm7_1StartMediaTransmissionStruct*)skinnyHeader;
+			if(SkinnyValidateCcm7_1StartMediaTransmission(ccm7_1sm, packetEnd))
 			{
-				char szRemoteIp[16];
-				ACE_OS::inet_ntop(AF_INET, (void*)&startMedia->remoteIpAddr, szRemoteIp, sizeof(szRemoteIp));
-				logMsg.Format(" CallId:%u PassThru:%u media address:%s,%u", startMedia->conferenceId, startMedia->passThruPartyId, szRemoteIp, startMedia->remoteTcpPort);
+				startMedia = &smtmp;
+
+				memcpy(&startMedia->header, &ccm7_1sm->header, sizeof(startMedia->header));
+				startMedia->conferenceId = ccm7_1sm->conferenceId;
+				startMedia->passThruPartyId = ccm7_1sm->passThruPartyId;
+				memcpy(&startMedia->remoteIpAddr, &ccm7_1sm->remoteIpAddr, sizeof(startMedia->remoteIpAddr));
+				startMedia->remoteTcpPort = ccm7_1sm->remoteTcpPort;
+
+				if(s_skinnyPacketLog->isInfoEnabled())
+				{
+					char szRemoteIp[16];
+					ACE_OS::inet_ntop(AF_INET, (void*)&startMedia->remoteIpAddr, szRemoteIp, sizeof(szRemoteIp));
+					logMsg.Format(" (CCM 7.1) CallId:%u PassThru:%u media address:%s,%u", startMedia->conferenceId, startMedia->passThruPartyId, szRemoteIp, startMedia->remoteTcpPort);
+				}
+
+				RtpSessionsSingleton::instance()->ReportSkinnyStartMediaTransmission(startMedia, ipHeader);
 			}
-			RtpSessionsSingleton::instance()->ReportSkinnyStartMediaTransmission(startMedia, ipHeader);
+			else
+			{
+				useful = false;
+				LOG4CXX_WARN(s_skinnyPacketLog, "Invalid CCM 7.1 StartMediaTransmission.");
+			}
 		}
 		else
 		{
-			useful = false;
-			LOG4CXX_WARN(s_skinnyPacketLog, "Invalid StartMediaTransmission.");
+			startMedia = (SkStartMediaTransmissionStruct*)skinnyHeader;
+
+			if(SkinnyValidateStartMediaTransmission(startMedia, packetEnd))
+			{
+				if(s_skinnyPacketLog->isInfoEnabled())
+				{
+					char szRemoteIp[16];
+					ACE_OS::inet_ntop(AF_INET, (void*)&startMedia->remoteIpAddr, szRemoteIp, sizeof(szRemoteIp));
+					logMsg.Format(" CallId:%u PassThru:%u media address:%s,%u", startMedia->conferenceId, startMedia->passThruPartyId, szRemoteIp, startMedia->remoteTcpPort);
+				}
+				RtpSessionsSingleton::instance()->ReportSkinnyStartMediaTransmission(startMedia, ipHeader);
+			}
+			else
+			{
+				useful = false;
+				LOG4CXX_WARN(s_skinnyPacketLog, "Invalid StartMediaTransmission.");
+			}
 		}
 		break;
 	case SkStopMediaTransmission:
@@ -2494,11 +2533,23 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 				case 2:
 					calledParty = party;
 					break;
-				case 5:
-					// Token 5 is the calling extension, use this if outbound for callingParty instead of general number
-					if(party.size()>0 && ccm5CallInfo->callType == SKINNY_CALL_TYPE_OUTBOUND)
+				case 3:
+					if(DLLCONFIG.m_cucm7_1Mode == true)
 					{
-						callingParty = party;
+						// In CCM 7.1, it appears that each party is
+						// named twice
+						calledParty = party;
+					}
+					break;
+				case 5:
+					if(DLLCONFIG.m_cucm7_1Mode == false)
+					{
+						// Token 5 is the calling extension, use this if outbound for callingParty instead of general number
+						// With CCM 7.1, this appears not to be the case
+						if(party.size()>0 && ccm5CallInfo->callType == SKINNY_CALL_TYPE_OUTBOUND)
+						{
+							callingParty = party;
+						}
 					}
 					break;
 				case 6:
@@ -2547,22 +2598,56 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		}
 		break;
 	case SkOpenReceiveChannelAck:
-		openReceiveAck = (SkOpenReceiveChannelAckStruct*)skinnyHeader;
-		if(SkinnyValidateOpenReceiveChannelAck(openReceiveAck, packetEnd))
+		if(DLLCONFIG.m_cucm7_1Mode == true)
 		{
-			if(s_skinnyPacketLog->isInfoEnabled())
+			SkCcm7_1SkOpenReceiveChannelAckStruct *orca;
+
+			orca = (SkCcm7_1SkOpenReceiveChannelAckStruct*)skinnyHeader;
+			if(SkinnyValidateCcm7_1SkOpenReceiveChannelAckStruct(orca, packetEnd))
 			{
-				char szMediaIp[16];
-				ACE_OS::inet_ntop(AF_INET, (void*)&openReceiveAck->endpointIpAddr, szMediaIp, sizeof(szMediaIp));
-				logMsg.Format(" PassThru:%u media address:%s,%u", openReceiveAck->passThruPartyId, szMediaIp, openReceiveAck->endpointTcpPort);
+				openReceiveAck = &orcatmp;
+
+				memcpy(&openReceiveAck->header, &orca->header, sizeof(openReceiveAck->header));
+				openReceiveAck->openReceiveChannelStatus = orca->openReceiveChannelStatus;
+				memcpy(&openReceiveAck->endpointIpAddr, &orca->endpointIpAddr, sizeof(openReceiveAck->endpointIpAddr));
+				openReceiveAck->endpointTcpPort = orca->endpointTcpPort;
+				openReceiveAck->passThruPartyId = orca->passThruPartyId;
+
+				if(s_skinnyPacketLog->isInfoEnabled())
+				{
+					char szMediaIp[16];
+					ACE_OS::inet_ntop(AF_INET, (void*)&openReceiveAck->endpointIpAddr, szMediaIp, sizeof(szMediaIp));
+					logMsg.Format(" (CCM 7.1) PassThru:%u media address:%s,%u", openReceiveAck->passThruPartyId, szMediaIp, openReceiveAck->endpointTcpPort);
+				}
+				endpointIp = ipHeader->ip_src;	// this skinny message is phone -> CCM
+				RtpSessionsSingleton::instance()->ReportSkinnyOpenReceiveChannelAck(openReceiveAck);
 			}
-			endpointIp = ipHeader->ip_src;	// this skinny message is phone -> CCM
-			RtpSessionsSingleton::instance()->ReportSkinnyOpenReceiveChannelAck(openReceiveAck);
+			else
+			{
+				useful = false;
+				LOG4CXX_WARN(s_skinnyPacketLog, "Invalid CCM 7.1 OpenReceiveChannelAck.");
+			}
 		}
 		else
 		{
-			useful = false;
-			LOG4CXX_WARN(s_skinnyPacketLog, "Invalid OpenReceiveChannelAck.");
+			openReceiveAck = (SkOpenReceiveChannelAckStruct*)skinnyHeader;
+
+			if(SkinnyValidateOpenReceiveChannelAck(openReceiveAck, packetEnd))
+			{
+				if(s_skinnyPacketLog->isInfoEnabled())
+				{
+					char szMediaIp[16];
+					ACE_OS::inet_ntop(AF_INET, (void*)&openReceiveAck->endpointIpAddr, szMediaIp, sizeof(szMediaIp));
+					logMsg.Format(" PassThru:%u media address:%s,%u", openReceiveAck->passThruPartyId, szMediaIp, openReceiveAck->endpointTcpPort);
+				}
+				endpointIp = ipHeader->ip_src;	// this skinny message is phone -> CCM
+				RtpSessionsSingleton::instance()->ReportSkinnyOpenReceiveChannelAck(openReceiveAck);
+			}
+			else
+			{
+				useful = false;
+				LOG4CXX_WARN(s_skinnyPacketLog, "Invalid OpenReceiveChannelAck.");
+			}
 		}
 		break;
 	case SkLineStatMessage:

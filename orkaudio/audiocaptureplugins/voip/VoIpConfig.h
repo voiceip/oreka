@@ -104,6 +104,7 @@ public:
 	bool m_skinnyAllowLateCallInfo;
 	bool m_skinnyNameAsLocalParty;
 	bool m_skinnyCallInfoStopsPrevious;
+	bool m_cucm7_1Mode;
 	std::list<CStdString> m_skinnyReportTags;
 
 	std::list<CStdString> m_dnisNumbers;

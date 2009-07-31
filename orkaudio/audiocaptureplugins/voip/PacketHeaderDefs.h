@@ -135,6 +135,21 @@ typedef struct
 
 bool SkinnyValidateStartMediaTransmission(SkStartMediaTransmissionStruct *, u_char* packetEnd);
 
+typedef struct
+{
+	SkinnyHeaderStruct header;
+	unsigned int conferenceId;
+	unsigned int passThruPartyId;
+	unsigned int stuff1;
+	struct in_addr remoteIpAddr;
+	unsigned int stuff2;
+	unsigned int stuff3;
+	unsigned int stuff4;
+	unsigned int remoteTcpPort;
+	// Other stuff
+} SkCcm7_1StartMediaTransmissionStruct;
+
+bool SkinnyValidateCcm7_1StartMediaTransmission(SkCcm7_1StartMediaTransmissionStruct *, u_char* packetEnd);
 
 typedef struct
 {
@@ -207,6 +222,20 @@ typedef struct
 } SkOpenReceiveChannelAckStruct;
 
 bool SkinnyValidateOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct *, u_char* packetEnd);
+
+typedef struct
+{
+	SkinnyHeaderStruct header;
+	unsigned int openReceiveChannelStatus;
+	unsigned int stuff1;
+	struct in_addr endpointIpAddr;
+	unsigned int passThruPartyId;
+	unsigned int stuff2;
+	unsigned int stuff3;
+	unsigned int endpointTcpPort;
+} SkCcm7_1SkOpenReceiveChannelAckStruct;
+
+bool SkinnyValidateCcm7_1SkOpenReceiveChannelAckStruct(SkCcm7_1SkOpenReceiveChannelAckStruct *orca, u_char* packetEnd);
 
 typedef struct
 {
