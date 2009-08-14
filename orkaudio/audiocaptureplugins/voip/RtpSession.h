@@ -153,6 +153,7 @@ public:
 	void ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo);
 	bool OrkUidMatches(CStdString &oUid);
 	bool PartyMatches(CStdString &party);
+	bool NativeCallIdMatches(CStdString &callid);
 	void UpdateMetadataSkinny();
 	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader);
 	CStdString GetOrkUid();
@@ -265,8 +266,13 @@ public:
 	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp);
 	CStdString StartCapture(CStdString& party);
 	void StartCaptureOrkuid(CStdString& orkuid);
-	void PauseCapture(CStdString& party);
+	CStdString StartCaptureNativeCallId(CStdString& nativecallid);
+	CStdString PauseCaptureNativeCallId(CStdString& nativecallid);
+	CStdString PauseCapture(CStdString& party);
 	void PauseCaptureOrkuid(CStdString& orkuid);
+	CStdString StopCapture(CStdString& party);
+	void StopCaptureOrkuid(CStdString& orkuid);
+	CStdString StopCaptureNativeCallId(CStdString& nativecallid);
 	void SaveLocalPartyMap(CStdString& oldparty, CStdString& newparty);
 	CStdString GetLocalPartyMap(CStdString& oldlocalparty);
 

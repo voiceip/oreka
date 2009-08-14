@@ -28,9 +28,9 @@ public:
 
 	void Run();
 	void Shutdown();
-	void StartCapture(CStdString& party, CStdString& orkuid);
-	void PauseCapture(CStdString& party, CStdString& orkuid);
-	void StopCapture(CStdString& party);
+	void StartCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid);
+	void PauseCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid);
+	void StopCapture(CStdString& party, CStdString& orkUid, CStdString& nativecallid);
 	void SetOnHold(CStdString& party, CStdString& orkuid);
 	void SetOffHold(CStdString& party, CStdString& orkuid);
 

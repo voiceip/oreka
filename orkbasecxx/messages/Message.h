@@ -34,6 +34,7 @@
 #define FILENAME_PARAM "filename"
 #define ORKUID_PARAM "orkuid"
 #define PARTY_PARAM "party"
+#define NATIVE_CALLID_PARAM "nativecallid"
 
 #define SUCCESS_PARAM "sucess"
 #define SUCCESS_DEFAULT true

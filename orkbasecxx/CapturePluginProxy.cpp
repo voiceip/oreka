@@ -213,11 +213,11 @@ void CapturePluginProxy::Shutdown()
 	}
 }
 
-void CapturePluginProxy::StartCapture(CStdString& party, CStdString& orkuid)
+void CapturePluginProxy::StartCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
 {
 	if(m_loaded)
 	{
-		m_startCaptureFunction(party, orkuid);
+		m_startCaptureFunction(party, orkuid, nativecallid);
 	}
 	else
 	{
@@ -225,11 +225,11 @@ void CapturePluginProxy::StartCapture(CStdString& party, CStdString& orkuid)
 	}
 }
 
-void CapturePluginProxy::StopCapture(CStdString& party)
+void CapturePluginProxy::StopCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
 {
 	if(m_loaded)
 	{
-		m_stopCaptureFunction(party);
+		m_stopCaptureFunction(party, orkuid, nativecallid);
 	}
 	else
 	{
@@ -261,11 +261,11 @@ void CapturePluginProxy::SetOffHold(CStdString& party, CStdString& orkuid)
 	}
 }
 
-void CapturePluginProxy::PauseCapture(CStdString& party, CStdString& orkuid)
+void CapturePluginProxy::PauseCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
 {
 	if(m_loaded)
 	{
-		m_pauseCaptureFunction(party, orkuid);
+		m_pauseCaptureFunction(party, orkuid, nativecallid);
 	}
 	else
 	{

@@ -85,9 +85,9 @@ public:
 	void Initialize();
 	void Run();
 	void Shutdown();
-	void StartCapture(CStdString& port, CStdString& orkuid);
-	void StopCapture(CStdString& port);
-	void PauseCapture(CStdString& port, CStdString& orkuid);
+	void StartCapture(CStdString& port, CStdString& orkuid, CStdString& nativecallid);
+	void StopCapture(CStdString& port, CStdString& orkuid, CStdString& nativecallid);
+	void PauseCapture(CStdString& port, CStdString& orkuid, CStdString& nativecallid);
 	void SetOnHold(CStdString& port, CStdString& orkuid);
 	void SetOffHold(CStdString& port, CStdString& orkuid);
 	void ReportPcapStats();
@@ -3563,19 +3563,73 @@ void VoIp::Shutdown()
 #endif
 }
 
-void VoIp::StartCapture(CStdString& port, CStdString& orkuid)
+void VoIp::StartCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
 {
-	;
+	CStdString logMsg;
+
+	logMsg.Format("StartCapture: party:%s orkuid:%s nativecallid:%s", party, orkuid, nativecallid);
+	LOG4CXX_INFO(s_voipPluginLog, logMsg);
+
+	MutexSentinel mutexSentinel(s_mutex);
+
+	if(orkuid.size())
+	{
+		RtpSessionsSingleton::instance()->StartCaptureOrkuid(orkuid);
+	}
+	else if(party.size())
+	{
+		orkuid = RtpSessionsSingleton::instance()->StartCapture(party);
+	}
+	else if(nativecallid.size())
+	{
+		orkuid = RtpSessionsSingleton::instance()->StartCaptureNativeCallId(nativecallid);
+	}
 }
 
-void VoIp::PauseCapture(CStdString& port, CStdString& orkuid)
+void VoIp::PauseCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
 {
-	;
+	CStdString logMsg;
+
+	logMsg.Format("PauseCapture: party:%s orkuid:%s nativecallid:%s", party, orkuid, nativecallid);
+	LOG4CXX_INFO(s_voipPluginLog, logMsg);
+
+	MutexSentinel mutexSentinel(s_mutex);
+
+	if(orkuid.size())
+	{
+		RtpSessionsSingleton::instance()->PauseCaptureOrkuid(orkuid);
+	}
+	else if(party.size())
+	{
+		orkuid = RtpSessionsSingleton::instance()->PauseCapture(party);
+	}
+	else if(nativecallid.size())
+	{
+		orkuid = RtpSessionsSingleton::instance()->PauseCaptureNativeCallId(nativecallid);
+	}
 }
 
-void VoIp::StopCapture(CStdString& port)
+void VoIp::StopCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
 {
-	;
+	CStdString logMsg;
+
+	logMsg.Format("StopCapture: party:%s orkuid:%s nativecallid:%s", party, orkuid, nativecallid);
+	LOG4CXX_INFO(s_voipPluginLog, logMsg);
+
+	MutexSentinel mutexSentinel(s_mutex);
+
+	if(orkuid.size())
+	{
+		RtpSessionsSingleton::instance()->StopCaptureOrkuid(orkuid);
+	}
+	else if(party.size())
+	{
+		orkuid = RtpSessionsSingleton::instance()->StopCapture(party);
+	}
+	else if(nativecallid.size())
+	{
+		orkuid = RtpSessionsSingleton::instance()->StopCaptureNativeCallId(nativecallid);
+	}
 }
 
 void VoIp::SetOnHold(CStdString& port, CStdString& orkuid)
@@ -3603,47 +3657,19 @@ void __CDECL__ Shutdown()
 	VoIpSingleton::instance()->Shutdown();
 }
 
-void __CDECL__ StartCapture(CStdString& party, CStdString& orkuid)
+void __CDECL__ StartCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
 {
-	CStdString logMsg;
-
-	logMsg.Format("StartCapture: party:%s orkuid:%s", party, orkuid);
-	LOG4CXX_INFO(s_voipPluginLog, logMsg);
-
-	MutexSentinel mutexSentinel(s_mutex);
-
-	if(orkuid.size())
-	{
-		RtpSessionsSingleton::instance()->StartCaptureOrkuid(orkuid);
-	}
-	else
-	{
-		orkuid = RtpSessionsSingleton::instance()->StartCapture(party);
-	}
+	VoIpSingleton::instance()->StartCapture(party, orkuid, nativecallid);
 }
 
-void __CDECL__ PauseCapture(CStdString& party, CStdString& orkuid)
+void __CDECL__ PauseCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
 {
-	CStdString logMsg;
-
-	logMsg.Format("PauseCapture: party:%s orkuid:%s", party, orkuid);
-	LOG4CXX_INFO(s_voipPluginLog, logMsg);
-
-	MutexSentinel mutexSentinel(s_mutex);
-
-	if(orkuid.size())
-	{
-		RtpSessionsSingleton::instance()->PauseCaptureOrkuid(orkuid);
-	}
-	else
-	{
-		RtpSessionsSingleton::instance()->PauseCapture(party);
-	}
+	VoIpSingleton::instance()->PauseCapture(party, orkuid, nativecallid);
 }
 
-void __CDECL__ StopCapture(CStdString& party)
+void __CDECL__ StopCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
 {
-	;
+	VoIpSingleton::instance()->StopCapture(party, orkuid, nativecallid);
 }
 
 void __CDECL__ SetOnHold(CStdString& port, CStdString& orkuid)

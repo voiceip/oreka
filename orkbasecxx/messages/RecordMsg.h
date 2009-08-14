@@ -29,6 +29,7 @@ public:
 
 	CStdString m_party;
 	CStdString m_orkuid;
+	CStdString m_nativecallid;
 };
 
 class DLL_IMPORT_EXPORT_ORKBASE PauseMsg : public SyncMessage
@@ -43,6 +44,22 @@ public:
 
 	CStdString m_party;
 	CStdString m_orkuid;
+	CStdString m_nativecallid;
+};
+
+class DLL_IMPORT_EXPORT_ORKBASE StopMsg : public SyncMessage
+{
+public:
+	void Define(Serializer* s);
+	inline void Validate() {};
+
+	CStdString GetClassName();
+	ObjectRef NewInstance();
+	ObjectRef Process();
+
+	CStdString m_party;
+	CStdString m_orkuid;
+	CStdString m_nativecallid;
 };
 
 #endif
