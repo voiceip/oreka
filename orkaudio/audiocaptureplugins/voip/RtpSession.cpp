@@ -2786,7 +2786,6 @@ void RtpSessions::StopCaptureOrkuid(CStdString& orkuid)
 	{
 		logMsg.Format("StopCaptureOrkuid: No session has orkuid:%s", orkuid);
 		LOG4CXX_INFO(m_log, logMsg);
-		Stop(session);
 	}
 }
 
@@ -2819,7 +2818,6 @@ CStdString RtpSessions::StopCaptureNativeCallId(CStdString& nativecallid)
 	{
 		logMsg.Format("StopCaptureNativeCallId: No session has native callid:%s", nativecallid);
 		LOG4CXX_INFO(m_log, logMsg);
-		Stop(session);
 	}
 
 	return orkUid;
