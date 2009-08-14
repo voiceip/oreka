@@ -17,6 +17,7 @@
 
 #define RECORD_CLASS "record"
 #define PAUSE_CLASS "pause"
+#define STOP_CLASS "stop"
 
 void PauseMsg::Define(Serializer* s)
 {
@@ -24,6 +25,7 @@ void PauseMsg::Define(Serializer* s)
 	s->StringValue(OBJECT_TYPE_TAG, pauseClass, true);
 	s->StringValue(PARTY_PARAM, m_party, false);
 	s->StringValue(ORKUID_PARAM, m_orkuid, false);
+	s->StringValue(NATIVE_CALLID_PARAM, m_nativecallid, false);
 }
 
 CStdString PauseMsg::GetClassName()
@@ -42,8 +44,43 @@ ObjectRef PauseMsg::Process()
 	ObjectRef ref(msg);
 	CStdString logMsg;
 
-	logMsg.Format("Pausing capture for party:%s orkuid:%s", m_party, m_orkuid);
-	CapturePluginProxy::Singleton()->PauseCapture(m_party, m_orkuid);
+	CapturePluginProxy::Singleton()->PauseCapture(m_party, m_orkuid, m_nativecallid);
+	logMsg.Format("Pausing capture for party:%s orkuid:%s nativecallid:%s", m_party, m_orkuid, m_nativecallid);
+	msg->m_success = true;
+	msg->m_comment = logMsg;
+
+	return ref;
+}
+
+//===================================================
+
+void StopMsg::Define(Serializer* s)
+{
+	CStdString stopClass(STOP_CLASS);
+	s->StringValue(OBJECT_TYPE_TAG, stopClass, true);
+	s->StringValue(PARTY_PARAM, m_party, false);
+	s->StringValue(ORKUID_PARAM, m_orkuid, false);
+	s->StringValue(NATIVE_CALLID_PARAM, m_nativecallid, false);
+}
+
+CStdString StopMsg::GetClassName()
+{
+	return  CStdString(STOP_CLASS);
+}
+
+ObjectRef StopMsg::NewInstance()
+{
+	return ObjectRef(new StopMsg);
+}
+
+ObjectRef StopMsg::Process()
+{
+	SimpleResponseMsg* msg = new SimpleResponseMsg;
+	ObjectRef ref(msg);
+	CStdString logMsg;
+
+	CapturePluginProxy::Singleton()->StopCapture(m_party, m_orkuid, m_nativecallid);
+	logMsg.Format("Stopping capture for party:%s orkuid:%s nativecallid:%s", m_party, m_orkuid, m_nativecallid);
 	msg->m_success = true;
 	msg->m_comment = logMsg;
 
@@ -58,6 +95,7 @@ void RecordMsg::Define(Serializer* s)
 	s->StringValue(OBJECT_TYPE_TAG, recordClass, true);
 	s->StringValue(PARTY_PARAM, m_party, false);
 	s->StringValue(ORKUID_PARAM, m_orkuid, false);
+	s->StringValue(NATIVE_CALLID_PARAM, m_nativecallid, false);
 }
 
 CStdString RecordMsg::GetClassName()
@@ -76,8 +114,8 @@ ObjectRef RecordMsg::Process()
 	ObjectRef ref(msg);
 	CStdString logMsg;
 
-	CapturePluginProxy::Singleton()->StartCapture(m_party, m_orkuid);
-	logMsg.Format("Starting capture for party:%s orkuid:%s", m_party, m_orkuid);
+	CapturePluginProxy::Singleton()->StartCapture(m_party, m_orkuid, m_nativecallid);
+	logMsg.Format("Starting capture for party:%s orkuid:%s nativecallid:%s", m_party, m_orkuid, m_nativecallid);
 	msg->m_success = true;
 	msg->m_comment = logMsg;
 

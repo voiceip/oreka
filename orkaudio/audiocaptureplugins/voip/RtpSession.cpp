@@ -1236,6 +1236,18 @@ bool RtpSession::PartyMatches(CStdString &party)
 	return false;
 }
 
+bool RtpSession::NativeCallIdMatches(CStdString& callid)
+{
+	if(callid.size() > 0)
+	{
+		if(m_callId.CompareNoCase(callid) == 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 void RtpSession::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader)
 {
 	std::map<CStdString, CStdString>::iterator pair;
@@ -2547,6 +2559,40 @@ void RtpSessions::StartCaptureOrkuid(CStdString& orkuid)
 	LOG4CXX_INFO(m_log, logMsg);
 }
 
+CStdString RtpSessions::StartCaptureNativeCallId(CStdString& nativecallid)
+{
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	bool found = false;
+	CStdString logMsg;
+	RtpSessionRef session;
+	CStdString orkUid = CStdString("");
+
+	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
+	{
+		session = pair->second;
+
+		if(session->NativeCallIdMatches(nativecallid))
+		{
+			session->m_keep = true;
+			found = true;
+			orkUid = session->GetOrkUid();
+		}
+	}
+
+	if(found)
+	{
+		logMsg.Format("[%s] StartCaptureNativeCallId: Started capture, nativecallid:%s", session->m_trackingId, nativecallid);
+	}
+	else
+	{
+		logMsg.Format("StartCaptureNativeCallId: No session has native callid:%s", nativecallid);
+	}
+
+	LOG4CXX_INFO(m_log, logMsg);
+
+	return orkUid;
+}
+
 CStdString RtpSessions::StartCapture(CStdString& party)
 {
 	std::map<CStdString, RtpSessionRef>::iterator pair;
@@ -2581,12 +2627,13 @@ CStdString RtpSessions::StartCapture(CStdString& party)
 	return orkUid;
 }
 
-void RtpSessions::PauseCapture(CStdString& party)
+CStdString RtpSessions::PauseCapture(CStdString& party)
 {
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
 	RtpSessionRef session;
+	CStdString orkUid = CStdString("");
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
 	{
@@ -2596,6 +2643,7 @@ void RtpSessions::PauseCapture(CStdString& party)
 		{
 			session->m_keep = false;
 			found = true;
+			orkUid = session->GetOrkUid();
 		}
 	}
 
@@ -2609,6 +2657,8 @@ void RtpSessions::PauseCapture(CStdString& party)
 	}
 	
 	LOG4CXX_INFO(m_log, logMsg);
+
+	return orkUid;
 }
 
 void RtpSessions::PauseCaptureOrkuid(CStdString& orkuid)
@@ -2639,6 +2689,140 @@ void RtpSessions::PauseCaptureOrkuid(CStdString& orkuid)
 	}
 
 	LOG4CXX_INFO(m_log, logMsg);
+}
+
+CStdString RtpSessions::PauseCaptureNativeCallId(CStdString& nativecallid)
+{
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	bool found = false;
+	CStdString logMsg;
+	RtpSessionRef session;
+	CStdString orkUid = CStdString("");
+
+	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
+	{
+		session = pair->second;
+
+		if(session->NativeCallIdMatches(nativecallid))
+		{
+			session->m_keep = false;
+			found = true;
+			orkUid = session->GetOrkUid();
+		}
+	}
+
+	if(found)
+	{
+		logMsg.Format("[%s] PauseCaptureNativeCallId: Paused capture, nativecallid:%s", session->m_trackingId, nativecallid);
+	}
+	else
+	{
+		logMsg.Format("PauseCaptureNativeCallId: No session has native callid:%s", nativecallid);
+	}
+
+	LOG4CXX_INFO(m_log, logMsg);
+
+	return orkUid;
+}
+
+CStdString RtpSessions::StopCapture(CStdString& party)
+{
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	bool found = false;
+	CStdString logMsg;
+	RtpSessionRef session;
+	CStdString orkUid = CStdString("");
+
+	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
+	{
+		session = pair->second;
+
+		if (session->PartyMatches(party))
+		{
+			found = true;
+			orkUid = session->GetOrkUid();
+		}
+	}
+
+	if(found)
+	{
+		logMsg.Format("[%s] StopCapture: stopping capture, party:%s", session->m_trackingId, party);
+		LOG4CXX_INFO(m_log, logMsg);
+		Stop(session);
+	}	
+	else
+	{
+		logMsg.Format("StopCapture: No session has party %s", party);
+		LOG4CXX_INFO(m_log, logMsg);
+	}
+
+	return orkUid;
+}
+
+void RtpSessions::StopCaptureOrkuid(CStdString& orkuid)
+{
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	bool found = false;
+	CStdString logMsg;
+	RtpSessionRef session;
+
+	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
+	{
+		session = pair->second;
+
+		if(session->OrkUidMatches(orkuid))
+		{
+			found = true;
+		}
+	}
+
+	if(found)
+	{
+		logMsg.Format("[%s] StopCaptureOrkuid: stopping capture, orkuid:%s", session->m_trackingId, orkuid);
+		LOG4CXX_INFO(m_log, logMsg);
+		Stop(session);
+	}
+	else
+	{
+		logMsg.Format("StopCaptureOrkuid: No session has orkuid:%s", orkuid);
+		LOG4CXX_INFO(m_log, logMsg);
+		Stop(session);
+	}
+}
+
+CStdString RtpSessions::StopCaptureNativeCallId(CStdString& nativecallid)
+{
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	bool found = false;
+	CStdString logMsg;
+	RtpSessionRef session;
+	CStdString orkUid = CStdString("");
+
+	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
+	{
+		session = pair->second;
+
+		if(session->NativeCallIdMatches(nativecallid))
+		{
+			found = true;
+			orkUid = session->GetOrkUid();
+		}
+	}
+
+	if(found)
+	{
+		logMsg.Format("[%s] StopCaptureNativeCallId: stopping capture, nativecallid:%s", session->m_trackingId, nativecallid);
+		LOG4CXX_INFO(m_log, logMsg);
+		Stop(session);
+	}
+	else
+	{
+		logMsg.Format("StopCaptureNativeCallId: No session has native callid:%s", nativecallid);
+		LOG4CXX_INFO(m_log, logMsg);
+		Stop(session);
+	}
+
+	return orkUid;
 }
 
 void RtpSessions::SaveLocalPartyMap(CStdString& oldparty, CStdString& newparty)

@@ -373,9 +373,9 @@ void ReportingThread::Run()
 								// Tape is wanted
 								if(CONFIG.m_lookBackRecording == false && CONFIG.m_allowAutomaticRecording && ptapeMsg->m_stage.Equals("start"))
 								{
-									CStdString orkuid = "";
-									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_localParty, orkuid);
-									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_remoteParty, orkuid);
+									CStdString orkuid = "", nativecallid = "";
+									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_localParty, orkuid, nativecallid);
+									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_remoteParty, orkuid, nativecallid);
 								}
 							}
 							//else
