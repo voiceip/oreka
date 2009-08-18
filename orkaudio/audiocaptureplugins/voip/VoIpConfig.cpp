@@ -50,6 +50,7 @@ VoIpConfig::VoIpConfig()
 	m_sipReportNamesAsTags = false;
 	m_sipRequestUriAsLocalParty = true;
 	m_sipTreat200OkAsInvite = false;
+	m_sipAllowMultipleMediaAddresses = false;
 
 	m_rtcpDetect = false;
 	m_inInMode = false;
@@ -79,6 +80,8 @@ VoIpConfig::VoIpConfig()
 	m_lanIpRanges.m_asciiIpRanges.push_back(CStdString("192.168.0.0/16"));
 	m_lanIpRanges.m_asciiIpRanges.push_back(CStdString("172.16.0.0/20"));
 	m_lanIpRanges.Compute();
+
+	m_dahdiIntercept = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -125,6 +128,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SipReportNamesAsTags", m_sipReportNamesAsTags);
 	s->BoolValue("SipRequestUriAsLocalParty", m_sipRequestUriAsLocalParty);
 	s->BoolValue("SipTreat200OkAsInvite", m_sipTreat200OkAsInvite);
+	s->BoolValue("SipAllowMultipleMediaAddresses", m_sipAllowMultipleMediaAddresses);
 
 	s->BoolValue("RtcpDetect", m_rtcpDetect);
 	s->BoolValue("InInMode", m_inInMode);
@@ -155,6 +159,8 @@ void VoIpConfig::Define(Serializer* s)
 	
 	s->IpRangesValue("LanIpRanges", m_lanIpRanges);
 	s->IpRangesValue("MediaAddressBlockedIpRanges", m_mediaAddressBlockedIpRanges);
+
+	s->BoolValue("DahdiIntercept", m_dahdiIntercept);
 }
 
 void VoIpConfig::Validate()
@@ -376,6 +382,13 @@ void VoIpConfig::Validate()
 	if(m_sipDirectionReferenceUserAgents.size() == 0)
 	{
 		m_sipDirectionReferenceUserAgents.push_back("Asterisk");
+	}
+
+	if(m_dahdiIntercept == true)
+	{
+		m_sipAllowMultipleMediaAddresses = true;
+		m_rtpDetectOnOddPorts = true;
+		m_sipRequestUriAsLocalParty = false;
 	}
 }
 

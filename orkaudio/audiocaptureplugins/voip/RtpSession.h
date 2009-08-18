@@ -186,6 +186,7 @@ public:
 	bool m_onHold;
 	bool m_keep;
 	bool m_nonLookBackSessionStarted;
+	std::list<CStdString> m_otherIpAndPortMappings;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
@@ -285,6 +286,7 @@ private:
 	RtpSessionRef findByEndpointIpAndLineInstance(struct in_addr endpointIpAddr, int lineInstance);
 	bool ChangeCallId(RtpSessionRef& session, unsigned int newId);
 	void SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort);
+	void MapOtherMediaAddress(RtpSessionRef& session, CStdString& ipAndPort);
 	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId);
 	void UpdateSessionWithCallInfo(SkCallInfoStruct*, RtpSessionRef&);
 
