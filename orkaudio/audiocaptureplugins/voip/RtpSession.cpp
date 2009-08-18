@@ -1004,8 +1004,9 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 	else
 	{
-		// Comparing destination IP address to find out if side1, see (1)
-		if((unsigned int)rtpPacket->m_destIp.s_addr == (unsigned int)m_lastRtpPacketSide1->m_destIp.s_addr)
+		// Comparing destination IP address and port to find out if side1, see (1)
+		if((unsigned int)rtpPacket->m_destIp.s_addr == (unsigned int)m_lastRtpPacketSide1->m_destIp.s_addr &&
+			rtpPacket->m_destPort == m_lastRtpPacketSide1->m_destPort)
 		{
 			if(rtpPacket->m_timestamp == m_lastRtpPacketSide1->m_timestamp)
 			{
@@ -1151,10 +1152,76 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	else
 	{
 		CStdString inviteString;
-		invite->ToString(inviteString);
 		CStdString logMsg;
-		logMsg.Format("[%s] associating INVITE:%s", m_trackingId, inviteString);
-		LOG4CXX_INFO(m_log, logMsg);
+		invite->ToString(inviteString);
+
+		if(DLLCONFIG.m_dahdiIntercept == true)
+		{
+			// With Xorcom interception, we update whichever party is currently
+			// set to "s" with the new party in either m_from or m_to of the
+			// INVITE
+
+			if(m_localParty.CompareNoCase(CStdString("s")) == 0)
+			{
+				if(m_remoteParty.CompareNoCase(invite->m_to) != 0)
+				{
+					// remoteparty is set to m_from
+					m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_to);
+					logMsg.Format("[%s] dahdiIntercept: reset localparty:%s from INVITE:%s", m_trackingId, m_localParty, inviteString);
+				}
+				else
+				{
+					// remoteparty is set to m_to
+					m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_from);
+					logMsg.Format("[%s] dahdiIntercept: reset localparty:%s from INVITE:%s", m_trackingId, m_localParty, inviteString);
+				}
+
+				// Report Local party
+				CaptureEventRef event(new CaptureEvent());
+				event->m_type = CaptureEvent::EtLocalParty;
+				event->m_value = m_localParty;
+				g_captureEventCallBack(event, m_capturePort);
+			}
+			else if(m_remoteParty.CompareNoCase(CStdString("s")) == 0)
+			{
+				CStdString translatedTo, translatedFrom;
+
+				translatedTo = RtpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_to);
+				translatedFrom = RtpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_from);
+
+				if(m_localParty.CompareNoCase(translatedTo) != 0)
+				{
+					// localparty is set to m_from
+					m_remoteParty = invite->m_to;
+					logMsg.Format("[%s] dahdiIntercept: reset remoteparty:%s from INVITE:%s", m_trackingId, m_remoteParty, inviteString);
+				}
+				else
+				{
+					// localparty is set to m_to
+					m_remoteParty = invite->m_from;
+					logMsg.Format("[%s] dahdiIntercept: reset remoteparty:%s from INVITE:%s", m_trackingId, m_remoteParty, inviteString);
+				}
+
+				// Report remote party
+				CaptureEventRef event(new CaptureEvent());
+				event->m_type = CaptureEvent::EtRemoteParty;
+				event->m_value = m_remoteParty;
+				g_captureEventCallBack(event, m_capturePort);
+			}
+			else
+			{
+				logMsg.Format("[%s] dahdiIntercept: ignoring INVITE:%s", m_trackingId, inviteString);
+			}
+
+			LOG4CXX_INFO(m_log, logMsg);
+
+			return;
+		}
+		else
+		{
+			logMsg.Format("[%s] associating INVITE:%s", m_trackingId, inviteString);
+			LOG4CXX_INFO(m_log, logMsg);
+		}
 	}
 	m_invites.push_front(invite);
 	if(invite->m_telephoneEventPtDefined)
@@ -1385,10 +1452,18 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			}
 		}
 
-		if(!session->m_ipAndPort.Equals(ipAndPort) && DLLCONFIG.m_sipDynamicMediaAddress)
+		if(DLLCONFIG.m_sipAllowMultipleMediaAddresses == true)
 		{
-			SetMediaAddress(session, invite->m_fromRtpIp, rtpPort);
+			MapOtherMediaAddress(session, ipAndPort);
 		}
+		else
+		{
+			if(!session->m_ipAndPort.Equals(ipAndPort) && DLLCONFIG.m_sipDynamicMediaAddress)
+			{
+				SetMediaAddress(session, invite->m_fromRtpIp, rtpPort);
+			}
+		}
+
 		return;
 	}
 
@@ -1830,6 +1905,59 @@ void RtpSessions::CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipA
 	mediaAddress.Format("%s,%u", szIpAddress, udpPort);
 }
 
+void RtpSessions::MapOtherMediaAddress(RtpSessionRef& session, CStdString& ipAndPort)
+{
+	std::map<CStdString, RtpSessionRef>::iterator pair = m_byIpAndPort.find(ipAndPort);
+
+	if (pair != m_byIpAndPort.end())
+	{
+		RtpSessionRef session2 = pair->second;
+		CStdString origOrkUid;
+
+		origOrkUid = session->GetOrkUid();
+		if(session2->OrkUidMatches(origOrkUid))
+		{
+			CStdString logMsg;
+			char szEndPointIp[16];
+
+			if(m_log->isInfoEnabled())
+			{
+				CStdString logMsg;
+				char szEndPointIp[16];
+
+				ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
+				logMsg.Format("[%s] already mapped other media address:%s callId:%s endpoint:%s", session->m_trackingId, ipAndPort, session->m_callId, szEndPointIp);
+				LOG4CXX_INFO(m_log, logMsg);
+			}
+
+			return;
+		}
+
+		CStdString logMsg;
+
+		logMsg.Format("Unable to map other media address:%s, we have another session:%s with that mapping", ipAndPort, session2->GetOrkUid());
+		LOG4CXX_WARN(m_log, logMsg);
+
+		return;
+	}
+
+	if(m_log->isInfoEnabled())
+	{
+		char szEndPointIp[16];
+		ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
+		CStdString logMsg;
+		logMsg.Format("[%s] mapped other media address:%s callId:%s endpoint:%s", session->m_trackingId, ipAndPort, session->m_callId, szEndPointIp);
+		LOG4CXX_INFO(m_log, logMsg);
+	}
+
+	session->m_otherIpAndPortMappings.push_back(ipAndPort);
+	m_byIpAndPort.insert(std::make_pair(ipAndPort, session));
+
+	CStdString numSessions = IntToString(m_byIpAndPort.size());
+	LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
+}
+
+
 void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort)
 {
 	if(mediaPort == 0)
@@ -2194,6 +2322,19 @@ void RtpSessions::Stop(RtpSessionRef& session)
 	if(session->m_callId.size() > 0)
 	{
 		m_byCallId.erase(session->m_callId);
+	}
+	if(session->m_otherIpAndPortMappings.size() > 0)
+	{
+		std::list<CStdString>::iterator it;
+
+		for(it = session->m_otherIpAndPortMappings.begin(); it != session->m_otherIpAndPortMappings.end(); it++)
+		{
+			CStdString mapping = *it;
+
+			m_byIpAndPort.erase(mapping);
+		}
+
+		session->m_otherIpAndPortMappings.clear();
 	}
 }
 

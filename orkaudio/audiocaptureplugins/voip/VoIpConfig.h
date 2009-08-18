@@ -87,6 +87,7 @@ public:
 	bool m_sipReportNamesAsTags;
 	bool m_sipRequestUriAsLocalParty;
 	bool m_sipTreat200OkAsInvite;
+	bool m_sipAllowMultipleMediaAddresses;
 
 	bool m_rtcpDetect;
 	bool m_inInMode;
@@ -120,6 +121,8 @@ public:
 	std::list<CStdString> m_sipDirectionReferenceUserAgents;
 	IpRanges m_lanIpRanges;
 	IpRanges m_mediaAddressBlockedIpRanges;
+
+	bool m_dahdiIntercept;
 };
 
 //========================================

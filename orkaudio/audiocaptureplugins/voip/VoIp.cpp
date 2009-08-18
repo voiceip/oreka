@@ -2348,7 +2348,14 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		if((unsigned int)info->m_fromRtpIp.s_addr == 0)
 		{
 			// In case connection address could not be extracted, use SIP invite sender IP address
-			info->m_fromRtpIp = ipHeader->ip_src;
+			if(DLLCONFIG.m_dahdiIntercept == true)
+			{
+				info->m_fromRtpIp = ipHeader->ip_dest;
+			}
+			else
+			{
+				info->m_fromRtpIp = ipHeader->ip_src;
+			}
 		}
 		info->m_senderIp = ipHeader->ip_src;
 		info->m_receiverIp = ipHeader->ip_dest;
