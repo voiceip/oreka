@@ -69,6 +69,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_sessionTelephoneEventPtDefined = false;
 	m_rtpIp.s_addr = 0;
 	m_skinnyLineInstance = 0;
+	m_onDemand = false;
 }
 
 void RtpSession::Stop()
