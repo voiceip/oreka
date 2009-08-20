@@ -47,6 +47,7 @@ void AudioTapeDescription::Define(Serializer* s)
 	s->StringValue("localIp", m_localIp);
 	s->StringValue("remoteIp", m_remoteIp);
 	s->StringValue("filename", m_filename);
+	s->BoolValue("ondemand", m_onDemand);
 }
 
 void AudioTapeDescription::Validate(){}
@@ -85,6 +86,7 @@ AudioTape::AudioTape(CStdString &portId)
 	m_lastLogWarning = 0;
 	m_passedPartyFilterTest = false;
 	m_numErrors = 0;
+	m_onDemand = false;
 
 	GenerateCaptureFilePathAndIdentifier();
 }
@@ -93,6 +95,7 @@ AudioTape::AudioTape(CStdString &portId, CStdString& file)
 {
 	m_passedPartyFilterTest = false;
 	m_portId = portId;
+	m_onDemand = false;
 
 	// Extract Path and Identifier
 	m_filePath = FilePath(file);
@@ -317,6 +320,7 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 			atd.m_remoteParty = m_remoteParty;
 			atd.m_localIp = m_localIp;
 			atd.m_remoteIp = m_remoteIp;
+			atd.m_onDemand = m_onDemand;
 			atd.m_filename = GetFilename();
 			CStdString description = atd.SerializeSingleLine();
 			LOG4CXX_INFO(LOG.tapelistLog, description);
@@ -368,6 +372,13 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		break;
 	case CaptureEvent::EtCallId:
 		m_nativeCallId = eventRef->m_value;
+		break;
+	case CaptureEvent::EtKeyValue:
+		if(eventRef->m_key.CompareNoCase("ondemand") == 0)
+		{
+			// If this reported, the recording was started by the API
+			m_onDemand = true;
+		}
 		break;
 	}
 
@@ -447,6 +458,7 @@ void AudioTape::PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum ev
 	msg->m_localIp = m_localIp;
 	msg->m_remoteIp = m_remoteIp;
 	msg->m_nativeCallId = m_nativeCallId;
+	msg->m_onDemand = m_onDemand;
 
 	MutexSentinel sentinel(m_mutex);;
 	std::copy(m_tags.begin(), m_tags.end(), std::inserter(msg->m_tags, msg->m_tags.begin()));

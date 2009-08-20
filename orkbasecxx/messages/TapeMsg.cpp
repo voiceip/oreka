@@ -50,6 +50,7 @@ void TapeMsg::Define(Serializer* s)
 	s->StringValue(NATIVE_CALLID_PARAM, m_nativeCallId);
 
 	s->CsvMapValue(TAGS_PARAM, m_tags);
+	s->BoolValue(ON_DEMAND_PARAM, m_onDemand);
 
 	DefineMessage(s);
 }
