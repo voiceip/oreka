@@ -1355,6 +1355,31 @@ CStdString RtpSession::GetOrkUid()
 	return m_orkUid;
 }
 
+void RtpSession::MarkAsOnDemand()
+{
+	if(m_onDemand == true)
+	{
+		return;
+	}
+
+	m_onDemand = true;
+
+	// Report direction
+	if(m_started == true)
+	{
+		CaptureEventRef event(new CaptureEvent());
+		event->m_type = CaptureEvent::EtKeyValue;
+		event->m_key  = CStdString("ondemand");
+		event->m_value = CStdString("true");
+		g_captureEventCallBack(event, m_capturePort);
+
+		// Trigger metadata update
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtUpdate;
+		g_captureEventCallBack(event, m_capturePort);
+	}
+}
+
 //=====================================================================
 RtpSessions::RtpSessions()
 {
@@ -2684,6 +2709,7 @@ void RtpSessions::StartCaptureOrkuid(CStdString& orkuid)
 		if(session->OrkUidMatches(orkuid))
 		{
 			session->m_keep = true;
+			session->MarkAsOnDemand();
 			found = true;
 		}
 	}
@@ -2716,6 +2742,7 @@ CStdString RtpSessions::StartCaptureNativeCallId(CStdString& nativecallid)
 		{
 			session->m_keep = true;
 			found = true;
+			session->MarkAsOnDemand();
 			orkUid = session->GetOrkUid();
 		}
 	}
@@ -2751,6 +2778,7 @@ CStdString RtpSessions::StartCapture(CStdString& party)
 			session->m_keep = true;
 			found = true;
 			orkUid = session->GetOrkUid();
+			session->MarkAsOnDemand();
 		}
 	}
 

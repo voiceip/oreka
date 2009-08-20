@@ -157,6 +157,7 @@ public:
 	void UpdateMetadataSkinny();
 	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader);
 	CStdString GetOrkUid();
+	void MarkAsOnDemand();
 
 	CStdString m_capturePort;
 	CStdString m_trackingId;
@@ -186,6 +187,7 @@ public:
 	bool m_onHold;
 	bool m_keep;
 	bool m_nonLookBackSessionStarted;
+	bool m_onDemand;
 	std::list<CStdString> m_otherIpAndPortMappings;
 
 private:

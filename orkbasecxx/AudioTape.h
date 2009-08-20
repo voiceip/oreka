@@ -46,6 +46,7 @@ public:
 	CStdString m_localIp;
 	CStdString m_remoteIp;
 	CStdString m_filename;
+	bool m_onDemand;
 };
 
 class DLL_IMPORT_EXPORT_ORKBASE AudioTape
@@ -96,6 +97,7 @@ public:
 	CStdString m_nativeCallId;
 	StateEnum m_state;
 	int m_numErrors;
+	bool m_onDemand;
 
 	TapeResponseRef m_tapeResponse;
 
