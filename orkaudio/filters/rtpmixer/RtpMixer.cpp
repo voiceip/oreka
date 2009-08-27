@@ -17,11 +17,11 @@
 #include "dll.h"
 #include <queue>
 #include <vector>
+#include "ConfigManager.h"
 #include <log4cxx/logger.h>
 #include "Filter.h"
 #include "AudioCapture.h"
 
-#include "ConfigManager.h"
 extern "C"
 {
 #include "g711.h"
