@@ -15,9 +15,9 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
+#include "ConfigManager.h"
 #include <log4cxx/logger.h>
 #include "TapeProcessor.h"
-#include "ConfigManager.h"
 
 using namespace log4cxx;
 
