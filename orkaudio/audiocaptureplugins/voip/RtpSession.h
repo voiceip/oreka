@@ -82,8 +82,14 @@ public:
 	CStdString m_callId;
 	struct in_addr m_senderIp;
 	struct in_addr m_receiverIp;
+	CStdString m_from;
+	CStdString m_to;
+	CStdString m_fromDomain;
+	CStdString m_toDomain;
+	CStdString m_fromName;
+	CStdString m_toName;
 };
-
+typedef boost::shared_ptr<SipByeInfo> SipByeInfoRef;
 
 class Sip200OkInfo
 {
@@ -148,6 +154,7 @@ public:
 	void Stop();
 	void Start();
 	bool AddRtpPacket(RtpPacketInfoRef& rtpPacket);
+	void ReportSipBye(SipByeInfoRef& bye);
 	void ReportSipInvite(SipInviteInfoRef& invite);
 	void ReportSipErrorPacket(SipFailureMessageInfoRef& info);
 	void ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo);
@@ -252,7 +259,7 @@ public:
 	void Stop(RtpSessionRef& session);
 	void StopAll();
 	void ReportSipInvite(SipInviteInfoRef& invite);
-	void ReportSipBye(SipByeInfo bye);
+	void ReportSipBye(SipByeInfoRef& bye);
 	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader);
 	void ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
 	void ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
