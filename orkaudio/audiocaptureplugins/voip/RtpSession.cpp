@@ -1141,6 +1141,73 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	return true;
 }
 
+void RtpSession::ReportSipBye(SipByeInfoRef& bye)
+{
+	CStdString byeString;
+	CStdString logMsg;
+
+	bye->ToString(byeString);
+	if(DLLCONFIG.m_dahdiIntercept == true)
+	{
+		// With Xorcom interception, we update whichever party is currently
+		// set to "s" with the new party in either m_from or m_to of the
+		// BYE
+
+		if(m_localParty.CompareNoCase(CStdString("s")) == 0)
+		{
+			if(m_remoteParty.CompareNoCase(bye->m_to) != 0)
+			{
+				// remoteparty is set to m_from
+				m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_to);
+				logMsg.Format("[%s] dahdiIntercept: reset localparty:%s from BYE:%s", m_trackingId, m_localParty, byeString);
+			}
+			else
+			{
+				// remoteparty is set to m_to
+				m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_from);
+				logMsg.Format("[%s] dahdiIntercept: reset localparty:%s from BYE:%s", m_trackingId, m_localParty, byeString);
+			}
+
+			// Report Local party
+			CaptureEventRef event(new CaptureEvent());
+			event->m_type = CaptureEvent::EtLocalParty;
+			event->m_value = m_localParty;
+			g_captureEventCallBack(event, m_capturePort);
+		}
+		else if(m_remoteParty.CompareNoCase(CStdString("s")) == 0)
+		{
+			CStdString translatedTo, translatedFrom;
+
+			translatedTo = RtpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_to);
+			translatedFrom = RtpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_from);
+
+			if(m_localParty.CompareNoCase(translatedTo) != 0)
+			{
+				// localparty is set to m_from
+				m_remoteParty = bye->m_to;
+				logMsg.Format("[%s] dahdiIntercept: reset remoteparty:%s from BYE:%s", m_trackingId, m_remoteParty, byeString);
+			}
+			else
+			{
+				// localparty is set to m_to
+				m_remoteParty = bye->m_from;
+				logMsg.Format("[%s] dahdiIntercept: reset remoteparty:%s from BYE:%s", m_trackingId, m_remoteParty, byeString);
+			}
+
+			// Report remote party
+			CaptureEventRef event(new CaptureEvent());
+			event->m_type = CaptureEvent::EtRemoteParty;
+			event->m_value = m_remoteParty;
+			g_captureEventCallBack(event, m_capturePort);
+		}
+		else
+		{
+			logMsg.Format("[%s] dahdiIntercept: ignoring BYE:%s", m_trackingId, byeString);
+		}
+
+		LOG4CXX_INFO(m_log, logMsg);
+	}
+}
 
 void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 {
@@ -1156,73 +1223,8 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 		CStdString logMsg;
 		invite->ToString(inviteString);
 
-		if(DLLCONFIG.m_dahdiIntercept == true)
-		{
-			// With Xorcom interception, we update whichever party is currently
-			// set to "s" with the new party in either m_from or m_to of the
-			// INVITE
-
-			if(m_localParty.CompareNoCase(CStdString("s")) == 0)
-			{
-				if(m_remoteParty.CompareNoCase(invite->m_to) != 0)
-				{
-					// remoteparty is set to m_from
-					m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_to);
-					logMsg.Format("[%s] dahdiIntercept: reset localparty:%s from INVITE:%s", m_trackingId, m_localParty, inviteString);
-				}
-				else
-				{
-					// remoteparty is set to m_to
-					m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_from);
-					logMsg.Format("[%s] dahdiIntercept: reset localparty:%s from INVITE:%s", m_trackingId, m_localParty, inviteString);
-				}
-
-				// Report Local party
-				CaptureEventRef event(new CaptureEvent());
-				event->m_type = CaptureEvent::EtLocalParty;
-				event->m_value = m_localParty;
-				g_captureEventCallBack(event, m_capturePort);
-			}
-			else if(m_remoteParty.CompareNoCase(CStdString("s")) == 0)
-			{
-				CStdString translatedTo, translatedFrom;
-
-				translatedTo = RtpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_to);
-				translatedFrom = RtpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_from);
-
-				if(m_localParty.CompareNoCase(translatedTo) != 0)
-				{
-					// localparty is set to m_from
-					m_remoteParty = invite->m_to;
-					logMsg.Format("[%s] dahdiIntercept: reset remoteparty:%s from INVITE:%s", m_trackingId, m_remoteParty, inviteString);
-				}
-				else
-				{
-					// localparty is set to m_to
-					m_remoteParty = invite->m_from;
-					logMsg.Format("[%s] dahdiIntercept: reset remoteparty:%s from INVITE:%s", m_trackingId, m_remoteParty, inviteString);
-				}
-
-				// Report remote party
-				CaptureEventRef event(new CaptureEvent());
-				event->m_type = CaptureEvent::EtRemoteParty;
-				event->m_value = m_remoteParty;
-				g_captureEventCallBack(event, m_capturePort);
-			}
-			else
-			{
-				logMsg.Format("[%s] dahdiIntercept: ignoring INVITE:%s", m_trackingId, inviteString);
-			}
-
-			LOG4CXX_INFO(m_log, logMsg);
-
-			return;
-		}
-		else
-		{
-			logMsg.Format("[%s] associating INVITE:%s", m_trackingId, inviteString);
-			LOG4CXX_INFO(m_log, logMsg);
-		}
+		logMsg.Format("[%s] associating INVITE:%s", m_trackingId, inviteString);
+		LOG4CXX_INFO(m_log, logMsg);
 	}
 	m_invites.push_front(invite);
 	if(invite->m_telephoneEventPtDefined)
@@ -1610,15 +1612,17 @@ void RtpSessions::ReportSip200Ok(Sip200OkInfoRef info)
 	//}
 }
 
-void RtpSessions::ReportSipBye(SipByeInfo bye)
+void RtpSessions::ReportSipBye(SipByeInfoRef& bye)
 {
 	std::map<CStdString, RtpSessionRef>::iterator pair;
-	pair = m_byCallId.find(bye.m_callId);
+	pair = m_byCallId.find(bye->m_callId);
 
 	if (pair != m_byCallId.end())
 	{
 		// Session found: stop it
 		RtpSessionRef session = pair->second;
+
+		session->ReportSipBye(bye);
 		Stop(session);
 	}
 }
@@ -3145,6 +3149,6 @@ void SipByeInfo::ToString(CStdString& string)
 	char receiverIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
-	string.Format("sender:%s rcvr:%s callid:%s", senderIp, receiverIp, m_callId);
+	string.Format("sender:%s rcvr:%s callid:%s from:%s to:%s fromDomain:%s toDomain:%s fromName:%s toName:%s", senderIp, receiverIp, m_callId, m_from, m_to, m_fromDomain, m_toDomain, m_fromName, m_toName);
 }
 

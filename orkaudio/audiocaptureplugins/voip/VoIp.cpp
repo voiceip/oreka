@@ -1467,23 +1467,108 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 		result = true;
 		int sipLength = ntohs(udpHeader->len);
 		char* sipEnd = (char*)udpPayload + sipLength;
-		SipByeInfo info;
-		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
+		SipByeInfoRef info(new SipByeInfo());
 
+		char* fromField = memFindAfter("From:", (char*)udpPayload, sipEnd);
+		if(!fromField)
+		{
+			fromField = memFindAfter("\nf:", (char*)udpPayload, sipEnd);
+		}
+		char* toField = memFindAfter("To:", (char*)udpPayload, sipEnd);
+		if(!toField)
+		{
+			toField = memFindAfter("\nt:", (char*)udpPayload, sipEnd);
+		}
+
+		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
 		if(!callIdField)
 		{
 			callIdField = memFindAfter("\ni:", (char*)udpPayload, sipEnd);
 		}
-
 		if(callIdField)
 		{
-			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info.m_callId);
+			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
 		}
-		info.m_senderIp = ipHeader->ip_src;
-		info.m_receiverIp = ipHeader->ip_dest;
+
+		if(fromField)
+		{
+			if(s_sipExtractionLog->isDebugEnabled())
+			{
+				CStdString from;
+				GrabLine(fromField, sipEnd, from);
+				LOG4CXX_DEBUG(s_sipExtractionLog, "from: " + from);
+			}
+
+			char* fromFieldEnd = memFindEOL(fromField, sipEnd);
+
+			GrabSipName(fromField, fromFieldEnd, info->m_fromName);
+
+			char* sipUser = memFindAfter("sip:", fromField, fromFieldEnd);
+			if(sipUser)
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sipUser, fromFieldEnd, info->m_from);
+				}
+				else
+				{
+					GrabSipUriUser(sipUser, fromFieldEnd, info->m_from);
+				}
+				GrabSipUriDomain(sipUser, fromFieldEnd, info->m_fromDomain);
+			}
+			else
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(fromField, fromFieldEnd, info->m_from);
+				}
+				else
+				{
+					GrabSipUriUser(fromField, fromFieldEnd, info->m_from);
+				}
+				GrabSipUriDomain(fromField, fromFieldEnd, info->m_fromDomain);
+			}
+		}
+		if(toField)
+		{
+			CStdString to;
+			char* toFieldEnd = GrabLine(toField, sipEnd, to);
+			LOG4CXX_DEBUG(s_sipExtractionLog, "to: " + to);
+
+			GrabSipName(toField, toFieldEnd, info->m_toName);
+
+			char* sipUser = memFindAfter("sip:", toField, toFieldEnd);
+			if(sipUser)
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sipUser, toFieldEnd, info->m_to);
+				}
+				else
+				{
+					GrabSipUriUser(sipUser, toFieldEnd, info->m_to);
+				}
+				GrabSipUriDomain(sipUser, toFieldEnd, info->m_toDomain);
+			}
+			else
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(toField, toFieldEnd, info->m_to);
+				}
+				else
+				{
+					GrabSipUriUser(toField, toFieldEnd, info->m_to);
+				}
+				GrabSipUriDomain(toField, toFieldEnd, info->m_toDomain);
+			}
+		}
+
+		info->m_senderIp = ipHeader->ip_src;
+		info->m_receiverIp = ipHeader->ip_dest;
 
 		CStdString logMsg;
-		info.ToString(logMsg);
+		info->ToString(logMsg);
 		LOG4CXX_INFO(s_sipPacketLog, "BYE: " + logMsg);
 		if(callIdField && DLLCONFIG.m_sipIgnoreBye == false)
 		{

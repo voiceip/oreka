@@ -389,6 +389,7 @@ void VoIpConfig::Validate()
 		m_sipAllowMultipleMediaAddresses = true;
 		m_rtpDetectOnOddPorts = true;
 		m_sipRequestUriAsLocalParty = false;
+		m_sipIgnoreBye = false;
 	}
 }
 
