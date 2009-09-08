@@ -1627,17 +1627,54 @@ void RtpSessions::ReportSipBye(SipByeInfoRef& bye)
 	}
 }
 
-void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessionRef& session)
+void RtpSessions::UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader)
 {
-	session->m_skinnyLineInstance = callInfo->lineInstance;
-	CStdString lp;
+	CStdString extension;
 
 	switch(callInfo->callType)
 	{
 	case SKINNY_CALL_TYPE_INBOUND:
-	case SKINNY_CALL_TYPE_FORWARD:
+	{
+		extension = callInfo->calledParty;
+		SetEndpointExtension(extension, &ipHeader->ip_dest);
+		break;
+	}
+	case SKINNY_CALL_TYPE_OUTBOUND:
+	{
+		extension = callInfo->callingParty;
+		SetEndpointExtension(extension, &ipHeader->ip_dest);
+		break;
+	}
+	}
+}
+
+void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessionRef& session)
+{
+	session->m_skinnyLineInstance = callInfo->lineInstance;
+	CStdString lp;
+	CStdString logMsg;
+	char szEndPointIp[16];
+
+	EndpointInfoRef endpoint = GetEndpointInfo(session->m_endPointIp);
+	ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
+
+	switch(callInfo->callType)
+	{
+	case SKINNY_CALL_TYPE_INBOUND:
 		lp = callInfo->calledParty;
 		session->m_localParty = GetLocalPartyMap(lp);
+		session->m_remoteParty = callInfo->callingParty;
+		session->m_direction = CaptureEvent::DirIn;
+		break;
+	case SKINNY_CALL_TYPE_FORWARD:
+		lp = callInfo->calledParty;
+		if(endpoint.get() && ((endpoint->m_extension).size() > 0))
+		{
+			session->m_localParty = GetLocalPartyMap(endpoint->m_extension);
+			session->m_localEntryPoint = lp;
+			logMsg.Format("[%s] callType is FORWARD: set localparty:%s (obtained from endpoint:%s)", session->m_trackingId, session->m_localParty, szEndPointIp);
+			LOG4CXX_DEBUG(m_log, logMsg);
+		}
 		session->m_remoteParty = callInfo->callingParty;
 		session->m_direction = CaptureEvent::DirIn;
 		break;
@@ -1654,11 +1691,12 @@ void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessi
 	}
 }
 
-
 void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader)
 {
 	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, callInfo->callId);
 	CStdString logMsg;
+
+	UpdateEndpointWithCallInfo(callInfo, ipHeader);
 
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	pair = m_byCallId.find(callId);
@@ -2233,36 +2271,44 @@ void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruc
 	}
 }
 
+void RtpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* endpointIp)
+{
+	std::map<unsigned int, EndpointInfoRef>::iterator pair;
+	EndpointInfoRef endpoint;
+
+	pair = m_endpoints.find((unsigned int)(endpointIp->s_addr));
+	if(pair != m_endpoints.end())
+	{
+		// Update the existing endpoint	info
+		endpoint = pair->second;
+		endpoint->m_extension = extension;
+	}
+	else
+	{
+		// Create endpoint info for the new endpoint
+		endpoint.reset(new EndpointInfo());
+		endpoint->m_extension = extension;
+		m_endpoints.insert(std::make_pair((unsigned int)(endpointIp->s_addr), endpoint));
+	}
+	if(endpoint.get())
+	{
+		CStdString logMsg;
+		char szEndpointIp[16];
+		ACE_OS::inet_ntop(AF_INET, (void*)endpointIp, szEndpointIp, sizeof(szEndpointIp));
+
+		logMsg.Format("Extension:%s is on endpoint:%s", endpoint->m_extension, szEndpointIp);
+		LOG4CXX_INFO(m_log, logMsg);
+	}
+}
+
 void RtpSessions::ReportSkinnyLineStat(SkLineStatStruct* lineStat, IpHeaderStruct* ipHeader)
 {
 	if(strlen(lineStat->lineDirNumber) > 1)
 	{
-		EndpointInfoRef endpoint;
-		std::map<unsigned int, EndpointInfoRef>::iterator pair;
-		pair = m_endpoints.find((unsigned int)(ipHeader->ip_dest.s_addr));
-		if(pair != m_endpoints.end())
-		{
-			// Update the existing endpoint	info
-			endpoint = pair->second;
-			endpoint->m_extension = lineStat->lineDirNumber;
+		CStdString extension;
 
-		}
-		else
-		{
-			// Create endpoint info for the new endpoint
-			endpoint.reset(new EndpointInfo());
-			endpoint->m_extension = lineStat->lineDirNumber;
-			m_endpoints.insert(std::make_pair((unsigned int)(ipHeader->ip_dest.s_addr), endpoint));
-		}
-		if(endpoint.get())
-		{
-			CStdString logMsg;
-			char szEndpointIp[16];
-			ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_dest, szEndpointIp, sizeof(szEndpointIp));
-
-			logMsg.Format("Extension:%s is on endpoint:%s", endpoint->m_extension, szEndpointIp);
-			LOG4CXX_INFO(m_log, logMsg);
-		}
+		extension = lineStat->lineDirNumber;
+		SetEndpointExtension(extension, &ipHeader->ip_dest);
 	}
 }
 
