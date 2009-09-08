@@ -2570,9 +2570,9 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		{
 			if(s_skinnyPacketLog->isInfoEnabled())
 			{
-				logMsg.Format(" CallId:%u calling:%s called:%s callingname:%s calledname:%s line:%d", 
+				logMsg.Format(" CallId:%u calling:%s called:%s callingname:%s calledname:%s line:%d callType:%d", 
 								callInfo->callId, callInfo->callingParty, callInfo->calledParty, 
-								callInfo->callingPartyName, callInfo->calledPartyName, callInfo->lineInstance);
+								callInfo->callingPartyName, callInfo->calledPartyName, callInfo->lineInstance, callInfo->callType);
 			}
 			RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(callInfo, ipHeader);
 		}
@@ -2683,8 +2683,8 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 
 			if(s_skinnyPacketLog->isInfoEnabled())
 			{
-				logMsg.Format(" CallId:%u calling:%s called:%s callingname:%s calledname:%s", callInfo.callId, 
-								callInfo.callingParty, callInfo.calledParty, callInfo.callingPartyName, callInfo.calledPartyName);
+				logMsg.Format(" CallId:%u calling:%s called:%s callingname:%s calledname:%s callType:%d", callInfo.callId, 
+								callInfo.callingParty, callInfo.calledParty, callInfo.callingPartyName, callInfo.calledPartyName, callInfo.callType);
 			}
 			RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(&callInfo, ipHeader);
 		}

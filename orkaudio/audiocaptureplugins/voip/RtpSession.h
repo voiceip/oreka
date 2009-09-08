@@ -264,6 +264,7 @@ public:
 	void ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
 	void ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
 	void ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct*);
+	void SetEndpointExtension(CStdString& extension, struct in_addr* endpointIp);
 	void ReportSkinnyLineStat(SkLineStatStruct*, IpHeaderStruct* ipHeader);
 	void ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader);
 	void ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader);
@@ -297,6 +298,7 @@ private:
 	void SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort);
 	void MapOtherMediaAddress(RtpSessionRef& session, CStdString& ipAndPort);
 	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId);
+	void UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader);
 	void UpdateSessionWithCallInfo(SkCallInfoStruct*, RtpSessionRef&);
 
 	std::map<CStdString, RtpSessionRef> m_byIpAndPort;
