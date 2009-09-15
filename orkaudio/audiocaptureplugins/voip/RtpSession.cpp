@@ -1969,8 +1969,16 @@ RtpSessionRef RtpSessions::findNewestByEndpointIp(struct in_addr endpointIpAddr)
 void RtpSessions::CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort)
 {
 	char szIpAddress[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&ipAddress, szIpAddress, sizeof(szIpAddress));
-	mediaAddress.Format("%s,%u", szIpAddress, udpPort);
+
+	if(DLLCONFIG.m_rtpTrackByUdpPortOnly == false)
+	{
+		ACE_OS::inet_ntop(AF_INET, (void*)&ipAddress, szIpAddress, sizeof(szIpAddress));
+		mediaAddress.Format("%s,%u", szIpAddress, udpPort);
+	}
+	else
+	{
+		mediaAddress.Format("%u", udpPort);
+	}
 }
 
 void RtpSessions::MapOtherMediaAddress(RtpSessionRef& session, CStdString& ipAndPort)

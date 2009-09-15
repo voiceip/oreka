@@ -74,6 +74,7 @@ public:
 	bool m_rtpDetectOnOddPorts;
 	bool m_rtpReportDtmf;
 	IpRanges m_rtpBlockedIpRanges;
+	bool m_rtpTrackByUdpPortOnly;
 
 	bool m_iax2Support;
 	bool m_sipOverTcpSupport;
