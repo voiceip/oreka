@@ -35,6 +35,7 @@ VoIpConfig::VoIpConfig()
 	m_rtpSessionWithSignallingInitialTimeoutSec = 5*60;
 	m_rtpSessionOnHoldTimeOutSec = 1800;
 	m_rtpReportDtmf = false;
+	m_rtpTrackByUdpPortOnly = false;
 	m_pcapTest= false;
 	m_rtpDiscontinuityDetect = false;
 	m_rtpDiscontinuityMinSeqDelta = 1000;
@@ -108,6 +109,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("RtpSessionOnHoldTimeOutSec", m_rtpSessionOnHoldTimeOutSec);
 	s->BoolValue("RtpReportDtmf", m_rtpReportDtmf);
 	s->IpRangesValue("RtpBlockedIpRanges", m_rtpBlockedIpRanges);
+	s->BoolValue("RtpTrackByUdpPortOnly", m_rtpTrackByUdpPortOnly);
 
 	s->BoolValue("PcapTest", m_pcapTest);
 	s->StringValue("PcapFilter", m_pcapFilter);
