@@ -3538,7 +3538,7 @@ void VoIp::LoadPartyMaps()
 	if(!maps)
 	{
 		logMsg.Format("LoadPartyMaps: Could not open file:%s -- trying:%s now", LOCAL_PARTY_MAP_FILE, ETC_LOCAL_PARTY_MAP_FILE);
-		LOG4CXX_WARN(s_packetLog, logMsg);
+		LOG4CXX_INFO(s_packetLog, logMsg);
 
 		maps = fopen(ETC_LOCAL_PARTY_MAP_FILE, "r");
 		if(!maps)
