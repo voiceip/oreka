@@ -218,6 +218,14 @@ SOURCE=.\messages\DeleteTapeMsg.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\messages\InitMsg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\messages\InitMsg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Messages\Message.cpp
 
 !IF  "$(CFG)" == "OrkBase - Win32 Release"
@@ -729,6 +737,14 @@ SOURCE=.\OrkClient.cpp
 # Begin Source File
 
 SOURCE=.\OrkClient.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\OrkTrack.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\OrkTrack.h
 # End Source File
 # Begin Source File
 
