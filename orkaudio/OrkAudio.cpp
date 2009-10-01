@@ -46,6 +46,7 @@
 #include "TapeProcessor.h"
 #include <list>
 #include "EventStreaming.h"
+#include "OrkTrack.h"
 
 static volatile bool serviceStop = false;
 
@@ -296,6 +297,7 @@ void MainThread()
 		CapturePluginProxy::Singleton()->Run();
 	}
 
+	OrkTrack::Initialize();
 
 	//ACE_Thread_Manager::instance ()->wait ();
 	while(!Daemon::Singleton()->IsStopping())
