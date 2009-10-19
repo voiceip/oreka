@@ -89,6 +89,7 @@ public:
 	bool m_sipRequestUriAsLocalParty;
 	bool m_sipTreat200OkAsInvite;
 	bool m_sipAllowMultipleMediaAddresses;
+	bool m_sip302MovedTemporarilySupport;
 
 	bool m_rtcpDetect;
 	bool m_inInMode;
