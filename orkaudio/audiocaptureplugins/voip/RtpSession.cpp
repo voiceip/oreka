@@ -107,6 +107,9 @@ void RtpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpI
 			}
 
 			m_localParty.Format("%s@%s", rtcpInfo->m_cnameUsername, realm);
+			CStdString lp;
+			lp = m_localParty;
+			m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(lp);
 		}
 		else
 		{
@@ -155,11 +158,12 @@ void RtpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpI
 
 			if(DLLCONFIG.m_inInMode == true)
 			{
-				m_remoteParty = testParty;
+				m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(testParty);
 			}
 			else
 			{
-				m_remoteParty = rtcpInfo->m_cnameUsername;
+				CStdString rp = rtcpInfo->m_cnameUsername;
+				m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(rp);
 			}
 
 			LOG4CXX_INFO(m_log, "[" + m_trackingId + "] Set remote party to RTCP CNAME:" + m_remoteParty);
@@ -264,7 +268,8 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 		}
 		if(!m_rtcpRemoteParty)
 		{
-			m_remoteParty = szDestIp;
+			CStdString rp(szDestIp);
+			m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(rp);
 		}
 
 		m_localIp = rtpPacket->m_sourceIp;
@@ -290,7 +295,8 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 		}
 		if(!m_rtcpRemoteParty)
 		{
-			m_remoteParty = szSourceIp;
+			CStdString rp(szSourceIp);
+			m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(rp);
 		}
 
 		m_localIp = rtpPacket->m_destIp;
@@ -334,13 +340,13 @@ void RtpSession::ProcessMetadataSipIncoming()
 	if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0))
 	{
 		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_requestUri);
-		m_remoteParty = m_invite->m_from;
+		m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
 		m_direction = CaptureEvent::DirIn;
 		m_localEntryPoint = m_invite->m_to;
 	}
 	else
 	{
-		m_remoteParty = m_invite->m_from;
+		m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
 		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_to);
 		m_direction = CaptureEvent::DirIn;
 	}
@@ -369,13 +375,13 @@ void RtpSession::ProcessMetadataSipOutgoing()
 	if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0))
 	{
 		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_requestUri);
-		m_remoteParty = m_invite->m_from;
+		m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
 		m_direction = CaptureEvent::DirIn;
 		m_localEntryPoint = m_invite->m_to;
 	}
 	else
 	{
-		m_remoteParty = m_invite->m_to;
+		m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_to);
 		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
 		m_direction = CaptureEvent::DirOut;
 	}
@@ -463,13 +469,13 @@ void RtpSession::UpdateMetadataSip(RtpPacketInfoRef& rtpPacket, bool sourceRtpAd
 		if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0))
 		{
 			m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_requestUri);
-			m_remoteParty = m_invite->m_from;
+			m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
 			m_direction = CaptureEvent::DirIn;
 			m_localEntryPoint = m_invite->m_to;
 		}
 		else
 		{
-			m_remoteParty = invite->m_from;
+			m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_from);
 			m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_to);
 		}
 
@@ -1184,13 +1190,13 @@ void RtpSession::ReportSipBye(SipByeInfoRef& bye)
 			if(m_localParty.CompareNoCase(translatedTo) != 0)
 			{
 				// localparty is set to m_from
-				m_remoteParty = bye->m_to;
+				m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_to);
 				logMsg.Format("[%s] dahdiIntercept: reset remoteparty:%s from BYE:%s", m_trackingId, m_remoteParty, byeString);
 			}
 			else
 			{
 				// localparty is set to m_to
-				m_remoteParty = bye->m_from;
+				m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_from);
 				logMsg.Format("[%s] dahdiIntercept: reset remoteparty:%s from BYE:%s", m_trackingId, m_remoteParty, byeString);
 			}
 
@@ -1561,6 +1567,34 @@ void RtpSessions::ReportSipSessionProgress(SipSessionProgressInfoRef& info)
 	}
 }
 
+void RtpSessions::ReportSip302MovedTemporarily(Sip302MovedTemporarilyInfoRef& info)
+{
+	CStdString m_trackingId;
+
+	// Contact: is mapped to the To:
+	SaveLocalPartyMap(info->m_contact, info->m_to);
+
+	// If there is already a session, log that information
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+
+	pair = m_byCallId.find(info->m_callId);
+	if (pair != m_byCallId.end())
+	{
+		RtpSessionRef session = pair->second;
+
+		m_trackingId = session->m_trackingId;
+	}
+
+	if(m_trackingId.size())
+	{
+		LOG4CXX_INFO(m_log, "[" + m_trackingId + "] " + info->m_contact + " mapped to " + info->m_to + " by SIP 302 Moved Temporarily");
+	}
+	else
+	{
+		LOG4CXX_INFO(m_log, info->m_contact + " mapped to " + info->m_to + " by SIP 302 Moved Temporarily (session unknown)");
+	}
+}
+
 void RtpSessions::ReportSip200Ok(Sip200OkInfoRef info)
 {
 	std::map<CStdString, RtpSessionRef>::iterator pair;
@@ -1652,6 +1686,7 @@ void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessi
 {
 	session->m_skinnyLineInstance = callInfo->lineInstance;
 	CStdString lp;
+	CStdString rp;
 	CStdString logMsg;
 	char szEndPointIp[16];
 
@@ -1662,12 +1697,14 @@ void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessi
 	{
 	case SKINNY_CALL_TYPE_INBOUND:
 		lp = callInfo->calledParty;
+		rp = callInfo->callingParty;
 		session->m_localParty = GetLocalPartyMap(lp);
-		session->m_remoteParty = callInfo->callingParty;
+		session->m_remoteParty = GetLocalPartyMap(rp);
 		session->m_direction = CaptureEvent::DirIn;
 		break;
 	case SKINNY_CALL_TYPE_FORWARD:
 		lp = callInfo->calledParty;
+		rp = callInfo->callingParty;
 		if(endpoint.get() && ((endpoint->m_extension).size() > 0))
 		{
 			session->m_localParty = GetLocalPartyMap(endpoint->m_extension);
@@ -1675,19 +1712,21 @@ void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessi
 			logMsg.Format("[%s] callType is FORWARD: set localparty:%s (obtained from endpoint:%s)", session->m_trackingId, session->m_localParty, szEndPointIp);
 			LOG4CXX_DEBUG(m_log, logMsg);
 		}
-		session->m_remoteParty = callInfo->callingParty;
+		session->m_remoteParty = GetLocalPartyMap(rp);
 		session->m_direction = CaptureEvent::DirIn;
 		break;
 	case SKINNY_CALL_TYPE_OUTBOUND:
 		lp = callInfo->callingParty;
+		rp = callInfo->calledParty;
 		session->m_localParty = GetLocalPartyMap(lp);
-		session->m_remoteParty = callInfo->calledParty;
+		session->m_remoteParty = GetLocalPartyMap(rp);
 		session->m_direction = CaptureEvent::DirOut;
 		break;
 	default:
 		lp = callInfo->calledParty;
+		rp = callInfo->callingParty;
 		session->m_localParty = GetLocalPartyMap(lp);
-		session->m_remoteParty = callInfo->callingParty;		
+		session->m_remoteParty = GetLocalPartyMap(rp);
 	}
 }
 
@@ -3100,6 +3139,24 @@ void SipInviteInfo::ToString(CStdString& string)
 	MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
 
 	string.Format("sender:%s from:%s@%s RTP:%s,%s to:%s@%s rcvr:%s callid:%s smac:%s rmac:%s fromname:%s toname:%s ua:%s", senderIp, m_from, m_fromDomain, fromRtpIp, m_fromRtpPort, m_to, m_toDomain, receiverIp, m_callId, senderMac, receiverMac, m_fromName, m_toName, m_userAgent);
+}
+
+//==========================================================
+Sip302MovedTemporarilyInfo::Sip302MovedTemporarilyInfo()
+{
+	m_senderIp.s_addr = 0;
+	m_receiverIp.s_addr = 0;
+}
+
+void Sip302MovedTemporarilyInfo::ToString(CStdString& string)
+{
+	char senderIp[16];
+	char receiverIp[16];
+
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+
+	string.Format("sender:%s rcvr:%s from:%s@%s to:%s@%s contact:%s@%s fromname:%s toname:%s contactname:%s callid:%s", senderIp, receiverIp, m_from, m_fromDomain, m_to, m_toDomain, m_contact, m_contactDomain, m_fromName, m_toName, m_contactName, m_callId);
 }
 
 //==========================================================

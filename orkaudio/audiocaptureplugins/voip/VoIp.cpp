@@ -2142,6 +2142,203 @@ bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 	return result;
 }
 
+bool TrySip302MovedTemporarily(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
+{
+	bool result = false;
+	bool drop = false;
+
+	if(DLLCONFIG.m_sip302MovedTemporarilySupport == false)
+	{
+		return false;
+	}
+
+	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
+	char* sipEnd = (char*)udpPayload + sipLength;
+	CStdString sipMethod = "302 Moved Temporarily";
+
+	if(sipLength < SIP_RESPONSE_302_MOVED_TEMPORARILY_SIZE || sipEnd > (char*)packetEnd)
+	{
+		drop = true;	// packet too short
+	}
+	else if(memcmp(SIP_RESPONSE_302_MOVED_TEMPORARILY, (void*)udpPayload, SIP_RESPONSE_302_MOVED_TEMPORARILY_SIZE) != 0)
+	{
+		drop = true;
+	}
+
+	if(drop == false)
+	{
+		result = true;
+
+		Sip302MovedTemporarilyInfoRef info(new Sip302MovedTemporarilyInfo());
+
+		char* fromField = memFindAfter("From:", (char*)udpPayload, sipEnd);
+		if(!fromField)
+		{
+			fromField = memFindAfter("\nf:", (char*)udpPayload, sipEnd);
+		}
+		char* toField = memFindAfter("To:", (char*)udpPayload, sipEnd);
+		if(!toField)
+		{
+			toField = memFindAfter("\nt:", (char*)udpPayload, sipEnd);
+		}
+		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
+		if(!callIdField)
+		{
+			callIdField = memFindAfter("\ni:", (char*)udpPayload, sipEnd);
+		}
+		char* contactField = memFindAfter("Contact:", (char*)udpPayload, sipEnd);
+		if(!contactField)
+		{
+			contactField = memFindAfter("\nc:", (char*)udpPayload, sipEnd);
+		}
+
+		if(fromField)
+		{
+			if(s_sipExtractionLog->isDebugEnabled())
+			{
+				CStdString from;
+				GrabLine(fromField, sipEnd, from);
+				LOG4CXX_DEBUG(s_sipExtractionLog, "from: " + from);
+			}
+
+			char* fromFieldEnd = memFindEOL(fromField, sipEnd);
+
+			GrabSipName(fromField, fromFieldEnd, info->m_fromName);
+
+			char* sipUser = memFindAfter("sip:", fromField, fromFieldEnd);
+			if(sipUser)
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sipUser, fromFieldEnd, info->m_from);
+				}
+				else
+				{
+					GrabSipUriUser(sipUser, fromFieldEnd, info->m_from);
+				}
+				GrabSipUriDomain(sipUser, fromFieldEnd, info->m_fromDomain);
+			}
+			else
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(fromField, fromFieldEnd, info->m_from);
+				}
+				else
+				{
+					GrabSipUriUser(fromField, fromFieldEnd, info->m_from);
+				}
+				GrabSipUriDomain(fromField, fromFieldEnd, info->m_fromDomain);
+			}
+		}
+		if(toField)
+		{
+			CStdString to;
+			char* toFieldEnd = GrabLine(toField, sipEnd, to);
+			LOG4CXX_DEBUG(s_sipExtractionLog, "to: " + to);
+
+			GrabSipName(toField, toFieldEnd, info->m_toName);
+
+			char* sipUser = memFindAfter("sip:", toField, toFieldEnd);
+			if(sipUser)
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sipUser, toFieldEnd, info->m_to);
+				}
+				else
+				{
+					GrabSipUriUser(sipUser, toFieldEnd, info->m_to);
+				}
+				GrabSipUriDomain(sipUser, toFieldEnd, info->m_toDomain);
+			}
+			else
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(toField, toFieldEnd, info->m_to);
+				}
+				else
+				{
+					GrabSipUriUser(toField, toFieldEnd, info->m_to);
+				}
+				GrabSipUriDomain(toField, toFieldEnd, info->m_toDomain);
+			}
+		}
+		if(contactField)
+		{
+			CStdString contact;
+			char* contactFieldEnd = GrabLine(contactField, sipEnd, contact);
+			LOG4CXX_DEBUG(s_sipExtractionLog, "contact: " + contact);
+
+			GrabSipName(contactField, contactFieldEnd, info->m_contactName);
+
+			char* sipUser = memFindAfter("sip:", contactField, contactFieldEnd);
+			if(sipUser)
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sipUser, contactFieldEnd, info->m_contact);
+				}
+				else
+				{
+					GrabSipUriUser(sipUser, contactFieldEnd, info->m_contact);
+				}
+				GrabSipUriDomain(sipUser, contactFieldEnd, info->m_contactDomain);
+			}
+			else
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(contactField, contactFieldEnd, info->m_contact);
+				}
+				else
+				{
+					GrabSipUriUser(contactField, contactFieldEnd, info->m_contact);
+				}
+				GrabSipUriDomain(contactField, contactFieldEnd, info->m_contactDomain);
+			}
+
+		}
+		if(callIdField)
+		{
+			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
+		}
+
+		info->m_senderIp = ipHeader->ip_src;
+		info->m_receiverIp = ipHeader->ip_dest;
+
+		if(!info->m_callId.size())
+		{
+			drop = true;
+		}
+		if(!info->m_contact)
+		{
+			drop = true;
+		}
+
+		CStdString logMsg;
+		info->ToString(logMsg);
+		logMsg = sipMethod + ": " + logMsg;
+		LOG4CXX_INFO(s_sipPacketLog, logMsg);
+
+		if(drop == false)
+		{
+			RtpSessionsSingleton::instance()->ReportSip302MovedTemporarily(info);
+		}
+		else
+		{
+			CStdString packetInfo;
+
+			info->ToString(packetInfo);
+			logMsg.Format("Dropped this %s: %s", sipMethod, packetInfo);
+			LOG4CXX_INFO(s_sipPacketLog, logMsg);
+		}
+	}
+
+	return result;
+}
+
 bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
 	bool result = false;
@@ -2960,7 +3157,14 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 			if(!detectedUsefulPacket) {
 				if(DLLCONFIG.m_sipDetectSessionProgress == true)
 				{
-					TrySipSessionProgress(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+					detectedUsefulPacket = TrySipSessionProgress(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+				}
+			}
+
+			if(!detectedUsefulPacket) {
+				if(DLLCONFIG.m_sip302MovedTemporarilySupport == true)
+				{
+					detectedUsefulPacket = TrySip302MovedTemporarily(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
 				}
 			}
 

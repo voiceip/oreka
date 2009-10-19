@@ -24,6 +24,27 @@
 
 using namespace log4cxx;
 
+class Sip302MovedTemporarilyInfo
+{
+public:
+	Sip302MovedTemporarilyInfo();
+	void ToString(CStdString& string);
+
+	struct in_addr m_senderIp;
+	struct in_addr m_receiverIp;
+	CStdString m_from;
+	CStdString m_to;
+	CStdString m_contact;
+	CStdString m_callId;
+	CStdString m_fromDomain;
+	CStdString m_toDomain;
+	CStdString m_contactDomain;
+	CStdString m_fromName;
+	CStdString m_toName;
+	CStdString m_contactName;
+};
+typedef boost::shared_ptr<Sip302MovedTemporarilyInfo> Sip302MovedTemporarilyInfoRef;
+
 class SipInviteInfo
 {
 public:
@@ -273,6 +294,7 @@ public:
 	void ReportSipErrorPacket(SipFailureMessageInfoRef& sipError);
 	void ReportSip200Ok(Sip200OkInfoRef info);
 	void ReportSipSessionProgress(SipSessionProgressInfoRef& info);
+	void ReportSip302MovedTemporarily(Sip302MovedTemporarilyInfoRef& info);
 	void Hoover(time_t now);
 	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp);
 	CStdString StartCapture(CStdString& party);
