@@ -15,7 +15,7 @@
 #define INIT_MESSAGE_NAME "init"
 #define NAME_PARAM "name"
 #define HOSTNAME_PARAM "hostname"
-#define TYPE_PARAM "mediatype"
+#define TYPE_PARAM "servicetype"
 #define TCP_PORT_PARAM "tcpport"
 #define PROTOCOL_PARAM "protocol"
 #define FILE_SERVE_PORT_PARAM "fileserveport"
