@@ -27,6 +27,7 @@
 #include "messages/CaptureMsg.h"
 #include "messages/TestMsg.h"
 #include "messages/RecordMsg.h"
+#include "messages/InitMsg.h"
 #include "Config.h"
 #include "LogManager.h"
 #include "ImmediateProcessing.h"
@@ -220,6 +221,8 @@ void MainThread()
 	objRef.reset(new PauseMsg);
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	objRef.reset(new StopMsg);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
+	objRef.reset(new InitMsg);
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	//objRef.reset(new TestMsg);
 	//ObjectFactory::GetSingleton()->RegisterObject(objRef);
