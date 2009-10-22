@@ -41,7 +41,7 @@ public:
 	/** Writes a chunk of audio to disk.
 		If stereo capture, this represents the local party */
 	virtual void WriteChunk(AudioChunkRef chunkRef) = 0;
-	/** Writes a chunk of audio from the remote pary to disk (if stereo capture)
+	/** Writes a chunk of audio from the remote pary to disk (if stereo capture) */
 	//virtual bool WriteRemoteChunk(AudioChunkRef chunkRef) = 0;
 	/** Reads a chunk of audio stereo-wise 
 		If underlying storage is mono, remoteChunk will be NULL 

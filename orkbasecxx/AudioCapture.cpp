@@ -207,7 +207,6 @@ int AudioChunk::GetNumSamples()
 
 double AudioChunk::GetDurationSec()
 {
-	int i = 0;
 	return ((double)GetNumSamples())/((double)m_details.m_sampleRate);
 }
 

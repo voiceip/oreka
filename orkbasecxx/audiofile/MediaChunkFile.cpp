@@ -61,8 +61,7 @@ bool MediaChunkFile::FlushToDisk()
 			continue;
 		}
 
-		int tmp = sizeof(AudioChunkDetails);
-		unsigned int numWritten = ACE_OS::fwrite(tmpChunk->GetDetails(), sizeof(AudioChunkDetails), 1, m_stream);
+		int numWritten = ACE_OS::fwrite(tmpChunk->GetDetails(), sizeof(AudioChunkDetails), 1, m_stream);
 		if(numWritten != 1)
 		{
 			writeError = true;
@@ -97,7 +96,7 @@ void MediaChunkFile::WriteChunk(AudioChunkRef chunkRef)
 	m_chunkQueueDataSize += pChunk->GetNumBytes();
 	m_chunkQueue.push(chunkRef);
 
-	if(m_chunkQueueDataSize > (CONFIG.m_captureFileBatchSizeKByte*1024))
+	if(m_chunkQueueDataSize > (unsigned int)(CONFIG.m_captureFileBatchSizeKByte*1024))
 	{
 		if (m_stream)
 		{
@@ -117,7 +116,6 @@ void MediaChunkFile::WriteChunk(AudioChunkRef chunkRef)
 int MediaChunkFile::ReadChunkMono(AudioChunkRef& chunkRef)
 {
 	unsigned int numRead = 0;
-	bool readError = false;
 
 	if (m_stream)
 	{

@@ -320,7 +320,7 @@ void BatchProcessing::ThreadHandler(void *args)
 					
 					if(CONFIG.m_transcodingSleepEveryNumFrames > 0 && CONFIG.m_transcodingSleepUs > 0)
 					{
-						if(frameSleepCounter >= CONFIG.m_transcodingSleepEveryNumFrames)
+						if(frameSleepCounter >= (unsigned int)CONFIG.m_transcodingSleepEveryNumFrames)
 						{
 							frameSleepCounter = 0;
 							struct timespec ts;

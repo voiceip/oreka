@@ -320,7 +320,6 @@ int EventStreamingServer::svc(void)
 		peer().send(header, header.GetLength());
 
 		time_t startTime = time(NULL);
-		time_t lastSentTime = time(NULL);
 
 		sessionId = EventStreamingSingleton::instance()->GetNewSessionId() + " -";
 		logMsg.Format("%s Event streaming start", sessionId);

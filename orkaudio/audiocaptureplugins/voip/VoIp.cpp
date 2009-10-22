@@ -119,7 +119,7 @@ typedef ACE_Singleton<VoIp, ACE_Thread_Mutex> VoIpSingleton;
 void memToHex(unsigned char* input, size_t len, CStdString&output)
 {
 	char byteAsHex[10];
-	for(int i=0; i<len; i++)
+	for(unsigned int i=0; i<len; i++)
 	{
 		sprintf(byteAsHex, "%.2x", input[i]);
 		output += byteAsHex;
@@ -142,11 +142,11 @@ inline char* memnchr(void *s, int c, size_t len)
 	return NULL;
 }
 
-static char* memFindStr(char* toFind, char* start, char* stop)
+static char* memFindStr(const char* toFind, char* start, char* stop)
 {
 	for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop-ptr)))
 	{
-		if(ACE_OS::strncasecmp(toFind, ptr, (strlen(toFind) > (stop-ptr) ? (stop-ptr) : strlen(toFind))) == 0)
+		if(ACE_OS::strncasecmp(toFind, ptr, ((int)strlen(toFind) > (stop-ptr) ? (stop-ptr) : strlen(toFind))) == 0)
 		{
 			return (ptr);
 		}
@@ -155,7 +155,7 @@ static char* memFindStr(char* toFind, char* start, char* stop)
 }
 
 // find the address that follows the given search string between start and stop pointers - case insensitive
-char* memFindAfter(char* toFind, char* start, char* stop)
+char* memFindAfter(const char* toFind, char* start, char* stop)
 {
 	for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memnchr(ptr+1, toFind[0],(stop - ptr)))
 	{
@@ -639,7 +639,7 @@ bool TryIax2New(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 
 	memset(&ies, 0, sizeof(ies));
 	udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
-	if(udp_act_payload_len < sizeof(*fh))
+	if(udp_act_payload_len < (int)sizeof(*fh))
 		return false; /* Frame too small */
 
         if(!(ntohs(fh->scallno) & 0x8000))
@@ -685,10 +685,10 @@ bool TryIax2New(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
                                * callee (Called Number) */
 
 	if(!ies.caller) {
-		ies.caller = "WITHELD";
+		ies.caller = (char*)"WITHELD";
 	} else {
 		if(!strlen(ies.caller)) {
-			ies.caller = "WITHELD";
+			ies.caller = (char*)"WITHELD";
 		}
 	}
 
@@ -721,7 +721,7 @@ bool TryIax2Accept(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeade
 
         memset(&ies, 0, sizeof(ies));
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
-        if(udp_act_payload_len < sizeof(*fh))
+        if(udp_act_payload_len < (int)sizeof(*fh))
                 return false; /* Frame too small */
 
         if(!(ntohs(fh->scallno) & 0x8000))
@@ -771,7 +771,7 @@ bool TryIax2Authreq(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHead
 
         memset(&ies, 0, sizeof(ies));
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
-        if(udp_act_payload_len < sizeof(*fh))
+        if(udp_act_payload_len < (int)sizeof(*fh))
                 return false; /* Frame too small */
 
 	if(!(ntohs(fh->scallno) & 0x8000))
@@ -838,7 +838,7 @@ bool TryIax2Hangup(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeade
 
         memset(&ies, 0, sizeof(ies));
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
-        if(udp_act_payload_len < sizeof(*fh))
+        if(udp_act_payload_len < (int)sizeof(*fh))
                 return false; /* Frame too small */
 
 	if(!(ntohs(fh->scallno) & 0x8000))
@@ -884,7 +884,7 @@ bool TryIax2ControlHangup(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* 
                 return false;
 
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
-        if(udp_act_payload_len < sizeof(*fh))
+        if(udp_act_payload_len < (int)sizeof(*fh))
                 return false; /* Frame too small */
 
 	if(!(ntohs(fh->scallno) & 0x8000))
@@ -924,7 +924,7 @@ bool TryIax2Reject(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeade
 
         memset(&ies, 0, sizeof(ies));
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
-        if(udp_act_payload_len < sizeof(*fh))
+        if(udp_act_payload_len < (int)sizeof(*fh))
                 return false; /* Frame too small */
 
 	if(!(ntohs(fh->scallno) & 0x8000))
@@ -969,7 +969,7 @@ bool TryIax2FullVoiceFrame(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
                 return false;
 
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
-        if(udp_act_payload_len < sizeof(*fh))
+        if(udp_act_payload_len < (int)sizeof(*fh))
                 return false; /* Frame too small */
 
         if(!(ntohs(fh->scallno) & 0x8000))
@@ -1021,8 +1021,7 @@ bool TryIax2MetaTrunkFrame(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 	struct Iax2MetaTrunkEntry *supermini = NULL;
 	struct Iax2MetaTrunkEntryTs *mini = NULL;
 	int content_type = 0; /* 0 means mini frames, 1 means super mini (no timestampes) */
-	int frame_ts = 0; /* Timestamp of frame */
-	int data_len = 0;
+	unsigned int data_len = 0;
 	int entries = 0, udp_act_payload_len = 0;
 	Iax2PacketInfoRef info(new Iax2PacketInfo());
 
@@ -1030,7 +1029,7 @@ bool TryIax2MetaTrunkFrame(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
                 return false;
 
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
-        if(udp_act_payload_len < sizeof(*mh))
+        if(udp_act_payload_len < (int)sizeof(*mh))
                 return false; /* Frame too small */
 
 	if(mh->meta != 0)
@@ -1140,7 +1139,7 @@ bool TryIax2MiniVoiceFrame(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
                 return false;
 
         udp_act_payload_len = (ntohs(udpHeader->len)-sizeof(UdpHeaderStruct));
-        if(udp_act_payload_len < sizeof(*mini))
+        if(udp_act_payload_len < (int)sizeof(*mini))
                 return false; /* Frame too small */
 
         if((ntohs(mini->scallno) & 0x8000))
@@ -1210,7 +1209,7 @@ bool TryRtcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, Udp
 	unsigned short mv = 0;
 
 	r = (RtcpCommonHeaderStruct*)((unsigned int *)r + ntohs(r->length) + 1);
-	while(r < rtcpEnd && ((rtcpEnd - r) >= sizeof(RtcpCommonHeaderStruct)))
+	while(r < rtcpEnd && ((rtcpEnd - r) >= (int)sizeof(RtcpCommonHeaderStruct)))
 	{
 		mv = (r->vpc & 0x00c0) >> 6;
 		if(mv != 2)
@@ -1241,7 +1240,7 @@ bool TryRtcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, Udp
 	memset(cname, 0, sizeof(cname));
 
 	r = (RtcpCommonHeaderStruct*)((unsigned int *)r + ntohs(r->length) + 1);
-	while(r < rtcpEnd && ((rtcpEnd - r) >= sizeof(RtcpCommonHeaderStruct)))
+	while(r < rtcpEnd && ((rtcpEnd - r) >= (int)sizeof(RtcpCommonHeaderStruct)))
 	{
 		version = (r->vpc & 0x00c0) >> 6;
 		p = (r->vpc & 0x0020) >> 5;
@@ -1375,9 +1374,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 
 	if (rtpHeader->version == 2)
 	{
-		u_short source = ntohs(udpHeader->source);
-		u_short dest = ntohs(udpHeader->dest);
-		if(!(ntohs(udpHeader->source)%2) && !(ntohs(udpHeader->dest)%2) || DLLCONFIG.m_rtpDetectOnOddPorts)	// udp ports usually even 
+		if((!(ntohs(udpHeader->source)%2) && !(ntohs(udpHeader->dest)%2)) || DLLCONFIG.m_rtpDetectOnOddPorts)	// udp ports usually even 
 		{
 			if((rtpHeader->pt <= 34 &&  rtpHeader->pt != 13) || (rtpHeader->pt >= 97 && rtpHeader->pt < 127) )         
 			// pt=13 is CN (Comfort Noise)
@@ -1457,7 +1454,7 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 
 	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
 	char* sipEnd = (char*)udpPayload + sipLength;
-	if(sipLength < sizeof(SIP_METHOD_BYE) || sipEnd > (char*)packetEnd)
+	if(sipLength < (int)sizeof(SIP_METHOD_BYE) || sipEnd > (char*)packetEnd)
 	{
 		return false;
 	}
@@ -2786,7 +2783,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			// Extract Calling and Called number.
 			char* parties = (char*)(&ccm5CallInfo->parties);
 			char* partiesPtr = parties;
-			long partiesLen = partiesLen = (long)packetEnd - (long)ccm5CallInfo - sizeof(SkCcm5CallInfoStruct);
+			long partiesLen = (long)packetEnd - (long)ccm5CallInfo - sizeof(SkCcm5CallInfoStruct);
 
 			CStdString callingParty;
 			CStdString calledParty;
@@ -3411,7 +3408,7 @@ void VoIp::OpenPcapDirectory(CStdString& path)
 	else
 	{
 		dirent* dirEntry = NULL;
-		while(dirEntry = ACE_OS::readdir(dir))
+		while((dirEntry = ACE_OS::readdir(dir)))
 		{	
 			CStdString dirEntryFilename = dirEntry->d_name;
 			CStdString pcapExtension = ".pcap";
@@ -3733,7 +3730,6 @@ void VoIp::LoadPartyMaps()
 {
 	FILE *maps = NULL;
 	char buf[1024];
-	int i = 0;
 	int ln = 0;
 	CStdString logMsg;
 

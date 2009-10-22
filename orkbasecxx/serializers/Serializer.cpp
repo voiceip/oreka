@@ -318,7 +318,7 @@ void Serializer::GetCsv(const char* key,  std::list<CStdString>& value, bool req
 	CStdString element;
 	bool first = true;
 	GetString(key, stringValue, required);
-	for(int i=0; i<stringValue.length(); i++)
+	for(unsigned int i=0; i<stringValue.length(); i++)
 	{
 		TCHAR c = stringValue[i];
 		if(c == ',')
@@ -404,7 +404,7 @@ void Serializer::GetIpRanges(const char* key,  IpRanges& value, bool required)
 // Escape the comma and percent characters for adding string to csv list
 void Serializer::EscapeCsv(CStdString& in, CStdString& out)
 {
-	for(int i=0; i<in.length();i++)
+	for(unsigned int i=0; i<in.length();i++)
 	{
 		TCHAR c = in[i];
 		if (c == ',')
@@ -425,7 +425,7 @@ void Serializer::EscapeCsv(CStdString& in, CStdString& out)
 // Unescape the comma and percent characters when retrieving from csv list
 void Serializer::UnEscapeCsv(CStdString& in, CStdString& out)
 {
-	int iin = 0;
+	unsigned int iin = 0;
 
 	while(iin<in.length())
 	{ 
@@ -455,7 +455,7 @@ void Serializer::UnEscapeCsv(CStdString& in, CStdString& out)
 // Escape the colon and percent characters for adding string to a pair of the form "key:value"
 void Serializer::EscapePair(CStdString& in, CStdString& out)
 {
-	for(int i=0; i<in.length();i++)
+	for(unsigned int i=0; i<in.length();i++)
 	{
 		TCHAR c = in[i];
 		if (c == ':')
@@ -476,7 +476,7 @@ void Serializer::EscapePair(CStdString& in, CStdString& out)
 // UnEscape the colon and percent characters after retrieving a key or value from a pair of the form "key:value"
 void Serializer::UnEscapePair(CStdString& in, CStdString& out)
 {
-	int iin = 0;
+	unsigned int iin = 0;
 
 	while(iin<in.length())
 	{ 
