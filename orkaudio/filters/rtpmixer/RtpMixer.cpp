@@ -610,7 +610,7 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk, unsigned int correctedT
 	unsigned int endRtpTimestamp = correctedTimestamp + audioChunk->GetNumSamples();
 	if (endRtpTimestamp > m_writeTimestamp)
 	{
-		for(int i=0; i<(endRtpTimestamp - m_writeTimestamp); i++)
+		for(unsigned int i=0; i<(endRtpTimestamp - m_writeTimestamp); i++)
 		{
 			*m_writePtr = 0;
 
@@ -761,7 +761,7 @@ void RtpMixer::HandleMixedOutput(AudioChunkRef &chunk, AudioChunkDetails& detail
 		chanNo = i+1;
 		chanIdx = i;
 
-		for(int j = 0; j < (details.m_numBytes/2); j++)
+		for(unsigned int j = 0; j < (details.m_numBytes/2); j++)
 		{
 			int sample;
 			int saveIdx = 0;

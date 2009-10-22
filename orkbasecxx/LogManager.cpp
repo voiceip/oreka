@@ -30,7 +30,7 @@ void OrkLogManager::Initialize()
 {
 	BasicConfigurator::configure();
 
-	char* logCfgFilename = "";
+	char* logCfgFilename = NULL;
         char* cfgEnvPath = "";
         int cfgAlloc = 0;
 
@@ -51,19 +51,19 @@ void OrkLogManager::Initialize()
                 }
         }
 
-	if(!logCfgFilename || !strlen(logCfgFilename)) {
+	if(!logCfgFilename) {
 		FILE* file = ACE_OS::fopen("logging.properties", "r");
 		if(file)
 		{
 			// logging.properties exists in the current directory
-			logCfgFilename = "logging.properties";
+			logCfgFilename = (char*)"logging.properties";
 			fclose(file);
 		}
 		else
 		{
 			// logging.properties could not be found in the current
 			// directory, try to find it in system configuration directory
-			logCfgFilename = "/etc/orkaudio/logging.properties";
+			logCfgFilename = (char*)"/etc/orkaudio/logging.properties";
 		}
 	}
 

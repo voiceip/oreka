@@ -2032,9 +2032,6 @@ void RtpSessions::MapOtherMediaAddress(RtpSessionRef& session, CStdString& ipAnd
 		origOrkUid = session->GetOrkUid();
 		if(session2->OrkUidMatches(origOrkUid))
 		{
-			CStdString logMsg;
-			char szEndPointIp[16];
-
 			if(m_log->isInfoEnabled())
 			{
 				CStdString logMsg;

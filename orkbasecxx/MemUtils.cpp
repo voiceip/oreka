@@ -22,7 +22,7 @@
 void MemToHex(unsigned char* input, size_t len, CStdString&output)
 {
 	char byteAsHex[10];
-	for(int i=0; i<len; i++)
+	for(unsigned int i=0; i<len; i++)
 	{
 		sprintf(byteAsHex, "%.2x", input[i]);
 		output += byteAsHex;

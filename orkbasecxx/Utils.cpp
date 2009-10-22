@@ -234,7 +234,7 @@ void FileEscapeName(CStdString& in, CStdString& out)
 	// Translates all the characters that are not in file_ok_chars string into %xx sequences
 	// %xx specifies the character ascii code in hexadecimal
 	out = "";
-	for (int i = 0 ; i<in.size() ; i++)
+	for (unsigned int i = 0 ; i<in.size() ; i++)
 	{
 		if (strchr(file_ok_chars, in.GetAt(i)))
 		{

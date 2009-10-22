@@ -48,7 +48,7 @@ void ConfigManager::Initialize()
 
 	try
 	{
-		char* cfgFilename = ""; 
+		char* cfgFilename = NULL;
 		char* cfgEnvPath = "";
 		int cfgAlloc = 0;
 
@@ -69,19 +69,19 @@ void ConfigManager::Initialize()
 			}
 		}
 
-		if(!cfgFilename || !strlen(cfgFilename)) {
+		if(!cfgFilename) {
 			FILE* file = ACE_OS::fopen(CONFIG_FILE_NAME, "r");
 			if(file)
 			{
 				// config.xml exists in the current directory
-				cfgFilename = CONFIG_FILE_NAME;
+				cfgFilename = (char*)CONFIG_FILE_NAME;
 				fclose(file);
 			}
 			else
 			{
 				// config.xml could not be found in the current
 				// directory, try to find it in system configuration directory
-				cfgFilename = ETC_CONFIG_FILE_NAME;
+				cfgFilename = (char*)ETC_CONFIG_FILE_NAME;
 			}
 		}
 

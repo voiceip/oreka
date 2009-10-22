@@ -313,7 +313,7 @@ void Iax2Session::ReportMetadata()
 	g_captureEventCallBack(event, m_capturePort);
 }
 
-static char *iax2_state_to_str(int iax2state)
+static const char *iax2_state_to_str(int iax2state)
 {
 	switch(iax2state) {
 	case IAX2_STATE_WAITING:

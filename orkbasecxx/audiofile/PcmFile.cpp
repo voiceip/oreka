@@ -59,7 +59,7 @@ void PcmFile::WriteChunk(AudioChunkRef chunkRef)
 		throw(CStdString("Write attempt on unopened file:")+ m_filename);
 	}
 
-	if (numWritten != chunkRef->GetNumSamples())
+	if (numWritten != (unsigned int)chunkRef->GetNumSamples())
 	{
 		throw(CStdString("Could not write to file:")+ m_filename);
 	}

@@ -92,7 +92,7 @@ void LoadPlugins(std::list<ACE_DLL>& pluginDlls)
 	else
 	{
 		dirent* dirEntry = NULL;
-		while(dirEntry = ACE_OS::readdir(dir))
+		while((dirEntry = ACE_OS::readdir(dir)))
 		{	
 			CStdString dirEntryFilename = dirEntry->d_name;
 			int extensionPos = dirEntryFilename.Find(pluginExtension);

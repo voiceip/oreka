@@ -48,7 +48,7 @@ void UrlSerializer::DeSerialize(CStdString& input)
 
 	input.Trim();
 
-	for(int i=0; i<input.length() && state!= UrlErrorState; i++)
+	for(unsigned int i=0; i<input.length() && state!= UrlErrorState; i++)
 	{
 		TCHAR character = input[i];
 
@@ -130,7 +130,7 @@ void UrlSerializer::EscapeUrl(CStdString& in, CStdString& out)
 	// Translates all the characters that are not in url_ok_chars string into %xx sequences
 	// %xx specifies the character ascii code in hexadecimal
 	out = "";
-	for (int i = 0 ; i<in.size() ; i++)
+	for (unsigned int i = 0 ; i<in.size() ; i++)
 	{
 		if (in.GetAt(i) == ' ')
 			out += '+';
@@ -150,7 +150,7 @@ void UrlSerializer::UnEscapeUrl(CStdString& in, CStdString& out)
 	// Translates all %xx escaped sequences to corresponding ascii characters
 	out = "";
 	char pchHex[3];
-	for (int i = 0; i<in.size(); i++)
+	for (unsigned int i = 0; i<in.size(); i++)
 	{
 		switch (in.GetAt(i))
 		{

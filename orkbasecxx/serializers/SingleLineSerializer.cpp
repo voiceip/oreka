@@ -45,7 +45,7 @@ void SingleLineSerializer::DeSerialize(CStdString& input)
 
 	input.Trim();
 
-	for(int i=0; i<input.length() && state!= SingleLineErrorState; i++)
+	for(unsigned int i=0; i<input.length() && state!= SingleLineErrorState; i++)
 	{
 		TCHAR character = input[i];
 
@@ -125,7 +125,7 @@ void SingleLineSerializer::DeSerialize(CStdString& input)
 // Escape the space, equals and percent characters for serializing to Key-Value-Pair text
 void SingleLineSerializer::EscapeSingleLine(CStdString& in, CStdString& out)
 {
-	for(int i=0; i<in.length();i++)
+	for(unsigned int i=0; i<in.length();i++)
 	{
 		TCHAR c = in[i];
 		if (c == ' ')
@@ -150,7 +150,7 @@ void SingleLineSerializer::EscapeSingleLine(CStdString& in, CStdString& out)
 // Unescape the space, equals and percent characters for serializing to Key-Value-Pair text
 void SingleLineSerializer::UnEscapeSingleLine(CStdString& in, CStdString& out)
 {
-	int iin = 0;
+	unsigned int iin = 0;
 
 	while(iin<in.length())
 	{ 

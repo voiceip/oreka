@@ -99,7 +99,7 @@ u_char *SafeBuffer::GetBuffer()
 
 // ============================================================
 
-static char* memFindAfter(char* toFind, char* start, char* stop)
+static char* memFindAfter(const char* toFind, char* start, char* stop)
 {
         for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop - start)))
         {
@@ -113,7 +113,7 @@ static char* memFindAfter(char* toFind, char* start, char* stop)
 
 // Implementation of strcasestr() - works like strstr() but
 // is case insensitive
-char* memFindStr(char* toFind, char* start, char* stop)
+char* memFindStr(const char* toFind, char* start, char* stop)
 {
         for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop - start)))
         {
@@ -142,7 +142,7 @@ static char* memFindEOL(char* start, char* limit)
 static void memToHex(unsigned char* input, size_t len, CStdString&output)
 {
         char byteAsHex[10];
-        for(int i=0; i<len; i++)
+        for(unsigned int i=0; i<len; i++)
         {
                 sprintf(byteAsHex, "%.2x", input[i]);
                 output += byteAsHex;
@@ -216,7 +216,7 @@ bool SipTcpStream::SipRequestIsComplete()
 	char *pBufEnd = pBufStart+m_sipRequest->Size();
 	char *contentLengthHeader = memFindStr("Content-Length: ", pBufStart, pBufEnd);
 	char *contentLength = memFindAfter("Content-Length: ", pBufStart, pBufEnd);
-	int cLength = 0;
+	unsigned int cLength = 0;
 
 	if(!contentLength || !contentLengthHeader)
 		return false;
