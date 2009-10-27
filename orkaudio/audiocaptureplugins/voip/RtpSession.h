@@ -154,6 +154,8 @@ class EndpointInfo
 {
 public:
 	CStdString m_extension;
+	CStdString m_latestCallId;
+	struct in_addr m_ip;
 };
 typedef boost::shared_ptr<EndpointInfo> EndpointInfoRef;
 
@@ -186,6 +188,7 @@ public:
 	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader);
 	CStdString GetOrkUid();
 	void MarkAsOnDemand();
+	bool Stopped();
 
 	CStdString m_capturePort;
 	CStdString m_trackingId;
@@ -285,7 +288,7 @@ public:
 	void ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
 	void ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
 	void ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct*);
-	void SetEndpointExtension(CStdString& extension, struct in_addr* endpointIp);
+	void SetEndpointExtension(CStdString& extension, struct in_addr* endpointIp, CStdString& callId);
 	void ReportSkinnyLineStat(SkLineStatStruct*, IpHeaderStruct* ipHeader);
 	void ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader);
 	void ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader);
@@ -322,6 +325,7 @@ private:
 	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId);
 	void UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader);
 	void UpdateSessionWithCallInfo(SkCallInfoStruct*, RtpSessionRef&);
+	bool TrySkinnySession(RtpPacketInfoRef& rtpPacket, EndpointInfoRef&);
 
 	std::map<CStdString, RtpSessionRef> m_byIpAndPort;
 	std::map<CStdString, RtpSessionRef> m_byCallId;

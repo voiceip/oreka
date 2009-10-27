@@ -88,6 +88,11 @@ void RtpSession::Stop()
 	}
 }
 
+bool RtpSession::Stopped()
+{
+	return m_stopped;
+}
+
 void RtpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo)
 {
 	if(!m_rtcpLocalParty)
@@ -1664,19 +1669,20 @@ void RtpSessions::ReportSipBye(SipByeInfoRef& bye)
 void RtpSessions::UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader)
 {
 	CStdString extension;
+	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, callInfo->callId);
 
 	switch(callInfo->callType)
 	{
 	case SKINNY_CALL_TYPE_INBOUND:
 	{
 		extension = callInfo->calledParty;
-		SetEndpointExtension(extension, &ipHeader->ip_dest);
+		SetEndpointExtension(extension, &ipHeader->ip_dest, callId);
 		break;
 	}
 	case SKINNY_CALL_TYPE_OUTBOUND:
 	{
 		extension = callInfo->callingParty;
-		SetEndpointExtension(extension, &ipHeader->ip_dest);
+		SetEndpointExtension(extension, &ipHeader->ip_dest, callId);
 		break;
 	}
 	}
@@ -1728,6 +1734,72 @@ void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessi
 		session->m_localParty = GetLocalPartyMap(lp);
 		session->m_remoteParty = GetLocalPartyMap(rp);
 	}
+}
+
+bool RtpSessions::TrySkinnySession(RtpPacketInfoRef& rtpPacket, EndpointInfoRef& endpoint)
+{
+	std::map<unsigned int, EndpointInfoRef>::iterator pair;
+	std::map<CStdString, RtpSessionRef>::iterator sessionpair;
+	RtpSessionRef session;
+	bool srcmatch = false;
+	CStdString logMsg;
+
+	pair = m_endpoints.find((unsigned int)(rtpPacket->m_sourceIp.s_addr));
+	if(pair != m_endpoints.end())
+	{
+		endpoint = pair->second;
+		srcmatch = true;
+	}
+	else
+	{
+		pair = m_endpoints.find((unsigned int)(rtpPacket->m_destIp.s_addr));
+		if(pair == m_endpoints.end())
+		{
+			return false;
+		}
+
+		endpoint = pair->second;
+	}
+
+	if(!(endpoint->m_latestCallId).size())
+	{
+		return false;
+	}
+
+	sessionpair = m_byCallId.find(endpoint->m_latestCallId);
+	if(sessionpair == m_byCallId.end())
+	{
+		return false;
+	}
+
+	session = sessionpair->second;
+	if(session->Stopped())
+	{
+		return false;
+	}
+
+	char szEndPointIp[16];
+	char szRtpSrcIp[16];
+	char szRtpDstIp[16];
+
+	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szRtpSrcIp, sizeof(szRtpSrcIp));
+	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szRtpDstIp, sizeof(szRtpDstIp));
+
+	if(srcmatch == true)
+	{
+		SetMediaAddress(session, rtpPacket->m_sourceIp, rtpPacket->m_sourcePort);
+		ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szEndPointIp, sizeof(szEndPointIp));
+	}
+	else
+	{
+		SetMediaAddress(session, rtpPacket->m_destIp, rtpPacket->m_destPort);
+		ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szEndPointIp, sizeof(szEndPointIp));
+	}
+
+	logMsg.Format("[%s] RTP stream detected on endpoint:%s extension:%s RTP:%s,%d %s,%d callid:%s", session->m_trackingId, szEndPointIp, endpoint->m_extension, szRtpSrcIp, rtpPacket->m_sourcePort, szRtpDstIp, rtpPacket->m_destPort, endpoint->m_latestCallId);
+	LOG4CXX_INFO(m_log, logMsg);
+
+	return true;
 }
 
 void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader)
@@ -2315,7 +2387,7 @@ void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruc
 	}
 }
 
-void RtpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* endpointIp)
+void RtpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* endpointIp, CStdString& callId)
 {
 	std::map<unsigned int, EndpointInfoRef>::iterator pair;
 	EndpointInfoRef endpoint;
@@ -2326,12 +2398,21 @@ void RtpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* en
 		// Update the existing endpoint	info
 		endpoint = pair->second;
 		endpoint->m_extension = extension;
+		if(callId.size())
+		{
+			endpoint->m_latestCallId = callId;
+		}
 	}
 	else
 	{
 		// Create endpoint info for the new endpoint
 		endpoint.reset(new EndpointInfo());
 		endpoint->m_extension = extension;
+		ACE_OS::memcpy(&endpoint->m_ip, endpointIp, sizeof(endpoint->m_ip));
+		if(callId.size())
+		{
+			endpoint->m_latestCallId = callId;
+		}
 		m_endpoints.insert(std::make_pair((unsigned int)(endpointIp->s_addr), endpoint));
 	}
 	if(endpoint.get())
@@ -2340,19 +2421,21 @@ void RtpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* en
 		char szEndpointIp[16];
 		ACE_OS::inet_ntop(AF_INET, (void*)endpointIp, szEndpointIp, sizeof(szEndpointIp));
 
-		logMsg.Format("Extension:%s is on endpoint:%s", endpoint->m_extension, szEndpointIp);
+		logMsg.Format("Extension:%s callId:%s is on endpoint:%s", endpoint->m_extension, endpoint->m_latestCallId, szEndpointIp);
 		LOG4CXX_INFO(m_log, logMsg);
 	}
 }
 
 void RtpSessions::ReportSkinnyLineStat(SkLineStatStruct* lineStat, IpHeaderStruct* ipHeader)
 {
+	CStdString callId = "";
+
 	if(strlen(lineStat->lineDirNumber) > 1)
 	{
 		CStdString extension;
 
 		extension = lineStat->lineDirNumber;
-		SetEndpointExtension(extension, &ipHeader->ip_dest);
+		SetEndpointExtension(extension, &ipHeader->ip_dest, callId);
 	}
 }
 
@@ -2651,6 +2734,14 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 	else if((numSessionsFound == 0) && (CONFIG.m_lookBackRecording == true))
 	{
+		EndpointInfoRef endpoint;
+
+		// Check if this is a Skinny session
+		if(TrySkinnySession(rtpPacket, endpoint) == true)
+		{
+			return;
+		}
+
 		// create new Raw RTP session and insert into IP+Port map
 		CStdString trackingId = m_alphaCounter.GetNext();
 		RtpSessionRef session(new RtpSession(trackingId));
@@ -2688,6 +2779,35 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
 
 		LOG4CXX_INFO(m_log, "[" + trackingId + "] created by RTP packet");
+
+		if(endpoint.get())
+		{
+			// Skinny endpoint was got but no RTP session or existing
+			// RTP session is already stopped
+			char szEndpointIp[16];
+			char szRtpSrcIp[16];
+			char szRtpDstIp[16];
+			CStdString logMsg;
+
+			ACE_OS::inet_ntop(AF_INET, (void*)&endpoint->m_ip, szEndpointIp, sizeof(szEndpointIp));
+			ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szRtpSrcIp, sizeof(szRtpSrcIp));
+			ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szRtpDstIp, sizeof(szRtpDstIp));
+
+			session->m_localParty = endpoint->m_extension;
+			if(endpoint->m_ip.s_addr == rtpPacket->m_sourceIp.s_addr)
+			{
+				session->m_remoteParty = szRtpDstIp;
+			}
+			else
+			{
+				session->m_remoteParty = szRtpSrcIp;
+			}
+
+			logMsg.Format("[%s] RTP stream detected on endpoint:%s extension:%s RTP:%s,%d %s,%d", session->m_trackingId, szEndpointIp, endpoint->m_extension, szRtpSrcIp, rtpPacket->m_sourcePort, szRtpDstIp, rtpPacket->m_destPort);
+			LOG4CXX_INFO(m_log, logMsg);
+
+			return;
+		}
 	}
 }
 
