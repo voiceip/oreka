@@ -220,6 +220,7 @@ public:
 	bool m_nonLookBackSessionStarted;
 	bool m_onDemand;
 	std::list<CStdString> m_otherIpAndPortMappings;
+	bool m_newRtpStream;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);

@@ -70,6 +70,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_rtpIp.s_addr = 0;
 	m_skinnyLineInstance = 0;
 	m_onDemand = false;
+	m_newRtpStream = true;
 }
 
 void RtpSession::Stop()
@@ -1017,9 +1018,12 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	else
 	{
 		// Comparing destination IP address and port to find out if side1, see (1)
-		if((unsigned int)rtpPacket->m_destIp.s_addr == (unsigned int)m_lastRtpPacketSide1->m_destIp.s_addr &&
-			rtpPacket->m_destPort == m_lastRtpPacketSide1->m_destPort)
+		if( m_newRtpStream == true ||
+			( (unsigned int)rtpPacket->m_destIp.s_addr == (unsigned int)m_lastRtpPacketSide1->m_destIp.s_addr &&
+			  rtpPacket->m_destPort == m_lastRtpPacketSide1->m_destPort )  )
 		{
+			m_newRtpStream = false;
+
 			if(rtpPacket->m_timestamp == m_lastRtpPacketSide1->m_timestamp)
 			{
 				m_hasDuplicateRtp = true;
@@ -1102,9 +1106,10 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	bool hasDestAddress = m_rtpAddressList.HasAddressOrAdd(rtpPacket->m_destIp, rtpPacket->m_destPort);
 	if(	hasSourceAddress == false || hasDestAddress == false )
 	{
+		m_newRtpStream = true;
 		rtpPacket->ToString(logMsg);
-		logMsg.Format("[%s] new RTP stream s%d: %s", 
-							m_trackingId, channel, logMsg);
+		logMsg.Format("[%s] new RTP stream: %s", 
+							m_trackingId, logMsg);
 		LOG4CXX_INFO(m_log, logMsg);
 
 		if(m_protocol == ProtSip && m_started)	// make sure this only happens if ReportMetadata() already been called for the session
@@ -2408,7 +2413,7 @@ void RtpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* en
 		// Create endpoint info for the new endpoint
 		endpoint.reset(new EndpointInfo());
 		endpoint->m_extension = extension;
-		ACE_OS::memcpy(&endpoint->m_ip, endpointIp, sizeof(endpoint->m_ip));
+		memcpy(&endpoint->m_ip, endpointIp, sizeof(endpoint->m_ip));
 		if(callId.size())
 		{
 			endpoint->m_latestCallId = callId;
