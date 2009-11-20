@@ -1891,6 +1891,7 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 	session->m_callId = callId;
 	session->m_endPointIp = ipHeader->ip_dest;	// CallInfo message always goes from CM to endpoint 
 	session->m_protocol = RtpSession::ProtSkinny;
+	session->m_skinnyLastCallInfoTime = ACE_OS::gettimeofday();
 	UpdateSessionWithCallInfo(callInfo, session);
 	session->ReportSkinnyCallInfo(callInfo, ipHeader);
 
