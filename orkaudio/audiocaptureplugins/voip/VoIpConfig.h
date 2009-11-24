@@ -102,13 +102,14 @@ public:
 
 	bool m_skinnyIgnoreStopMediaTransmission;
 	bool m_skinnyIgnoreOpenReceiveChannelAck;
-	bool m_skinnyDynamicMediaAddress;
+	bool m_skinnyDynamicMediaAddress;	// Controls whether a single session can have a changing media address
 	bool m_skinnyAllowCallInfoUpdate;
 	bool m_skinnyAllowLateCallInfo;
 	bool m_skinnyNameAsLocalParty;
 	bool m_skinnyCallInfoStopsPrevious;
 	bool m_cucm7_1Mode;
 	std::list<CStdString> m_skinnyReportTags;
+	bool m_skinnyAllowMediaAddressTransfer;		// Controls whether a new session (new CallInfo) can take a media address away from an existing session that has already received RTP.
 
 	std::list<CStdString> m_dnisNumbers;
 	std::list<CStdString> m_sipExtractFields;

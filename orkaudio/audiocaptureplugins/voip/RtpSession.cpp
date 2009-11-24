@@ -2177,12 +2177,18 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 	if(oldSession.get())
 	{
 		// A session exists on the same IP+port
-		if(oldSession->m_protocol == RtpSession::ProtRawRtp || oldSession->m_numRtpPackets == 0)
+		if(oldSession->m_protocol == RtpSession::ProtRawRtp || oldSession->m_numRtpPackets == 0 ||
+			(session->m_protocol == RtpSession::ProtSkinny && DLLCONFIG.m_skinnyAllowMediaAddressTransfer)   )
 		{
 			logMsg.Format("[%s] on %s replaces [%s]", 
 							session->m_trackingId, mediaAddress, oldSession->m_trackingId); 
 			LOG4CXX_INFO(m_log, logMsg);
 			//Stop(oldSession);		// Let the session go into timeout rather than stop is straight away, useful for skinny internal calls where media address back and forth must not kill sessions with the best metadata.
+		}
+		else if(oldSession->m_trackingId.Equals(session->m_trackingId))
+		{
+			// Old and new are the same session, do nothing
+			doChangeMediaAddress = false;
 		}
 		else
 		{
