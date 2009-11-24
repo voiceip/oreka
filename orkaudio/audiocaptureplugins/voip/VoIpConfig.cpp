@@ -153,6 +153,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SkinnyCallInfoStopsPrevious", m_skinnyCallInfoStopsPrevious);
 	s->CsvValue("SkinnyReportTags", m_skinnyReportTags);
 	s->BoolValue("Cucm7-1Mode", m_cucm7_1Mode);
+	s->BoolValue("SkinnyCucm7Mode", m_cucm7_1Mode);	// synonym to the preceding line (Cucm7-1Mode)
 
 	s->IntValue("SangomaRxTcpPortStart", m_sangomaRxTcpPortStart);
 	s->IntValue("SangomaTxTcpPortStart", m_sangomaTxTcpPortStart);
