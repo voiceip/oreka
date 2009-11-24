@@ -2182,7 +2182,7 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 			logMsg.Format("[%s] on %s replaces [%s]", 
 							session->m_trackingId, mediaAddress, oldSession->m_trackingId); 
 			LOG4CXX_INFO(m_log, logMsg);
-			Stop(oldSession);
+			//Stop(oldSession);		// Let the session go into timeout rather than stop is straight away, useful for skinny internal calls where media address back and forth must not kill sessions with the best metadata.
 		}
 		else
 		{
