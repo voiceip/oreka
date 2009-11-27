@@ -3046,7 +3046,17 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	}
 
 	EthernetHeaderStruct* ethernetHeader = (EthernetHeaderStruct *)pkt_data;
-	IpHeaderStruct* ipHeader = (IpHeaderStruct*)((char*)ethernetHeader + sizeof(EthernetHeaderStruct));
+	IpHeaderStruct* ipHeader = NULL;
+
+	if(ntohs(ethernetHeader->type) == 0x8100)
+	{
+		ipHeader = (IpHeaderStruct*)((char*)ethernetHeader + sizeof(EthernetHeaderStruct) + 4);
+	}
+	else
+	{
+		ipHeader = (IpHeaderStruct*)((char*)ethernetHeader + sizeof(EthernetHeaderStruct));
+	}
+
 	if(ipHeader->ip_v != 4)	// sanity check, is it an IP packet v4
 	{
 		// If not, the IP packet might have been captured from multiple interfaces using the tcpdump -i switch
