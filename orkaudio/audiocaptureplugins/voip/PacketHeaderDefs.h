@@ -26,7 +26,7 @@ typedef struct
 {
 	unsigned char destinationMac[6];
 	unsigned char sourceMac[6];
-	unsigned short length;
+	unsigned short type;
 
 } EthernetHeaderStruct;
 
