@@ -18,7 +18,6 @@ InitMsg::InitMsg()
 	m_tcpPort = 59140;
 	m_fileServePort = 8080;
 	m_streamingPort = 59120;
-	m_local = false;
 	m_sshPort = 22;
 }
 
@@ -37,7 +36,6 @@ void InitMsg::Define(Serializer* s)
 	s->StringValue(SERVE_PATH_PARAM, m_servePath);
 	s->StringValue(ABSOLUTE_PATH_PARAM, m_absolutePath);
 	s->IntValue(STREAMING_PORT_PARAM, m_streamingPort);
-	s->BoolValue(LOCAL_PARAM, m_local);
 	s->StringValue(USERNAME_PARAM, m_username);
 	s->StringValue(PASSWORD_PARAM, m_password);
 	s->IntValue(SSH_PORT_PARAM, m_sshPort);

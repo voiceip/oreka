@@ -23,7 +23,6 @@
 #define SERVE_PATH_PARAM "servepath"
 #define ABSOLUTE_PATH_PARAM "absolutepath"
 #define STREAMING_PORT_PARAM "streamingport"
-#define LOCAL_PARAM "local"
 #define USERNAME_PARAM "username"
 #define PASSWORD_PARAM "password"
 #define SSH_PORT_PARAM "sshport"
@@ -50,7 +49,6 @@ public:
 	CStdString m_servePath;
 	CStdString m_absolutePath;
 	int m_streamingPort;
-	bool m_local;
 	CStdString m_username;
 	CStdString m_password;
 	int m_sshPort;
