@@ -2183,7 +2183,12 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 			logMsg.Format("[%s] on %s replaces [%s]", 
 							session->m_trackingId, mediaAddress, oldSession->m_trackingId); 
 			LOG4CXX_INFO(m_log, logMsg);
-			//Stop(oldSession);		// Let the session go into timeout rather than stop is straight away, useful for skinny internal calls where media address back and forth must not kill sessions with the best metadata.
+			if(oldSession->m_protocol == RtpSession::ProtRawRtp)
+			{
+				// Pure RTP session: stop it now or it will never be hoovered.
+				// (Do not stop signalled sessions, better let them timeout and be hoovered. Useful for skinny internal calls where media address back and forth must not kill sessions with the best metadata.)
+				Stop(oldSession);
+			}
 		}
 		else if(oldSession->m_trackingId.Equals(session->m_trackingId))
 		{
