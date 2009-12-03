@@ -2177,7 +2177,13 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 	if(oldSession.get())
 	{
 		// A session exists on the same IP+port
-		if(oldSession->m_protocol == RtpSession::ProtRawRtp || oldSession->m_numRtpPackets == 0 ||
+
+		if(oldSession->m_trackingId.Equals(session->m_trackingId))
+		{
+			// Old and new are the same session, do nothing
+			doChangeMediaAddress = false;
+		}
+		else if(oldSession->m_protocol == RtpSession::ProtRawRtp || oldSession->m_numRtpPackets == 0 ||
 			(session->m_protocol == RtpSession::ProtSkinny && DLLCONFIG.m_skinnyAllowMediaAddressTransfer)   )
 		{
 			logMsg.Format("[%s] on %s replaces [%s]", 
@@ -2189,11 +2195,6 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 				// (Do not stop signalled sessions, better let them timeout and be hoovered. Useful for skinny internal calls where media address back and forth must not kill sessions with the best metadata.)
 				Stop(oldSession);
 			}
-		}
-		else if(oldSession->m_trackingId.Equals(session->m_trackingId))
-		{
-			// Old and new are the same session, do nothing
-			doChangeMediaAddress = false;
 		}
 		else
 		{
@@ -2213,10 +2214,11 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 			LOG4CXX_INFO(m_log, logMsg);
 		}
 
-		m_byIpAndPort.erase(session->m_ipAndPort);
+		m_byIpAndPort.erase(session->m_ipAndPort);	// remove old mapping
 		session->m_ipAndPort = mediaAddress;
 		session->m_rtpIp = mediaIp;
-		m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));
+		m_byIpAndPort.erase(session->m_ipAndPort);	// make room for new mapping
+		m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));	// insert new mapping
 
 		CStdString numSessions = IntToString(m_byIpAndPort.size());
 		LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
