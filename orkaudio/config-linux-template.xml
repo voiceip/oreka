@@ -30,6 +30,8 @@
 	<!--<TapeDurationMinimumSec>3</TapeDurationMinimumSec>-->
     
 	<VoIpPlugin>
+		<PcapSocketBufferSize>8388608</PcapSocketBufferSize>
+
 		<!-- Use this for Nortel proprietary VoIP protocol -->
 		<!--<UnistimDetect>yes</UnistimDetect>-->
 
