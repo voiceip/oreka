@@ -16,7 +16,7 @@
 #include "UrlSerializer.h"
 
 
-static char url_ok_chars[] = "*-.0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+static char url_ok_chars[] = "-.0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
 static char hex_digits[17] = "0123456789ABCDEF";
 
 
