@@ -1453,7 +1453,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			}
 			else
 			{
-				if(session->m_onHold)
+				if(session->m_onHold && DLLCONFIG.m_sipInviteCanPutOffHold)
 				{
 					session->m_onHold = false;
 					session->m_lastUpdated = time(NULL);	// so that timeout countdown is reset
