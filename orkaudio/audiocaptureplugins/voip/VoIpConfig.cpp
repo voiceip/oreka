@@ -53,6 +53,7 @@ VoIpConfig::VoIpConfig()
 	m_sipTreat200OkAsInvite = false;
 	m_sipAllowMultipleMediaAddresses = false;
 	m_sip302MovedTemporarilySupport = true;
+	m_sipInviteCanPutOffHold = false;
 
 	m_rtcpDetect = false;
 	m_inInMode = false;
@@ -134,6 +135,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SipTreat200OkAsInvite", m_sipTreat200OkAsInvite);
 	s->BoolValue("SipAllowMultipleMediaAddresses", m_sipAllowMultipleMediaAddresses);
 	s->BoolValue("Sip302MovedTemporarilySupport", m_sip302MovedTemporarilySupport);
+	s->BoolValue("SipInviteCanPutOffHold", m_sipInviteCanPutOffHold);
 
 	s->BoolValue("RtcpDetect", m_rtcpDetect);
 	s->BoolValue("InInMode", m_inInMode);
