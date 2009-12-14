@@ -87,6 +87,9 @@ AudioTape::AudioTape(CStdString &portId)
 	m_passedPartyFilterTest = false;
 	m_numErrors = 0;
 	m_onDemand = false;
+	m_pushCount = 0;
+	m_popCount = 0;
+	m_highMark = 0;
 
 	GenerateCaptureFilePathAndIdentifier();
 }
@@ -118,6 +121,11 @@ void AudioTape::AddAudioChunk(AudioChunkRef chunkRef)
 	{
 		MutexSentinel sentinel(m_mutex);
 		m_chunkQueue.push(chunkRef);
+		m_pushCount += 1;
+		if(m_chunkQueue.size() > m_highMark)
+		{
+			m_highMark = m_chunkQueue.size();
+		}
 	}
 }
 
@@ -153,6 +161,7 @@ void AudioTape::Write()
 				{
 					chunkRef = m_chunkQueue.front();
 					m_chunkQueue.pop();
+					m_popCount += 1;
 				}
 				else
 				{
@@ -174,6 +183,7 @@ void AudioTape::Write()
 			{
 				chunkRef = m_chunkQueue.front();
 				m_chunkQueue.pop();
+				m_popCount += 1;
 			}
 			else
 			{
@@ -305,7 +315,8 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		break;
 	case CaptureEvent::EtStop:
 		m_shouldStop = true;
-
+		logMsg.Format("pushcount:%d popcount:%d highmark:%d", m_pushCount, m_popCount, m_highMark);
+		LOG4CXX_DEBUG(LOG.tapeLog, logMsg);
 		m_duration = eventRef->m_timestamp - m_beginDate;
 
 		{

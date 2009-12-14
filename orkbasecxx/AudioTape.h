@@ -126,6 +126,9 @@ private:
 	CStdString m_sec;
 
 	std::queue<AudioChunkRef> m_chunkQueue;
+	int m_pushCount;
+	int m_popCount;
+	int m_highMark;
 
 	std::queue<CaptureEventRef> m_eventQueue;
 	std::queue<CaptureEventRef> m_toSendEventQueue;
