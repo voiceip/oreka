@@ -1487,7 +1487,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 		{
 			/* If we're already on hold and sendonly is not present
 			 * then we go off hold */
-			if(session->m_onHold)
+			if(session->m_onHold && DLLCONFIG.m_sipInviteCanPutOffHold)
 			{
 				session->m_onHold = false;
 				session->m_lastUpdated = time(NULL);	// so that timeout countdown is reset
