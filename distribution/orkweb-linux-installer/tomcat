@@ -1,0 +1,72 @@
+#!/bin/sh
+  #
+  # Startup script for the Jakarta Tomcat Java Servlets and JSP server
+  #
+  # chkconfig: - 85 15
+  # description: Jakarta Tomcat Java Servlets and JSP server
+  # processname: tomcat
+  # pidfile: /var/run/tomcat.pid
+  # config:
+
+  # Ensure that we are not in / directory.  This causes tomcat to be very
+  # slow in some environments
+  if [ ! -d /tmp ]; then
+     mkdir /tmp
+  fi
+  cd /tmp
+  
+  # Source function library.
+  . /etc/rc.d/init.d/functions
+
+  # Source networking configuration.
+  . /etc/sysconfig/network
+
+  # Check that networking is up.
+  [ ${NETWORKING} = "no" ] && exit 0
+
+  # Set Tomcat environment.
+  export JAVA_HOME=/usr/local/j2sdk
+  export CLASSPATH=.:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/jre/lib/rt.jar
+  export CATALINA_HOME=/usr/local/tomcat
+  export CATALINA_OPTS="-Dbuild.compiler.emacs=true"
+  export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
+
+  [ -f $CATALINA_HOME/bin/startup.sh ] || exit 0
+  [ -f $CATALINA_HOME/bin/shutdown.sh ] || exit 0
+
+  export PATH=$PATH:/usr/bin:/usr/local/bin
+
+  # See how we were called.
+  case "$1" in
+    start)
+          # Start daemon.
+          echo -n "Starting Tomcat: "
+          $CATALINA_HOME/bin/startup.sh
+          RETVAL=$?
+          echo
+          [ $RETVAL = 0 ] && touch /var/lock/subsys/tomcat
+          ;;
+    stop)
+          # Stop daemons.
+          echo -n "Shutting down Tomcat: "
+          $CATALINA_HOME/bin/shutdown.sh
+          RETVAL=$?
+          echo
+          [ $RETVAL = 0 ] && rm -f /var/lock/subsys/tomcat
+          ;;
+    restart)
+          $0 stop
+          $0 start
+          ;;
+    condrestart)
+         [ -e /var/lock/subsys/tomcat ] && $0 restart
+         ;;
+    status)
+          status tomcat
+          ;;
+    *)
+          echo "Usage: $0 {start|stop|restart|status}"
+          exit 1
+  esac
+
+  exit 0

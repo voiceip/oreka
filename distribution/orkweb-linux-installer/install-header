@@ -1,0 +1,31 @@
+#!/bin/sh
+#Usage: In order to run this installer, you need to make sure this file is executable (#chmod +x orkweb-installer.sh) and run it with the following command: (# ./orkweb-installer.sh) as root.  
+echo ""
+echo "Oreka Web User Interface - starting installation... please wait"
+echo ""
+
+# create a temp directory to extract to.
+export WRKDIR=`mktemp -d /tmp/orkweb-selfextract.XXXXXX`
+
+SKIP=`awk '/^__ARCHIVE_FOLLOWS__/ { print NR + 1; exit 0; }' $0`
+
+# tail will not do what we need without this
+export _POSIX2_VERSION=199209
+
+# Take the tarred portion of this file and pipe it to tar.
+tail +$SKIP $0 | tar x -C $WRKDIR
+
+# execute the installation script
+
+PREV=`pwd`
+cd $WRKDIR
+/usr/bin/perl install.pl $*
+
+
+# delete the temp files
+cd $PREV
+rm -rf $WRKDIR
+
+exit 0
+
+__ARCHIVE_FOLLOWS__
