@@ -1,4 +1,59 @@
 ===========================================================================
+200912 Oreka 1.2
+
+** WARNING, if you are upgrading orktrack/orkweb from 0.5-311, the database schema has changed, please see distribution/tools/README.txt **
+
+    * Fixed orktrack bug that was overwriting the orkservice database entries and prevented proper replay via orkweb
+    * SIP Hold is now properly handled (rev 666, 663)
+    * SIP over TCP detection is now enabled by default
+    * Many SIP detection improvements
+    * Now possible to have SIP direction detection use the UA string (rev 624)
+    * 802.1Q VLAN support improved (rev 658)
+    * Added Skinny CUCM 7 support (rev 632)
+    * Many Skinny detection improvements
+    * Added G722 support (rev 591, 592, 594)
+    * Added audio gain tuning (rev 587, 593)
+    * Fixed many garbled or missing audio problems
+    * Added support for Asterisk interception via Xorcom Asterisk patch (rev 635, 639)
+    * Added record, stop and pause API calls (rev 633)
+    * Added LocalPartyMap feature so it is possible to automatically substitute any local party for another one (rev 625)
+    * Now possible to report name instead of number when underlying signalling protocol allows it (rev 623)
+    * orkaudio now compiles and runs fine under X86_64
+    
+===========================================================================
+200811 Oreka 1.0  (this version was never published on sourceforge)
+
+** WARNING, if you are upgrading orktrack/orkweb from 0.5-311, the database schema has changed, please see distribution/tools/README.txt **
+
+    * Audio segmentation can now be used on non-continuous RTP streams (rev 569)
+    * Now possible to force reporting of MAC or IP addresses for parties
+    * Added support for stereo audio files. This only works with pcmwav storage format
+    * Added TapeFileNaming and TapePathNaming for configurable audio file name and path (rev 443)
+    * 802.1Q VLAN support added (rev 477)
+    * Added support for SIP compact header format (rev 475)
+    * Added SIP Hold support (rev 472)
+    * Added SipReportFullAddress configuration parameter (rev 495)
+    * Added optional SIP over TCP detection (rev 438, 439)
+    * Added arbitrary SIP field extraction as tag (rev 437)
+    * Skinny on-hold now handled (rev 441, 442)
+    * IAX2 support added (rev 399, 400)
+    * Interactive intelligence (inin.com) flavour of SIP support added
+    * Added support for the Sangoma wanpipe RTP tap (rev 451)
+    * Added RTCP support, local party can now be extracted from RTCP SDES field (rev 562)
+    * orkaudio now configurable for RTP detection on odd ports (rev 416)
+    * iLBC RTP codec support added (rev 393)
+    * GSM RTP codec support added (rev 351)
+    * Now possible to have multiple streams with different codecs being correctly transcribed into one single recording (rev 379)
+    * Added AudioFilePermissions, AudioFilePermissions, AudioFileGroup, useful for Linux deployments
+    * Capture Batch Size now configurable. This makes it possible to control how much data will be buffered in RAM for an individual capture before it is written to disk in the media capture file (mcf) (rev 335)
+    * Added non-lookback recording mode. Useful for on-demand recording
+    * Multiple instances of orkaudio can now be run at once (Linux only)
+    * Now possible to setup orkaudio with pcap filter (rev 453)
+    * pcap socket buffer size now configurable under Linux only (<PcapSocketBufferSize> config parameter) (rev 334)
+    * orkaudio automatically attempts to re-open network device when pcap session is broken by an external event such as NIC reconfiguration
+
+
+===========================================================================
 2006-02-16 Oreka 0.5
 
 	* Fixed a critical bug that could cause Orkaudio to crash given a certain sequence of RTP packets
