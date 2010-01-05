@@ -121,7 +121,7 @@ public:
 	int m_sangomaTxTcpPortStart;
 	int m_skinnyTcpPort;
 	std::list<CStdString> m_sipDomains;
-	std::list<CStdString> m_sipDirectionReferenceIpAddresses;
+	IpRanges m_sipDirectionReferenceIpAddresses;
 	std::list<CStdString> m_sipDirectionReferenceUserAgents;
 	IpRanges m_lanIpRanges;
 	IpRanges m_mediaAddressBlockedIpRanges;

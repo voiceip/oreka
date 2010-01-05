@@ -163,7 +163,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("SangomaTxTcpPortStart", m_sangomaTxTcpPortStart);
 
 	s->CsvValue("SipDomains", m_sipDomains);
-	s->CsvValue("SipDirectionReferenceIpAddresses", m_sipDirectionReferenceIpAddresses);
+	s->IpRangesValue("SipDirectionReferenceIpAddresses", m_sipDirectionReferenceIpAddresses);
 	s->CsvValue("SipDirectionReferenceUserAgents", m_sipDirectionReferenceUserAgents);
 	
 	s->IpRangesValue("LanIpRanges", m_lanIpRanges);
