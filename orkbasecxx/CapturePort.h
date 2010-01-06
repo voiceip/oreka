@@ -58,6 +58,7 @@ private:
 	bool m_vadUp;
 	time_t m_lastUpdated;
 	std::list<FilterRef> m_filters;
+	std::vector<FilterRef> m_decoders;
 	std::list<CaptureEventRef> m_captureEvents;
 	bool m_needSendStop;
 	int m_segmentNumber;

@@ -52,6 +52,13 @@ void CapturePort::LoadFilters()
 			LOG4CXX_ERROR(s_log, CStdString("Filter:") + filterName + " does not exist, please check <CapturePortFilters> in config.xml");
 		}
 	}
+
+	FilterRef decoder;
+	for(int pt = 0; pt < RTP_PAYLOAD_TYPE_MAX; pt++)
+	{
+		decoder = FilterRegistry::instance()->GetNewFilter(pt);
+		m_decoders.push_back(decoder);
+	}
 }
 
 
@@ -175,15 +182,35 @@ void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 	}
 	else if (CONFIG.m_vad)
 	{
-		if(chunkRef->GetEncoding() == PcmAudio)
+
+		AudioChunkRef tmpChunkRef;
+		AudioChunkDetails details = *chunkRef->GetDetails();
+
+		if(chunkRef->GetEncoding() != PcmAudio)
+		{
+			FilterRef decoder;
+
+			decoder = m_decoders.at(details.m_rtpPayloadType);
+			if(decoder.get() != NULL)
+			{
+				decoder->AudioChunkIn(chunkRef);
+				decoder->AudioChunkOut(tmpChunkRef);
+			}
+		}
+		else
+		{
+			tmpChunkRef = chunkRef;
+		}
+
+		if(tmpChunkRef.get())
 		{
 			if(m_vadUp)
 			{
 				// There is an ongoing capture
-				if (chunkRef->ComputeRmsDb() < CONFIG.m_vadLowThresholdDb)
+				if (tmpChunkRef->ComputeRmsDb() < CONFIG.m_vadLowThresholdDb)
 				{
 					// Level has gone below low threshold, increase holdon counter
-					m_vadBelowThresholdSec += chunkRef->GetDurationSec();
+					m_vadBelowThresholdSec += tmpChunkRef->GetDurationSec();
 				}
 				else
 				{
@@ -201,31 +228,41 @@ void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 					eventRef->m_type = CaptureEvent::EtStop;
 					eventRef->m_timestamp = now;
 					AddCaptureEvent(eventRef);
+
+					m_audioTapeRef.reset();
 				}
 			}
 			else
 			{
 				// No capture is taking place yet
-				if (chunkRef->ComputeRmsDb() > CONFIG.m_vadHighThresholdDb)
+				if (tmpChunkRef->ComputeRmsDb() > CONFIG.m_vadHighThresholdDb)
 				{
 					// Voice detected, start a new capture
 					m_vadBelowThresholdSec = 0.0;
 					m_vadUp = true;
 
 					// create new tape
-					m_audioTapeRef.reset(new AudioTape(m_id));
+					if(!m_audioTapeRef.get())
+					{
+						m_audioTapeRef.reset(new AudioTape(m_id));
 
-					// signal new tape start event
-					CaptureEventRef eventRef(new CaptureEvent);
-					eventRef->m_type = CaptureEvent::EtStart;
-					eventRef->m_timestamp = now;
-					AddCaptureEvent(eventRef);
+						// signal new tape start event
+						CaptureEventRef eventRef(new CaptureEvent);
+						eventRef->m_type = CaptureEvent::EtStart;
+						eventRef->m_timestamp = now;
+						eventRef->m_value = m_id;
+						AddCaptureEvent(eventRef);
+						ReportEventBacklog(m_audioTapeRef);
+					}
 				}
 			}
 		}
 		else
 		{
-			LOG4CXX_ERROR(s_log, CStdString("Voice activity detection cannot be used on non PCM audio"));
+			CStdString logMsg;
+
+			logMsg.Format("Voice activity detection: unsupported RTP payload type:%d", details.m_rtpPayloadType);
+			LOG4CXX_ERROR(s_log, logMsg);
 		}
 	}
 
