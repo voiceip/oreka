@@ -13,14 +13,27 @@
 
 <h2><?=$pageTitle?></h2>
 
-<p>This Debian/ubuntu dpkg package has been generated on a Ubuntu Hoary system. It references all necessary dependencies. You can install it using the following command:</p>
-<p><b>dpkg -i orkaudio-0.3-linux-i386.deb</b></p>
-<p>This will prompt you if you need to install any additional dependencies first. You can install them using the command:</p>
-<p><b>apt-get install [package]</b></p>
+<p>These Debian/ubuntu binaries have been generated on a Ubuntu Hoary system and consist of three deb files. You can install them using the following commands:</p>
+<ul>
+<li>dpkg -i log4cxx-0.9.7_0.9.7-1_i386.deb</li>
+<li>dpkg -i orkbasecxx_X.X-1_i386.deb</li>
+<li>dpkg -i orkaudio_X.X-1_i386.deb</li>
+</ul>
+<p>
+OrkAudio depends on some third party packages. You can install them using the following commands. Some of those are not part of the core distribution so you will need to enable the apt-get "universe" source by uncommenting the right lines in /etc/apt/sources.list.
+</p>
+<ul>
+<li>apt-get install libace-dev</li>
+<li>apt-get install libboost-dev</li>
+<li>apt-get install liblog4cpp-dev</li>
+<li>apt-get install libpcap0.7-dev</li>
+<li>apt-get install libxerces26-dev</li>
+<li>apt-get install libsndfile1-dev</li>
+</ul>
 
 <h3><?=_("Recommended Download")?></h3>
 <ul>
-  <li><p><a href="http://prdownloads.sourceforge.net/oreka/orkaudio-0.3-linux-i386.deb?download">orkaudio-0.3-linux-i386.deb</a></p></li>
+  <li><p><a href="http://prdownloads.sourceforge.net/oreka/orkaudio-0.5-313-ubuntu-5.04-i386-DEBs.tar?download">orkaudio-0.5-313-ubuntu-5.04-i386-DEBs.tar</a></p></li>
 </ul>
 
 <h3><?=_("System Requirements")?></h3>

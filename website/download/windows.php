@@ -17,7 +17,7 @@
 
 <h3><?=_("Recommended Download")?></h3>
 <ul>
-  <li><p><a href="http://prdownloads.sourceforge.net/oreka/orkaudio-0.3-win32-installer.zip?download">orkaudio-0.3-win32-installer.zip</a></p></li>
+  <li><p><a href="http://prdownloads.sourceforge.net/oreka/orkaudio-0.5-313-win32-installer.zip?download">orkaudio-0.5-313-win32-installer.zip</a></p></li>
 </ul>
 
 <h3><?=_("System Requirements")?></h3>

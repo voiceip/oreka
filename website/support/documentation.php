@@ -13,12 +13,11 @@
 
 	// i18n-hint:  Please add a note that the manuals below are in English.  If
 	// there is documentation available in your language, link to it here.
-	echo "<p>"._('This page links to the Oreka documentation in various forms:')."</p>";
 ?>
 
 <ul>
-	<li><a href="../oreka-documentation.html">HTML, one page</a></li>
-	<li><a href="../oreka-documentation-multi">HTML, one page per section</a></li>
+	<li><a href="../oreka-documentation.html">Developer documentation</a></li>
+	<li><a href="../oreka-user-manual.html">User manual</a></li>
 </ul>
 
 <?php
