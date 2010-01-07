@@ -13,6 +13,58 @@
 
 <h2><?=$pageTitle?></h2>
 
+<p>2008-11-28 Oreka 1.0</p>
+<ul>
+<li>Enhanced Interactive intelligence support</li>
+<li>VoIP plugin now capable of recording Sangoma TDM boards via wanpipe RTP tap</li>
+<li>Added stereo recording capability. Currently limited to G.711 storage format.</li>
+<li>RTP out-of-band DTMF digits can now be extracted</li>
+<li>Audio file naming now configurable</li>
+<li>Added Wifi support</li>
+<li>Added arbitrary SIP field extraction feature</li>
+<li>IAX2 native Asterisk signalling is now supported</li>
+</ul>
+
+<p>2006-07-27 Oreka 0.5-313</p>
+<ul>
+<li>Added supports Cisco CallManager 5 signalling</li>
+<li>Added IP address and address range filtering capability</li>
+<li>Added support for MPLS and 802.Q VLAN traffic</li>
+<li>Local Party now always reported as local IP address if emtpy</li>
+<li>Added local and remote IP addresses reporting</li>
+<li>Improved SIP detection</li>
+<li>Improved Cisco Skinny detection</li>
+<li>Configurable queue sizes for high load systems</li>
+<li>Added ability to replay an entire directory worth of pcap traces</li>
+<li>Recording duration now more precise</li>
+<li>Fixed a number of problems that could lead to one sided, garbled or saturated recordings</li>
+<li>Fixed memory leak</li>
+<li>Redundant RTP packets now detected and discarded</li>
+<li>Improved robustness with more packet sanity checking</li>
+</ul>
+
+<p>2006-02-16 Oreka 0.5</p>
+<ul>
+<li>Fixed a critical bug that could cause Orkaudio to crash given a certain sequence of RTP packets</li>
+<li>Fixed a SIP detection issue on Siemens platform (Siemens Optipoint 400)</li>
+</ul>
+
+<p>2006-02-12 Oreka 0.4</p>
+<ul>
+<li>Oreka can now monitor multiple Network devices in parallel</li>
+<li>Oreka can now replay tcpdump (pcap) network trace files</li>
+<li>Improved RTP detection (Before: some RTP streams could go undetected)</li>
+<li>Improved Cisco Skinny signalling management (Before: Sessions could break up spuriously and single session could be seen as two separate sessions)</li>
+<li>Improved SIP detection (Before: SIP messages on some platforms went undetected)</li>
+<li>Improved SIP signalling management (Before: Sessions could break up spuriously)</li>
+<li>Oreka can now store in "pcmwav" format, ie, pcm stored in a wav file without compression</li>
+<li>Sample rate can now be different than 8KHz across Oreka</li>
+<li>Sample rate now tunable in SoundDevice plugin</li>
+<li>Codecs can now be plugins</li>
+</ul>
+
+
+
 <p>2005-11-24 Oreka 0.3</p>
 <ul>
 <li>Windows installer now available</li>

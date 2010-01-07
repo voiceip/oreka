@@ -35,6 +35,10 @@
           _("Is it possible to use the different components (OrkAudio, OrkTrack and OrkWeb) separately?"),
           _("<p>Yes. For example it is possible to use OrkAudio as a standalone audio recording and compression tool. No user interface is available but audio files and metadata are generated as described in Oreka <a href='documentation'>documentation</a>.</p>")
         ),
+       "H.323" => array(
+          _("My telephony system uses H.323 as the signalling protocol. Will Oreka be able to record audio from it ?"),
+          _("<p>Yes. Systems using H.323 as the signalling protocol use RTP as the media transport protocol. Oreka will capture raw RTP audio sessions with no metadata attached and IP addresses as local and remote parties.</p>")
+        ),
      ),
     ),
   );

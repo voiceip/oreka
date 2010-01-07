@@ -17,7 +17,7 @@
   echo _('<p>If you have a question, check the list of <a href="faq">Frequently Asked Questions</a> before asking on the <a href="lists">mailing lists</a>.</p>
 <p>For instructions on how to build, install and use Oreka, see the <a href="documentation">documentation</a></p>');
 ?>
-<p>Professional support and add-ons are available from <a href="http://www.orecx.com">orecx LLC</a>, the primary sponsor and developer of Oreka.</p>
+<p>Commercial support and add-ons are available from <a href="http://www.orecx.com">orecx LLC</a>, the primary sponsor and developer of Oreka.</p>
 <?php
   include "../include/footer.inc.php";
 ?>
