@@ -18,13 +18,13 @@
 <h3><?=_("Recommended Download")?></h3>
 
 <ul>
-  <li><p>Windows zip file: <a href="http://www.sourceforge.net/projects/oreka/download">oreka-0.5-313.zip</a></p></li>
-  <li><p>Unix tarball: <a href="http://www.sourceforge.net/projects/oreka/download">oreka-0.5-313.tar.gz</a></p></li>
+  <li><p>Windows zip file: <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/Source%20Code/oreka-1.2-675.zip/download">oreka-1.2-675.zip</a></p></li>
+  <li><p>Unix tarball: <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/Source%20Code/oreka-1.2-675.tar.gz/download">oreka-1.2-675.tar.gz</a></p></li>
 </ul>
 
 <h3>Optional download</h3>
 <ul>
-	<li>Windows C++ dependencies package: <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-0.5-313/oreka-0.5-313-cxx-win32-dependencies.zip/download">oreka-0.5-313-cxx-win32-dependencies.zip</a></li>
+	<li>Windows C++ dependencies package: <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-0.5-313/oreka-0.5-313-cxx-win32-dependencies.zip/download">oreka-0.5-313-cxx-win32-dependencies.zip</a> (has not changed)</li>
 	<li>Java dependencies package: <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2-669/orkweb/oreka-1.2-669-java-dependencies.zip/download">oreka-1.2-669-java-dependencies.zip</a></li>
 </ul>
 
