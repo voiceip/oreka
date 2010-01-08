@@ -36,6 +36,34 @@ function most_recent_news_item() {
 }
 
 add_news_item(
+  "Dec 31, 2009",
+	"oreka-1.2",
+  _("Oreka 1.2 is released"),
+  _('<p>Includes Windows and Linux installers.</p>')
+);
+
+add_news_item(
+  "Sept 2, 2009",
+	"asterisk-xorcom",
+  _("Asterisk interception via Xorcom Asterisk patch"),
+  _('<p>Added support for recording of Asterisk-DAHDI channels using Xorcoms Asterisk patch. See <a href=http://www.xorcom.com/news-archive/call-recording-pr.html>here</a>.</p>')
+);
+
+add_news_item(
+  "July 31, 2009",
+	"skinny-cucm7",
+  _("Skinny CUCM 7 Support"),
+  _('<p>Added support for the latest Cisco Unified Communications Manager (7.1)</p>')
+);
+
+add_news_item(
+  "Jan 15, 2009",
+	"g722-support",
+  _("G.722 Support"),
+  _('<p>Added support for G.722 speech codec.</p>')
+);
+
+add_news_item(
   "August 05, 2008",
 	"inin-mode",
   _("Interactive intelligence support"),

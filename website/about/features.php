@@ -22,7 +22,8 @@ echo "<p>"._('Oreka currently has the following features:')."</p>";
 <li>Capture from multiple Network devices in parallel</li>
 <li>Capture from pcap trace files</li>
 <li>Voice activity detection</li>
-<li>A-Law, U-Law and GSM6.10 codecs supported as both wire and storage format</li>
+<li>G.711 (A-Law, U-Law), G.722, GSM6.10 and iLBC RTP encodings supported</li>
+<li>G.711 (A-Law, U-Law) and GSM6.1 encoded wav files supported as storage formats</li>
 <li>Automatic transcoding from wire format to storage format</li>
 <li>Recording metadata logged to file and/or any mainstream database system</li>
 </ul>
@@ -40,13 +41,13 @@ echo "<p>"._('Oreka currently has the following features:')."</p>";
 <h3>Compatibility</h3>
 <p>Oreka has been reported to work on the following platforms and should actually work on many more.</p>
 <ul>
-<li>Cisco CallManager and CallManager Express v. 3.x, 4.x and 5</li>
+<li>Cisco CallManager and CallManager Express v. 3.x, 4.x, 5.x, 6.x and 7.x</li>
+<li>SIP</li>
 <li>Lucent APX8000</li>
 <li>Avaya S8500</li>
 <li>Siemens HiPath</li>
 <li>VocalData</li>
 <li>Sylantro</li>
-<li>Asterisk SIP channel</li>
 </ul>
 <?
   include "../include/footer.inc.php";

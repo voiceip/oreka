@@ -13,8 +13,31 @@
 
 <h2><?=$pageTitle?></h2>
 
+<p>2009-12-31 Oreka 1.2</p>
+
+<ul>
+<li><b>WARNING</b>, if you are upgrading orktrack/orkweb from 0.5-311, the database schema has changed, please see distribution/tools/README.txt</li>
+<li>Fixed orktrack bug that was overwriting the orkservice database entries and prevented proper replay via orkweb</li>
+<li>SIP Hold is now properly handled</li>
+<li>SIP over TCP detection is now enabled by default</li>
+<li>Many SIP detection improvements</li>
+<li>Now possible to have SIP direction detection use the UA string</li>
+<li>802.1Q VLAN support improved</li>
+<li>Added Skinny CUCM 7 support</li>
+<li>Many Skinny detection improvements</li>
+<li>Added G722 support</li>
+<li>Added audio gain tuning</li>
+<li>Fixed many garbled or missing audio problems</li>
+<li>Added support for Asterisk interception via Xorcom Asterisk patch</li>
+<li>Added record, stop and pause API calls</li>
+<li>Added LocalPartyMap feature so it is possible to automatically substitute any local party for another one</li>
+<li>Now possible to report name instead of number when underlying signalling protocol allows it</li>
+<li>Orkaudio now compiles and runs fine under X86_64</li>
+</ul>
+
 <p>2008-11-28 Oreka 1.0</p>
 <ul>
+<li><b>WARNING</b>, if you are upgrading orktrack/orkweb from 0.5-311, the database schema has changed, please see distribution/tools/README.txt</li>
 <li>Enhanced Interactive intelligence support</li>
 <li>VoIP plugin now capable of recording Sangoma TDM boards via wanpipe RTP tap</li>
 <li>Added stereo recording capability. Currently limited to G.711 storage format.</li>

@@ -22,10 +22,21 @@
     "general" => array(
       _("About Oreka"),
       array(
+        "filenaming" => array(
+          _("Can I change the path and filename of the audio recordings?"),
+          _("<p>There are configuration options in the config.xml for orkaudio specifically for that.  See <a href='http://oreka.sourceforge.net/oreka-user-manual.html#filenaming'>Configure audio files path and file names</a> section in the Oreka User Manual.</p>")
+        ),
+        "G729" => array(
+          _("Why can't I record G.729 voice packets?"),
+          _("<p>G.729 requires licensing, therefore it is not supported by Oreka Open Source</p>")
+        ),
+        "voiptraffic" => array(
+          _("Any recommendations on how to get VoIP traffic to the Oreka server?"),
+          _("<p>See <a href='http://oreka.sourceforge.net/oreka-user-manual.html#gettingvoiptraffic'>Getting VoIP traffic to the Oreka Server</a> section in the Oreka User Manual.</p>")
+        ),
         "difference" => array(
           _("What is the difference between this software and other open source audio recording software?"),
-          _("<p>Oreka is specifically designed for recording of lots of audio sessions such as telephone calls and easy retrieval through a web interface. Existing software such as Audacity or Ardour focus on different things such as audio edition and studio quality recording respectively.</p>
-	   ")
+          _("<p>Oreka is specifically designed for recording of lots of audio sessions such as telephone calls and easy retrieval through a web interface. Existing software such as Audacity or Ardour focus on different things such as audio edition and studio quality recording respectively.</p>")
         ),
        "threedifferent" => array(
           _("Why is the system broken up in three services ? Would it not have been easier to implement everything in one service?"),
