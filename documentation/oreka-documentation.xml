@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
 "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
 <book>
-  <title>Oreka</title>
+  <title>Oreka 1.2 Developer's Guide</title>
 
   <chapter>
     <title>Introduction</title>
@@ -45,7 +45,7 @@ This program is free software, distributed under the terms of the GNU General Pu
 <emphasis>Prerequisites:</emphasis>
 			</para>
 			<para id="linuxdep">
-install these packages first using your linux distribution packaging system 
+Install these packages first using your linux distribution packaging system 
 or download sources tarballs from the listed websites.
 			</para>
 <itemizedlist>
@@ -118,7 +118,7 @@ or download sources tarballs from the listed websites.
 			</para>
 			<para>
 <itemizedlist>
-<listitem>Download the c++ win32 external library pack and unpack into c:\devExt (if you change this  location, you need to change all references in the dsp files)</listitem>
+<listitem>Download the <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-0.5-313/oreka-0.5-313-cxx-win32-dependencies.zip/download">c++ win32 external library pack</ulink> and unpack into c:\devExt (if you change this  location, you need to change all references in the dsp files)</listitem>
 <listitem>Load orkaudio\OrkAudio.dsw into MSVC</listitem>
 <listitem>Select orkbase as active project, build</listitem>
 <listitem>Select orkaudio as active project, build</listitem>
@@ -128,7 +128,7 @@ or download sources tarballs from the listed websites.
 	</section>
 	<section>
 		<title>Building OrkTrack and OrkWeb</title>
-    <para>As of Oreka version 1.0, installers for some platforms are available, e.g. Windows, CentOS 5 (32-bit), CentOS 4.4 (32-bit), Linux SuSE (32-bit), ....  The steps below are still useful for building for other platforms.</para>		
+    <para>As of Oreka version 1.0, installers for some platforms are available, e.g. Windows, CentOS, RHEL, Linux SuSE, ....  The steps below are still useful for building for other platforms.</para>		
 		<para>
 <emphasis>Install required software</emphasis>
 		</para>
@@ -149,7 +149,7 @@ or download sources tarballs from the listed websites.
 <listitem>Set the compiler compliance for the worskspace to Java 5 (Java 1.5)  /Window/preferences/ -> /java/compiler/</listitem>
 <listitem>Import user libraries:
 	<itemizedlist>
-	<listitem>Get the external java dependencies pack from http://sourceforge.net/projects/oreka and unzip it into {WORKSPACE}/lib</listitem>
+	<listitem>Get the external <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/oreka-1.2-669-java-dependencies.zip/download">java dependencies pack</ulink> and unzip it into {WORKSPACE}/lib</listitem>
 	<listitem>Edit oreka.userlibraries, search and replace the absolute path to jar files with your own.</listitem>
 	<listitem>/Window/preferences/ -> /java/buildpath/user libraries/ -> import -> select your modified oreka.userlibraries file</listitem>
 	</itemizedlist>
@@ -164,85 +164,100 @@ or download sources tarballs from the listed websites.
   <chapter>
 	<title>Installing</title>
 	<section>
-		<title>Installing Prerequisite Software for OrkAudio</title>
-		<section>
-			<title>Installing Linux Libraries</title>
-			<para>Please refer to <xref linkend="linuxdep">list of required libraries</xref></para>
-		</section>	
-		<section>
-			<title>Installing Windows Libraries</title>
-			<para><emphasis>This step is not needed when using the windows installer, the installer automatically installs winpcap.</emphasis></para>
-			<para>Download and install winpcap 3.1 (choose the windows installer version). This is a network packet capture library	<ulink url="http://www.winpcap.org">http://www.winpcap.org</ulink></para>
-		</section>		
-	</section>	
-	<section id="installorkaudiobinary">
-		<title>Installing OrkAudio manually after a fresh win32 build</title>
-<itemizedlist>
-<listitem>Download the win32 installer from the <ulink url="http://sourceforge.net/projects/oreka">oreka sourceforge project page</ulink></listitem>
-<listitem>Unzip and run the installer. This will set up the environment</listitem>
-<listitem>Build your modified version of OrkAudio, or OrkAudio plugin in release mode</listitem>
-<listitem>Copy the modified OrkAudio.dll, OrkBase.dll, VoIp.dll, SoundDevice.dll or Generator.dll to your install folder, replacing old files</listitem>
-</itemizedlist>
-	</section>
-	<section>
-		<title>Installing Prerequisite Software for OrkTrack and OrkWeb</title>
-		<para>
-<itemizedlist>
-<listitem>Install MySQL or any <ulink url="http://www.hibernate.org/hib_docs/v3/reference/en/html/session-configuration.html#configuration-optional-dialects">database compatible with hibernate</ulink></listitem>
-</itemizedlist>
-  <emphasis>Note: installers for some platforms are available to you, e.g. Windows, CentOS 5 (32-bit), CentOS 4 (32-bit) and Linux SuSE (32-bit).  If your platform does not have an installer, use the steps below.</emphasis>
-<itemizedlist>
-<listitem>Install Java 5 JDK</listitem>
-<listitem>Install Tomcat 5.5 or later, point it the the Java 5 JDK by setting the JAVA_HOME environment variable to the root of the JDK</listitem>
-<listitem>Make note of the Tomcat admin password</listitem>
-<listitem>Get the external java dependencies package from <ulink url="http://www.sourceforge.net/projects/oreka">http://www.sourceforge.net/projects/oreka</ulink></listitem>
-<listitem>Copy all jar files from the external java dependencies package to {TOMCAT_HOME}/shared/lib</listitem>
-<listitem>Create a database for storing oreka data</listitem>
-<listitem>Create a user/password for reading/writing the newly created database</listitem>
-<listitem>Install Eclipse 3.1 or later</listitem>
-</itemizedlist>
-		</para>
-	</section>	
-	<section id="installingorktrack">
-		<title>Installing OrkTrack</title>
-		<para>
-  <emphasis>Note: these steps are only required if you did not use an installer.</emphasis>
-<itemizedlist>
-<listitem>Create a folder for configuration and logging such as c:\oreka\</listitem>
-<listitem>Copy orkbasej/java/logging.template.properties to this folder, rename it to logging.properties and change according to needs</listitem>
-<listitem>Copy orkbasej/java/database.hbm.template.xml to this folder, rename it to database.hbm.xml and change according to needs</listitem>
-<listitem>Copy orktrack/orktrack.config.xml to this folder and change according to needs</listitem> 
-<listitem>Modify orktrack/WEB-INF/web.xml and make it point to those newly created config files</listitem>
-<listitem>Copy orktrack/deploy-template.xml to orktrack/deploy.xml and change deploy.xml according to your setup.</listitem>
-<listitem>Run Tomcat</listitem>
-<listitem>Run deploy.xml as ant script in Eclipse (Right click/Run as). This should result in the following message:
-	<para><emphasis>"[echo] OK - Deployed application at context path /orktrack"</emphasis></para></listitem>
-<listitem>Point your browser to your Tomcat manager (e.g. http://localhost:8080/manager/html) and check that orktrack has started, otherwise, check Tomcat logs</listitem>
-</itemizedlist>
-		</para>
-	</section>	
-	<section>
-		<title>Installing OrkWeb</title>
-		<para>
-<emphasis>Note: these steps are only required if you did not use an installer.</emphasis>		
-<itemizedlist>
-<listitem>Create a folder for configuration and logging such as c:\oreka\ (use the same one as orktrack)</listitem>
-<listitem>Copy orkbasej/java/logging.template.properties to this folder, rename it to logging.properties and change according to needs</listitem>
-<listitem>Copy orkbasej/java/database.hbm.template.xml to this folder, rename it database.hbm.xml and change according to needs</listitem>
-<listitem>Modify orkweb/WEB-INF/web.xml and make it point to those newly created config files</listitem>
-<listitem>Copy orktrack/deploy-template.xml to orktrack/deploy.xml and change deploy.xml according to your setup.</listitem>
-<listitem>Run Tomcat</listitem>
-<listitem>Run deploy.xml as ant script in Eclipse (Right click/Run as). This should result in the following message:
-	<para><emphasis>"[echo] OK - Deployed application at context path /orkweb"</emphasis></para></listitem>
-<listitem>Point your browser to your Tomcat manager (e.g. http://localhost:8080/manager/html) and check that orkweb has started, otherwise, check Tomcat logs</listitem>
-<listitem>Point your browser to the newly deployed application (e.g. http://localhost:8080/orkweb/app)</listitem>
-</itemizedlist>
-		</para>
-	</section>
+		<title>Installing OrkAudio</title>
+    	<section>
+    		<title>Using Installers</title>
+    		<para>You can use the OrkAudio Windows installer <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkaudio/orkaudio-1.2-673-os-win32-installer.zip/download">orkaudio-1.2-673-os-win32-installer.zip</ulink>
+    		 or Linux (RHEL/CentOS/Fedora) installer <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkaudio/orkaudio-1.2-671-os-i386.centos5-installer.sh.tar/download">orkaudio-1.2-671-os-i386.centos5-installer.sh.tar</ulink>.
+            </para>
+    	</section>	
+    	<section>
+    		<title>Manual Installation</title>
+        	<section>
+        		<title>Installing Prerequisite Software for OrkAudio</title>
+    			<para>For Linux libraries, please refer to <xref linkend="linuxdep">list of required libraries</xref></para>        			
+    			<para>For Windows libraries, download and install winpcap 3.1 (choose the windows installer version). This is a network packet capture library	<ulink url="http://www.winpcap.org">http://www.winpcap.org</ulink></para>
+        	</section>	
+        	<section id="installorkaudiobinary">
+        		<title>Installing OrkAudio manually after a fresh win32 build</title>
+        <itemizedlist>
+        <listitem>Download the win32 installer from the <ulink url="http://sourceforge.net/projects/oreka">oreka sourceforge project page</ulink></listitem>
+        <listitem>Unzip and run the installer. This will set up the environment</listitem>
+        <listitem>Build your modified version of OrkAudio, or OrkAudio plugin in release mode</listitem>
+        <listitem>Copy the modified OrkAudio.exe, OrkBase.dll, VoIp.dll, SoundDevice.dll or Generator.dll to your install folder, replacing old files</listitem>
+        </itemizedlist>
+        	</section>
+        </section>
+    </section>
+    <section>	
+        <title>Installing OrkWeb/OrkTrack</title>
+    	<section>
+    		<title>Using Installers</title>    		
+            <para>Start by installing MySQL or any <ulink url="http://www.hibernate.org/hib_docs/v3/reference/en/html/session-configuration.html#configuration-optional-dialects">database compatible with hibernate</ulink>.</para>
+    		<para>Then use the OrkWeb Windows installer <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/orkweb-1.2-669-os-win32-installer.zip/download">orkweb-1.2-669-os-win32-installer.zip</ulink>
+    		 or the Linux intaller <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/orkweb-1.2-669-os-linux-installer.sh.tar/download">orkweb-1.2-669-os-linux-installer.sh.tar</ulink>.  The Linux installer works 
+             on RHEL, CentOS, Fedora and Linux SuSE.</para>
+    	</section>	
+    	<section>
+    		<title>Manual Installation</title>
+        	<section>
+        		<title>Installing Prerequisite Software for OrkTrack and OrkWeb</title>
+        		<para>
+        <itemizedlist>
+        <listitem>Install MySQL or any <ulink url="http://www.hibernate.org/hib_docs/v3/reference/en/html/session-configuration.html#configuration-optional-dialects">database compatible with hibernate</ulink></listitem>
+        </itemizedlist>
+        <itemizedlist>
+        <listitem>Install Java 5 JDK or later.</listitem>
+        <listitem>Install Tomcat 5.5 or later, point it to the Java JDK by setting the JAVA_HOME environment variable to the root of the JDK</listitem>
+        <listitem>Make note of the Tomcat admin password</listitem>
+        <listitem>Get the external java dependencies package from <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/oreka-1.2-669-orktrack-orkweb.zip/download">oreka-1.2-669-orktrack-orkweb.zip</ulink></listitem>
+        <listitem>Copy all jar files from the external java dependencies package to {TOMCAT_HOME}/shared/lib</listitem>
+        <listitem>Create a database for storing oreka data</listitem>
+        <listitem>Create a user/password for reading/writing the newly created database</listitem>
+        <listitem>Install Eclipse 3.1 or later</listitem>
+        </itemizedlist>
+        		</para>
+        	</section>	
+        	<section id="installingorktrack">
+        		<title>Installing OrkTrack</title>
+        		<para>
+        <itemizedlist>
+        <listitem>Create a folder for configuration and logging such as c:\oreka\</listitem>
+        <listitem>Copy orkbasej/java/logging.template.properties to this folder, rename it to logging.properties and change according to needs</listitem>
+        <listitem>Copy orkbasej/java/database.hbm.template.xml to this folder, rename it to database.hbm.xml and change according to needs</listitem>
+        <listitem>Copy orktrack/orktrack.config.xml to this folder and change according to needs</listitem> 
+        <listitem>Modify orktrack/WEB-INF/web.xml and make it point to those newly created config files</listitem>
+        <listitem>Copy orktrack/deploy-template.xml to orktrack/deploy.xml and change deploy.xml according to your setup.</listitem>
+        <listitem>Run Tomcat</listitem>
+        <listitem>Run deploy.xml as ant script in Eclipse (Right click/Run as). This should result in the following message:
+        	<para><emphasis>"[echo] OK - Deployed application at context path /orktrack"</emphasis></para></listitem>
+        <listitem>Point your browser to your Tomcat manager (e.g. http://localhost:8080/manager/html) and check that orktrack has started, otherwise, check Tomcat logs</listitem>
+        </itemizedlist>
+        		</para>
+        	</section>	
+        	<section>
+        		<title>Installing OrkWeb</title>
+        		<para>		
+        <itemizedlist>
+        <listitem>Create a folder for configuration and logging such as c:\oreka\ (use the same one as orktrack)</listitem>
+        <listitem>Copy orkbasej/java/logging.template.properties to this folder, rename it to logging.properties and change according to needs</listitem>
+        <listitem>Copy orkbasej/java/database.hbm.template.xml to this folder, rename it database.hbm.xml and change according to needs</listitem>
+        <listitem>Modify orkweb/WEB-INF/web.xml and make it point to those newly created config files</listitem>
+        <listitem>Copy orktrack/deploy-template.xml to orktrack/deploy.xml and change deploy.xml according to your setup.</listitem>
+        <listitem>Run Tomcat</listitem>
+        <listitem>Run deploy.xml as ant script in Eclipse (Right click/Run as). This should result in the following message:
+        	<para><emphasis>"[echo] OK - Deployed application at context path /orkweb"</emphasis></para></listitem>
+        <listitem>Point your browser to your Tomcat manager (e.g. http://localhost:8080/manager/html) and check that orkweb has started, otherwise, check Tomcat logs</listitem>
+        <listitem>Point your browser to the newly deployed application (e.g. http://localhost:8080/orkweb/app)</listitem>
+        </itemizedlist>
+        		</para>
+        	</section>
+        </section>
+     </section>   
   </chapter>
   <chapter>
 	<title>Running</title>
-	<section  id="runorkaudio">
+    <section  id="runorkaudio">
 		<title>Running OrkAudio</title>
 		<para>
 			<emphasis role="bold">Windows:</emphasis>
@@ -333,17 +348,19 @@ The plugin to use for audio capture is selected using the <emphasis>CapturePlugi
 		</para>
 		<para>
 Reporting to OrkTrack can be enabled by setting <emphasis>EnableReporting</emphasis> to true and by specifying the right <emphasis>TrackerHostname</emphasis>
-		</para>
-	</section>		
-	<section>
-		<title>Configuring the OrkAudio VoIP plugin</title>
-		<para>
-VoIP plugin specific configuration is found in the config.xml file under the "VoIpPlugin" tag. It is possible to configure the network device to monitor (i.e. when you have one device dedicated to sniffing). Also for OrkAudio to get voice session direction, remote and local party right, it is necessary to instruct the VoIP plugin how to identify which IP addresses are local telephones (hardphones or softphones) and which are not. To do this, it is possible to give a csv list of IP addresses that are reserved as <emphasis>Media Gateways</emphasis>, i.e. IP addresses that host such services as PBX, PSTN gateway, conferencing or such. Further, it is possible to specify a csv list of local LAN masks (only necessary when LAN masks are not the standard 192.168.x.x or 10.x.x.x or 172.31.x.x). The way the VoIP plugin decides wether an IP address is a local telelephone is as follows: 1. IP Address needs to be on LAN and 2. IP Address cannot be a <emphasis>Media Gateway</emphasis>.
-		</para>
-	</section>	
+		</para>	
+    	<section>
+    		<title>Configuring the OrkAudio VoIP plugin</title>
+    		<para>
+    VoIP plugin specific configuration is found in the config.xml file under the "VoIpPlugin" tag. It is possible to configure the network device to monitor (i.e. when you have one device dedicated to sniffing). Also for OrkAudio to get voice session direction, remote and local party right, it is necessary to instruct the VoIP plugin how to identify which IP addresses are local telephones (hardphones or softphones) and which are not. To do this, it is possible to give a csv list of IP addresses that are reserved as <emphasis>Media Gateways</emphasis>, i.e. IP addresses that host such services as PBX, PSTN gateway, conferencing or such. Further, it is possible to specify a csv list of local LAN masks (only necessary when LAN masks are not the standard 192.168.x.x or 10.x.x.x or 172.31.x.x). The way the VoIP plugin decides wether an IP address is a local telelephone is as follows: 1. IP Address needs to be on LAN and 2. IP Address cannot be a <emphasis>Media Gateway</emphasis>.
+    		</para>
+    	</section>	
+	</section>
 	<section>
 		<title>Running OrkTrack and OrkWeb</title>
-		<para>Deploy the war files to Tomcat as described in <xref linkend="installingorktrack"/> and run Tomcat</para>
+		<para>Once the OrkWeb installer is used or the war files deployed to Tomcat as described in <xref linkend="installingorktrack"/>, run the Tomcat service.
+              You can then access the application from your prefered browser by entering http://localhost:8080/orkweb.  
+              Replace localhost by the server hostname or ip address if necessary.  The default login is admin/admin.</para>
 	</section>	
   </chapter>
   <chapter>

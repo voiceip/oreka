@@ -3,15 +3,15 @@
 "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
 <book>
 
-  <title>Oreka 1.0 Open Source User Manual</title>
+  <title>Oreka 1.2 Open Source User Manual</title>
 
-  <subtitle>Revision 3</subtitle>
+  <subtitle>Revision 4</subtitle>
 
   <bookinfo>
     <copyright>
       <holder>OrecX LLC</holder>
 
-      <year>2008</year>
+      <year>2009</year>
     </copyright>
   </bookinfo>
 
@@ -68,6 +68,51 @@
       <para>The Oreka system runs on Linux, BSD and all versions of Microsoft Windows starting from Win2k. Oreka supports most major database
       systems including IBM DB2, Oracle, MySQL and PostgreSQL. MySQL is the default database.</para>
     </section>
+    
+    <section id="gettingvoiptraffic">
+      <title>Getting VoIP traffic to the Oreka Server</title>
+            
+      <para>Before Oreka can start recording, ensure that VoIP traffic is seen on 
+      a server interface. Use SPAN port mirroring to get the right traffic to the 
+      Oreka server. Two configurations are possible:</para>
+
+      <itemizedlist>
+        <listitem>SPAN monitoring the entire VoIP VLAN so that all traffic to and 
+        from phones is intercepted;</listitem>
+        <listitem>SPAN monitoring the PSTN Gateways <emphasis role="bold">and</emphasis>
+        the Signalling server (e.g. SIP proxy, Cisco Call Manager, Avaya Communication 
+        Manager, ...)</listitem>
+      </itemizedlist>
+
+      <para>This is to ensure that both the media traffic (RTP) <emphasis role="bold">and</emphasis> 
+      signalling (SIP, Skinny, H.323, UNISTIM, ...) are intercepted by the recorder.</para>
+
+      <para>Once the VoIP traffic appears on the server, you are ready to start 
+      using the Oreka software.</para>
+            
+      <para><emphasis role="bold">Mechanisms to get VoIP traffic</emphasis></para>
+
+      <para>In terms of insertion point, Oreka can intercept packets via several 
+      mechanisms:</para>
+
+      <itemizedlist>
+        <listitem><emphasis role="bold">Ethernet switch SPAN monitoring port:</emphasis> 
+        for Ethernet switches that have this capability. For Cisco, 
+        see <ulink url="http://www.cisco.com/en/US/products/hw/switches/ps708/products_tech_note09186a008015c612.shtml">
+        http://www.cisco.com/en/US/products/hw/switches/ps708/products_tech_note09186a008015c612.shtml</ulink>. 
+        This is the most popular solution.</listitem>
+        <listitem><emphasis role="bold">Ethernet tap:</emphasis> requires additional 
+        hardware, this option has become fairly cheap lately. See Netoptics Teeny 
+        Tap or Barracuda Ethernet Tap products for example.</listitem>
+        <listitem>Being installed <emphasis role="bold">directly on the PBX</emphasis> 
+        or media gateway server. Not ideal.</listitem>
+        <listitem>Old style <emphasis role="bold">Ethernet hub</emphasis> inserted 
+        in the Ethernet path, i.e. all traffic copied to all ports. Not recommended, 
+        do this only for testing or low traffic sites.</listitem>
+        <listitem>Setup the machine as an <emphasis role="bold">Ethernet bridge</emphasis> 
+        inserted in the Ethernet path. Not recommended, do this only for testing.</listitem>          
+      </itemizedlist>
+    </section>    
   </chapter>
 
   <chapter>
@@ -76,16 +121,23 @@
     <section>
       <title>Installing under Windows</title>
 
-      <para>OrkAudio comes as an automated installer such as
-      <emphasis>orkaudio-0.5-2-win32-installer.exe</emphasis>. Copy this file
-      in a temporary folder on the target machine and run the installer by
-      double clicking this file.</para>
+      <para>OrkAudio comes as an automated installer for Windows.  Get it at
+      <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkaudio/orkaudio-1.2-673-os-win32-installer.zip/download">orkaudio-1.2-673-os-win32-installer.zip</ulink>. 
+      Copy this file in a temporary folder on the target machine and run 
+      the installer by double clicking this file.</para>
     </section>
-
+    
     <section>
-      <title>Installing under Linux Redhat/CentOS/Fedora</title>
+        <title>Installing under Linux CentOS 5, 32-bit</title>
+          <para>An OrkAudio installer for CentOS 5, 32-bit is available at 
+            <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkaudio/orkaudio-1.2-671-os-i386.centos5-installer.sh.tar/download">orkaudio-1.2-671-os-i386.centos5-installer.sh.tar</ulink>.
+            After you download it, untar it (e.g. tar -xvf) and run it accepting all default options.</para>
+    </section>
+    
+    <section>
+      <title>Installing under Linux Redhat/CentOS/Fedora using RPM files</title>
 
-      <para>OrkAudio comes as a set of RPM packages. Copy those files in a
+      <para>OrkAudio also comes as a set of RPM packages. Copy those files in a
       temporary folder on the target machine and install them using the
       following commands:<itemizedlist>
           <listitem>
@@ -298,7 +350,7 @@
 	  
           <listitem>
             <para><emphasis>TapeFileNaming </emphasis>this parameter controls the final transcoded file naming scheme. It is a csv list of elements. If an element matches a keyword, it will be replaced by the corresponding value. If an element does not match any keyword, it will be used verbatim in the file name. Example: <programlisting><![CDATA[<TapeFileNaming>myrecordings-, nativecallid</TapeFileNaming>]]></programlisting>
-with a native call ID of FDBCE@69.13.45.6 will result in the following file name: myrecordings-FDBCE@69.13.45.6.wav. If this parameter is missing, the default naming scheme applies which is a timestamp plus the internal tracking ID. The list of possible keywords for now is limited to nativecallid and trackingid. When this parameter is set, the audio file output directory structure becomes flat, i.e. all files will be stored directly in the directory set by the AudioOutputPath configuration parameter instead of being distributed to the default year/month/day/hour folder tree structure described in <xref linkend="folderscheme" />.</para>
+with a native call ID of FDBCE@69.13.45.6 will result in the following file name: myrecordings-FDBCE@69.13.45.6.wav. If this parameter is missing, the default naming scheme applies which is a timestamp plus the internal tracking ID. The list of possible keywords for now is limited to nativecallid and trackingid. When this parameter is set, the audio file output directory structure becomes flat, i.e. all files will be stored directly in the directory set by the AudioOutputPath configuration parameter instead of being distributed to the default year/month/day/hour folder tree structure described in <xref linkend="folderscheme" />. See <xref linkend="filenaming"/> for more details.</para>
           </listitem>
 	  
         </itemizedlist></para>
@@ -339,8 +391,43 @@ with a native call ID of FDBCE@69.13.45.6 will result in the following file name
   
         <para>Refer to section below in OrkWeb - OrkTrack for more details.</para>
       </section>
-    </section>
+  	  <section id="filenaming">
+		<title>Configure audio files path and file names</title>
+		<para>
+            OrkAudio gives you the ability to configure the path and file name of the recorded audio files.  To modify the default naming scheme:
+            <itemizedlist>
+                <listitem>Add TapeFileNaming to the list of processors in the orkaudio config.xml file: 
+                    &lt;TapeProcessors&gt;BatchProcessing, <emphasis>TapeFileNaming</emphasis>&lt;/TapeProcessors&gt;</listitem>
+                <listitem>Add comma-separated entries such as the following:
+                    <itemizedlist> 
+                        <listitem>&lt;TapePathNaming&gt;myrecording,[hour],[min],[sec],_,[shortdirection],_,[remoteparty],_,[localparty],_,[hostname]&lt;/TapePathNaming&gt;</listitem>
+                        <listitem>&lt;TapeFileNaming&gt;mypathprefix/,[year],[month],/,[day]&lt;/TapeFileNaming&gt;</listitem>
+                    </itemizedlist>
+                </listitem>        
+            </itemizedlist>
+            Here are the dynamic keywords accepted as in the TapeFileNaming and TapePathNaming directives:
+            <itemizedlist>
+                <listitem>[nativecallid] This is the call ID extracted from the underlying protocol (SIP, Cisco Skinny, ...)</listitem>
+                <listitem>[trackingid] This is the internal Oreka tracking ID</listitem>
+                <listitem>[direction] in, out or unkn</listitem>
+                <listitem>[shortdirection] I, O or U</listitem>
+                <listitem>[remoteparty]</listitem>
+                <listitem>[localentrypoint]</listitem>
+                <listitem>[localparty]</listitem>
+                <listitem>[localip]</listitem>
+                <listitem>[remoteip]</listitem>
+                <listitem>[hostname]</listitem>
+                <listitem>[year]</listitem>
+                <listitem>[day]</listitem>
+                <listitem>[month]</listitem>
+                <listitem>[hour] in 24 hours format</listitem>
+                <listitem>[min]</listitem>
+                <listitem>[sec]</listitem>
+            </itemizedlist>    
+		</para>
+	  </section>	
 
+    </section>
 
     <section>
       <title>Running OrkAudio</title>
@@ -449,15 +536,13 @@ with a native call ID of FDBCE@69.13.45.6 will result in the following file name
         </para>
       </section>
       
-      <section>      
-        <title id="orkwebinstallers">Using Installers</title>
-
-        <para>Installers for several platforms are provided, e.g. Windows, 
-        CentOS 5 (32-bit), CentOS 4 (32-bit), Linux SuSE (32-bit).  
-        If your platform does not have an installer, use the manual installation
-        steps described below.
-        </para>
-      </section>
+    	<section>
+    		<title id="orkwebinstallers">Using Installers</title>    		
+            <para>Start by installing MySQL or any <ulink url="http://www.hibernate.org/hib_docs/v3/reference/en/html/session-configuration.html#configuration-optional-dialects">database compatible with hibernate</ulink>.</para>
+    		<para>Then use the OrkWeb Windows installer <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/orkweb-1.2-669-os-win32-installer.zip/download">orkweb-1.2-669-os-win32-installer.zip</ulink>
+    		 or Linux installer <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/orkweb-1.2-669-os-linux-installer.sh.tar/download">orkweb-1.2-669-os-linux-installer.sh.tar</ulink>.  
+             The Linux installer works on RHEL, CentOS, Fedora and Linux SuSE.</para>
+    	</section>	
 
       <section>      
         <title id="orkwebmanualinstall">Manual Installation</title>
@@ -467,7 +552,7 @@ with a native call ID of FDBCE@69.13.45.6 will result in the following file name
         </para>
         
         <para>OrkWeb/OrkTrack comes in the form of a zip file such as
-        <emphasis>oreka-1.0-orkweb-orktrack.zip</emphasis>. Unzip this file
+        <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/oreka-1.2-669-orktrack-orkweb.zip/download">oreka-1.2-669-orktrack-orkweb.zip</ulink>. Unzip this file
         into a temporary directory and execute the following steps:</para>
 
         <para><itemizedlist>
