@@ -12,12 +12,6 @@
 
 <h2><?=$pageTitle?></h2>
 
-<h3>Network passive tapping links</h3>
-<ul>
-<li>snort.org <a href="http://www.snort.org/docs/tap/">passive ethernet tap howto</a></li>
-<li>snort.org <a href="http://www.snort.org/docs/100Mb_tapping1.pdf">100 Mb/s full duplex tapping diagram</a></li>
-</ul>
-
 <h3>Related projects</h3>
 <ul>
 <li><a href="http://www.enderunix.org/voipong/">voipong</a> is a linux only RTP session capture software.</li>

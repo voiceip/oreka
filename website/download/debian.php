@@ -13,6 +13,8 @@
 
 <h2><?=$pageTitle?></h2>
 
+<p><font color="red">Note: OrkAudio was not re-compiled for this platform since the 0.5 version.</font></p>
+
 <p>These Debian/ubuntu binaries have been generated on a Ubuntu Hoary system and consist of three deb files. You can install them using the following commands:</p>
 <ul>
 <li>dpkg -i log4cxx-0.9.7_0.9.7-1_i386.deb</li>

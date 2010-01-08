@@ -16,7 +16,7 @@
 <ul>
 	<li>OrkAudio audio capture server as a Windows precompiled binary</li>
 	<li>OrkAudio audio capture server as a Debian/Ubuntu binary package</li>
-	<li>OrkWeb and OrkTrack user interface and database logging servers as precompiled Java5 war files</li>
+	<li>OrkWeb and OrkTrack user interface and database logging servers as precompiled Windows or Linux installers, or as Java5 war files</li>
 	<li>Entire Oreka codebase (Cross platform C++ and Java)</li>
 </ul>
 

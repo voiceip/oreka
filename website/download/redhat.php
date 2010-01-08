@@ -13,21 +13,9 @@
 
 <h2><?=$pageTitle?></h2>
 
-<p>These Centos/Redhat/Fedora binaries have been generated on a CentOS 4.2 system and consist of a few RPM files including dependencies that are not part of the CentOS distribution. You can install the package using the following commands:</p>
-<ul>
-<li>yum install boost-devel
-<li>yum install libpcap</li>
-<li>rpm -i xercesc-2.7.0-1.i386.rpm</li>
-<li>rpm -i ACE-5.4.8-1.i386.rpm</li>
-<li>rpm -i log4cxx-0.9.7-1.i386.rpm</li>
-<li>rpm -i libsndfile-1.0.13-1.i386.rpm</li>
-<li>orkbasecxx-0.5-1.i386.rpm</li>
-<li>orkaudio-0.5-1.i386.rpm</li>
-</ul>
-
 <h3><?=_("Recommended Download")?></h3>
 <ul>
-  <li><p><a href="http://prdownloads.sourceforge.net/oreka/orkaudio-0.5-313-centos-4.2-i386-RPMs.tar?download">orkaudio-0.5-313-centos-4.2-i386-RPMs.tar</a></p></li>
+  <li><p><a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkaudio/orkaudio-1.2-671-os-i386.centos5-installer.sh.tar/download">orkaudio-1.2-671-os-i386.centos5-installer.sh.tar</a></p></li>
 </ul>
 
 <h3><?=_("System Requirements")?></h3>
