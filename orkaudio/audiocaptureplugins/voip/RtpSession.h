@@ -156,6 +156,7 @@ public:
 	CStdString m_extension;
 	CStdString m_latestCallId;
 	struct in_addr m_ip;
+	unsigned short m_skinnyPort;
 };
 typedef boost::shared_ptr<EndpointInfo> EndpointInfoRef;
 
@@ -212,6 +213,7 @@ public:
 	CaptureEvent::DirectionEnum m_direction;
 	int m_numRtpPackets;
 	struct in_addr m_endPointIp;		// only used for Skinny
+	unsigned short m_endPointSignallingPort;	// so far only used for Skinny
 	int m_skinnyPassThruPartyId;
 	ACE_Time_Value m_skinnyLastCallInfoTime;
 	int m_skinnyLineInstance;
@@ -285,12 +287,12 @@ public:
 	void StopAll();
 	void ReportSipInvite(SipInviteInfoRef& invite);
 	void ReportSipBye(SipByeInfoRef& bye);
-	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader);
-	void ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
+	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
+	void ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct*, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
 	void ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
-	void ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct*);
-	void SetEndpointExtension(CStdString& extension, struct in_addr* endpointIp, CStdString& callId);
-	void ReportSkinnyLineStat(SkLineStatStruct*, IpHeaderStruct* ipHeader);
+	void ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct* openReceive, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
+	void SetEndpointExtension(CStdString& extension, struct in_addr* endpointIp, CStdString& callId, unsigned short skinnyPort);
+	void ReportSkinnyLineStat(SkLineStatStruct*, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
 	void ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader);
 	void ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader);
 	void ReportRtpPacket(RtpPacketInfoRef& rtpPacket);
@@ -300,7 +302,8 @@ public:
 	void ReportSipSessionProgress(SipSessionProgressInfoRef& info);
 	void ReportSip302MovedTemporarily(Sip302MovedTemporarilyInfoRef& info);
 	void Hoover(time_t now);
-	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp);
+	EndpointInfoRef GetEndpointInfoByIp(struct in_addr *ip);
+	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp, unsigned short skinnyPort);
 	CStdString StartCapture(CStdString& party);
 	void StartCaptureOrkuid(CStdString& orkuid);
 	CStdString StartCaptureNativeCallId(CStdString& nativecallid);
@@ -324,13 +327,13 @@ private:
 	void SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort);
 	void MapOtherMediaAddress(RtpSessionRef& session, CStdString& ipAndPort);
 	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId);
-	void UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader);
+	void UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
 	void UpdateSessionWithCallInfo(SkCallInfoStruct*, RtpSessionRef&);
 	bool TrySkinnySession(RtpPacketInfoRef& rtpPacket, EndpointInfoRef&);
 
 	std::map<CStdString, RtpSessionRef> m_byIpAndPort;
 	std::map<CStdString, RtpSessionRef> m_byCallId;
-	std::map<unsigned int, EndpointInfoRef> m_endpoints;
+	std::map<CStdString, EndpointInfoRef> m_endpoints;
 	std::map<CStdString, CStdString> m_localPartyMap;
 	LoggerPtr m_log;
 	AlphaCounter m_alphaCounter;
