@@ -2665,7 +2665,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 	return result;
 }
 
-void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHeader, u_char* packetEnd)
+void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHeader, u_char* packetEnd, TcpHeaderStruct* tcpHeader)
 {
 	bool useful = true;
 	CStdString logMsg;
@@ -2711,7 +2711,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 					logMsg.Format(" (CCM 7.1) CallId:%u PassThru:%u media address:%s,%u", startMedia->conferenceId, startMedia->passThruPartyId, szRemoteIp, startMedia->remoteTcpPort);
 				}
 
-				RtpSessionsSingleton::instance()->ReportSkinnyStartMediaTransmission(startMedia, ipHeader);
+				RtpSessionsSingleton::instance()->ReportSkinnyStartMediaTransmission(startMedia, ipHeader, tcpHeader);
 			}
 			else
 			{
@@ -2731,7 +2731,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 					ACE_OS::inet_ntop(AF_INET, (void*)&startMedia->remoteIpAddr, szRemoteIp, sizeof(szRemoteIp));
 					logMsg.Format(" CallId:%u PassThru:%u media address:%s,%u", startMedia->conferenceId, startMedia->passThruPartyId, szRemoteIp, startMedia->remoteTcpPort);
 				}
-				RtpSessionsSingleton::instance()->ReportSkinnyStartMediaTransmission(startMedia, ipHeader);
+				RtpSessionsSingleton::instance()->ReportSkinnyStartMediaTransmission(startMedia, ipHeader, tcpHeader);
 			}
 			else
 			{
@@ -2768,7 +2768,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 								callInfo->callId, callInfo->callingParty, callInfo->calledParty, 
 								callInfo->callingPartyName, callInfo->calledPartyName, callInfo->lineInstance, callInfo->callType);
 			}
-			RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(callInfo, ipHeader);
+			RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(callInfo, ipHeader, tcpHeader);
 		}
 		else
 		{
@@ -2880,7 +2880,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 				logMsg.Format(" CallId:%u calling:%s called:%s callingname:%s calledname:%s callType:%d", callInfo.callId, 
 								callInfo.callingParty, callInfo.calledParty, callInfo.callingPartyName, callInfo.calledPartyName, callInfo.callType);
 			}
-			RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(&callInfo, ipHeader);
+			RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(&callInfo, ipHeader, tcpHeader);
 		}
 		break;
 	case SkOpenReceiveChannelAck:
@@ -2906,7 +2906,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 					logMsg.Format(" (CCM 7.1) PassThru:%u media address:%s,%u", openReceiveAck->passThruPartyId, szMediaIp, openReceiveAck->endpointTcpPort);
 				}
 				endpointIp = ipHeader->ip_src;	// this skinny message is phone -> CCM
-				RtpSessionsSingleton::instance()->ReportSkinnyOpenReceiveChannelAck(openReceiveAck);
+				RtpSessionsSingleton::instance()->ReportSkinnyOpenReceiveChannelAck(openReceiveAck, ipHeader, tcpHeader);
 			}
 			else
 			{
@@ -2927,7 +2927,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 					logMsg.Format(" PassThru:%u media address:%s,%u", openReceiveAck->passThruPartyId, szMediaIp, openReceiveAck->endpointTcpPort);
 				}
 				endpointIp = ipHeader->ip_src;	// this skinny message is phone -> CCM
-				RtpSessionsSingleton::instance()->ReportSkinnyOpenReceiveChannelAck(openReceiveAck);
+				RtpSessionsSingleton::instance()->ReportSkinnyOpenReceiveChannelAck(openReceiveAck, ipHeader, tcpHeader);
 			}
 			else
 			{
@@ -2945,7 +2945,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 				logMsg.Format(" line:%u extension:%s display name:%s", lineStat->lineNumber, lineStat->lineDirNumber, lineStat->displayName);
 			}
 			endpointIp = ipHeader->ip_dest;	// this skinny message is CCM -> phone
-			RtpSessionsSingleton::instance()->ReportSkinnyLineStat(lineStat, ipHeader);
+			RtpSessionsSingleton::instance()->ReportSkinnyLineStat(lineStat, ipHeader, tcpHeader);
 		}
 		else
 		{
@@ -3257,7 +3257,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 				}
 				MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
 
-				HandleSkinnyMessage(skinnyHeader, ipHeader, ipPacketEnd);
+				HandleSkinnyMessage(skinnyHeader, ipHeader, ipPacketEnd, tcpHeader);
 
 				// Point to next skinny message within this TCP packet
 				skinnyHeader = (SkinnyHeaderStruct*)((u_char*)skinnyHeader + SKINNY_HEADER_LENGTH + skinnyHeader->len);

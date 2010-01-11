@@ -675,7 +675,7 @@ void RtpSession::ReportMetadata()
 	{
 		if(m_protocol == ProtSkinny)
 		{
-			EndpointInfoRef endpointInfo = RtpSessionsSingleton::instance()->GetEndpointInfo(m_endPointIp);
+			EndpointInfoRef endpointInfo = RtpSessionsSingleton::instance()->GetEndpointInfo(m_endPointIp, m_endPointSignallingPort);
 			if(endpointInfo.get())
 			{
 				m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(endpointInfo->m_extension);
@@ -1658,7 +1658,7 @@ void RtpSessions::ReportSipBye(SipByeInfoRef& bye)
 	}
 }
 
-void RtpSessions::UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader)
+void RtpSessions::UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	CStdString extension;
 	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, callInfo->callId);
@@ -1668,13 +1668,13 @@ void RtpSessions::UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeade
 	case SKINNY_CALL_TYPE_INBOUND:
 	{
 		extension = callInfo->calledParty;
-		SetEndpointExtension(extension, &ipHeader->ip_dest, callId);
+		SetEndpointExtension(extension, &ipHeader->ip_dest, callId, ntohs(tcpHeader->dest));
 		break;
 	}
 	case SKINNY_CALL_TYPE_OUTBOUND:
 	{
 		extension = callInfo->callingParty;
-		SetEndpointExtension(extension, &ipHeader->ip_dest, callId);
+		SetEndpointExtension(extension, &ipHeader->ip_dest, callId, ntohs(tcpHeader->dest));
 		break;
 	}
 	}
@@ -1688,7 +1688,7 @@ void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessi
 	CStdString logMsg;
 	char szEndPointIp[16];
 
-	EndpointInfoRef endpoint = GetEndpointInfo(session->m_endPointIp);
+	EndpointInfoRef endpoint = GetEndpointInfo(session->m_endPointIp, session->m_endPointSignallingPort);
 	ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
 
 	switch(callInfo->callType)
@@ -1728,29 +1728,44 @@ void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessi
 	}
 }
 
+EndpointInfoRef RtpSessions::GetEndpointInfoByIp(struct in_addr *ip)
+{
+	std::map<CStdString, EndpointInfoRef>::iterator pair;
+	EndpointInfoRef endpoint;
+
+	for(pair = m_endpoints.begin(); pair != m_endpoints.end(); pair++)
+	{
+		EndpointInfoRef ep = pair->second;
+
+		if(ep.get() && (ep->m_ip.s_addr == ip->s_addr))
+		{
+			endpoint = ep;
+			break;
+		}
+	}
+
+	return endpoint;
+}
+
 bool RtpSessions::TrySkinnySession(RtpPacketInfoRef& rtpPacket, EndpointInfoRef& endpoint)
 {
-	std::map<unsigned int, EndpointInfoRef>::iterator pair;
 	std::map<CStdString, RtpSessionRef>::iterator sessionpair;
 	RtpSessionRef session;
 	bool srcmatch = false;
 	CStdString logMsg;
 
-	pair = m_endpoints.find((unsigned int)(rtpPacket->m_sourceIp.s_addr));
-	if(pair != m_endpoints.end())
+	endpoint = GetEndpointInfoByIp(&rtpPacket->m_sourceIp);
+	if(endpoint.get())
 	{
-		endpoint = pair->second;
 		srcmatch = true;
 	}
 	else
 	{
-		pair = m_endpoints.find((unsigned int)(rtpPacket->m_destIp.s_addr));
-		if(pair == m_endpoints.end())
+		endpoint = GetEndpointInfoByIp(&rtpPacket->m_destIp);
+		if(!endpoint.get())
 		{
 			return false;
 		}
-
-		endpoint = pair->second;
 	}
 
 	if(!(endpoint->m_latestCallId).size())
@@ -1774,6 +1789,7 @@ bool RtpSessions::TrySkinnySession(RtpPacketInfoRef& rtpPacket, EndpointInfoRef&
 	char szRtpSrcIp[16];
 	char szRtpDstIp[16];
 
+	session->m_endPointSignallingPort = endpoint->m_skinnyPort;
 	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szRtpSrcIp, sizeof(szRtpSrcIp));
 	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szRtpDstIp, sizeof(szRtpDstIp));
 
@@ -1794,12 +1810,12 @@ bool RtpSessions::TrySkinnySession(RtpPacketInfoRef& rtpPacket, EndpointInfoRef&
 	return true;
 }
 
-void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader)
+void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, callInfo->callId);
 	CStdString logMsg;
 
-	UpdateEndpointWithCallInfo(callInfo, ipHeader);
+	UpdateEndpointWithCallInfo(callInfo, ipHeader, tcpHeader);
 
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	pair = m_byCallId.find(callId);
@@ -1876,7 +1892,8 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 	CStdString trackingId = m_alphaCounter.GetNext();
 	RtpSessionRef session(new RtpSession(trackingId));
 	session->m_callId = callId;
-	session->m_endPointIp = ipHeader->ip_dest;	// CallInfo message always goes from CM to endpoint 
+	session->m_endPointIp = ipHeader->ip_dest;	// CallInfo message always goes from CM to endpoint
+	session->m_endPointSignallingPort = ntohs(tcpHeader->dest);
 	session->m_protocol = RtpSession::ProtSkinny;
 	session->m_skinnyLastCallInfoTime = ACE_OS::gettimeofday();
 	UpdateSessionWithCallInfo(callInfo, session);
@@ -2221,7 +2238,7 @@ CStdString RtpSessions::GenerateSkinnyCallId(struct in_addr endpointIp, unsigned
 	return skinnyCallId;
 }
 
-void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct* openReceive)
+void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct* openReceive, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	if(DLLCONFIG.m_skinnyIgnoreOpenReceiveChannelAck)
 	{
@@ -2249,7 +2266,7 @@ void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruc
 			sessionExisting = findByEndpointIp(openReceive->endpointIpAddr, 0);
 			if(!sessionExisting.get())
 			{
-				EndpointInfoRef endpoint = GetEndpointInfo(openReceive->endpointIpAddr);
+				EndpointInfoRef endpoint = GetEndpointInfo(openReceive->endpointIpAddr, ntohs(tcpHeader->source));
 				char szEndpointIp[16];
 				ACE_OS::inet_ntop(AF_INET, (void*)&openReceive->endpointIpAddr, szEndpointIp, sizeof(szEndpointIp));
 
@@ -2257,6 +2274,7 @@ void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruc
 				CStdString trackingId = m_alphaCounter.GetNext();
 				RtpSessionRef session(new RtpSession(trackingId));
 				session->m_endPointIp = openReceive->endpointIpAddr;
+				session->m_endPointSignallingPort = ntohs(tcpHeader->source);
 				session->m_protocol = RtpSession::ProtSkinny;
 				session->m_skinnyPassThruPartyId = openReceive->passThruPartyId;
 
@@ -2281,7 +2299,7 @@ void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruc
 }
 
 
-void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct* startMedia, IpHeaderStruct* ipHeader)
+void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct* startMedia, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	RtpSessionRef session = findNewestByEndpointIp(ipHeader->ip_dest);
 
@@ -2306,7 +2324,7 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 			sessionExisting = findByEndpointIp(ipHeader->ip_dest, 0);
 			if(!sessionExisting.get())
 			{
-				EndpointInfoRef endpoint = GetEndpointInfo(ipHeader->ip_dest);
+				EndpointInfoRef endpoint = GetEndpointInfo(ipHeader->ip_dest, ntohs(tcpHeader->source));
 				char szEndpointIp[16];
 				ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_dest, szEndpointIp, sizeof(szEndpointIp));
 
@@ -2315,6 +2333,7 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 				RtpSessionRef session(new RtpSession(trackingId));
 				session->m_endPointIp = ipHeader->ip_dest;	// CallInfo StartMediaTransmission always goes from CM to endpoint 
 				session->m_protocol = RtpSession::ProtSkinny;
+				session->m_endPointSignallingPort = ntohs(tcpHeader->source);
 				session->m_skinnyPassThruPartyId = startMedia->passThruPartyId;
 
 				if(endpoint.get())
@@ -2393,12 +2412,17 @@ void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruc
 	}
 }
 
-void RtpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* endpointIp, CStdString& callId)
+void RtpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* endpointIp, CStdString& callId, unsigned short skinnyPort)
 {
-	std::map<unsigned int, EndpointInfoRef>::iterator pair;
+	std::map<CStdString, EndpointInfoRef>::iterator pair;
 	EndpointInfoRef endpoint;
+	char szEndpointIp[16];
+	CStdString ipAndPort;
 
-	pair = m_endpoints.find((unsigned int)(endpointIp->s_addr));
+	ACE_OS::inet_ntop(AF_INET, (void*)endpointIp, szEndpointIp, sizeof(szEndpointIp));
+	ipAndPort.Format("%s,%d", szEndpointIp, skinnyPort);
+
+	pair = m_endpoints.find(ipAndPort);
 	if(pair != m_endpoints.end())
 	{
 		// Update the existing endpoint	info
@@ -2412,27 +2436,31 @@ void RtpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* en
 	else
 	{
 		// Create endpoint info for the new endpoint
+		CStdString logMsg;
+
 		endpoint.reset(new EndpointInfo());
 		endpoint->m_extension = extension;
+		endpoint->m_skinnyPort = skinnyPort;
+
 		memcpy(&endpoint->m_ip, endpointIp, sizeof(endpoint->m_ip));
 		if(callId.size())
 		{
 			endpoint->m_latestCallId = callId;
 		}
-		m_endpoints.insert(std::make_pair((unsigned int)(endpointIp->s_addr), endpoint));
+		m_endpoints.insert(std::make_pair(ipAndPort, endpoint));
+		logMsg.Format("New endpoint created:%s callId:%s map:%s", endpoint->m_extension, endpoint->m_latestCallId, ipAndPort);
+		LOG4CXX_DEBUG(m_log, logMsg);
 	}
 	if(endpoint.get())
 	{
 		CStdString logMsg;
-		char szEndpointIp[16];
-		ACE_OS::inet_ntop(AF_INET, (void*)endpointIp, szEndpointIp, sizeof(szEndpointIp));
 
 		logMsg.Format("Extension:%s callId:%s is on endpoint:%s", endpoint->m_extension, endpoint->m_latestCallId, szEndpointIp);
 		LOG4CXX_INFO(m_log, logMsg);
 	}
 }
 
-void RtpSessions::ReportSkinnyLineStat(SkLineStatStruct* lineStat, IpHeaderStruct* ipHeader)
+void RtpSessions::ReportSkinnyLineStat(SkLineStatStruct* lineStat, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	CStdString callId = "";
 
@@ -2441,7 +2469,7 @@ void RtpSessions::ReportSkinnyLineStat(SkLineStatStruct* lineStat, IpHeaderStruc
 		CStdString extension;
 
 		extension = lineStat->lineDirNumber;
-		SetEndpointExtension(extension, &ipHeader->ip_dest, callId);
+		SetEndpointExtension(extension, &ipHeader->ip_dest, callId, ntohs(tcpHeader->dest));
 	}
 }
 
@@ -2506,14 +2534,21 @@ void RtpSessions::ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent
     }
 }
 
-EndpointInfoRef RtpSessions::GetEndpointInfo(struct in_addr endpointIp)
+EndpointInfoRef RtpSessions::GetEndpointInfo(struct in_addr endpointIp, unsigned short skinnyPort)
 {
-	std::map<unsigned int, EndpointInfoRef>::iterator pair;
-	pair = m_endpoints.find((unsigned int)(endpointIp.s_addr));
+	char szEndpointIp[16];
+	CStdString ipAndPort;
+	std::map<CStdString, EndpointInfoRef>::iterator pair;
+
+	ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
+	ipAndPort.Format("%s,%d", szEndpointIp, skinnyPort);
+
+	pair = m_endpoints.find(ipAndPort);
 	if(pair != m_endpoints.end())
 	{
 		return pair->second;
 	}
+
 	return EndpointInfoRef();
 }
 
