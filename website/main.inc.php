@@ -28,8 +28,8 @@ $siteNavItems = array(
   array(_("Download"), "download/",
     array(
       array(_("OrkAudio Windows"), "windows"),
-      array(_("OrkAudio Debian/Ubuntu"), "debian"),
       array(_("OrkAudio Redhat/CentOS/Fedora"), "redhat"),
+      array(_("OrkAudio Debian/Ubuntu"), "debian"),
       array(_("OrkAudio Gentoo"), "gentoo"),
       array(_("OrkWeb/OrkTrack"), "war"),
       array(_("Source Code"), "source"),
