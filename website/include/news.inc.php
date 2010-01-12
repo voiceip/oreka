@@ -46,7 +46,7 @@ add_news_item(
   "Sept 2, 2009",
 	"asterisk-xorcom",
   _("Asterisk interception via Xorcom Asterisk patch"),
-  _('<p>Added support for recording of Asterisk-DAHDI channels using Xorcoms Asterisk patch. See <a href=http://www.xorcom.com/news-archive/call-recording-pr.html>here</a>.</p>')
+  _('<p>Added support for recording of Asterisk voice calls (TDM and IP) using Xorcoms Asterisk patch. See <a href=http://www.xorcom.com/news-archive/call-recording-pr.html>here</a>.</p>')
 );
 
 add_news_item(
