@@ -17,17 +17,14 @@ wrn {color: red;}
 
 <h2><?=$pageTitle?></h2>
 
-<p><font color="red"> WARNING: if you are upgrading OrkWeb/OrkTrack from 0.5-311, the database schema has changed.  Please see distribution/tools/README.txt for details.</font></p>
-
-
 <h3><?=_("Installers")?></h3>
 
 <p>The OrkWeb installers provided below are the easiest way to deploy the database logging (OrkTrack) and web UI (OrkWeb) software to your system.</p> 
 <p>These installers provide the option of installing Tomcat 5 and Java JRE 6 on your system, both required by OrkWeb and OrkTrack.  However, before you proceed with the installation, you need to download and install MySQL (or another SQL-based database, see documentation).</p> 
 <p>
     <ul>
-      <li>Windows installer: <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2-669/orkweb/orkweb-1.2-669-os-win32-installer.zip/download">orkweb-1.2-669-os-win32-installer.zip</a></li>
-      <li>Linux installer (CentOS, RHEL, SuSE, ...): <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2-669/orkweb/orkweb-1.2-669-os-linux-installer.sh.tar/download">orkweb-1.2-669-os-linux-installer.zip</a></li>
+      <li>Windows installer: <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/orkweb-1.2-669-os-win32-installer.zip/download">orkweb-1.2-669-os-win32-installer.zip</a></li>
+      <li>Linux installer (CentOS, RHEL, SuSE, ...): <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/orkweb-1.2-669-os-linux-installer.sh.tar/download">orkweb-1.2-669-os-linux-installer.zip</a></li>
     </ul>
 </p>
 
@@ -35,8 +32,10 @@ wrn {color: red;}
 
 <p>You can also deploy OrkWeb and OrkTrack manually by downloading the package below and following the instructions in the README.txt file.</p>
 <ul>
-  <li><p><a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2-669/orkweb/oreka-1.2-669-orktrack-orkweb.zip/download">oreka-1.2-669-orktrack-orkweb.zip</a></p></li>
+  <li><p><a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/oreka-1.2-669-orktrack-orkweb.zip/download">oreka-1.2-669-orktrack-orkweb.zip</a></p></li>
 </ul>
+
+<p><font color="red"> WARNING: if you are upgrading OrkWeb/OrkTrack from 0.5-311, the database schema has changed.  Please use the database script file: <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/updateOrekaDB_to_v1.zip/download">updateOrekaDB_to_v1.zip</a>.</font><font>  It includes a README.txt file and a .sql script file with details in the header.</font></p>
 
 <h3><?=_("System Requirements")?></h3>
 <ul>
