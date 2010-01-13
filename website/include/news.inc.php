@@ -39,7 +39,7 @@ add_news_item(
   "Dec 31, 2009",
 	"oreka-1.2",
   _("Oreka 1.2 is released"),
-  _('<p>Includes Windows and Linux installers.</p>')
+  _('<p>Includes Windows and Linux installers.</p><p><font color="red"> WARNING: if you are upgrading OrkWeb/OrkTrack from 0.5-311, the database schema has changed.  Please use the database script file: <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/updateOrekaDB_to_v1.zip/download">updateOrekaDB_to_v1.zip</a>.</font><font>  It includes a README.txt file and a .sql script file with details in the header.</font></p>')
 );
 
 add_news_item(
