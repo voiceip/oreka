@@ -68,13 +68,15 @@ int portAudioCallBack(void *inputBuffer, void *outputBuffer, unsigned long frame
 		AudioChunkDetails details;
 		details.m_encoding = PcmAudio;
 		details.m_sampleRate = DLLCONFIG.m_sampleRate;
-		details.m_channel = 0;
-		chunkRef->SetBuffer(rightBuffer, sizeof(short)*framesPerBuffer, details);
+		details.m_channel = 1;
+		details.m_numBytes = sizeof(short)*framesPerBuffer;
+		chunkRef->SetBuffer(rightBuffer, details);
 		portName.Format("port%d-%d", device->deviceID, 1);
 		g_audioChunkCallBack(chunkRef, portName);
 
+		details.m_channel = 2;
 		chunkRef.reset(new AudioChunk);
-		chunkRef->SetBuffer(leftBuffer, sizeof(short)*framesPerBuffer, details);
+		chunkRef->SetBuffer(leftBuffer, details);
 		portName.Format("port%d-%d", device->deviceID, 2);
 		g_audioChunkCallBack(chunkRef, portName);
 
@@ -88,8 +90,9 @@ int portAudioCallBack(void *inputBuffer, void *outputBuffer, unsigned long frame
 		AudioChunkDetails details;
 		details.m_encoding = PcmAudio;
 		details.m_sampleRate = DLLCONFIG.m_sampleRate;
-		details.m_channel = 0;
-		chunkRef->SetBuffer(inputSamples, sizeof(short)*framesPerBuffer, details);
+		details.m_channel = 1;
+		details.m_numBytes = sizeof(short)*framesPerBuffer;
+		chunkRef->SetBuffer(inputSamples, details);
 		portName.Format("port%d", device->deviceID);
 		g_audioChunkCallBack(chunkRef, portName);
 	}
@@ -262,12 +265,32 @@ void __CDECL__ Run()
 	}
 }
 
-void __CDECL__ StartCapture(CStdString& capturePort)
+void __CDECL__ Shutdown()
+{
+	;
+}
+
+void __CDECL__ PauseCapture(CStdString& capturePort, CStdString& orkuid, CStdString& nativecallid)
+{
+	;
+}
+
+void __CDECL__ SetOnHold(CStdString& port, CStdString& orkuid)
+{
+	;
+}
+
+void __CDECL__ SetOffHold(CStdString& port, CStdString& orkuid)
+{
+	;
+}
+
+void __CDECL__ StartCapture(CStdString& capturePort, CStdString& orkuid, CStdString& nativecallid)
 {
 	SoundDeviceSingleton::instance()->StartCapture(capturePort);
 }
 
-void __CDECL__ StopCapture(CStdString& capturePort)
+void __CDECL__ StopCapture(CStdString& capturePort, CStdString& orkuid, CStdString& nativecallid)
 {
 	SoundDeviceSingleton::instance()->StopCapture(capturePort);
 }
