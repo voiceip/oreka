@@ -459,6 +459,9 @@ static int parse_iax2_ies(struct iax2_ies *ies, unsigned char *data, int datalen
 		}
 
 		switch(ie) {
+		case IAX2_IE_CALLING_NAME:
+			ies->calling_name = (char *)data + 2;
+			break;
 		case IAX2_IE_CALLED_NUMBER:
 			ies->callee = (char *)data + 2;
 			break;
@@ -698,6 +701,7 @@ bool TryIax2New(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 	info->m_receiverIp = ipHeader->ip_dest;
 	info->m_caller = CStdString(ies.caller);
 	info->m_callee = CStdString(ies.callee);
+	info->m_callingName = CStdString(ies.calling_name ? ies.calling_name : "");
 	info->m_callNo = IntToString(ntohs(fh->scallno) & ~0x8000);
 
 	/* Report the packet */
