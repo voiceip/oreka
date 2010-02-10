@@ -397,7 +397,7 @@ void ReportingThread::Run()
 							{
 								reportError = false;
 								reportErrorLastTime = time(NULL);
-								LOG4CXX_ERROR(LOG.reportingLog, "[" + m_threadId + "] " + CStdString("Could not contact orktrack"));
+								LOG4CXX_ERROR(LOG.reportingLog, "[" + m_threadId + "] " + CStdString("Could not contact orktrack - check that orktrack is running and that TrackerHostname and TrackerTcpPort are correct."));
 							}
 							if(realtimeMessage)
 							{

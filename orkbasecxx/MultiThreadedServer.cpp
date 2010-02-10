@@ -52,7 +52,7 @@ void CommandLineServer::run(void* args)
 
 	if (peer_acceptor.open (addr, &reactor) == -1)
 	{
-		LOG4CXX_ERROR(s_log, CStdString("Failed to start command line server on port:") + tcpPortString);
+		LOG4CXX_ERROR(s_log, CStdString("Failed to start command line server on port:") + tcpPortString + CStdString(" do you have another instance of orkaudio running?"));
 	}
 	else
 	{
@@ -152,7 +152,7 @@ void HttpServer::run(void* args)
 
 	if (peer_acceptor.open (addr, &reactor) == -1)
 	{
-		LOG4CXX_ERROR(s_log, CStdString("Failed to start http server on port:") + tcpPortString);
+		LOG4CXX_ERROR(s_log, CStdString("Failed to start http server on port:") + tcpPortString  + CStdString(" do you have another instance of orkaudio running?"));
 	}
 	else
 	{
@@ -270,7 +270,7 @@ void EventStreamingServer::run(void* args)
 
 	if (peer_acceptor.open (addr, &reactor) == -1)
 	{
-		LOG4CXX_ERROR(s_log, CStdString("Failed to start event streaming server on port:") + tcpPortString);
+		LOG4CXX_ERROR(s_log, CStdString("Failed to start event streaming server on port:") + tcpPortString + CStdString(" do you have another instance of orkaudio running?"));
 	}
 	else
 	{

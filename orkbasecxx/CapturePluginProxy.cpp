@@ -98,9 +98,9 @@ bool CapturePluginProxy::Init()
 #ifndef WIN32
 			errorstr = dlerror();
 			CStdString errorcstds(errorstr);
-			LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load the following plugin: ") + pluginPath + " " + errorcstds);
+			LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load the following plugin: ") + pluginPath + " " + errorcstds + CStdString(", could be missing dependency, Try running in cmd box (orkaudio debug)"));
 #else
-			LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load the following plugin: ") + pluginPath);
+			LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load the following plugin: ") + pluginPath + CStdString(", could be missing dependency. Try running ldd on it."));
 #endif
 		}
 		else
