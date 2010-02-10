@@ -39,9 +39,9 @@
 		<!--<AvayaDetect>yes</AvayaDetect>-->
 		<!--<RtcpDetect>yes</RtcpDetect>-->
 
-		<!-- Set the option below to "false" to disable IAX2 support -->
-		<!-- the default is that IAX2 support is enabled -->
-		<!--<Iax2Support>true</Iax2Support> -->
+		<!-- Set the option below to "true" to enable IAX2 support -->
+		<!-- the default is that IAX2 support is disabled -->
+		<!--<Iax2Support>false</Iax2Support> -->
         
 		<!-- Use this if you want to force capture from a given list of devices. -->
 		<!-- All available devices are listed in orkaudio.log when the service is starting -->
