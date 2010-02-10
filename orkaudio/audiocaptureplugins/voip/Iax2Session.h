@@ -42,6 +42,7 @@ using namespace log4cxx;
 /* The information elements we're interested in */
 #define IAX2_IE_CALLED_NUMBER	1
 #define IAX2_IE_CALLING_NUMBER	2
+#define IAX2_IE_CALLING_NAME    4
 #define IAX2_IE_USERNAME	6
 #define IAX2_IE_FORMAT		9
 #define IAX2_IE_AUTHMETHODS	14
@@ -54,6 +55,7 @@ struct iax2_ies {
 	char *username;	/* Mandatory for AUTHREQ */
 	unsigned int authmethods; /* Mandatory for AUTHREQ */
 	char *challenge; /* Mandatory for AUTHREQ */
+	char *calling_name;
 };
 
 /* Supported Voice Codecs */
@@ -121,6 +123,7 @@ public:
 	CStdString m_caller; /* CALLING NUMBER */
 	CStdString m_callee; /* CALLED NUMBER */
 	CStdString m_callNo; /* This is the source call number */
+	CStdString m_callingName; /* Calling Name */
 
 	bool m_validated; // true when an IAX2 voice stream has been seen for the NEW
 };
@@ -236,6 +239,7 @@ private:
 	double m_minIax2TimestampDelta;
 	//TcpAddressList m_iax2AddressList;
 	std::list<Iax2NewInfoRef> m_news;
+	std::map<CStdString, CStdString> m_tags;
 };
 typedef boost::shared_ptr<Iax2Session> Iax2SessionRef;
 

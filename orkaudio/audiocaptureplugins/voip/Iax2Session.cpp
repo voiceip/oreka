@@ -307,6 +307,16 @@ void Iax2Session::ReportMetadata()
 	event->m_value = m_srcIpAndCallNo;
 	g_captureEventCallBack(event, m_capturePort);
 
+	// Report extracted fields
+	for(std::map<CStdString, CStdString>::iterator pair = m_tags.begin(); pair != m_tags.end(); pair++)
+	{
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtKeyValue;
+		event->m_key = pair->first;
+		event->m_value = pair->second;
+		g_captureEventCallBack(event, m_capturePort);
+	}
+
 	// Report end of metadata
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtEndMetadata;
@@ -523,6 +533,14 @@ void Iax2Session::ReportIax2Accept(Iax2AcceptInfoRef& acceptinfo)
 /* Report NEW */
 void Iax2Session::ReportIax2New(Iax2NewInfoRef& invite)
 {
+	CStdString key;
+	CStdString value;
+
+	key = "X-Unique-ID";
+	value = invite->m_callingName;
+
+	m_tags.insert(std::make_pair(key, value));
+
 	if(m_new.get() == NULL) {
 	        char szFromIax2Ip[16];
 
@@ -915,8 +933,8 @@ void Iax2NewInfo::ToString(CStdString& string)
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp,
 			sizeof(receiverIp));
 
-	string.Format("sender:%s receiver: %s caller:%s callee:%s srccallno: %s",
-			senderIp, receiverIp, m_caller, m_callee, m_callNo);
+	string.Format("sender:%s receiver: %s caller:%s callee:%s srccallno: %s callername:%s",
+			senderIp, receiverIp, m_caller, m_callee, m_callNo, m_callingName);
 }
 
 //==========================================================
