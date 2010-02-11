@@ -77,6 +77,7 @@ public:
 	bool m_rtpTrackByUdpPortOnly;
 
 	bool m_iax2Support;
+	bool m_iax2TreatCallerIdNameAsXUniqueId;
 	bool m_sipOverTcpSupport;
 	bool m_sipLogFailedCalls;
 	bool m_sipUse200OkMediaAddress;

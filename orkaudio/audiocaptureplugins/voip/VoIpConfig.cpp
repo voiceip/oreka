@@ -40,6 +40,7 @@ VoIpConfig::VoIpConfig()
 	m_rtpDiscontinuityDetect = false;
 	m_rtpDiscontinuityMinSeqDelta = 1000;
 	m_iax2Support = false; // Disabled by default
+	m_iax2TreatCallerIdNameAsXUniqueId = true;
 	m_rtpDetectOnOddPorts = false;
 	m_sipOverTcpSupport = true;
 	m_sipLogFailedCalls = false;
@@ -120,6 +121,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("RtpDiscontinuityMinSeqDelta", m_rtpDiscontinuityMinSeqDelta);
 	s->CsvValue("DnisNumbers", m_dnisNumbers);
 	s->BoolValue("Iax2Support", m_iax2Support);
+	s->BoolValue("Iax2TreatCallerIdNameAsXUniqueId", m_iax2TreatCallerIdNameAsXUniqueId);
 	s->BoolValue("RtpDetectOnOddPorts", m_rtpDetectOnOddPorts);
 	s->CsvValue("SipExtractFields", m_sipExtractFields);
 	s->BoolValue("SipOverTcpSupport", m_sipOverTcpSupport);
