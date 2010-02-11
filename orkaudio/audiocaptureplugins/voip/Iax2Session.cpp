@@ -536,10 +536,12 @@ void Iax2Session::ReportIax2New(Iax2NewInfoRef& invite)
 	CStdString key;
 	CStdString value;
 
-	key = "X-Unique-ID";
-	value = invite->m_callingName;
-
-	m_tags.insert(std::make_pair(key, value));
+	if(DLLCONFIG.m_iax2TreatCallerIdNameAsXUniqueId == true)
+	{
+		key = "X-Unique-ID";
+		value = invite->m_callingName;
+		m_tags.insert(std::make_pair(key, value));
+	}
 
 	if(m_new.get() == NULL) {
 	        char szFromIax2Ip[16];
