@@ -109,6 +109,7 @@ public:
 	bool m_skinnyAllowLateCallInfo;
 	bool m_skinnyNameAsLocalParty;
 	bool m_skinnyCallInfoStopsPrevious;
+	int m_skinnyCallInfoStopsPreviousToleranceSec;
 	bool m_cucm7_1Mode;
 	std::list<CStdString> m_skinnyReportTags;
 	bool m_skinnyAllowMediaAddressTransfer;		// Controls whether a new session (new CallInfo) can take a media address away from an existing session that has already received RTP.

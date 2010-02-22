@@ -72,6 +72,7 @@ VoIpConfig::VoIpConfig()
 	m_skinnyAllowLateCallInfo = false;
 	m_skinnyNameAsLocalParty = false;
 	m_skinnyCallInfoStopsPrevious = false;
+	m_skinnyCallInfoStopsPreviousToleranceSec = 3;
 	m_cucm7_1Mode = false;
 	m_skinnyAllowMediaAddressTransfer = false;
 
@@ -156,6 +157,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SkinnyAllowLateCallInfo", m_skinnyAllowLateCallInfo);
 	s->BoolValue("SkinnyNameAsLocalParty", m_skinnyNameAsLocalParty);
 	s->BoolValue("SkinnyCallInfoStopsPrevious", m_skinnyCallInfoStopsPrevious);
+	s->IntValue("SkinnyCallInfoStopsPreviousToleranceSec", m_skinnyCallInfoStopsPreviousToleranceSec);
 	s->CsvValue("SkinnyReportTags", m_skinnyReportTags);
 	s->BoolValue("Cucm7-1Mode", m_cucm7_1Mode);
 	s->BoolValue("SkinnyCucm7Mode", m_cucm7_1Mode);	// synonym to the preceding line (Cucm7-1Mode)
@@ -401,6 +403,12 @@ void VoIpConfig::Validate()
 		m_rtpDetectOnOddPorts = true;
 		m_sipRequestUriAsLocalParty = false;
 		m_sipIgnoreBye = false;
+	}
+	if(m_skinnyCallInfoStopsPreviousToleranceSec < 0)
+	{
+		CStdString exception;
+		exception.Format("VoIpConfig: SkinnyCallInfoStopsPreviousToleranceSec must be > 0 (currently:%d", m_skinnyCallInfoStopsPreviousToleranceSec);
+		throw(exception);
 	}
 }
 
