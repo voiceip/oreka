@@ -71,6 +71,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_skinnyLineInstance = 0;
 	m_onDemand = false;
 	m_newRtpStream = true;
+	m_lastRtpStreamStart = 0;
 }
 
 void RtpSession::Stop()
@@ -92,6 +93,11 @@ void RtpSession::Stop()
 bool RtpSession::Stopped()
 {
 	return m_stopped;
+}
+
+RtpPacketInfoRef RtpSession::GetLastRtpPacket()
+{
+	return m_lastRtpPacket;
 }
 
 void RtpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo)
@@ -1095,9 +1101,9 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	{
 		m_newRtpStream = true;
 		rtpPacket->ToString(logMsg);
-		logMsg.Format("[%s] new RTP stream: %s", 
-							m_trackingId, logMsg);
+		logMsg.Format("[%s] new RTP stream: %s", m_trackingId, logMsg);
 		LOG4CXX_INFO(m_log, logMsg);
+		m_lastRtpStreamStart = time(NULL);
 
 		if(m_protocol == ProtSip && m_started)	// make sure this only happens if ReportMetadata() already been called for the session
 		{
@@ -1922,12 +1928,32 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 
 	if(DLLCONFIG.m_skinnyCallInfoStopsPrevious == true)
 	{
-		RtpSessionRef previousSession = findByEndpointIpAndLineInstance(ipHeader->ip_dest, callInfo->lineInstance);
+		RtpSessionRef previousSession = findNewestRtpByEndpointIp(ipHeader->ip_dest);
 		if(previousSession.get())
 		{
-			logMsg.Format("[%s] CallInfo stops [%s] line:%u endpoint:%s", session->m_trackingId, previousSession->m_trackingId, callInfo->lineInstance, szEndPointIp);
-			LOG4CXX_INFO(m_log, logMsg);
-			Stop(previousSession);
+			if(DLLCONFIG.m_skinnyCallInfoStopsPreviousToleranceSec == 0)
+			{
+				logMsg.Format("[%s] stopped by [%s] CallInfo (SkinnyCallInfoStopsPreviousToleranceSec:0)", session->m_trackingId, previousSession->m_trackingId);
+				LOG4CXX_INFO(m_log, logMsg);
+				Stop(previousSession);
+			}
+			else
+			{
+				int diff = 0;
+
+				diff = (time(NULL) - previousSession->m_lastRtpStreamStart);
+				if(diff <= DLLCONFIG.m_skinnyCallInfoStopsPreviousToleranceSec)
+				{
+					logMsg.Format("[%s] stopped by [%s] CallInfo, last RTP stream had just started (%d sec. ago)", session->m_trackingId, previousSession->m_trackingId, diff);
+					LOG4CXX_INFO(m_log, logMsg);
+					Stop(previousSession);
+				}
+				else
+				{
+					logMsg.Format("[%s] not stopped by [%s] CallInfo, last RTP stream started long ago (%d sec. ago)", session->m_trackingId, previousSession->m_trackingId, diff);
+					LOG4CXX_INFO(m_log, logMsg);
+				}
+			}
 		}
 	}
 
@@ -1994,6 +2020,39 @@ RtpSessionRef RtpSessions::findByEndpointIp(struct in_addr endpointIpAddr, int p
 			{
 				session = tmpSession;
 				break;
+			}
+		}
+	}
+
+	return session;
+}
+
+// Find session with newest RTP
+RtpSessionRef RtpSessions::findNewestRtpByEndpointIp(struct in_addr endpointIpAddr)
+{
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	RtpSessionRef session;
+	RtpPacketInfoRef lastPacket;
+	int latest = 0;
+
+	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end(); pair++)
+	{
+		RtpSessionRef tmpSession = pair->second;
+
+		if((unsigned int)tmpSession->m_endPointIp.s_addr == (unsigned int)endpointIpAddr.s_addr)
+		{
+			lastPacket = tmpSession->GetLastRtpPacket();
+			if(lastPacket.get())
+			{
+				if(lastPacket->m_arrivalTimestamp > latest)
+				{
+					latest = lastPacket->m_arrivalTimestamp;
+					session = tmpSession;
+				}
+			}
+			else
+			{
+				session = tmpSession;
 			}
 		}
 	}

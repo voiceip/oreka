@@ -190,6 +190,7 @@ public:
 	CStdString GetOrkUid();
 	void MarkAsOnDemand();
 	bool Stopped();
+	RtpPacketInfoRef GetLastRtpPacket();
 
 	CStdString m_capturePort;
 	CStdString m_trackingId;
@@ -223,6 +224,7 @@ public:
 	bool m_onDemand;
 	std::list<CStdString> m_otherIpAndPortMappings;
 	bool m_newRtpStream;
+	time_t m_lastRtpStreamStart;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
@@ -323,6 +325,7 @@ private:
 	RtpSessionRef findNewestByEndpointIp(struct in_addr endpointIpAddr);
 	RtpSessionRef findByEndpointIpUsingIpAndPort(struct in_addr endpointIpAddr);
 	RtpSessionRef findByEndpointIpAndLineInstance(struct in_addr endpointIpAddr, int lineInstance);
+	RtpSessionRef findNewestRtpByEndpointIp(struct in_addr endpointIpAddr);
 	bool ChangeCallId(RtpSessionRef& session, unsigned int newId);
 	void SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort);
 	void MapOtherMediaAddress(RtpSessionRef& session, CStdString& ipAndPort);
