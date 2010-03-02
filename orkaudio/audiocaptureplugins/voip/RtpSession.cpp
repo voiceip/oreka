@@ -72,12 +72,14 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_onDemand = false;
 	m_newRtpStream = true;
 	m_lastRtpStreamStart = 0;
+	m_rtpNumMissingPkts = 0;
+	m_rtpNumSeqGaps = 0;
 }
 
 void RtpSession::Stop()
 {
 	CStdString logMsg;
-	logMsg.Format("[%s] %s Session stop, numRtpPkts:%d dupl:%d seqDelta:%d lastUpdated:%u", m_trackingId, m_capturePort, m_numRtpPackets, m_hasDuplicateRtp, m_highestRtpSeqNumDelta, m_lastUpdated);
+	logMsg.Format("[%s] %s Session stop, numRtpPkts:%d dupl:%d seqDelta:%d rtpNumMissingPkts:%d rtpNumSeqGaps:%d lastUpdated:%u", m_trackingId, m_capturePort, m_numRtpPackets, m_hasDuplicateRtp, m_highestRtpSeqNumDelta, m_rtpNumMissingPkts, m_rtpNumSeqGaps, m_lastUpdated);
 	LOG4CXX_INFO(m_log, logMsg);
 
 	if(m_started && !m_stopped)
@@ -1041,6 +1043,15 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 				if(seqNumDelta > (double)m_highestRtpSeqNumDelta)
 				{
 					m_highestRtpSeqNumDelta = (unsigned int)seqNumDelta;
+				}
+
+				if(seqNumDelta > 1)
+				{
+					if(seqNumDelta <= DLLCONFIG.m_rtpSeqGapThreshold)
+					{
+						m_rtpNumSeqGaps += 1;
+						m_rtpNumMissingPkts += ((unsigned int)seqNumDelta - 1);
+					}
 				}
 			}
 			m_lastRtpPacketSide1 = rtpPacket;
@@ -3209,7 +3220,7 @@ CStdString RtpSessions::PauseCaptureNativeCallId(CStdString& nativecallid)
 	return orkUid;
 }
 
-CStdString RtpSessions::StopCapture(CStdString& party)
+CStdString RtpSessions::StopCapture(CStdString& party, CStdString& qos)
 {
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	bool found = false;
@@ -3233,6 +3244,7 @@ CStdString RtpSessions::StopCapture(CStdString& party)
 		logMsg.Format("[%s] StopCapture: stopping capture, party:%s", session->m_trackingId, party);
 		LOG4CXX_INFO(m_log, logMsg);
 		Stop(session);
+		qos.Format("RtpNumPkts:%d RtpNumMissingPkts:%d RtpNumSeqGaps:%d RtpMaxSeqGap:%d", session->m_numRtpPackets, session->m_rtpNumMissingPkts, session->m_rtpNumSeqGaps, session->m_highestRtpSeqNumDelta);
 	}	
 	else
 	{
@@ -3243,7 +3255,7 @@ CStdString RtpSessions::StopCapture(CStdString& party)
 	return orkUid;
 }
 
-void RtpSessions::StopCaptureOrkuid(CStdString& orkuid)
+void RtpSessions::StopCaptureOrkuid(CStdString& orkuid, CStdString& qos)
 {
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	bool found = false;
@@ -3265,6 +3277,7 @@ void RtpSessions::StopCaptureOrkuid(CStdString& orkuid)
 		logMsg.Format("[%s] StopCaptureOrkuid: stopping capture, orkuid:%s", session->m_trackingId, orkuid);
 		LOG4CXX_INFO(m_log, logMsg);
 		Stop(session);
+		qos.Format("RtpNumPkts:%d RtpNumMissingPkts:%d RtpNumSeqGaps:%d RtpMaxSeqGap:%d", session->m_numRtpPackets, session->m_rtpNumMissingPkts, session->m_rtpNumSeqGaps, session->m_highestRtpSeqNumDelta);
 	}
 	else
 	{
@@ -3273,7 +3286,7 @@ void RtpSessions::StopCaptureOrkuid(CStdString& orkuid)
 	}
 }
 
-CStdString RtpSessions::StopCaptureNativeCallId(CStdString& nativecallid)
+CStdString RtpSessions::StopCaptureNativeCallId(CStdString& nativecallid, CStdString& qos)
 {
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	bool found = false;
@@ -3297,6 +3310,7 @@ CStdString RtpSessions::StopCaptureNativeCallId(CStdString& nativecallid)
 		logMsg.Format("[%s] StopCaptureNativeCallId: stopping capture, nativecallid:%s", session->m_trackingId, nativecallid);
 		LOG4CXX_INFO(m_log, logMsg);
 		Stop(session);
+		qos.Format("RtpNumPkts:%d RtpNumMissingPkts:%d RtpNumSeqGaps:%d RtpMaxSeqGap:%d", session->m_numRtpPackets, session->m_rtpNumMissingPkts, session->m_rtpNumSeqGaps, session->m_highestRtpSeqNumDelta);
 	}
 	else
 	{

@@ -36,6 +36,7 @@ VoIpConfig::VoIpConfig()
 	m_rtpSessionOnHoldTimeOutSec = 1800;
 	m_rtpReportDtmf = false;
 	m_rtpTrackByUdpPortOnly = false;
+	m_rtpSeqGapThreshold = 500;
 	m_pcapTest= false;
 	m_rtpDiscontinuityDetect = false;
 	m_rtpDiscontinuityMinSeqDelta = 1000;
@@ -115,6 +116,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("RtpReportDtmf", m_rtpReportDtmf);
 	s->IpRangesValue("RtpBlockedIpRanges", m_rtpBlockedIpRanges);
 	s->BoolValue("RtpTrackByUdpPortOnly", m_rtpTrackByUdpPortOnly);
+	s->IntValue("RtpSeqGapThreshold", m_rtpSeqGapThreshold);
 
 	s->BoolValue("PcapTest", m_pcapTest);
 	s->StringValue("PcapFilter", m_pcapFilter);
@@ -322,6 +324,12 @@ void VoIpConfig::Validate()
 		exception.Format("VoIpConfig: PcapSocketBufferSize must be a positive number (currently:%d)", m_pcapSocketBufferSize);
 		throw (exception);
 
+	}
+	if(m_rtpSeqGapThreshold < 2)
+	{
+		CStdString exception;
+		exception.Format("VoIpConfig: RtpSeqGapThreshold must be > 1 (currently:%d)", m_rtpSeqGapThreshold);
+		throw(exception);
 	}
 	if(m_rtpSessionTimeoutSec < 1)
 	{
