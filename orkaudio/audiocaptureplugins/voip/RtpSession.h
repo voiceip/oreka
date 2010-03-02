@@ -212,7 +212,14 @@ public:
 	bool m_rtcpLocalParty;
 	bool m_rtcpRemoteParty;
 	CaptureEvent::DirectionEnum m_direction;
+
 	int m_numRtpPackets;
+	unsigned int m_highestRtpSeqNumDelta;
+	double m_minRtpSeqDelta;
+	double m_minRtpTimestampDelta;
+	unsigned int m_rtpNumMissingPkts;
+	unsigned int m_rtpNumSeqGaps;
+
 	struct in_addr m_endPointIp;		// only used for Skinny
 	unsigned short m_endPointSignallingPort;	// so far only used for Skinny
 	int m_skinnyPassThruPartyId;
@@ -261,10 +268,9 @@ private:
 	bool m_started;
 	bool m_stopped;
 	CStdString m_orkUid;
+
 	bool m_hasDuplicateRtp;
-	unsigned int m_highestRtpSeqNumDelta;
-	double m_minRtpSeqDelta;
-	double m_minRtpTimestampDelta;
+
 	TcpAddressList m_rtpAddressList;
 	std::list<SipInviteInfoRef> m_invites;
 	std::map<CStdString, CStdString> m_tags;
@@ -312,9 +318,9 @@ public:
 	CStdString PauseCaptureNativeCallId(CStdString& nativecallid);
 	CStdString PauseCapture(CStdString& party);
 	void PauseCaptureOrkuid(CStdString& orkuid);
-	CStdString StopCapture(CStdString& party);
-	void StopCaptureOrkuid(CStdString& orkuid);
-	CStdString StopCaptureNativeCallId(CStdString& nativecallid);
+	CStdString StopCapture(CStdString& party, CStdString& qos);
+	void StopCaptureOrkuid(CStdString& orkuid, CStdString& qos);
+	CStdString StopCaptureNativeCallId(CStdString& nativecallid, CStdString& qos);
 	void SaveLocalPartyMap(CStdString& oldparty, CStdString& newparty);
 	CStdString GetLocalPartyMap(CStdString& oldlocalparty);
 

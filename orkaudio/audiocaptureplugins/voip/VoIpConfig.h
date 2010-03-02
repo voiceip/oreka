@@ -75,6 +75,7 @@ public:
 	bool m_rtpReportDtmf;
 	IpRanges m_rtpBlockedIpRanges;
 	bool m_rtpTrackByUdpPortOnly;
+	int m_rtpSeqGapThreshold;
 
 	bool m_iax2Support;
 	bool m_iax2TreatCallerIdNameAsXUniqueId;

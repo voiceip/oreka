@@ -78,9 +78,10 @@ ObjectRef StopMsg::Process()
 	SimpleResponseMsg* msg = new SimpleResponseMsg;
 	ObjectRef ref(msg);
 	CStdString logMsg;
+	CStdString qos;
 
-	CapturePluginProxy::Singleton()->StopCapture(m_party, m_orkuid, m_nativecallid);
-	logMsg.Format("Stopping capture for party:%s orkuid:%s nativecallid:%s", m_party, m_orkuid, m_nativecallid);
+	CapturePluginProxy::Singleton()->StopCapture(m_party, m_orkuid, m_nativecallid, qos);
+	logMsg.Format("Stopping capture for party:%s orkuid:%s nativecallid:%s %s", m_party, m_orkuid, m_nativecallid, qos);
 	msg->m_success = true;
 	msg->m_comment = logMsg;
 

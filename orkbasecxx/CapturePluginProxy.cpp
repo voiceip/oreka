@@ -225,11 +225,11 @@ void CapturePluginProxy::StartCapture(CStdString& party, CStdString& orkuid, CSt
 	}
 }
 
-void CapturePluginProxy::StopCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
+void CapturePluginProxy::StopCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid, CStdString& qos)
 {
 	if(m_loaded)
 	{
-		m_stopCaptureFunction(party, orkuid, nativecallid);
+		m_stopCaptureFunction(party, orkuid, nativecallid, qos);
 	}
 	else
 	{
