@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Generator", "AUDIOCAPTUREPLUGINS\Generator\Generator.vcproj", "{B56A0D5E-663F-41CE-9507-B228A1AFF65B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OrkAudio", "OrkAudio.vcproj", "{6FFE0991-0A17-4834-AD14-DEB3F8D7A9C9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OrkBase", "..\OrkBaseCxx\OrkBase.vcproj", "{9847877A-E977-4B13-9A47-F5190EFE61AC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RtpMixer", "filters\rtpmixer\RtpMixer.vcproj", "{8EAC766A-5302-4132-A85F-F978DF1C900C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SoundDevice", "AudioCapturePlugins\SoundDevice\SoundDevice.vcproj", "{1BF75A83-7934-4CC0-A8CF-BBE7634F7364}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VoIp", "audiocaptureplugins\voip\VoIp.vcproj", "{0DB5E54A-6BCE-41C2-88E8-84BC7EF04B46}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B56A0D5E-663F-41CE-9507-B228A1AFF65B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B56A0D5E-663F-41CE-9507-B228A1AFF65B}.Debug|Win32.Build.0 = Debug|Win32
+		{B56A0D5E-663F-41CE-9507-B228A1AFF65B}.Release|Win32.ActiveCfg = Release|Win32
+		{B56A0D5E-663F-41CE-9507-B228A1AFF65B}.Release|Win32.Build.0 = Release|Win32
+		{6FFE0991-0A17-4834-AD14-DEB3F8D7A9C9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6FFE0991-0A17-4834-AD14-DEB3F8D7A9C9}.Debug|Win32.Build.0 = Debug|Win32
+		{6FFE0991-0A17-4834-AD14-DEB3F8D7A9C9}.Release|Win32.ActiveCfg = Release|Win32
+		{6FFE0991-0A17-4834-AD14-DEB3F8D7A9C9}.Release|Win32.Build.0 = Release|Win32
+		{9847877A-E977-4B13-9A47-F5190EFE61AC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9847877A-E977-4B13-9A47-F5190EFE61AC}.Debug|Win32.Build.0 = Debug|Win32
+		{9847877A-E977-4B13-9A47-F5190EFE61AC}.Release|Win32.ActiveCfg = Release|Win32
+		{9847877A-E977-4B13-9A47-F5190EFE61AC}.Release|Win32.Build.0 = Release|Win32
+		{8EAC766A-5302-4132-A85F-F978DF1C900C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8EAC766A-5302-4132-A85F-F978DF1C900C}.Debug|Win32.Build.0 = Debug|Win32
+		{8EAC766A-5302-4132-A85F-F978DF1C900C}.Release|Win32.ActiveCfg = Release|Win32
+		{8EAC766A-5302-4132-A85F-F978DF1C900C}.Release|Win32.Build.0 = Release|Win32
+		{1BF75A83-7934-4CC0-A8CF-BBE7634F7364}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1BF75A83-7934-4CC0-A8CF-BBE7634F7364}.Debug|Win32.Build.0 = Debug|Win32
+		{1BF75A83-7934-4CC0-A8CF-BBE7634F7364}.Release|Win32.ActiveCfg = Release|Win32
+		{1BF75A83-7934-4CC0-A8CF-BBE7634F7364}.Release|Win32.Build.0 = Release|Win32
+		{0DB5E54A-6BCE-41C2-88E8-84BC7EF04B46}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0DB5E54A-6BCE-41C2-88E8-84BC7EF04B46}.Debug|Win32.Build.0 = Debug|Win32
+		{0DB5E54A-6BCE-41C2-88E8-84BC7EF04B46}.Release|Win32.ActiveCfg = Release|Win32
+		{0DB5E54A-6BCE-41C2-88E8-84BC7EF04B46}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
