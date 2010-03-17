@@ -48,6 +48,8 @@ Iax2Session::Iax2Session(CStdString& trackingId)
 	m_iax2_state = IAX2_STATE_WAITING;
 	m_invitor_scallno = 0;
 	m_invitee_scallno = 0;
+	m_channel1SeqNo = 1;
+	m_channel2SeqNo = 1;
 
 	/* Not sure if IAX2 needs these... */
 	m_highestIax2SeqNumDelta = 0;
@@ -377,7 +379,9 @@ bool Iax2Session::AddIax2Packet(Iax2PacketInfoRef& iax2Packet)
 	/* If we get another full voice packet, we need to update our codec 
 	 * information */
 	if(iax2Packet->m_frame_type == IAX2_FRAME_FULL)
+	{
 		m_codec = iax2Packet->m_payloadType;
+	}
 
 	m_lastIax2Packet = iax2Packet;
 	if(m_lastIax2PacketSide1.get() == NULL) {
@@ -497,15 +501,39 @@ bool Iax2Session::AddIax2Packet(Iax2PacketInfoRef& iax2Packet)
 		ReportMetadata();
 	}
 
+	unsigned short seq = 0;
+
+	if(channel == 1)
+	{
+		m_channel1SeqNo += 1;
+		if(m_channel1SeqNo >= 65535)
+		{
+			m_channel1SeqNo = 1;
+		}
+
+		seq = m_channel1SeqNo;
+	}
+	else
+	{
+		m_channel2SeqNo += 1;
+		if(m_channel2SeqNo >= 65535)
+		{
+			m_channel2SeqNo = 1;
+		}
+
+		seq = m_channel2SeqNo;
+	}
+
 	if(m_started) {
 		AudioChunkDetails details;
 		AudioChunkRef chunk(new AudioChunk());
 
 		details.m_arrivalTimestamp = iax2Packet->m_arrivalTimestamp;
 		details.m_numBytes = iax2Packet->m_payloadSize;
-		details.m_timestamp = iax2Packet->m_timestamp;
+		details.m_timestamp = (channel == 1 ? m_channel1SeqNo : m_channel2SeqNo) * RtpTimestamp();
 		details.m_rtpPayloadType = m_codec;
 		details.m_channel = channel;
+		details.m_sequenceNumber = seq;
 		details.m_encoding = AlawAudio;
 
 		chunk->SetBuffer(iax2Packet->m_payload, details);
@@ -515,6 +543,30 @@ bool Iax2Session::AddIax2Packet(Iax2PacketInfoRef& iax2Packet)
 	}
 
 	return true;
+}
+
+int Iax2Session::RtpTimestamp()
+{
+	// This is obtained from the definition of the RTP timestamp which is
+	// For audio, the timestamp is incremented by the packetization interval times the sampling rate. For example, for audio packets containing 20 ms of audio sampled at 8,000 Hz, the timestamp for each block of audio increases by 160, even if the block is not sent due to silence suppression. Also, note that the actual sampling rate will differ slightly from this nominal rate, but the sender typically has no reliable way to measure this divergence
+	// as obtained from http://www.cs.columbia.edu/~hgs/rtp/faq.html#timestamp-computed
+
+	int ts = 0;
+
+	switch(m_codec)
+	{
+	case 0: // ULAW 8Khz sample rate
+	case 8: // ALAW 8Khz sample rate
+		ts = 160; // (20 ms) * (8 samples per ms)
+	case 18: // G729
+		ts = 20; // (20 ms) * (1 sample per ms)
+	case 4: // G723
+		ts = 24; // (30 ms) * (0.7875 samples per ms)
+	default:
+		ts = 160;
+	}
+
+	return ts;
 }
 
 /* Report AUTHREQ so as to get the invitee call number */
@@ -1010,7 +1062,7 @@ void Iax2PacketInfo::ToString(CStdString& string)
                         sizeof(receiverIp));
 
 	string.Format("sender:%s receiver:%s sender_callno:%d receiver_callno:%d "
-			"type:%d size:%d timestamp: %d", senderIp, receiverIp,
+			"type:%d size:%d timestamp:%u", senderIp, receiverIp,
 			m_sourcecallno, m_destcallno, m_payloadType,
 			m_payloadSize, m_timestamp);
 }
