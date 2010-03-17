@@ -707,7 +707,7 @@ bool TryIax2New(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 	/* Report the packet */
 	Iax2SessionsSingleton::instance()->ReportIax2New(info);
 
-	LOG4CXX_INFO(s_packetLog, "Processed IAX2 NEW frame");
+	LOG4CXX_INFO(s_packetLog, "Processed IAX2 NEW frame ts:" + IntToString(ntohl(fh->ts)));
 
 	return true;
 }
@@ -757,7 +757,7 @@ bool TryIax2Accept(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeade
 
         Iax2SessionsSingleton::instance()->ReportIax2Accept(info);
 
-	LOG4CXX_INFO(s_packetLog, "Processed IAX2 ACCEPT frame");
+	LOG4CXX_INFO(s_packetLog, "Processed IAX2 ACCEPT frame ts:" + IntToString(ntohl(fh->ts)));
 
         return true;
 }
@@ -871,7 +871,9 @@ bool TryIax2Hangup(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeade
         /* Report the packet */
         Iax2SessionsSingleton::instance()->ReportIax2Hangup(info);
 
-        LOG4CXX_INFO(s_packetLog, "Processed IAX2 HANGUP frame");
+	CStdString logMsg;
+	info->ToString(logMsg);
+        LOG4CXX_INFO(s_packetLog, "Processed IAX2 HANGUP frame: " + logMsg);
 
 	return true;
 }
@@ -1011,9 +1013,14 @@ bool TryIax2FullVoiceFrame(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 
 	Iax2SessionsSingleton::instance()->ReportIax2Packet(info);
 
-	CStdString logmsg;
-	logmsg.Format("Processed IAX2 FULL VOICE fram, pt %d", pt);
+	CStdString logmsg, packetInfo;
+	info->ToString(packetInfo);
+	logmsg.Format("Processed IAX2 FULL VOICE frame pt:%d", pt);
         LOG4CXX_INFO(s_packetLog, logmsg);
+	if(s_packetLog->isDebugEnabled())
+	{
+		LOG4CXX_DEBUG(s_packetLog, packetInfo);
+	}
 
 	return true;
 }
@@ -1160,9 +1167,14 @@ bool TryIax2MiniVoiceFrame(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
         info->m_payloadSize = data_len;
         info->m_payload = udpPayload+sizeof(*mini);
         info->m_payloadType = 0;
-        info->m_timestamp = ntohl(mini->ts);
+	info->m_timestamp = ntohs(mini->ts);
         info->m_arrivalTimestamp = time(NULL);
         info->m_frame_type = IAX2_FRAME_MINI;
+
+	CStdString logMsg, packetInfo;
+	info->ToString(packetInfo);
+	logMsg.Format("IAX2 mini frame: %s", packetInfo);
+	LOG4CXX_DEBUG(s_packetLog, logMsg);
 
         return Iax2SessionsSingleton::instance()->ReportIax2Packet(info);
 }
@@ -3307,6 +3319,7 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 		{
 			// This is a pcap file replay, stop all sessions before exiting
 			RtpSessionsSingleton::instance()->StopAll();
+			Iax2SessionsSingleton::instance()->StopAll();
 			pcap_close(pcapHandle);
 		}
 		log.Format("Stop Capturing: pcap handle:%x", pcapHandle);

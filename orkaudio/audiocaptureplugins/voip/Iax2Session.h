@@ -212,6 +212,7 @@ private:
 	void ProcessMetadataSkinny(Iax2PacketInfoRef& iax2Packet);
 	void ReportMetadata();
 	void GenerateOrkUid();
+	int RtpTimestamp();
 
 	Iax2PacketInfoRef m_lastIax2Packet;
 	Iax2PacketInfoRef m_lastIax2PacketSide1;
@@ -240,6 +241,9 @@ private:
 	//TcpAddressList m_iax2AddressList;
 	std::list<Iax2NewInfoRef> m_news;
 	std::map<CStdString, CStdString> m_tags;
+
+	unsigned short m_channel1SeqNo;
+	unsigned short m_channel2SeqNo;
 };
 typedef boost::shared_ptr<Iax2Session> Iax2SessionRef;
 
