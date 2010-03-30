@@ -112,6 +112,21 @@ public:
 };
 typedef boost::shared_ptr<SipByeInfo> SipByeInfoRef;
 
+class SipNotifyInfo
+{
+public:
+	SipNotifyInfo();
+	//void ToString(CStdString& string);
+
+	CStdString m_callId;
+	CStdString m_fromRtpPort;
+	CStdString m_byIpAndPort;
+	struct in_addr m_senderIp;
+	struct in_addr m_receiverIp;
+	CStdString m_dsp;
+};
+typedef boost::shared_ptr<SipNotifyInfo> SipNotifyInfoRef;
+
 class Sip200OkInfo
 {
 public:
@@ -178,6 +193,7 @@ public:
 	void Stop();
 	void Start();
 	bool AddRtpPacket(RtpPacketInfoRef& rtpPacket);
+	void ReportSipNotify(SipNotifyInfoRef& notify);
 	void ReportSipBye(SipByeInfoRef& bye);
 	void ReportSipInvite(SipInviteInfoRef& invite);
 	void ReportSipErrorPacket(SipFailureMessageInfoRef& info);
@@ -202,6 +218,7 @@ public:
 	time_t m_beginDate;			// When the session has seen a few RTP packets
 	time_t m_lastUpdated;
 	ProtocolEnum m_protocol;
+	CStdString m_remotePartyNecSip;
 	CStdString m_localParty;
 	CStdString m_remoteParty;
 	CStdString m_localEntryPoint;
@@ -220,9 +237,11 @@ public:
 	unsigned int m_rtpNumMissingPkts;
 	unsigned int m_rtpNumSeqGaps;
 
+	struct in_addr m_invitorIp;
 	struct in_addr m_endPointIp;		// only used for Skinny
 	unsigned short m_endPointSignallingPort;	// so far only used for Skinny
 	int m_skinnyPassThruPartyId;
+	ACE_Time_Value m_sipLastInvite;
 	ACE_Time_Value m_skinnyLastCallInfoTime;
 	int m_skinnyLineInstance;
 	bool m_onHold;
@@ -252,7 +271,6 @@ private:
 	RtpPacketInfoRef m_lastRtpPacketSide1;
 	RtpPacketInfoRef m_lastRtpPacketSide2;
 	//RtpRingBuffer m_rtpRingBuffer;
-	struct in_addr m_invitorIp;
 	int m_invitorTcpPort;
 	struct in_addr m_inviteeIp;
 	int m_inviteeTcpPort;
@@ -294,6 +312,7 @@ public:
 	void Stop(RtpSessionRef& session);
 	void StopAll();
 	void ReportSipInvite(SipInviteInfoRef& invite);
+	void ReportSipNotify(SipNotifyInfoRef& notify);
 	void ReportSipBye(SipByeInfoRef& bye);
 	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
 	void ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct*, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
@@ -328,6 +347,7 @@ private:
 	void CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort);
 	RtpSessionRef findByMediaAddress(struct in_addr ipAddress, unsigned short udpPort);
 	RtpSessionRef findByEndpointIp(struct in_addr endpointIpAddr, int passThruPartyId = 0);
+	RtpSessionRef SipfindNewestBySenderIp(struct in_addr receiverIpAddr);
 	RtpSessionRef findNewestByEndpointIp(struct in_addr endpointIpAddr);
 	RtpSessionRef findByEndpointIpUsingIpAndPort(struct in_addr endpointIpAddr);
 	RtpSessionRef findByEndpointIpAndLineInstance(struct in_addr endpointIpAddr, int lineInstance);

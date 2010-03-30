@@ -36,6 +36,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_lastUpdated = time(NULL);
 	m_creationDate = ACE_OS::gettimeofday();
 	m_skinnyLastCallInfoTime = m_creationDate;
+	m_sipLastInvite = m_creationDate;
 	m_log = Logger::getLogger("rtpsession");
 	m_invitorIp.s_addr = 0;
 	m_invitorTcpPort = 0;
@@ -1229,6 +1230,25 @@ void RtpSession::ReportSipBye(SipByeInfoRef& bye)
 	}
 }
 
+void RtpSession::ReportSipNotify(SipNotifyInfoRef& notify)
+{
+
+	if( notify->m_dsp != "")
+	{
+		if(m_remoteParty.CompareNoCase(CStdString("sipphd")) == 0)
+		{
+			// NecSip is not updated by any other update routine so is "safe"
+			m_remotePartyNecSip = notify->m_dsp;
+	
+			// Report Remote party to Audio Tape
+			CaptureEventRef event(new CaptureEvent());
+			event->m_type = CaptureEvent::EtRemoteParty;
+			event->m_value = m_remotePartyNecSip;
+			g_captureEventCallBack(event, m_capturePort);
+		}
+	}
+}
+
 void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 {
 	if(m_invite.get() == NULL)
@@ -1521,6 +1541,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	newSession->m_callId = invite->m_callId;
 	newSession->m_protocol = RtpSession::ProtSip;
 	newSession->ReportSipInvite(invite);
+	newSession->m_sipLastInvite = ACE_OS::gettimeofday();
 	SetMediaAddress(newSession, invite->m_fromRtpIp, rtpPort);
 	m_byCallId.insert(std::make_pair(newSession->m_callId, newSession));
 
@@ -1672,6 +1693,15 @@ void RtpSessions::ReportSipBye(SipByeInfoRef& bye)
 
 		session->ReportSipBye(bye);
 		Stop(session);
+	}
+}
+
+void RtpSessions::ReportSipNotify(SipNotifyInfoRef& notify)
+{
+	RtpSessionRef session = SipfindNewestBySenderIp(notify->m_receiverIp);
+	if(session.get())
+	{
+		session->ReportSipNotify(notify);
 	}
 }
 
@@ -2091,6 +2121,36 @@ RtpSessionRef RtpSessions::findByEndpointIpAndLineInstance(struct in_addr endpoi
 			}
 		}
 	}
+	return session;
+}
+
+RtpSessionRef RtpSessions::SipfindNewestBySenderIp(struct in_addr receiverIpAddr)
+{
+	RtpSessionRef session;
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+
+	// Scan all sessions and try to find the most recently signalled session on the IP endpoint
+	// This always scans the entire session list, might be good to index sessions by endpoint at some point
+	for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
+	{
+		RtpSessionRef tmpSession = pair->second;
+
+		if((unsigned int)tmpSession->m_invitorIp.s_addr == (unsigned int)receiverIpAddr.s_addr)
+		{
+			if(session.get())
+			{
+				if(tmpSession->m_sipLastInvite > session->m_sipLastInvite)
+				{
+					session = tmpSession;
+				}
+			}
+			else
+			{
+				session = tmpSession;
+			}
+		}
+	}
+
 	return session;
 }
 
@@ -3492,5 +3552,12 @@ void SipByeInfo::ToString(CStdString& string)
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
 	string.Format("sender:%s rcvr:%s callid:%s from:%s to:%s fromDomain:%s toDomain:%s fromName:%s toName:%s", senderIp, receiverIp, m_callId, m_from, m_to, m_fromDomain, m_toDomain, m_fromName, m_toName);
+}
+
+//================================================
+SipNotifyInfo::SipNotifyInfo()
+{
+	m_senderIp.s_addr = 0;
+	m_receiverIp.s_addr = 0;
 }
 

@@ -1591,8 +1591,59 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 	return result;
 }
 
+bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
+{
+	bool result = false;
+
+	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
+	char* sipEnd = (char*)udpPayload + sipLength;
+	if(sipLength < (int)sizeof(SIP_METHOD_BYE) || sipEnd > (char*)packetEnd)
+	{
+		return false;
+	}
+
+	if (memcmp(SIP_METHOD_NOTIFY, (void*)udpPayload, SIP_METHOD_NOTIFY_SIZE) == 0)
+	{
+		result = true;
+		int sipLength = ntohs(udpHeader->len);
+		char* sipEnd = (char*)udpPayload + sipLength;
+		SipNotifyInfoRef info(new SipNotifyInfo());
+		info->m_senderIp = ipHeader->ip_src;
+		info->m_receiverIp = ipHeader->ip_dest;
+
+		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
+		if(!callIdField)
+		{
+			callIdField = memFindAfter("\ni:", (char*)udpPayload, sipEnd);
+		}
+		if(callIdField)
+		{
+			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
+		}
+
+		char* dspField = memFindAfter(SIP_FIELD_LINE3, (char*)udpPayload, sipEnd);
+		if(!dspField)
+		{
+			dspField = memFindAfter("\nt:", (char*)udpPayload, sipEnd);
+		}
+		if(dspField)
+		{
+			GrabTokenSkipLeadingWhitespaces(dspField, sipEnd, info->m_dsp);
+		
+			CStdString logMsg;
+			LOG4CXX_INFO(s_sipPacketLog, "NOTIFY: " + logMsg);
+			if(callIdField && DLLCONFIG.m_sipNotifySupport == true)
+			{
+				RtpSessionsSingleton::instance()->ReportSipNotify(info);
+			}
+		}
+	}
+	return result;
+}
+
 bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd);
 bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd);
+bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd);
 
 bool TryLogFailedSip(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
@@ -3176,7 +3227,13 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 			if(!detectedUsefulPacket) {
 				detectedUsefulPacket= TrySip200Ok(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
 			}
+			
 
+			if(DLLCONFIG.m_sipNotifySupport == true){
+				if(!detectedUsefulPacket) {
+					detectedUsefulPacket= TrySipNotify(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+				}
+			}
 			if(!detectedUsefulPacket) {
 				if(DLLCONFIG.m_sipDetectSessionProgress == true)
 				{

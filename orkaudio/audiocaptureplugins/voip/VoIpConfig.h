@@ -86,6 +86,7 @@ public:
 	bool m_sipReportFullAddress;
 	bool m_sipDynamicMediaAddress;
 	IpRanges m_sipIgnoredMediaAddresses;
+	bool m_sipNotifySupport;
 	bool m_sipIgnoreBye;
 	bool m_sipReportNamesAsTags;
 	bool m_sipRequestUriAsLocalParty;
