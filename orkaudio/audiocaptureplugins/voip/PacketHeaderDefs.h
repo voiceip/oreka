@@ -386,12 +386,15 @@ struct Iax2MetaTrunkEntryTs {
 //==============================================
 // SIP
 
+#define SIP_METHOD_NOTIFY_SIZE 6
 #define SIP_METHOD_INVITE_SIZE 6
 #define SIP_METHOD_ACK_SIZE 3
 #define SIP_METHOD_BYE_SIZE 3
 #define SIP_RESPONSE_200_OK_SIZE 11
 #define SIP_RESPONSE_SESSION_PROGRESS_SIZE 28
 #define SIP_RESPONSE_302_MOVED_TEMPORARILY_SIZE 29
+#define SIP_FIELD_LINE3 "Ind-DispLineN=3:Dsp:"
+#define SIP_METHOD_NOTIFY "NOTIFY"
 #define SIP_METHOD_INVITE "INVITE"
 #define SIP_METHOD_ACK "ACK"
 #define SIP_METHOD_BYE "BYE"
