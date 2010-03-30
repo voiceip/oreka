@@ -50,6 +50,7 @@ VoIpConfig::VoIpConfig()
 	m_sipReportFullAddress = false;
 	m_sipDynamicMediaAddress = false;
 	m_sipIgnoreBye = false;
+	m_sipNotifySupport = false;
 	m_sipReportNamesAsTags = false;
 	m_sipRequestUriAsLocalParty = true;
 	m_sipTreat200OkAsInvite = false;
@@ -127,6 +128,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("Iax2TreatCallerIdNameAsXUniqueId", m_iax2TreatCallerIdNameAsXUniqueId);
 	s->BoolValue("RtpDetectOnOddPorts", m_rtpDetectOnOddPorts);
 	s->CsvValue("SipExtractFields", m_sipExtractFields);
+	s->BoolValue("SipNotifySupport", m_sipNotifySupport);
 	s->BoolValue("SipOverTcpSupport", m_sipOverTcpSupport);
 	s->BoolValue("SipLogFailedCalls", m_sipLogFailedCalls);
 	s->BoolValue("SipUse200OkMediaAddress", m_sipUse200OkMediaAddress);
