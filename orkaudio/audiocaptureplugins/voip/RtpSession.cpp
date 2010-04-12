@@ -1099,8 +1099,28 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 					}
 				}
 			}
-			m_lastRtpPacketSide2 = rtpPacket;
-			channel = 2;
+
+			// If this packet doesn't match the previous S2 packet,
+			// and it doesn't match S1 either then this may be a
+			// new stream. We then map this new packet to belong
+			// to S1 and reset S2
+			if( m_lastRtpPacketSide2.get() &&
+				(
+					((unsigned int)rtpPacket->m_destIp.s_addr != (unsigned int)m_lastRtpPacketSide2->m_destIp.s_addr) ||
+					(rtpPacket->m_destPort != m_lastRtpPacketSide2->m_destPort)
+				)
+			  )
+			{
+				m_newRtpStream = true;
+				channel = 1;
+				m_lastRtpPacketSide1 = rtpPacket;
+				m_lastRtpPacketSide2.reset();
+			}
+			else
+			{
+				m_lastRtpPacketSide2 = rtpPacket;
+				channel = 2;
+			}
 		}
 	}
 
@@ -1109,9 +1129,17 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	// Detect RTP stream change
 	bool hasSourceAddress = m_rtpAddressList.HasAddressOrAdd(rtpPacket->m_sourceIp, rtpPacket->m_sourcePort);
 	bool hasDestAddress = m_rtpAddressList.HasAddressOrAdd(rtpPacket->m_destIp, rtpPacket->m_destPort);
-	if(	hasSourceAddress == false || hasDestAddress == false )
+	if(	hasSourceAddress == false || hasDestAddress == false || m_newRtpStream == true)
 	{
-		m_newRtpStream = true;
+		if(m_newRtpStream == true)
+		{
+			m_newRtpStream = false;
+		}
+		else
+		{
+			m_newRtpStream = true;
+		}
+
 		rtpPacket->ToString(logMsg);
 		logMsg.Format("[%s] new RTP stream: %s", m_trackingId, logMsg);
 		LOG4CXX_INFO(m_log, logMsg);
