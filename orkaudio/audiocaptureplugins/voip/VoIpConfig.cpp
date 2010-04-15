@@ -57,6 +57,8 @@ VoIpConfig::VoIpConfig()
 	m_sipAllowMultipleMediaAddresses = false;
 	m_sip302MovedTemporarilySupport = true;
 	m_sipInviteCanPutOffHold = false;
+	m_sipOnDemandFieldName = "X-record";
+	m_sipOnDemandFieldValue = "1";
 
 	m_rtcpDetect = false;
 	m_inInMode = false;
@@ -143,6 +145,8 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SipAllowMultipleMediaAddresses", m_sipAllowMultipleMediaAddresses);
 	s->BoolValue("Sip302MovedTemporarilySupport", m_sip302MovedTemporarilySupport);
 	s->BoolValue("SipInviteCanPutOffHold", m_sipInviteCanPutOffHold);
+	s->StringValue("SipOnDemandFieldName", m_sipOnDemandFieldName);
+	s->StringValue("SipOnDemandFieldValue", m_sipOnDemandFieldValue);
 
 	s->BoolValue("RtcpDetect", m_rtcpDetect);
 	s->BoolValue("InInMode", m_inInMode);
@@ -419,6 +423,10 @@ void VoIpConfig::Validate()
 		CStdString exception;
 		exception.Format("VoIpConfig: SkinnyCallInfoStopsPreviousToleranceSec must be > 0 (currently:%d", m_skinnyCallInfoStopsPreviousToleranceSec);
 		throw(exception);
+	}
+	if(m_sipOnDemandFieldName.size())
+	{
+		m_sipExtractFields.push_back(m_sipOnDemandFieldName);
 	}
 }
 

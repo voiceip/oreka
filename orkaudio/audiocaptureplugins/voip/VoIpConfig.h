@@ -94,6 +94,8 @@ public:
 	bool m_sipAllowMultipleMediaAddresses;
 	bool m_sip302MovedTemporarilySupport;
 	bool m_sipInviteCanPutOffHold;
+	CStdString m_sipOnDemandFieldName;
+	CStdString m_sipOnDemandFieldValue;
 
 	bool m_rtcpDetect;
 	bool m_inInMode;

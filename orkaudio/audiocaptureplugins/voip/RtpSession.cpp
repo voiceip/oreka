@@ -1303,6 +1303,25 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 
 	// Gather extracted fields
 	std::copy(invite->m_extractedFields.begin(), invite->m_extractedFields.end(), std::inserter(m_tags, m_tags.begin()));
+
+	if(DLLCONFIG.m_sipOnDemandFieldName.size())
+	{
+		std::map<CStdString, CStdString>::iterator pair;
+
+		pair = m_tags.find(DLLCONFIG.m_sipOnDemandFieldName);
+		if(pair != m_tags.end())
+		{
+			CStdString value;
+
+			value = pair->second;
+			if(DLLCONFIG.m_sipOnDemandFieldValue.Compare(value) == 0)
+			{
+				m_keep = true;
+				m_onDemand = true;
+				LOG4CXX_INFO(m_log, "[" + m_trackingId + "] " + DLLCONFIG.m_sipOnDemandFieldName + ":" + value + " triggered recording");
+			}
+		}
+	}
 }
 
 void RtpSession::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
