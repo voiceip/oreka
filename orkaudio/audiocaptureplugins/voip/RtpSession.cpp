@@ -1567,16 +1567,9 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			}
 		}
 
-		if(DLLCONFIG.m_sipAllowMultipleMediaAddresses == true)
+		if(!session->m_ipAndPort.Equals(ipAndPort) && DLLCONFIG.m_sipDynamicMediaAddress)
 		{
-			MapOtherMediaAddress(session, ipAndPort);
-		}
-		else
-		{
-			if(!session->m_ipAndPort.Equals(ipAndPort) && DLLCONFIG.m_sipDynamicMediaAddress)
-			{
-				SetMediaAddress(session, invite->m_fromRtpIp, rtpPort);
-			}
+			SetMediaAddress(session, invite->m_fromRtpIp, rtpPort);
 		}
 
 		return;
@@ -1693,9 +1686,10 @@ void RtpSessions::ReportSip200Ok(Sip200OkInfoRef info)
 		}
 		else if(info->m_hasSdp && DLLCONFIG.m_sipUse200OkMediaAddress && !session->m_numRtpPackets) 
 		{
-			if(!session->m_rtpIp.s_addr)
+			// Session has not yet received RTP packets
+			if(!session->m_rtpIp.s_addr || DLLCONFIG.m_rtpAllowMultipleMappings)
 			{
-				// Session has empty RTP address
+				// Session has empty RTP address or can have multiple RTP addresses.
 				SetMediaAddress(session, info->m_mediaIp, mediaPort);
 			}
 			else
@@ -2279,55 +2273,6 @@ void RtpSessions::CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipA
 	}
 }
 
-void RtpSessions::MapOtherMediaAddress(RtpSessionRef& session, CStdString& ipAndPort)
-{
-	std::map<CStdString, RtpSessionRef>::iterator pair = m_byIpAndPort.find(ipAndPort);
-
-	if (pair != m_byIpAndPort.end())
-	{
-		RtpSessionRef session2 = pair->second;
-		CStdString origOrkUid;
-
-		origOrkUid = session->GetOrkUid();
-		if(session2->OrkUidMatches(origOrkUid))
-		{
-			if(m_log->isInfoEnabled())
-			{
-				CStdString logMsg;
-				char szEndPointIp[16];
-
-				ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
-				logMsg.Format("[%s] already mapped other media address:%s callId:%s endpoint:%s", session->m_trackingId, ipAndPort, session->m_callId, szEndPointIp);
-				LOG4CXX_INFO(m_log, logMsg);
-			}
-
-			return;
-		}
-
-		CStdString logMsg;
-
-		logMsg.Format("Unable to map other media address:%s, we have another session:%s with that mapping", ipAndPort, session2->GetOrkUid());
-		LOG4CXX_WARN(m_log, logMsg);
-
-		return;
-	}
-
-	if(m_log->isInfoEnabled())
-	{
-		char szEndPointIp[16];
-		ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
-		CStdString logMsg;
-		logMsg.Format("[%s] mapped other media address:%s callId:%s endpoint:%s", session->m_trackingId, ipAndPort, session->m_callId, szEndPointIp);
-		LOG4CXX_INFO(m_log, logMsg);
-	}
-
-	session->m_otherIpAndPortMappings.push_back(ipAndPort);
-	m_byIpAndPort.insert(std::make_pair(ipAndPort, session));
-
-	CStdString numSessions = IntToString(m_byIpAndPort.size());
-	LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
-}
-
 
 void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort)
 {
@@ -2376,6 +2321,11 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 				// (Do not stop signalled sessions, better let them timeout and be hoovered. Useful for skinny internal calls where media address back and forth must not kill sessions with the best metadata.)
 				Stop(oldSession);
 			}
+			else
+			{
+				// Signalled session, just remove them from the media address map so we make room for the new mapping
+				RemoveFromMediaAddressMap(oldSession, mediaAddress);
+			}
 		}
 		else
 		{
@@ -2395,16 +2345,60 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 			LOG4CXX_INFO(m_log, logMsg);
 		}
 
-		m_byIpAndPort.erase(session->m_ipAndPort);	// remove old mapping
+		if (DLLCONFIG.m_rtpAllowMultipleMappings == false)
+		{
+			RemoveFromMediaAddressMap(session, session->m_ipAndPort);	// remove old mapping of the new session before remapping
+			session->m_mediaAddresses.clear();
+			//m_byIpAndPort.erase(session->m_ipAndPort);
+		}
+		session->m_mediaAddresses.push_back(mediaAddress);
 		session->m_ipAndPort = mediaAddress;
 		session->m_rtpIp = mediaIp;
-		m_byIpAndPort.erase(session->m_ipAndPort);	// make room for new mapping
 		m_byIpAndPort.insert(std::make_pair(session->m_ipAndPort, session));	// insert new mapping
 
 		CStdString numSessions = IntToString(m_byIpAndPort.size());
 		LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
 	}
 }
+
+void RtpSessions::RemoveFromMediaAddressMap(RtpSessionRef& session, CStdString& mediaAddress)
+{
+	if(mediaAddress.size() == 0)
+	{
+		return;
+	}
+
+	// Defensively check if the session referenced in the media address map actually is the same session
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	pair = m_byIpAndPort.find(mediaAddress);
+	if (pair != m_byIpAndPort.end())
+	{
+		RtpSessionRef sessionOnMap = pair->second;
+		if(sessionOnMap.get() == session.get())
+		{
+			// They are the same session, all good
+			m_byIpAndPort.erase(mediaAddress);
+			CStdString numSessions = IntToString(m_byIpAndPort.size());
+			LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
+		}
+		else
+		{
+			CStdString sessionOnMapTrackingId;
+			if(sessionOnMap.get())
+			{
+				sessionOnMapTrackingId = sessionOnMap->m_trackingId;
+			}
+			else
+			{
+				sessionOnMapTrackingId = "null";
+			}
+			CStdString logString;
+			logString.Format("rtp:%s belongs to [%s] not to [%s]", mediaAddress, sessionOnMapTrackingId, session->m_trackingId);
+			LOG4CXX_INFO(m_log, logString);
+		}
+	}
+}
+
 
 CStdString RtpSessions::GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId)
 {
@@ -2733,30 +2727,19 @@ EndpointInfoRef RtpSessions::GetEndpointInfo(struct in_addr endpointIp, unsigned
 void RtpSessions::Stop(RtpSessionRef& session)
 {
 	session->Stop();
-	if(session->m_ipAndPort.size() > 0)
-	{
-		m_byIpAndPort.erase(session->m_ipAndPort);
 
-		CStdString numSessions = IntToString(m_byIpAndPort.size());
-		LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
-	}
 	if(session->m_callId.size() > 0)
 	{
 		m_byCallId.erase(session->m_callId);
 	}
-	if(session->m_otherIpAndPortMappings.size() > 0)
+
+	std::list<CStdString>::iterator it;
+	for(it = session->m_mediaAddresses.begin(); it != session->m_mediaAddresses.end(); it++)
 	{
-		std::list<CStdString>::iterator it;
-
-		for(it = session->m_otherIpAndPortMappings.begin(); it != session->m_otherIpAndPortMappings.end(); it++)
-		{
-			CStdString mapping = *it;
-
-			m_byIpAndPort.erase(mapping);
-		}
-
-		session->m_otherIpAndPortMappings.clear();
+		CStdString mediaAddress = *it;
+		RemoveFromMediaAddressMap(session, mediaAddress);
 	}
+	session->m_mediaAddresses.clear();
 }
 
 bool RtpSessions::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo)
@@ -2942,10 +2925,6 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 			}
 			if(trackingPort)
 			{
-				// Remove session from IP+Port index
-				m_byIpAndPort.erase(session->m_ipAndPort);
-
-				// ... and reinsert
 				SetMediaAddress(session, trackingIp, trackingPort);
 			}
 		}
