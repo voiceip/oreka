@@ -75,6 +75,7 @@ public:
 	bool m_rtpReportDtmf;
 	IpRanges m_rtpBlockedIpRanges;
 	bool m_rtpTrackByUdpPortOnly;
+	bool m_rtpAllowMultipleMappings;
 	int m_rtpSeqGapThreshold;
 
 	bool m_iax2Support;
@@ -91,7 +92,7 @@ public:
 	bool m_sipReportNamesAsTags;
 	bool m_sipRequestUriAsLocalParty;
 	bool m_sipTreat200OkAsInvite;
-	bool m_sipAllowMultipleMediaAddresses;
+	bool m_sipAllowMultipleMediaAddresses;	// deprecated
 	bool m_sip302MovedTemporarilySupport;
 	bool m_sipInviteCanPutOffHold;
 	CStdString m_sipOnDemandFieldName;
@@ -114,7 +115,7 @@ public:
 	bool m_skinnyNameAsLocalParty;
 	bool m_skinnyCallInfoStopsPrevious;
 	int m_skinnyCallInfoStopsPreviousToleranceSec;
-	bool m_cucm7_1Mode;
+	bool m_cucm7_1Mode;		// deprecated, use 
 	std::list<CStdString> m_skinnyReportTags;
 	bool m_skinnyAllowMediaAddressTransfer;		// Controls whether a new session (new CallInfo) can take a media address away from an existing session that has already received RTP.
 

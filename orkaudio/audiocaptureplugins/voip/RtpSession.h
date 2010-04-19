@@ -248,7 +248,7 @@ public:
 	bool m_keep;
 	bool m_nonLookBackSessionStarted;
 	bool m_onDemand;
-	std::list<CStdString> m_otherIpAndPortMappings;
+	std::list<CStdString> m_mediaAddresses;
 	bool m_newRtpStream;
 	time_t m_lastRtpStreamStart;
 
@@ -354,7 +354,7 @@ private:
 	RtpSessionRef findNewestRtpByEndpointIp(struct in_addr endpointIpAddr);
 	bool ChangeCallId(RtpSessionRef& session, unsigned int newId);
 	void SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort);
-	void MapOtherMediaAddress(RtpSessionRef& session, CStdString& ipAndPort);
+	void RemoveFromMediaAddressMap(RtpSessionRef& session, CStdString& mediaAddress);
 	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId);
 	void UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
 	void UpdateSessionWithCallInfo(SkCallInfoStruct*, RtpSessionRef&);

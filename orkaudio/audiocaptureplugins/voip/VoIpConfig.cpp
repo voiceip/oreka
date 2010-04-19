@@ -36,6 +36,7 @@ VoIpConfig::VoIpConfig()
 	m_rtpSessionOnHoldTimeOutSec = 1800;
 	m_rtpReportDtmf = false;
 	m_rtpTrackByUdpPortOnly = false;
+	m_rtpAllowMultipleMappings = false;
 	m_rtpSeqGapThreshold = 500;
 	m_pcapTest= false;
 	m_rtpDiscontinuityDetect = false;
@@ -54,7 +55,7 @@ VoIpConfig::VoIpConfig()
 	m_sipReportNamesAsTags = false;
 	m_sipRequestUriAsLocalParty = true;
 	m_sipTreat200OkAsInvite = false;
-	m_sipAllowMultipleMediaAddresses = false;
+	m_sipAllowMultipleMediaAddresses = false;	// deprecated
 	m_sip302MovedTemporarilySupport = true;
 	m_sipInviteCanPutOffHold = false;
 	m_sipOnDemandFieldName = "X-record";
@@ -119,6 +120,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("RtpReportDtmf", m_rtpReportDtmf);
 	s->IpRangesValue("RtpBlockedIpRanges", m_rtpBlockedIpRanges);
 	s->BoolValue("RtpTrackByUdpPortOnly", m_rtpTrackByUdpPortOnly);
+	s->BoolValue("RtpAllowMultipleMappings", m_rtpAllowMultipleMappings);
 	s->IntValue("RtpSeqGapThreshold", m_rtpSeqGapThreshold);
 
 	s->BoolValue("PcapTest", m_pcapTest);
@@ -423,6 +425,11 @@ void VoIpConfig::Validate()
 		CStdString exception;
 		exception.Format("VoIpConfig: SkinnyCallInfoStopsPreviousToleranceSec must be > 0 (currently:%d", m_skinnyCallInfoStopsPreviousToleranceSec);
 		throw(exception);
+	}
+	if(m_sipAllowMultipleMediaAddresses)
+	{
+		// m_sipAllowMultipleMediaAddresses is deprecated, turns on m_rtpAllowMultipleMappings instead
+		m_rtpAllowMultipleMappings = true;
 	}
 	if(m_sipOnDemandFieldName.size())
 	{
