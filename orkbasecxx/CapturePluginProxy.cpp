@@ -292,8 +292,8 @@ void __CDECL__ CapturePluginProxy::CaptureEventCallBack(CaptureEventRef eventRef
 			if(eventRef->m_type == CaptureEvent::EtStop)
 			{
 				portRef->ClearEventQueue();
+				portRef->AddCaptureEvent(eventRef);
 			}
-			portRef->AddCaptureEvent(eventRef);
 		}
 		else
 		{
