@@ -229,6 +229,7 @@ void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 					eventRef->m_timestamp = now;
 					AddCaptureEvent(eventRef);
 
+					LOG4CXX_DEBUG(s_log, "[" + m_audioTapeRef->m_trackingId + "] VAD triggered Stop");
 					m_audioTapeRef.reset();
 				}
 			}
@@ -246,6 +247,7 @@ void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 					{
 						m_audioTapeRef.reset(new AudioTape(m_id));
 
+						LOG4CXX_DEBUG(s_log, "[" + m_audioTapeRef->m_trackingId + "] VAD triggered Start");
 						// signal new tape start event
 						CaptureEventRef eventRef(new CaptureEvent);
 						eventRef->m_type = CaptureEvent::EtStart;
@@ -300,8 +302,12 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 
 	if (!audioTapeRef.get())
 	{
-		LOG4CXX_WARN(s_log, "#" + m_id + ": received unexpected capture event:" 
-			+ CaptureEvent::EventTypeToString(eventRef->m_type));
+		if(!CONFIG.m_vad && !CONFIG.m_audioSegmentation)
+		{
+			// These are queued for VAD & Audio Segmentation
+			LOG4CXX_WARN(s_log, "#" + m_id + ": received unexpected capture event:" 
+				+ CaptureEvent::EventTypeToString(eventRef->m_type));
+		}
 	}
 	else
 	{
