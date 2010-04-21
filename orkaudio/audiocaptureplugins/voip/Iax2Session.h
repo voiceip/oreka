@@ -124,6 +124,7 @@ public:
 	CStdString m_callee; /* CALLED NUMBER */
 	CStdString m_callNo; /* This is the source call number */
 	CStdString m_callingName; /* Calling Name */
+	CStdString m_localExtension;
 
 	bool m_validated; // true when an IAX2 voice stream has been seen for the NEW
 };
@@ -196,6 +197,7 @@ public:
 	time_t m_lastUpdated;
 	CStdString m_localParty;
 	CStdString m_remoteParty;
+	CStdString m_localEntryPoint;
 	CaptureEvent::DirectionEnum m_direction;
 	int m_numIax2Packets;
 	int m_codec;
