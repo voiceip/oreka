@@ -119,7 +119,8 @@ void Iax2Session::ProcessMetadataIax2Incoming()
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_invitorIp, szNewSrcIp, sizeof(szNewSrcIp));
 
 	m_remoteParty = m_new->m_caller;
-	m_localParty = m_new->m_callee;
+	m_localParty = (m_new->m_localExtension.size() ? m_new->m_localExtension : m_new->m_callee);
+	m_localEntryPoint = (m_new->m_localExtension.size() ? m_new->m_callee : "");
 	m_direction = CaptureEvent::DirIn;
 	m_localIp = m_inviteeIp;
 	m_remoteIp = m_invitorIp;
@@ -136,7 +137,8 @@ void Iax2Session::ProcessMetadataIax2Outgoing()
 
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_invitorIp, szNewSrcIp, sizeof(szNewSrcIp));
 	m_remoteParty = m_new->m_callee;
-	m_localParty = m_new->m_caller;
+	m_localParty = (m_new->m_localExtension.size() ? m_new->m_localExtension : m_new->m_caller);
+	m_localEntryPoint = (m_new->m_localExtension.size() ? m_new->m_caller : "");
 	m_direction = CaptureEvent::DirOut;
 	m_capturePort.Format("%s,%d", szNewSrcIp, m_invitor_scallno);
 	m_localIp = m_invitorIp;
@@ -175,7 +177,8 @@ void Iax2Session::UpdateMetadataIax2(Iax2PacketInfoRef& iax2Packet, bool sourceI
 
 		// Update session metadata with NEW info
 		m_remoteParty = invite->m_caller;
-		m_localParty = invite->m_callee;
+		m_localParty = (invite->m_localExtension.size() ? invite->m_localExtension : invite->m_callee);
+		m_localEntryPoint = (invite->m_localExtension.size() ? invite->m_callee : "");
 		m_localIp = invite->m_receiverIp;
 
 		// Do some logging
@@ -198,6 +201,15 @@ void Iax2Session::UpdateMetadataIax2(Iax2PacketInfoRef& iax2Packet, bool sourceI
 		event->m_type = CaptureEvent::EtRemoteParty;
 		event->m_value = m_remoteParty;
 		g_captureEventCallBack(event, m_capturePort);
+
+		// Report local entry point
+		if(m_localEntryPoint.size())
+		{
+			event.reset(new CaptureEvent());
+			event->m_type = CaptureEvent::EtLocalEntryPoint;
+			event->m_value = m_localEntryPoint;
+			g_captureEventCallBack(event, m_capturePort);
+		}
 
 		// Report Local IP
 		char szLocalIp[16];
@@ -278,6 +290,15 @@ void Iax2Session::ReportMetadata()
 	event->m_type = CaptureEvent::EtRemoteParty;
 	event->m_value = m_remoteParty;
 	g_captureEventCallBack(event, m_capturePort);
+
+	// Report local entry point
+	if(m_localEntryPoint.size())
+	{
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtLocalEntryPoint;
+		event->m_value = m_localEntryPoint;
+		g_captureEventCallBack(event, m_capturePort);
+	}
 
 	// Report direction
 	event.reset(new CaptureEvent());
@@ -590,9 +611,33 @@ void Iax2Session::ReportIax2New(Iax2NewInfoRef& invite)
 
 	if(DLLCONFIG.m_iax2TreatCallerIdNameAsXUniqueId == true)
 	{
-		key = "X-Unique-ID";
-		value = invite->m_callingName;
-		m_tags.insert(std::make_pair(key, value));
+		int pos = 0;
+
+		pos = invite->m_callingName.Find(' ');
+		if(pos >= 0)
+		{
+			CStdString uniqueId;
+			CStdString localExt;
+
+			if(pos > 0)
+			{
+				uniqueId = invite->m_callingName.Left(pos);
+			}
+
+			localExt = invite->m_callingName.substr(pos+1);
+			LOG4CXX_DEBUG(m_log, "separated IAX2 calling name: uniqueid:" + uniqueId + " localext:" + localExt);
+
+			key = "X-Unique-ID";
+			value = uniqueId;
+			m_tags.insert(std::make_pair(key, value));
+			invite->m_localExtension = localExt;
+		}
+		else
+		{
+			key = "X-Unique-ID";
+			value = invite->m_callingName;
+			m_tags.insert(std::make_pair(key, value));
+		}
 	}
 
 	if(m_new.get() == NULL) {
@@ -987,8 +1032,8 @@ void Iax2NewInfo::ToString(CStdString& string)
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp,
 			sizeof(receiverIp));
 
-	string.Format("sender:%s receiver: %s caller:%s callee:%s srccallno: %s callername:%s",
-			senderIp, receiverIp, m_caller, m_callee, m_callNo, m_callingName);
+	string.Format("sender:%s receiver: %s caller:%s callee:%s srccallno: %s callername:%s localextension:%s",
+			senderIp, receiverIp, m_caller, m_callee, m_callNo, m_callingName, m_localExtension);
 }
 
 //==========================================================
