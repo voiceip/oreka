@@ -80,6 +80,7 @@ VoIpConfig::VoIpConfig()
 	m_skinnyCallInfoStopsPreviousToleranceSec = 3;
 	m_cucm7_1Mode = false;
 	m_skinnyAllowMediaAddressTransfer = false;
+	m_skinnyRtpSearchesForCallInfo = false;
 
 	m_sangomaEnable = false;
 	m_sangomaRxTcpPortStart = 0;
@@ -172,6 +173,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("Cucm7-1Mode", m_cucm7_1Mode);
 	s->BoolValue("SkinnyCucm7Mode", m_cucm7_1Mode);	// synonym to the preceding line (Cucm7-1Mode)
 	s->BoolValue("SkinnyAllowMediaAddressTransfer", m_skinnyAllowMediaAddressTransfer);
+	s->BoolValue("SkinnyRtpSearchesForCallInfo", m_skinnyRtpSearchesForCallInfo);
 
 	s->IntValue("SangomaRxTcpPortStart", m_sangomaRxTcpPortStart);
 	s->IntValue("SangomaTxTcpPortStart", m_sangomaTxTcpPortStart);
