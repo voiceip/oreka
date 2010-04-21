@@ -2933,10 +2933,13 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	{
 		EndpointInfoRef endpoint;
 
-		// Check if this is a Skinny session
-		if(TrySkinnySession(rtpPacket, endpoint) == true)
+		// Check if a Skinny session can be found on the endpoint
+		if(DLLCONFIG.m_skinnyRtpSearchesForCallInfo)
 		{
-			return;
+			if(TrySkinnySession(rtpPacket, endpoint) == true)
+			{
+				return;
+			}
 		}
 
 		// create new Raw RTP session and insert into IP+Port map

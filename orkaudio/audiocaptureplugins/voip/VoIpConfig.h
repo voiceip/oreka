@@ -118,6 +118,7 @@ public:
 	bool m_cucm7_1Mode;		// deprecated, use 
 	std::list<CStdString> m_skinnyReportTags;
 	bool m_skinnyAllowMediaAddressTransfer;		// Controls whether a new session (new CallInfo) can take a media address away from an existing session that has already received RTP.
+	bool m_skinnyRtpSearchesForCallInfo;
 
 	std::list<CStdString> m_dnisNumbers;
 	std::list<CStdString> m_sipExtractFields;
