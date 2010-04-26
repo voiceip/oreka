@@ -24,6 +24,20 @@ bool StringIsDigit(CStdString& string)
 	return true;
 }
 
+bool StringIsPhoneNumber(CStdString& string)
+{
+	int size = string.size();
+	for(int i=0; i<size; i++)
+	{
+		char c = string.GetAt(i);
+		if(isdigit(c) == false && c != '-' && c != '*' && c != '#')
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 bool MatchesStringList(CStdString& string, std::list<CStdString>& stringList)
 {
 	if(string.size() == 0)
