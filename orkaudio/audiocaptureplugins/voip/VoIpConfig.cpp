@@ -60,6 +60,7 @@ VoIpConfig::VoIpConfig()
 	m_sipInviteCanPutOffHold = false;
 	m_sipOnDemandFieldName = "X-record";
 	m_sipOnDemandFieldValue = "1";
+	m_sipTrackMediaAddressOnSender = false;
 
 	m_rtcpDetect = false;
 	m_inInMode = false;
@@ -150,6 +151,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SipInviteCanPutOffHold", m_sipInviteCanPutOffHold);
 	s->StringValue("SipOnDemandFieldName", m_sipOnDemandFieldName);
 	s->StringValue("SipOnDemandFieldValue", m_sipOnDemandFieldValue);
+	s->BoolValue("SipTrackMediaAddressOnSender", m_sipTrackMediaAddressOnSender);
 
 	s->BoolValue("RtcpDetect", m_rtcpDetect);
 	s->BoolValue("InInMode", m_inInMode);
