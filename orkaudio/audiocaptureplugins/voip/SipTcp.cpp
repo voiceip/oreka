@@ -101,7 +101,7 @@ u_char *SafeBuffer::GetBuffer()
 
 static char* memFindAfter(const char* toFind, char* start, char* stop)
 {
-        for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop - start)))
+        for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop - ptr - 1)))
         {
                 if(ACE_OS::strncasecmp(toFind, ptr, strlen(toFind)) == 0)
                 {
@@ -111,11 +111,28 @@ static char* memFindAfter(const char* toFind, char* start, char* stop)
         return NULL;
 }
 
+
+// Same as standard memchr but case insensitive
+inline char* memnchr(void *s, int c, size_t len)
+{
+	char lowerCase = tolower(c);
+	char upperCase = toupper(c);
+	char* stop = (char*)s + len;
+	for(char* ptr = (char*)s ; ptr < stop; ptr++)
+	{
+		if(*ptr == lowerCase || *ptr == upperCase)
+		{
+			return ptr;
+		}
+	}
+	return NULL;
+}
+
 // Implementation of strcasestr() - works like strstr() but
 // is case insensitive
 char* memFindStr(const char* toFind, char* start, char* stop)
 {
-        for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop - start)))
+        for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memnchr(ptr+1, toFind[0],(stop - ptr - 1)))
         {
                 if(ACE_OS::strncasecmp(toFind, ptr, strlen(toFind)) == 0)
                 {

@@ -144,7 +144,7 @@ inline char* memnchr(void *s, int c, size_t len)
 
 static char* memFindStr(const char* toFind, char* start, char* stop)
 {
-	for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop-ptr)))
+	for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop - ptr - 1)))
 	{
 		if(ACE_OS::strncasecmp(toFind, ptr, ((int)strlen(toFind) > (stop-ptr) ? (stop-ptr) : strlen(toFind))) == 0)
 		{
@@ -157,7 +157,7 @@ static char* memFindStr(const char* toFind, char* start, char* stop)
 // find the address that follows the given search string between start and stop pointers - case insensitive
 char* memFindAfter(const char* toFind, char* start, char* stop)
 {
-	for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memnchr(ptr+1, toFind[0],(stop - ptr)))
+	for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memnchr(ptr+1, toFind[0],(stop - ptr - 1)))
 	{
 		if(ACE_OS::strncasecmp(toFind, ptr, strlen(toFind)) == 0)
 		{
