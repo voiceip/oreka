@@ -97,6 +97,7 @@ public:
 	bool m_sipInviteCanPutOffHold;
 	CStdString m_sipOnDemandFieldName;
 	CStdString m_sipOnDemandFieldValue;
+	bool m_sipTrackMediaAddressOnSender;
 
 	bool m_rtcpDetect;
 	bool m_inInMode;

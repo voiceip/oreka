@@ -1496,9 +1496,15 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 		rtpPort = rtpPortAsInt;
 	}
 	CStdString ipAndPort;
-	CraftMediaAddress(ipAndPort, invite->m_fromRtpIp, rtpPortAsInt);
 
+	CraftMediaAddress(ipAndPort, invite->m_fromRtpIp, rtpPortAsInt);
 	RtpSessionRef session = findByMediaAddress(invite->m_fromRtpIp, rtpPortAsInt);
+
+	if(session.get() == NULL && DLLCONFIG.m_sipTrackMediaAddressOnSender)
+	{
+		CraftMediaAddress(ipAndPort, invite->m_senderIp, rtpPortAsInt);
+		RtpSessionRef session = findByMediaAddress(invite->m_senderIp, rtpPortAsInt);
+	}
 	if(session.get())
 	{
 		// A session already exists on this media address
@@ -1583,6 +1589,10 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	newSession->ReportSipInvite(invite);
 	newSession->m_sipLastInvite = ACE_OS::gettimeofday();
 	SetMediaAddress(newSession, invite->m_fromRtpIp, rtpPort);
+	if(DLLCONFIG.m_sipTrackMediaAddressOnSender)
+	{
+		SetMediaAddress(newSession, invite->m_senderIp, rtpPort);
+	}
 	m_byCallId.insert(std::make_pair(newSession->m_callId, newSession));
 
 	CStdString numSessions = IntToString(m_byIpAndPort.size());
