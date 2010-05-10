@@ -35,6 +35,7 @@
 #define ORKUID_PARAM "orkuid"
 #define PARTY_PARAM "party"
 #define NATIVE_CALLID_PARAM "nativecallid"
+#define SIDE_PARAM "side"
 
 #define SUCCESS_PARAM "sucess"
 #define SUCCESS_DEFAULT true

@@ -76,6 +76,127 @@ void BatchProcessing::SetQueueSize(int size)
 	m_audioTapeQueue.setSize(size);
 }
 
+bool BatchProcessing::SkipChunk(AudioTapeRef& audioTapeRef, AudioChunkRef& chunkRef)
+{
+	AudioChunkDetails details = *chunkRef->GetDetails();
+	bool skip = false;
+
+	switch(audioTapeRef->m_audioKeepDirectionEnum)
+	{
+	case CaptureEvent::AudioKeepDirectionBoth:
+	{
+		skip = false;
+		break;
+	}
+	case CaptureEvent::AudioKeepDirectionLocal:
+	{
+		switch(audioTapeRef->m_localSide)
+		{
+		case CaptureEvent::LocalSideUnkn:
+		{
+			skip = false;
+			break;
+		}
+		case CaptureEvent::LocalSideSide1:
+		{
+			if(details.m_channel != 1)
+			{
+				skip = true;
+			}
+			else
+			{
+				skip = false;
+			}
+			break;
+		}
+		case CaptureEvent::LocalSideSide2:
+		{
+			if(details.m_channel != 2)
+			{
+				skip = true;
+			}
+			else
+			{
+				skip = false;
+			}
+			break;
+		}
+		case CaptureEvent::LocalSideBoth:
+		{
+			skip = false;
+			break;
+		}
+		default:
+		{
+			skip = false;
+			break;
+		}
+		}
+		break;
+	}
+	case CaptureEvent::AudioKeepDirectionRemote:
+	{
+		switch(audioTapeRef->m_localSide)
+		{
+		case CaptureEvent::LocalSideUnkn:
+		{
+			skip = false;
+			break;
+		}
+		case CaptureEvent::LocalSideSide1:
+		{
+			if(details.m_channel == 1)
+			{
+				skip = true;
+			}
+			else
+			{
+				skip = false;
+			}
+			break;
+		}
+		case CaptureEvent::LocalSideSide2:
+		{
+			if(details.m_channel == 2)
+			{
+				skip = true;
+			}
+			else
+			{
+				skip = false;
+			}
+			break;
+		}
+		case CaptureEvent::LocalSideBoth:
+		{
+			skip = true;
+			break;
+		}
+		default:
+		{
+			skip = false;
+			break;
+		}
+		}
+
+		break;
+	}
+	case CaptureEvent::AudioKeepDirectionNone:
+	{
+		skip = true;
+		break;
+	}
+	case CaptureEvent::AudioKeepDirectionInvalid:
+	default:
+	{
+		skip = false;
+		break;
+	}
+	}
+
+	return skip;
+}
+
 void BatchProcessing::ThreadHandler(void *args)
 {
 	CStdString debug;
@@ -132,6 +253,15 @@ void BatchProcessing::ThreadHandler(void *args)
 				// Let's work on the tape we have pulled
 				//CStdString threadIdString = IntToString(threadId);
 				LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " processing " + audioTapeRef->GetIdentifier());
+				if(audioTapeRef->m_audioKeepDirectionEnum == CaptureEvent::AudioKeepDirectionInvalid)
+				{
+					LOG4CXX_WARN(LOG.batchProcessingLog, "[" + trackingId + 
+						"] Th" + threadIdString + 
+						" invalid audiokeepdirection:" + 
+						IntToString(audioTapeRef->m_audioKeepDirectionEnum));
+				}
+
+
 
 				//fileRef->MoveOrig();	// #### could do this only when original and output file have the same extension. Irrelevant for now as everything is captured as mcf file
 				fileRef->Open(AudioFile::READ);
@@ -200,6 +330,14 @@ void BatchProcessing::ThreadHandler(void *args)
 					// ############ HACK
 
 					AudioChunkDetails details = *chunkRef->GetDetails();
+					if(BatchProcessing::SkipChunk(audioTapeRef, chunkRef) == true)
+					{
+						LOG4CXX_DEBUG(LOG.batchProcessingLog, "[" + trackingId +
+                                                "] Th" + threadIdString +
+                                                " skipping chunk of channel:" +
+						IntToString(details.m_channel));
+						continue;
+					}
 
 					decoder.reset();
 

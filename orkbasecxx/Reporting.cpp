@@ -163,6 +163,8 @@ void Reporting::AddTapeMessage(MessageRef& messageRef)
 		pRptTapeMsg->m_localEntryPoint = pTapeMsg->m_localEntryPoint;
 		pRptTapeMsg->m_remoteParty = pTapeMsg->m_remoteParty;
 		pRptTapeMsg->m_direction = pTapeMsg->m_direction;
+		pRptTapeMsg->m_localSide = pTapeMsg->m_localSide;
+		pRptTapeMsg->m_audioKeepDirection = pTapeMsg->m_audioKeepDirection;
 		pRptTapeMsg->m_duration = pTapeMsg->m_duration;
 		pRptTapeMsg->m_timestamp = pTapeMsg->m_timestamp;
 		pRptTapeMsg->m_localIp = pTapeMsg->m_localIp;
@@ -203,6 +205,8 @@ void Reporting::AddTapeMessage(MessageRef& messageRef)
 	pRptTapeMsg->m_localEntryPoint = pTapeMsg->m_localEntryPoint;
 	pRptTapeMsg->m_remoteParty = pTapeMsg->m_remoteParty;
 	pRptTapeMsg->m_direction = pTapeMsg->m_direction;
+	pRptTapeMsg->m_localSide = pTapeMsg->m_localSide;
+	pRptTapeMsg->m_audioKeepDirection = pTapeMsg->m_audioKeepDirection;
 	pRptTapeMsg->m_duration = pTapeMsg->m_duration;
 	pRptTapeMsg->m_timestamp = pTapeMsg->m_timestamp;
 	pRptTapeMsg->m_localIp = pTapeMsg->m_localIp;
@@ -375,9 +379,9 @@ void ReportingThread::Run()
 								// Tape is wanted
 								if(CONFIG.m_lookBackRecording == false && CONFIG.m_allowAutomaticRecording && ptapeMsg->m_stage.Equals("start"))
 								{
-									CStdString orkuid = "", nativecallid = "";
-									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_localParty, orkuid, nativecallid);
-									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_remoteParty, orkuid, nativecallid);
+									CStdString orkuid = "", nativecallid = "", side = "";
+									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_localParty, orkuid, nativecallid, side);
+									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_remoteParty, orkuid, nativecallid, side);
 								}
 							}
 							//else

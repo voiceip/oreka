@@ -85,7 +85,7 @@ public:
 	void Initialize();
 	void Run();
 	void Shutdown();
-	void StartCapture(CStdString& port, CStdString& orkuid, CStdString& nativecallid);
+	void StartCapture(CStdString& port, CStdString& orkuid, CStdString& nativecallid, CStdString& side);
 	void StopCapture(CStdString& port, CStdString& orkuid, CStdString& nativecallid, CStdString& qos);
 	void PauseCapture(CStdString& port, CStdString& orkuid, CStdString& nativecallid);
 	void SetOnHold(CStdString& port, CStdString& orkuid);
@@ -3940,26 +3940,26 @@ void VoIp::Shutdown()
 #endif
 }
 
-void VoIp::StartCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
+void VoIp::StartCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid, CStdString& side)
 {
 	CStdString logMsg;
 
-	logMsg.Format("StartCapture: party:%s orkuid:%s nativecallid:%s", party, orkuid, nativecallid);
+	logMsg.Format("StartCapture: party:%s orkuid:%s nativecallid:%s side:%s", party, orkuid, nativecallid, side);
 	LOG4CXX_INFO(s_voipPluginLog, logMsg);
 
 	MutexSentinel mutexSentinel(s_mutex);
 
 	if(orkuid.size())
 	{
-		RtpSessionsSingleton::instance()->StartCaptureOrkuid(orkuid);
+		RtpSessionsSingleton::instance()->StartCaptureOrkuid(orkuid, side);
 	}
 	else if(party.size())
 	{
-		orkuid = RtpSessionsSingleton::instance()->StartCapture(party);
+		orkuid = RtpSessionsSingleton::instance()->StartCapture(party, side);
 	}
 	else if(nativecallid.size())
 	{
-		orkuid = RtpSessionsSingleton::instance()->StartCaptureNativeCallId(nativecallid);
+		orkuid = RtpSessionsSingleton::instance()->StartCaptureNativeCallId(nativecallid, side);
 	}
 }
 
@@ -4037,9 +4037,9 @@ void __CDECL__ Shutdown()
 	VoIpSingleton::instance()->Shutdown();
 }
 
-void __CDECL__ StartCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
+void __CDECL__ StartCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid, CStdString& side)
 {
-	VoIpSingleton::instance()->StartCapture(party, orkuid, nativecallid);
+	VoIpSingleton::instance()->StartCapture(party, orkuid, nativecallid, side);
 }
 
 void __CDECL__ PauseCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)

@@ -41,7 +41,7 @@ typedef void (__CDECL__* InitializeFunction)();
 typedef void (__CDECL__* RunFunction)();
 typedef void (__CDECL__* ShutdownFunction)();
 typedef void (__CDECL__* ConfigureFunction)(DOMNode*);
-typedef void (__CDECL__* StartCaptureFunction)(CStdString& port, CStdString& orkUid, CStdString& nativecallid);
+typedef void (__CDECL__* StartCaptureFunction)(CStdString& port, CStdString& orkUid, CStdString& nativecallid, CStdString& side);
 typedef void (__CDECL__* StopCaptureFunction)(CStdString& port, CStdString& orkUid, CStdString& nativecallid, CStdString& qos);
 typedef void (__CDECL__* PauseCaptureFunction)(CStdString& port, CStdString& orkUid, CStdString& nativecallid);
 typedef void (__CDECL__* SetOnHoldFunction)(CStdString& port, CStdString& orkUid);

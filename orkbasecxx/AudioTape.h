@@ -41,6 +41,8 @@ public:
 	CStdString m_localEntryPoint;
 	CStdString m_remoteParty;
 	CaptureEvent::DirectionEnum m_direction;
+        CaptureEvent::LocalSideEnum m_localSide;
+        CaptureEvent::AudioKeepDirectionEnum m_audioKeepDirectionEnum;
 	time_t m_beginDate;
 	int m_duration;
 	CStdString m_localIp;
@@ -88,6 +90,8 @@ public:
 	CStdString m_localEntryPoint;
 	CStdString m_remoteParty;
 	CaptureEvent::DirectionEnum m_direction;
+	CaptureEvent::LocalSideEnum m_localSide;
+	CaptureEvent::AudioKeepDirectionEnum m_audioKeepDirectionEnum;
 	time_t m_beginDate;
 	time_t m_endDate;
 	time_t m_duration;

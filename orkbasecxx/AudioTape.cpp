@@ -31,6 +31,8 @@
 AudioTapeDescription::AudioTapeDescription()
 {
 	m_direction = CaptureEvent::DirUnkn;
+	m_localSide = CaptureEvent::LocalSideUnkn;
+	m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionDefault);
 	m_duration = 0;
 	m_beginDate = 0;
 }
@@ -40,6 +42,8 @@ void AudioTapeDescription::Define(Serializer* s)
 	s->DateValue("date", m_beginDate);
 	s->IntValue("duration", m_duration);
 	s->EnumValue("direction", (int&)m_direction, CaptureEvent::DirectionToEnum, CaptureEvent::DirectionToString);
+	s->EnumValue("localside", (int&)m_localSide, CaptureEvent::LocalSideToEnum, CaptureEvent::LocalSideToString);
+	s->EnumValue("audiokeepdirection", (int&)m_audioKeepDirectionEnum, CaptureEvent::AudioKeepDirectionToEnum, CaptureEvent::AudioKeepDirectionToString);
 	s->StringValue("capturePort", m_capturePort);
 	s->StringValue("localParty", m_localParty);
 	s->StringValue("remoteParty", m_remoteParty);
@@ -79,6 +83,8 @@ AudioTape::AudioTape(CStdString &portId)
 	m_endDate = 0;
 	m_duration = 0;
 	m_direction = CaptureEvent::DirUnkn;
+	m_localSide = CaptureEvent::LocalSideUnkn;
+	m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionDefault);
 	m_shouldStop = false;
 	m_readyForBatchProcessing = false;
 	m_trackingId = portId;	// to make sure this has a value before we get the capture tracking Id.
@@ -99,6 +105,8 @@ AudioTape::AudioTape(CStdString &portId, CStdString& file)
 	m_passedPartyFilterTest = false;
 	m_portId = portId;
 	m_onDemand = false;
+	m_localSide = CaptureEvent::LocalSideUnkn;
+	m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionDefault);
 
 	// Extract Path and Identifier
 	m_filePath = FilePath(file);
@@ -325,6 +333,8 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 			atd.m_beginDate = m_beginDate;
 			atd.m_capturePort = m_portId;
 			atd.m_direction = m_direction;
+			atd.m_localSide = m_localSide;
+			atd.m_audioKeepDirectionEnum = m_audioKeepDirectionEnum;
 			atd.m_duration = m_duration;
 			atd.m_localEntryPoint = m_localEntryPoint;
 			atd.m_localParty = m_localParty;
@@ -336,6 +346,12 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 			CStdString description = atd.SerializeSingleLine();
 			LOG4CXX_INFO(LOG.tapelistLog, description);
 		}
+		break;
+	case CaptureEvent::EtLocalSide:
+		m_localSide = (CaptureEvent::LocalSideEnum)CaptureEvent::LocalSideToEnum(eventRef->m_value);
+		break;
+	case CaptureEvent::EtAudioKeepDirection:
+		m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(eventRef->m_value);
 		break;
 	case CaptureEvent::EtDirection:
 		m_direction = (CaptureEvent::DirectionEnum)CaptureEvent::DirectionToEnum(eventRef->m_value);
@@ -464,6 +480,8 @@ void AudioTape::PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum ev
 	msg->m_localEntryPoint = m_localEntryPoint;
 	msg->m_remoteParty = m_remoteParty;
 	msg->m_direction = CaptureEvent::DirectionToString(m_direction);
+	msg->m_localSide = CaptureEvent::LocalSideToString(m_localSide);
+	msg->m_audioKeepDirection = CaptureEvent::AudioKeepDirectionToString(m_audioKeepDirectionEnum);
 	msg->m_duration = m_duration;
 	msg->m_timestamp = m_beginDate;
 	msg->m_localIp = m_localIp;

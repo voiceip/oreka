@@ -19,6 +19,7 @@
 #include "Object.h"
 #include "boost/shared_ptr.hpp"
 #include "PacketHeaderDefs.h"
+#include "AudioCapture.h"
  
 #define DEVICE_PARAM "Device"
 

@@ -326,6 +326,80 @@ int CaptureEvent::DirectionToEnum(CStdString& dir)
 	return DirUnkn;
 }
 
+CStdString CaptureEvent::LocalSideToString(int localSideEnum)
+{
+	switch(localSideEnum)
+	{
+	case	LocalSideUnkn:
+		return LOCALSIDE_UNKN;
+	case	LocalSideSide1:
+		return LOCALSIDE_SIDE1;
+	case	LocalSideSide2:
+		return LOCALSIDE_SIDE2;
+	case	LocalSideBoth:
+		return LOCALSIDE_BOTH;
+	}
+	return LOCALSIDE_INVALID;
+}
+
+int CaptureEvent::LocalSideToEnum(CStdString& localSideString)
+{
+	if(localSideString.CompareNoCase(LOCALSIDE_UNKN) == 0)
+	{
+		return LocalSideUnkn;
+	}
+	else if (localSideString.CompareNoCase(LOCALSIDE_SIDE1) == 0)
+	{
+		return LocalSideSide1;
+	}
+	else if (localSideString.CompareNoCase(LOCALSIDE_SIDE2) == 0)
+	{
+		return LocalSideSide2;
+	}
+	else if (localSideString.CompareNoCase(LOCALSIDE_BOTH) == 0)
+	{
+		return LocalSideBoth;
+	}
+	return LocalSideInvalid;
+}
+
+CStdString CaptureEvent::AudioKeepDirectionToString(int audioKeepDirectionEnum)
+{
+	switch(audioKeepDirectionEnum)
+	{
+	case AudioKeepDirectionBoth:
+		return AUDIOKEEPDIRECTION_BOTH;
+	case AudioKeepDirectionLocal:
+		return AUDIOKEEPDIRECTION_LOCAL;
+	case AudioKeepDirectionRemote:
+		return AUDIOKEEPDIRECTION_REMOTE;
+	case AudioKeepDirectionNone:
+		return AUDIOKEEPDIRECTION_NONE;
+	}
+	return AUDIOKEEPDIRECTION_INVALID;
+}
+
+int CaptureEvent::AudioKeepDirectionToEnum(CStdString& audioKeepDirectionString)
+{
+	if(audioKeepDirectionString.CompareNoCase(AUDIOKEEPDIRECTION_BOTH) == 0)
+	{
+		return AudioKeepDirectionBoth;
+	}
+	else if (audioKeepDirectionString.CompareNoCase(AUDIOKEEPDIRECTION_LOCAL) == 0)
+	{
+		return AudioKeepDirectionLocal;
+	}
+	else if (audioKeepDirectionString.CompareNoCase(AUDIOKEEPDIRECTION_REMOTE) == 0)
+	{
+		return AudioKeepDirectionRemote;
+	}
+	else if (audioKeepDirectionString.CompareNoCase(AUDIOKEEPDIRECTION_NONE) == 0)
+	{
+		return AudioKeepDirectionNone;
+	}
+	return AudioKeepDirectionInvalid;
+}
+
 CStdString CaptureEvent::EventTypeToString(int eventTypeEnum)
 {
 	switch(eventTypeEnum)
@@ -364,6 +438,10 @@ CStdString CaptureEvent::EventTypeToString(int eventTypeEnum)
 		return ET_UPDATE;
 	case	EtCallId:
 		return ET_CALLID;
+	case	EtLocalSide:
+		return ET_LOCALSIDE;
+	case	EtAudioKeepDirection:
+		return ET_AUDIOKEEPDIRECTION;
 	}
 	return ET_INVALID;
 }
@@ -434,6 +512,14 @@ int CaptureEvent::EventTypeToEnum(CStdString& eventTypeString)
 	else if (eventTypeString.CompareNoCase(ET_CALLID) == 0)
 	{
 		eventTypeEnum = EtCallId;
+	}
+	else if (eventTypeString.CompareNoCase(ET_LOCALSIDE) == 0)
+	{
+		eventTypeEnum = EtLocalSide;
+	}
+	else if (eventTypeString.CompareNoCase(ET_AUDIOKEEPDIRECTION) == 0)
+	{
+		eventTypeEnum = EtAudioKeepDirection;
 	}
 	return eventTypeEnum;
 }

@@ -43,6 +43,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_inviteeIp.s_addr = 0;
 	m_inviteeTcpPort = 0;
 	m_direction = CaptureEvent::DirUnkn;
+	m_localSide = CaptureEvent::LocalSideUnkn;
 	m_protocol = ProtUnkn;
 	m_numRtpPackets = 0;
 	m_started = false;
@@ -85,6 +86,62 @@ void RtpSession::Stop()
 
 	if(m_started && !m_stopped)
 	{
+		// Report local side
+		if(m_lastRtpPacketSide1.get())
+		{
+			if(!MatchesReferenceAddresses(m_lastRtpPacketSide1->m_sourceIp))
+			{
+				m_localSide = CaptureEvent::LocalSideSide1;
+			}
+			else
+			{
+				EndpointInfoRef endpoint;
+
+				endpoint = RtpSessionsSingleton::instance()->GetEndpointInfoByIp(&m_lastRtpPacketSide1->m_sourceIp);
+				if(endpoint.get())
+				{
+					m_localSide = CaptureEvent::LocalSideSide1;
+				}
+			}
+		}
+
+		if(m_lastRtpPacketSide2.get())
+		{
+			if(!MatchesReferenceAddresses(m_lastRtpPacketSide2->m_sourceIp))
+			{
+				if(m_localSide == CaptureEvent::LocalSideSide1)
+				{
+					m_localSide = CaptureEvent::LocalSideBoth;
+				}
+				else
+				{
+					m_localSide = CaptureEvent::LocalSideSide2;
+				}
+			}
+			else
+			{
+				EndpointInfoRef endpoint;
+
+				endpoint = RtpSessionsSingleton::instance()->GetEndpointInfoByIp(&m_lastRtpPacketSide2->m_sourceIp);
+				if(endpoint.get())
+				{
+					if(m_localSide == CaptureEvent::LocalSideSide1)
+					{
+						m_localSide = CaptureEvent::LocalSideBoth;
+					}
+					else
+					{
+						m_localSide = CaptureEvent::LocalSideSide2;
+					}
+				}
+			}
+		}
+
+		CaptureEventRef event(new CaptureEvent);
+		event->m_type = CaptureEvent::EtLocalSide;
+		event->m_value = CaptureEvent::LocalSideToString(m_localSide);
+		g_captureEventCallBack(event, m_capturePort);
+
 		CaptureEventRef stopEvent(new CaptureEvent);
 		stopEvent->m_type = CaptureEvent::EtStop;
 		stopEvent->m_timestamp = m_lastUpdated;
@@ -1445,7 +1502,7 @@ CStdString RtpSession::GetOrkUid()
 	return m_orkUid;
 }
 
-void RtpSession::MarkAsOnDemand()
+void RtpSession::MarkAsOnDemand(CStdString& side)
 {
 	if(m_onDemand == true)
 	{
@@ -1461,6 +1518,12 @@ void RtpSession::MarkAsOnDemand()
 		event->m_type = CaptureEvent::EtKeyValue;
 		event->m_key  = CStdString("ondemand");
 		event->m_value = CStdString("true");
+		g_captureEventCallBack(event, m_capturePort);
+
+		// Report audio keep direction
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtAudioKeepDirection;
+		event->m_value = side;
 		g_captureEventCallBack(event, m_capturePort);
 
 		// Trigger metadata update
@@ -3120,7 +3183,7 @@ void RtpSessions::Hoover(time_t now)
 	}
 }
 
-void RtpSessions::StartCaptureOrkuid(CStdString& orkuid)
+void RtpSessions::StartCaptureOrkuid(CStdString& orkuid, CStdString& side)
 {
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	bool found = false;
@@ -3134,24 +3197,30 @@ void RtpSessions::StartCaptureOrkuid(CStdString& orkuid)
 		if(session->OrkUidMatches(orkuid))
 		{
 			session->m_keep = true;
-			session->MarkAsOnDemand();
 			found = true;
 		}
 	}
 
 	if(found)
 	{
-		logMsg.Format("[%s] StartCaptureOrkuid: Started capture, orkuid:%s", session->m_trackingId, orkuid);
+		if((CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(side) == CaptureEvent::AudioKeepDirectionInvalid)
+		{
+			LOG4CXX_WARN(m_log, "[" + session->m_trackingId + "] invalid side:" + side);
+		}
+
+		session->MarkAsOnDemand(side);
+
+		logMsg.Format("[%s] StartCaptureOrkuid: Started capture, orkuid:%s side:%s(%d)", session->m_trackingId, orkuid, side, CaptureEvent::AudioKeepDirectionToEnum(side));
 	}
 	else
 	{
-		logMsg.Format("StartCaptureOrkuid: No session has orkuid:%s", orkuid);
+		logMsg.Format("StartCaptureOrkuid: No session has orkuid:%s side:%s", orkuid, side);
 	}
 
 	LOG4CXX_INFO(m_log, logMsg);
 }
 
-CStdString RtpSessions::StartCaptureNativeCallId(CStdString& nativecallid)
+CStdString RtpSessions::StartCaptureNativeCallId(CStdString& nativecallid, CStdString& side)
 {
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	bool found = false;
@@ -3167,18 +3236,24 @@ CStdString RtpSessions::StartCaptureNativeCallId(CStdString& nativecallid)
 		{
 			session->m_keep = true;
 			found = true;
-			session->MarkAsOnDemand();
 			orkUid = session->GetOrkUid();
 		}
 	}
 
 	if(found)
 	{
-		logMsg.Format("[%s] StartCaptureNativeCallId: Started capture, nativecallid:%s", session->m_trackingId, nativecallid);
+		if((CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(side) == CaptureEvent::AudioKeepDirectionInvalid)
+		{
+			LOG4CXX_WARN(m_log, "[" + session->m_trackingId + "] invalid side:" + side);
+		}
+
+		session->MarkAsOnDemand(side);
+
+		logMsg.Format("[%s] StartCaptureNativeCallId: Started capture, nativecallid:%s side:%s(%d)", session->m_trackingId, nativecallid, side, CaptureEvent::AudioKeepDirectionToEnum(side));
 	}
 	else
 	{
-		logMsg.Format("StartCaptureNativeCallId: No session has native callid:%s", nativecallid);
+		logMsg.Format("StartCaptureNativeCallId: No session has native callid:%s side:%s", nativecallid, side);
 	}
 
 	LOG4CXX_INFO(m_log, logMsg);
@@ -3186,7 +3261,7 @@ CStdString RtpSessions::StartCaptureNativeCallId(CStdString& nativecallid)
 	return orkUid;
 }
 
-CStdString RtpSessions::StartCapture(CStdString& party)
+CStdString RtpSessions::StartCapture(CStdString& party, CStdString& side)
 {
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	bool found = false;
@@ -3203,17 +3278,23 @@ CStdString RtpSessions::StartCapture(CStdString& party)
 			session->m_keep = true;
 			found = true;
 			orkUid = session->GetOrkUid();
-			session->MarkAsOnDemand();
 		}
 	}
 
 	if(found)
 	{
-		logMsg.Format("[%s] StartCapture: Started capture, party:%s", session->m_trackingId, party);
+		if((CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(side) == CaptureEvent::AudioKeepDirectionInvalid)
+		{
+			LOG4CXX_WARN(m_log, "[" + session->m_trackingId + "] invalid side:" + side);
+		}
+
+		session->MarkAsOnDemand(side);
+
+		logMsg.Format("[%s] StartCapture: Started capture, party:%s side:%s(%d)", session->m_trackingId, party, side, CaptureEvent::AudioKeepDirectionToEnum(side));
 	}	
 	else
 	{
-		logMsg.Format("StartCapture: No session has party %s", party);
+		logMsg.Format("StartCapture: No session has party %s side:%s", party, side);
 	}
 	
 	LOG4CXX_INFO(m_log, logMsg);

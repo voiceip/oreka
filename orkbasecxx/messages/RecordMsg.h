@@ -23,6 +23,7 @@ public:
 	void Define(Serializer* s);
 	inline void Validate() {};
 
+	void EnsureValidSide();
 	CStdString GetClassName();
 	ObjectRef NewInstance();
 	ObjectRef Process();
@@ -30,6 +31,7 @@ public:
 	CStdString m_party;
 	CStdString m_orkuid;
 	CStdString m_nativecallid;
+	CStdString m_side;
 };
 
 class DLL_IMPORT_EXPORT_ORKBASE PauseMsg : public SyncMessage
