@@ -122,6 +122,36 @@ class DLL_IMPORT_EXPORT_ORKBASE CaptureEvent
 public:
 	CaptureEvent();
 
+#define LOCALSIDE_UNKN "unknown"
+#define LOCALSIDE_SIDE1 "side1"
+#define LOCALSIDE_SIDE2 "side2"
+#define LOCALSIDE_BOTH "both"
+#define LOCALSIDE_INVALID "invalid"
+	typedef enum {
+		LocalSideUnkn = 0,
+		LocalSideSide1 = 1,
+		LocalSideSide2 = 2,
+		LocalSideBoth = 3,
+		LocalSideInvalid = 4
+	} LocalSideEnum;
+	static CStdString LocalSideToString(int);
+	static int LocalSideToEnum(CStdString& localSideString);
+
+#define AUDIOKEEPDIRECTION_BOTH "both"
+#define AUDIOKEEPDIRECTION_LOCAL "local"
+#define AUDIOKEEPDIRECTION_REMOTE "remote"
+#define AUDIOKEEPDIRECTION_NONE "none"
+#define AUDIOKEEPDIRECTION_INVALID "invalid"
+	typedef enum {
+		AudioKeepDirectionBoth = 0,
+		AudioKeepDirectionLocal = 1,
+		AudioKeepDirectionRemote = 2,
+		AudioKeepDirectionNone = 3,
+		AudioKeepDirectionInvalid = 4
+	} AudioKeepDirectionEnum;
+	static CStdString AudioKeepDirectionToString(int);
+	static int AudioKeepDirectionToEnum(CStdString& audioKeepDirectionString);
+
 #define DIR_IN "in"
 #define DIR_OUT "out"
 #define DIR_UNKN "unkn"
@@ -155,6 +185,8 @@ public:
 #define ET_UPDATE "update"
 #define ET_CALLID "callid"
 #define ET_INVALID "invalid"
+#define ET_LOCALSIDE "localside"
+#define ET_AUDIOKEEPDIRECTION "audiokeepdirection"
 	typedef enum
 	{
 		EtUnknown = 0,
@@ -174,7 +206,9 @@ public:
 		EtReady = 14,
 		EtUpdate = 15,
 		EtCallId = 16,
-		EtInvalid = 17
+                EtLocalSide = 17,
+                EtAudioKeepDirection = 18,
+		EtInvalid = 19
 	} EventTypeEnum;
 	static CStdString EventTypeToString(int eventTypeEnum);
 	static int EventTypeToEnum(CStdString&);

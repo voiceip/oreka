@@ -213,11 +213,11 @@ void CapturePluginProxy::Shutdown()
 	}
 }
 
-void CapturePluginProxy::StartCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
+void CapturePluginProxy::StartCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid, CStdString& side)
 {
 	if(m_loaded)
 	{
-		m_startCaptureFunction(party, orkuid, nativecallid);
+		m_startCaptureFunction(party, orkuid, nativecallid, side);
 	}
 	else
 	{

@@ -77,6 +77,7 @@ Config::Config()
 	m_audioGainChannel1Db = AUDIO_GAIN_CHANNEL_1_DB_DEFAULT;
 	m_audioGainChannel2Db = AUDIO_GAIN_CHANNEL_2_DB_DEFAULT;
 	m_eventStreamingServerPort = STREAMING_SERVER_PORT_DEFAULT;
+	m_audioKeepDirectionDefault = AUDIO_KEEP_DIRECTION_DEFAULT_DEFAULT;
 }
 
 void Config::Define(Serializer* s)
@@ -158,6 +159,7 @@ void Config::Define(Serializer* s)
 	s->DoubleValue(AUDIO_GAIN_CHANNEL_1_DB_PARAM, m_audioGainChannel1Db);
 	s->DoubleValue(AUDIO_GAIN_CHANNEL_2_DB_PARAM, m_audioGainChannel2Db);
 	s->IntValue(STREAMING_SERVER_PORT_PARAM, m_eventStreamingServerPort);
+	s->StringValue(AUDIO_KEEP_DIRECTION_DEFAULT_PARAM, m_audioKeepDirectionDefault);
 }
 
 void Config::Validate()
@@ -218,6 +220,12 @@ void Config::Validate()
 	{
 		CStdString exception;
 		exception.Format("Config::Validate: please set a valid value for TranscodingSleepUs - currently:%d", m_transcodingSleepUs);
+		throw(exception);
+	}
+	if(CaptureEvent::AudioKeepDirectionToEnum(m_audioKeepDirectionDefault) == CaptureEvent::AudioKeepDirectionInvalid)
+	{
+		CStdString exception;
+		exception.Format("VoIpConfig: invalid %s value:%s", AUDIO_KEEP_DIRECTION_DEFAULT_PARAM, m_audioKeepDirectionDefault);
 		throw(exception);
 	}
 }

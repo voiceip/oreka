@@ -122,6 +122,9 @@
 #define AUDIO_GAIN_CHANNEL_1_DB_DEFAULT 0
 #define AUDIO_GAIN_CHANNEL_2_DB_PARAM "AudioGainChannel2Db"
 #define AUDIO_GAIN_CHANNEL_2_DB_DEFAULT 0
+#define AUDIO_KEEP_DIRECTION_DEFAULT_PARAM "AudioKeepDirectionDefault"
+#define AUDIO_KEEP_DIRECTION_DEFAULT_DEFAULT "both"
+
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -190,6 +193,7 @@ public:
 	double m_audioGainDb;
 	double m_audioGainChannel1Db;
 	double m_audioGainChannel2Db;
+	CStdString m_audioKeepDirectionDefault;
 
 private:
 	log4cxx::LoggerPtr m_log;

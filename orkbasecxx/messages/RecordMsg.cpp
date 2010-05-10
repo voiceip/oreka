@@ -97,6 +97,7 @@ void RecordMsg::Define(Serializer* s)
 	s->StringValue(PARTY_PARAM, m_party, false);
 	s->StringValue(ORKUID_PARAM, m_orkuid, false);
 	s->StringValue(NATIVE_CALLID_PARAM, m_nativecallid, false);
+	s->StringValue(SIDE_PARAM, m_side, false);
 }
 
 CStdString RecordMsg::GetClassName()
@@ -115,11 +116,23 @@ ObjectRef RecordMsg::Process()
 	ObjectRef ref(msg);
 	CStdString logMsg;
 
-	CapturePluginProxy::Singleton()->StartCapture(m_party, m_orkuid, m_nativecallid);
-	logMsg.Format("Starting capture for party:%s orkuid:%s nativecallid:%s", m_party, m_orkuid, m_nativecallid);
+	EnsureValidSide();
+
+	CapturePluginProxy::Singleton()->StartCapture(m_party, m_orkuid, m_nativecallid, m_side);
+	logMsg.Format("Starting capture for party:%s orkuid:%s nativecallid:%s side:%s", m_party, m_orkuid, m_nativecallid, m_side);
 	msg->m_success = true;
 	msg->m_comment = logMsg;
 
 	return ref;
 }
 
+void RecordMsg::EnsureValidSide()
+{
+	if(CaptureEvent::AudioKeepDirectionToEnum(m_side) == CaptureEvent::AudioKeepDirectionInvalid)
+	{
+		m_side = "both";
+		return;
+	}
+
+	return;
+}

@@ -34,6 +34,8 @@
 #define NATIVE_CALLID_PARAM "nativecallid"
 #define TAGS_PARAM "tags"
 #define ON_DEMAND_PARAM "ondemand"
+#define LOCALSIDE_PARAM "localside"
+#define AUDIOKEEPDIRECTION_PARAM "audiokeepdirection"
 
 class DLL_IMPORT_EXPORT_ORKBASE TapeMsg : public SyncMessage
 {
@@ -56,6 +58,8 @@ public:
 	CStdString m_localEntryPoint;
 	CStdString m_remoteParty;
 	CStdString m_direction;
+	CStdString m_localSide;
+	CStdString m_audioKeepDirection;
 	int m_duration;
 	CStdString m_serviceName;
 	CStdString m_localIp;

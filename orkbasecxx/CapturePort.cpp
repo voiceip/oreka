@@ -359,6 +359,8 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			Reporting::Instance()->AddTapeMessage(msgRef);
 			break;
 		}
+		case CaptureEvent::EtLocalSide:
+		case CaptureEvent::EtAudioKeepDirection:
 		case CaptureEvent::EtDirection:
 		case CaptureEvent::EtRemoteParty:
 		case CaptureEvent::EtLocalParty:

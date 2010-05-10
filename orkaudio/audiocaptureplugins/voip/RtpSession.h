@@ -204,7 +204,7 @@ public:
 	void UpdateMetadataSkinny();
 	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader);
 	CStdString GetOrkUid();
-	void MarkAsOnDemand();
+	void MarkAsOnDemand(CStdString& side);
 	bool Stopped();
 	RtpPacketInfoRef GetLastRtpPacket();
 
@@ -229,6 +229,7 @@ public:
 	bool m_rtcpLocalParty;
 	bool m_rtcpRemoteParty;
 	CaptureEvent::DirectionEnum m_direction;
+	CaptureEvent::LocalSideEnum m_localSide;
 
 	int m_numRtpPackets;
 	unsigned int m_highestRtpSeqNumDelta;
@@ -331,9 +332,9 @@ public:
 	void Hoover(time_t now);
 	EndpointInfoRef GetEndpointInfoByIp(struct in_addr *ip);
 	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp, unsigned short skinnyPort);
-	CStdString StartCapture(CStdString& party);
-	void StartCaptureOrkuid(CStdString& orkuid);
-	CStdString StartCaptureNativeCallId(CStdString& nativecallid);
+	CStdString StartCapture(CStdString& party, CStdString& side);
+	void StartCaptureOrkuid(CStdString& orkuid, CStdString& side);
+	CStdString StartCaptureNativeCallId(CStdString& nativecallid, CStdString& side);
 	CStdString PauseCaptureNativeCallId(CStdString& nativecallid);
 	CStdString PauseCapture(CStdString& party);
 	void PauseCaptureOrkuid(CStdString& orkuid);
