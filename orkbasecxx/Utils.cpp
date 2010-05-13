@@ -56,6 +56,61 @@ bool MatchesStringList(CStdString& string, std::list<CStdString>& stringList)
 	return false;
 }
 
+CStdString GetHostFromAddressPair(CStdString& hostname)
+{
+        int colidx = 0;
+
+        if((colidx = hostname.Find(CStdString(":"))) >= 0)
+        {
+                return hostname.Left(colidx);
+        }
+
+        return hostname;
+}
+
+int GetPortFromAddressPair(CStdString& hostname)
+{
+        int colidx = 0;
+
+        if((colidx = hostname.Find(CStdString(":"))) >= 0)
+        {
+		CStdString portString;
+
+		portString = hostname.Right(hostname.size() - colidx - 1);
+                return StringToInt(portString);
+        }
+
+        return 0;
+}
+
+CStdString FormatDataSize(unsigned long int size)
+{
+	CStdString sizeStr;
+	double newsize;
+
+	if(size <= 1024)
+	{
+		sizeStr.Format("%lu Byte(s)", size);
+	}
+	else if(size > 1024 && size <= 1048576)
+	{
+		newsize = (double)size / 1024;
+		sizeStr.Format("%.2f KByte(s)", newsize);
+	}
+	else if(size > 1048576 && size <= 1073741824)
+	{
+		newsize = (double)size / 1048576;
+		sizeStr.Format("%.2f MByte(s)", newsize);
+	}
+	else if(size > 1073741824)
+	{
+		newsize = (double)size / 1073741824;
+		sizeStr.Format("%.2f GByte(s)", newsize);
+	}
+
+	return sizeStr;
+}
+
 //========================================================
 // file related stuff
 
@@ -273,7 +328,6 @@ void TcpAddress::ToString(CStdString& string)
 
 	string.Format("%s,%u", szIp, port);
 }
-
 
 void TcpAddressList::AddAddress(struct in_addr ip, unsigned short port)
 {

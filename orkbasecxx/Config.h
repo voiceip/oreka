@@ -124,6 +124,7 @@
 #define AUDIO_GAIN_CHANNEL_2_DB_DEFAULT 0
 #define AUDIO_KEEP_DIRECTION_DEFAULT_PARAM "AudioKeepDirectionDefault"
 #define AUDIO_KEEP_DIRECTION_DEFAULT_DEFAULT "both"
+#define SOCKET_STREAMER_TARGETS_PARAM "SocketStreamerTargets"
 
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
@@ -194,6 +195,7 @@ public:
 	double m_audioGainChannel1Db;
 	double m_audioGainChannel2Db;
 	CStdString m_audioKeepDirectionDefault;
+	std::list<CStdString> m_socketStreamerTargets;
 
 private:
 	log4cxx::LoggerPtr m_log;

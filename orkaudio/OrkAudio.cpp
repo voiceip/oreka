@@ -49,6 +49,7 @@
 #include <list>
 #include "EventStreaming.h"
 #include "OrkTrack.h"
+#include "SocketStreamer.h"
 
 static volatile bool serviceStop = false;
 
@@ -304,6 +305,7 @@ void MainThread()
 	}
 
 	OrkTrack::Initialize();
+	SocketStreamer::Initialize();
 
 	//ACE_Thread_Manager::instance ()->wait ();
 	while(!Daemon::Singleton()->IsStopping())

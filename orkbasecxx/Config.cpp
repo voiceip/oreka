@@ -160,6 +160,7 @@ void Config::Define(Serializer* s)
 	s->DoubleValue(AUDIO_GAIN_CHANNEL_2_DB_PARAM, m_audioGainChannel2Db);
 	s->IntValue(STREAMING_SERVER_PORT_PARAM, m_eventStreamingServerPort);
 	s->StringValue(AUDIO_KEEP_DIRECTION_DEFAULT_PARAM, m_audioKeepDirectionDefault);
+	s->CsvValue(SOCKET_STREAMER_TARGETS_PARAM, m_socketStreamerTargets);
 }
 
 void Config::Validate()

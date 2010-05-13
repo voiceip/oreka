@@ -28,6 +28,14 @@
 	<BatchProcessingEnhancePriority>true</BatchProcessingEnhancePriority>	    
     
 	<!--<TapeDurationMinimumSec>3</TapeDurationMinimumSec>-->
+
+	<!-- Uncomment the parameter below and fill in a comma-separated -->
+	<!-- list of TCP addresses which you wish to open a connection to. -->
+	<!-- For example 192.168.1.250:1721, 192.168.1.1:8091. A TCP -->
+	<!-- connection shall be opened and a read-loop shall be entered -->
+	<!-- into whereby any data read shall be discarded, and a record -->
+	<!-- maintained of the amount of data which has been read. -->
+	<!-- <SocketStreamerTargets></SocketStreamerTargets> -->
     
 	<VoIpPlugin>
 		<PcapSocketBufferSize>8388608</PcapSocketBufferSize>
