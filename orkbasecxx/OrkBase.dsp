@@ -760,6 +760,10 @@ SOURCE=.\Reporting.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\SocketStreamer.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\StdString.h
 # End Source File
 # Begin Source File
@@ -797,6 +801,10 @@ SOURCE=.\Utils.h
 # Begin Source File
 
 SOURCE=.\PartyFilter.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SocketStreamer.h
 # End Source File
 # Begin Source File
 
