@@ -3549,7 +3549,7 @@ void SipInviteInfo::ToString(CStdString& string)
 	MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
 	MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
 
-	string.Format("sender:%s from:%s@%s RTP:%s,%s to:%s@%s rcvr:%s callid:%s smac:%s rmac:%s fromname:%s toname:%s ua:%s", senderIp, m_from, m_fromDomain, fromRtpIp, m_fromRtpPort, m_to, m_toDomain, receiverIp, m_callId, senderMac, receiverMac, m_fromName, m_toName, m_userAgent);
+	string.Format("sender:%s from:%s@%s RTP:%s,%s to:%s@%s rcvr:%s callid:%s smac:%s rmac:%s fromname:%s toname:%s ua:%s requesturi:%s a:sendonly:%s telephone-event-payload-type:%s", senderIp, m_from, m_fromDomain, fromRtpIp, m_fromRtpPort, m_to, m_toDomain, receiverIp, m_callId, senderMac, receiverMac, m_fromName, m_toName, m_userAgent, m_requestUri, ((m_attrSendonly == true) ? "present" : "not-present"), m_telephoneEventPayloadType);
 }
 
 //==========================================================
