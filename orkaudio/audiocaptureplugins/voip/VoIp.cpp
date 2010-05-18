@@ -303,7 +303,7 @@ void GrabSipName(char* in, char* limit, CStdString& out)
 		{
 			continue;
 		}
-		if(c+2 == nameEnd && *c == '"')
+		if(((c+2 == nameEnd) || (c+1 == nameEnd)) && *c == '"')
 		{
 			break;
 		}
@@ -2669,6 +2669,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 
 				while(rtpmapAttribute && rtpmapAttribute < sipEnd)
 				{
+					rtpPayloadType = "";
 					GrabTokenSkipLeadingWhitespaces(rtpmapAttribute, sipEnd, rtpPayloadType);
 					nextToken.Format("%s ", rtpPayloadType);
 					nextStep = memFindAfter((char*)nextToken.c_str(), rtpmapAttribute, sipEnd);
