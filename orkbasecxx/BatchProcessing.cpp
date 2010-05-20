@@ -76,10 +76,12 @@ void BatchProcessing::SetQueueSize(int size)
 	m_audioTapeQueue.setSize(size);
 }
 
-bool BatchProcessing::SkipChunk(AudioTapeRef& audioTapeRef, AudioChunkRef& chunkRef)
+bool BatchProcessing::SkipChunk(AudioTapeRef& audioTapeRef, AudioChunkRef& chunkRef, int& channelToSkip)
 {
 	AudioChunkDetails details = *chunkRef->GetDetails();
 	bool skip = false;
+
+	channelToSkip = 0;
 
 	switch(audioTapeRef->m_audioKeepDirectionEnum)
 	{
@@ -192,6 +194,11 @@ bool BatchProcessing::SkipChunk(AudioTapeRef& audioTapeRef, AudioChunkRef& chunk
 		skip = false;
 		break;
 	}
+	}
+
+	if(skip == true)
+	{
+		channelToSkip = details.m_channel;
 	}
 
 	return skip;
@@ -321,6 +328,8 @@ void BatchProcessing::ThreadHandler(void *args)
 					throw(debug);
 				}
 
+				bool forceChannel1 = false;
+
 				while(fileRef->ReadChunkMono(chunkRef))
 				{
 					// ############ HACK
@@ -330,13 +339,30 @@ void BatchProcessing::ThreadHandler(void *args)
 					// ############ HACK
 
 					AudioChunkDetails details = *chunkRef->GetDetails();
-					if(BatchProcessing::SkipChunk(audioTapeRef, chunkRef) == true)
+					int channelToSkip = 0;
+
+					if(BatchProcessing::SkipChunk(audioTapeRef, chunkRef, channelToSkip) == true)
 					{
 						LOG4CXX_DEBUG(LOG.batchProcessingLog, "[" + trackingId +
                                                 "] Th" + threadIdString +
                                                 " skipping chunk of channel:" +
 						IntToString(details.m_channel));
+
+						if(forceChannel1 == false)
+						{
+							if(channelToSkip == 1)
+							{
+								forceChannel1 = true;
+							}
+						}
+
 						continue;
+					}
+
+					if(forceChannel1 == true)
+					{
+						details.m_channel = 1;
+						chunkRef->SetDetails(&details);
 					}
 
 					decoder.reset();

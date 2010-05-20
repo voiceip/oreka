@@ -37,7 +37,7 @@ public:
 
 
 	static void ThreadHandler(void *args);
-	static bool SkipChunk(AudioTapeRef& audioTapeRef, AudioChunkRef& chunkRef);
+	static bool SkipChunk(AudioTapeRef& audioTapeRef, AudioChunkRef& chunkRef, int& channelToSkip);
 
 	void SetQueueSize(int size);
 
