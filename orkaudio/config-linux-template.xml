@@ -75,5 +75,33 @@
 		<!-- Sangoma wanpipe RTP tap for TDM boards -->
 		<!--<SangomaRxTcpPortStart>9000</SangomaRxTcpPortStart>-->
 		<!--<SangomaTxTcpPortStart>11000</SangomaTxTcpPortStart>-->
+
+		<!-- Mitel Communications Platform -->
+		<!-- Turn on the parameter below to enable support for Mitel -->
+		<!-- <MitelDetect>yes</MitelDetect> -->
+
+		<!-- The parameter below sets the Mitel signalling port. The -->
+		<!-- default is 3999 -->
+		<!-- <MitelSignallingPort>3999</MitelSignallingPort> -->
+
+		<!-- The parameter below sets the amount of time in seconds -->
+		<!-- after which the cached Mitel metadata shall be discarded. -->
+		<!-- The default is 60 seconds. -->
+		<!-- <MitelMetadataTimeoutSec>60</MitelMetadataTimeoutSec> -->
+
+		<!-- Turn on the parameter below to enable extension Mitel -->
+		<!-- extension detection using ARP. Turning on this parameter -->
+		<!-- automatically turns on MitelDetect -->
+		<!-- <MitelArpExtensionDetect>yes</MitelArpExtensionDetect> -->
+
+		<!-- Set MitelSmdrPort to the port where Mitel SMDR records -->
+		<!-- may be accessed. The default is 1752. Note that you -->
+		<!-- shall need to configure SocketStreamerTargets with the -->
+		<!-- host and this port, in order for Oreka to access the -->
+		<!-- SMDR records. See SocketStreamerTargets above for more -->
+		<!-- information on how to configure it. -->
+		<!-- <MitelSmdrPort>1752</MitelSmdrPort> -->
+		<!-- End of Available Configurations for Mitel Communications Platform -->
+
 	</VoIpPlugin>
 </config>
