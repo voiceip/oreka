@@ -28,6 +28,7 @@ ImmediateProcessing ImmediateProcessing::m_immediateProcessingSingleton;
 ImmediateProcessing::ImmediateProcessing()
 {
 	m_lastQueueFullTime = time(NULL);
+	m_semaphore.acquire();
 }
 
 ImmediateProcessing* ImmediateProcessing::GetInstance()
@@ -37,28 +38,81 @@ ImmediateProcessing* ImmediateProcessing::GetInstance()
 
 void ImmediateProcessing::AddAudioTape(AudioTapeRef audioTapeRef)
 {
-	if (!m_audioTapeQueue.push(audioTapeRef))
-	{
-		if( (time(NULL) - m_lastQueueFullTime) > 10 )
-		{
-			m_lastQueueFullTime = time(NULL);
-			LOG4CXX_ERROR(LOG.immediateProcessingLog, CStdString("ImmediateProcessing: queue full"));
-		}
-	}
+	Push(audioTapeRef);
 }
 
-void ImmediateProcessing::SetQueueSize(int size)
+AudioTapeRef ImmediateProcessing::Pop(CStdString& after)
 {
-	m_audioTapeQueue.setSize(size);
+	m_semaphore.acquire();
+	MutexSentinel mutexSentinel(m_mutex);
+	std::map<CStdString, AudioTapeRef>::iterator begin;
+	std::map<CStdString, AudioTapeRef>::iterator upper;
+
+	AudioTapeRef audioTapeRef;
+
+	begin = m_audioTapeQueue.begin();
+	if(begin != m_audioTapeQueue.end())
+	{
+		if(after.size() == 0)
+		{
+			audioTapeRef = begin->second;
+		}
+		else
+		{
+			upper = m_audioTapeQueue.upper_bound(after);
+			if(upper == m_audioTapeQueue.end())
+			{
+				audioTapeRef = begin->second;
+			}
+			else
+			{
+				audioTapeRef = upper->second;
+			}
+		}
+
+		if(audioTapeRef.get() != NULL)
+		{
+			m_audioTapeQueue.erase(audioTapeRef->m_portId);
+		}
+		else
+		{
+			CStdString key = "NULL";
+
+			m_audioTapeQueue.erase(key);
+		}
+
+	}
+
+
+	return audioTapeRef;
 }
 
+void ImmediateProcessing::Push(AudioTapeRef& audioTapeRef)
+{
+	MutexSentinel mutexSentinel(m_mutex);
+	CStdString key;
+
+	if(audioTapeRef.get() == NULL)
+	{
+		key = "NULL";
+	}
+	else
+	{
+		key = audioTapeRef->m_portId;
+	}
+
+	m_audioTapeQueue.erase(key);
+	m_audioTapeQueue.insert(std::make_pair(key, audioTapeRef));
+
+	m_semaphore.release();
+}
 
 void ImmediateProcessing::ThreadHandler(void *args)
 {
 	CStdString logMsg;
+	CStdString lastHandled;
 
 	ImmediateProcessing* pImmediateProcessing = ImmediateProcessing::GetInstance();
-	pImmediateProcessing->SetQueueSize(CONFIG.m_immediateProcessingQueueSize);
 
 	logMsg.Format("thread starting - queue size:%d", CONFIG.m_immediateProcessingQueueSize);
 	LOG4CXX_INFO(LOG.immediateProcessingLog, logMsg);
@@ -69,10 +123,11 @@ void ImmediateProcessing::ThreadHandler(void *args)
 	{
 		try
 		{
-			AudioTapeRef audioTapeRef = pImmediateProcessing->m_audioTapeQueue.pop();
+			AudioTapeRef audioTapeRef = pImmediateProcessing->Pop(lastHandled);
 
 			if(audioTapeRef.get() == NULL)
 			{
+				lastHandled = "NULL";
 				if(Daemon::Singleton()->IsStopping())
 				{
 					stop = true;
@@ -80,7 +135,8 @@ void ImmediateProcessing::ThreadHandler(void *args)
 			}
 			else
 			{
-				//LOG4CXX_DEBUG(LOG.immediateProcessingLog, CStdString("Got chunk"));
+				//LOG4CXX_INFO(LOG.immediateProcessingLog, "Previous:" + lastHandled + " Current:" + audioTapeRef->m_portId);
+				lastHandled = audioTapeRef->m_portId;
 			
 				audioTapeRef->Write();
 

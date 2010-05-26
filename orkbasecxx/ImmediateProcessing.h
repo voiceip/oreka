@@ -25,10 +25,17 @@ public:
 	static void ThreadHandler(void *args);
 
 	void AddAudioTape(AudioTapeRef audioTapeRef);
-	void SetQueueSize(int size);
+
+	AudioTapeRef Pop(CStdString& after);
+	AudioTapeRef Pop();
+	void Push(AudioTapeRef& audioTapeRef);
+
 private:
 	static ImmediateProcessing m_immediateProcessingSingleton;
-	ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
+
+	std::map<CStdString, AudioTapeRef> m_audioTapeQueue;
+	ACE_Thread_Mutex m_mutex;
+	ACE_Thread_Semaphore m_semaphore;
 
 	time_t m_lastQueueFullTime;
 };

@@ -96,6 +96,8 @@ AudioTape::AudioTape(CStdString &portId)
 	m_pushCount = 0;
 	m_popCount = 0;
 	m_highMark = 0;
+	m_chunkQueueDataSize = 0;
+	m_chunkQueueErrorReported = false;
 
 	GenerateCaptureFilePathAndIdentifier();
 }
@@ -107,6 +109,8 @@ AudioTape::AudioTape(CStdString &portId, CStdString& file)
 	m_onDemand = false;
 	m_localSide = CaptureEvent::LocalSideUnkn;
 	m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionDefault);
+	m_chunkQueueDataSize = 0;
+	m_chunkQueueErrorReported = false;
 
 	// Extract Path and Identifier
 	m_filePath = FilePath(file);
@@ -128,8 +132,23 @@ void AudioTape::AddAudioChunk(AudioChunkRef chunkRef)
 	if(m_state == StateCreated || m_state == StateActive)
 	{
 		MutexSentinel sentinel(m_mutex);
+
+		if(m_chunkQueueDataSize >= (CONFIG.m_captureFileBatchSizeKByte * 3 * 1024))
+		{
+			if(m_chunkQueueErrorReported == false)
+			{
+				m_chunkQueueErrorReported = true;
+				LOG4CXX_ERROR(LOG.tapeLog, "Rejected additional chunk -- Queued Data Size:" + FormatDataSize(m_chunkQueueDataSize) + " is greater than 3*CaptureFileBatchSizeKByte:" + FormatDataSize(CONFIG.m_captureFileBatchSizeKByte * 3 * 1024));
+			}
+
+			return;
+		}
+
 		m_chunkQueue.push(chunkRef);
+
+		m_chunkQueueDataSize += chunkRef->GetNumBytes();
 		m_pushCount += 1;
+
 		if(m_chunkQueue.size() > m_highMark)
 		{
 			m_highMark = m_chunkQueue.size();
@@ -169,7 +188,9 @@ void AudioTape::Write()
 				{
 					chunkRef = m_chunkQueue.front();
 					m_chunkQueue.pop();
+
 					m_popCount += 1;
+					m_chunkQueueDataSize -= chunkRef->GetNumBytes();
 				}
 				else
 				{
@@ -191,7 +212,9 @@ void AudioTape::Write()
 			{
 				chunkRef = m_chunkQueue.front();
 				m_chunkQueue.pop();
+
 				m_popCount += 1;
+				m_chunkQueueDataSize -= chunkRef->GetNumBytes();
 			}
 			else
 			{

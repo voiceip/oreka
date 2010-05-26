@@ -133,6 +133,8 @@ private:
 	int m_pushCount;
 	int m_popCount;
 	int m_highMark;
+	unsigned int m_chunkQueueDataSize;
+	bool m_chunkQueueErrorReported;
 
 	std::queue<CaptureEventRef> m_eventQueue;
 	std::queue<CaptureEventRef> m_toSendEventQueue;
