@@ -53,13 +53,6 @@
 
 		<!--<PcapFilter>net 217.14.0.0/16 or host 10.0.0.1</PcapFilter>-->
 
-		<!-- If AllowedIpRanges is used, only packets with *both* source and destination -->
-		<!-- matching the list are retained -->
-		<!--<AllowedIpRanges>212.125.143.0/24, 82.150.0.0/16, 82.199.64.133</AllowedIpRanges>-->
-		<!-- If BlockedIpRanges is used, packets with *either* source or destination -->
-		<!-- matching the list are dropped -->
-		<!--<BlockedIpRanges>212.125.143.0/24, 82.150.0.0/16, 82.199.64.133</BlockedIpRanges>-->				
-
 		<!--<SipOverTcpSupport>yes</SipOverTcpSupport>-->
 		<!--<SipReportFullAddress>yes</SipReportFullAddress>-->
 		<!--<SipUse200OkMediaAddress>yes</SipUse200OkMediaAddress>-->
