@@ -503,7 +503,7 @@ void AudioTape::PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum ev
 	msg->m_localEntryPoint = m_localEntryPoint;
 	msg->m_remoteParty = m_remoteParty;
 	msg->m_direction = CaptureEvent::DirectionToString(m_direction);
-	msg->m_localSide = CaptureEvent::LocalSideToString(m_localSide);
+	//msg->m_localSide = CaptureEvent::LocalSideToString(m_localSide);
 	msg->m_audioKeepDirection = CaptureEvent::AudioKeepDirectionToString(m_audioKeepDirectionEnum);
 	msg->m_duration = m_duration;
 	msg->m_timestamp = m_beginDate;

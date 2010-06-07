@@ -1504,13 +1504,6 @@ CStdString RtpSession::GetOrkUid()
 
 void RtpSession::MarkAsOnDemand(CStdString& side)
 {
-	if(m_onDemand == true)
-	{
-		return;
-	}
-
-	m_onDemand = true;
-
 	// Report direction
 	if(m_started == true)
 	{
