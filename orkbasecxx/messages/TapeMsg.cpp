@@ -23,7 +23,7 @@ TapeMsg::TapeMsg()
 	// Here is where default values are set
 	m_timestamp = 0;
 	m_direction = CaptureEvent::DirectionToString(CaptureEvent::DirUnkn);
-	m_localSide = CaptureEvent::LocalSideToString(CaptureEvent::LocalSideUnkn);
+	//m_localSide = CaptureEvent::LocalSideToString(CaptureEvent::LocalSideUnkn);
 	m_audioKeepDirection = CaptureEvent::AudioKeepDirectionToString(CaptureEvent::AudioKeepDirectionBoth);
 	m_duration = 0;
 	m_serviceName = CONFIG.m_serviceName;
@@ -42,8 +42,6 @@ void TapeMsg::Define(Serializer* s)
 	s->StringValue(LOCALENTRYPOINT_PARAM, m_localEntryPoint);
 	s->StringValue(REMOTEPARTY_PARAM, m_remoteParty);
 	s->StringValue(DIRECTION_PARAM, m_direction);
-	s->StringValue(LOCALSIDE_PARAM, m_localSide);
-	s->StringValue(AUDIOKEEPDIRECTION_PARAM, m_audioKeepDirection);
 	s->IntValue(DURATION_PARAM, m_duration);
 	s->StringValue(SERVICE_PARAM, m_serviceName);
 
@@ -55,6 +53,9 @@ void TapeMsg::Define(Serializer* s)
 
 	s->CsvMapValue(TAGS_PARAM, m_tags);
 	s->BoolValue(ON_DEMAND_PARAM, m_onDemand);
+	//s->StringValue(LOCALSIDE_PARAM, m_localSide);
+	s->StringValue(AUDIOKEEPDIRECTION_PARAM, m_audioKeepDirection);
+
 
 	DefineMessage(s);
 }

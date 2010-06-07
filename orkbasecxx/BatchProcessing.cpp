@@ -259,7 +259,7 @@ void BatchProcessing::ThreadHandler(void *args)
 
 				// Let's work on the tape we have pulled
 				//CStdString threadIdString = IntToString(threadId);
-				LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " processing " + audioTapeRef->GetIdentifier());
+				LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " processing " + audioTapeRef->GetIdentifier() + " localside:" + CaptureEvent::LocalSideToString(audioTapeRef->m_localSide) + " audiokeepdirection:" + CaptureEvent::AudioKeepDirectionToString(audioTapeRef->m_audioKeepDirectionEnum));
 				if(audioTapeRef->m_audioKeepDirectionEnum == CaptureEvent::AudioKeepDirectionInvalid)
 				{
 					LOG4CXX_WARN(LOG.batchProcessingLog, "[" + trackingId + 

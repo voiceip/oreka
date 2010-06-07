@@ -163,7 +163,7 @@ void Reporting::AddTapeMessage(MessageRef& messageRef)
 		pRptTapeMsg->m_localEntryPoint = pTapeMsg->m_localEntryPoint;
 		pRptTapeMsg->m_remoteParty = pTapeMsg->m_remoteParty;
 		pRptTapeMsg->m_direction = pTapeMsg->m_direction;
-		pRptTapeMsg->m_localSide = pTapeMsg->m_localSide;
+		//pRptTapeMsg->m_localSide = pTapeMsg->m_localSide;
 		pRptTapeMsg->m_audioKeepDirection = pTapeMsg->m_audioKeepDirection;
 		pRptTapeMsg->m_duration = pTapeMsg->m_duration;
 		pRptTapeMsg->m_timestamp = pTapeMsg->m_timestamp;
@@ -205,7 +205,7 @@ void Reporting::AddTapeMessage(MessageRef& messageRef)
 	pRptTapeMsg->m_localEntryPoint = pTapeMsg->m_localEntryPoint;
 	pRptTapeMsg->m_remoteParty = pTapeMsg->m_remoteParty;
 	pRptTapeMsg->m_direction = pTapeMsg->m_direction;
-	pRptTapeMsg->m_localSide = pTapeMsg->m_localSide;
+	//pRptTapeMsg->m_localSide = pTapeMsg->m_localSide;
 	pRptTapeMsg->m_audioKeepDirection = pTapeMsg->m_audioKeepDirection;
 	pRptTapeMsg->m_duration = pTapeMsg->m_duration;
 	pRptTapeMsg->m_timestamp = pTapeMsg->m_timestamp;
