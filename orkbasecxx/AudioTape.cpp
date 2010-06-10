@@ -32,7 +32,20 @@ AudioTapeDescription::AudioTapeDescription()
 {
 	m_direction = CaptureEvent::DirUnkn;
 	m_localSide = CaptureEvent::LocalSideUnkn;
-	m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionDefault);
+
+	if(CaptureEvent::AudioKeepDirectionIsDefault(CONFIG.m_audioKeepDirectionIncomingDefault) == false)
+	{
+		m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionIncomingDefault);
+	}
+	else if(CaptureEvent::AudioKeepDirectionIsDefault(CONFIG.m_audioKeepDirectionOutgoingDefault) == false)
+	{
+		m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionOutgoingDefault);
+	}
+	else
+	{
+		m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionDefault);
+	}
+
 	m_duration = 0;
 	m_beginDate = 0;
 }
@@ -84,7 +97,20 @@ AudioTape::AudioTape(CStdString &portId)
 	m_duration = 0;
 	m_direction = CaptureEvent::DirUnkn;
 	m_localSide = CaptureEvent::LocalSideUnkn;
-	m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionDefault);
+
+	if(CaptureEvent::AudioKeepDirectionIsDefault(CONFIG.m_audioKeepDirectionIncomingDefault) == false)
+	{
+		m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionIncomingDefault);
+	}
+	else if(CaptureEvent::AudioKeepDirectionIsDefault(CONFIG.m_audioKeepDirectionOutgoingDefault) == false)
+	{
+		m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionOutgoingDefault);
+	}
+	else
+	{
+		m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionDefault);
+	}
+
 	m_shouldStop = false;
 	m_readyForBatchProcessing = false;
 	m_trackingId = portId;	// to make sure this has a value before we get the capture tracking Id.
@@ -108,7 +134,20 @@ AudioTape::AudioTape(CStdString &portId, CStdString& file)
 	m_portId = portId;
 	m_onDemand = false;
 	m_localSide = CaptureEvent::LocalSideUnkn;
-	m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionDefault);
+
+	if(CaptureEvent::AudioKeepDirectionIsDefault(CONFIG.m_audioKeepDirectionIncomingDefault) == false)
+	{
+		m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionIncomingDefault);
+	}
+	else if(CaptureEvent::AudioKeepDirectionIsDefault(CONFIG.m_audioKeepDirectionOutgoingDefault) == false)
+	{
+		m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionOutgoingDefault);
+	}
+	else
+	{
+		m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(CONFIG.m_audioKeepDirectionDefault);
+	}
+
 	m_chunkQueueDataSize = 0;
 	m_chunkQueueErrorReported = false;
 

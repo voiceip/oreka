@@ -124,6 +124,10 @@
 #define AUDIO_GAIN_CHANNEL_2_DB_DEFAULT 0
 #define AUDIO_KEEP_DIRECTION_DEFAULT_PARAM "AudioKeepDirectionDefault"
 #define AUDIO_KEEP_DIRECTION_DEFAULT_DEFAULT "both"
+#define AUDIO_KEEP_DIRECTION_INCOMING_DEFAULT_PARAM "AudioKeepDirectionIncomingDefault"
+#define AUDIO_KEEP_DIRECTION_INCOMING_DEFAULT_DEFAULT "both"
+#define AUDIO_KEEP_DIRECTION_OUTGOING_DEFAULT_PARAM "AudioKeepDirectionOutgoingDefault"
+#define AUDIO_KEEP_DIRECTION_OUTGOING_DEFAULT_DEFAULT "both"
 #define SOCKET_STREAMER_TARGETS_PARAM "SocketStreamerTargets"
 
 
@@ -195,6 +199,8 @@ public:
 	double m_audioGainChannel1Db;
 	double m_audioGainChannel2Db;
 	CStdString m_audioKeepDirectionDefault;
+	CStdString m_audioKeepDirectionIncomingDefault;
+	CStdString m_audioKeepDirectionOutgoingDefault;
 	std::list<CStdString> m_socketStreamerTargets;
 
 private:

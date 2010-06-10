@@ -400,6 +400,18 @@ int CaptureEvent::AudioKeepDirectionToEnum(CStdString& audioKeepDirectionString)
 	return AudioKeepDirectionInvalid;
 }
 
+bool CaptureEvent::AudioKeepDirectionIsDefault(CStdString& audioKeepDirectionString)
+{
+	bool result = false;
+
+	if(audioKeepDirectionString.CompareNoCase(AUDIOKEEPDIRECTION_BOTH) == 0)
+	{
+		result = true;
+	}
+
+	return result;
+}
+
 CStdString CaptureEvent::EventTypeToString(int eventTypeEnum)
 {
 	switch(eventTypeEnum)

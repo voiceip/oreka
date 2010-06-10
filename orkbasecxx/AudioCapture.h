@@ -151,6 +151,7 @@ public:
 	} AudioKeepDirectionEnum;
 	static CStdString AudioKeepDirectionToString(int);
 	static int AudioKeepDirectionToEnum(CStdString& audioKeepDirectionString);
+	static bool AudioKeepDirectionIsDefault(CStdString& audioKeepDirectionString);
 
 #define DIR_IN "in"
 #define DIR_OUT "out"
