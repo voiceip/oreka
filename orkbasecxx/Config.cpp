@@ -78,6 +78,8 @@ Config::Config()
 	m_audioGainChannel2Db = AUDIO_GAIN_CHANNEL_2_DB_DEFAULT;
 	m_eventStreamingServerPort = STREAMING_SERVER_PORT_DEFAULT;
 	m_audioKeepDirectionDefault = AUDIO_KEEP_DIRECTION_DEFAULT_DEFAULT;
+	m_audioKeepDirectionIncomingDefault = AUDIO_KEEP_DIRECTION_INCOMING_DEFAULT_DEFAULT;
+	m_audioKeepDirectionOutgoingDefault = AUDIO_KEEP_DIRECTION_OUTGOING_DEFAULT_DEFAULT;
 }
 
 void Config::Define(Serializer* s)
@@ -160,6 +162,8 @@ void Config::Define(Serializer* s)
 	s->DoubleValue(AUDIO_GAIN_CHANNEL_2_DB_PARAM, m_audioGainChannel2Db);
 	s->IntValue(STREAMING_SERVER_PORT_PARAM, m_eventStreamingServerPort);
 	s->StringValue(AUDIO_KEEP_DIRECTION_DEFAULT_PARAM, m_audioKeepDirectionDefault);
+	s->StringValue(AUDIO_KEEP_DIRECTION_INCOMING_DEFAULT_PARAM, m_audioKeepDirectionIncomingDefault);
+	s->StringValue(AUDIO_KEEP_DIRECTION_OUTGOING_DEFAULT_PARAM, m_audioKeepDirectionOutgoingDefault);
 	s->CsvValue(SOCKET_STREAMER_TARGETS_PARAM, m_socketStreamerTargets);
 }
 
@@ -229,6 +233,19 @@ void Config::Validate()
 		exception.Format("VoIpConfig: invalid %s value:%s", AUDIO_KEEP_DIRECTION_DEFAULT_PARAM, m_audioKeepDirectionDefault);
 		throw(exception);
 	}
+	if(CaptureEvent::AudioKeepDirectionToEnum(m_audioKeepDirectionIncomingDefault) == CaptureEvent::AudioKeepDirectionInvalid)
+	{
+		CStdString exception;
+		exception.Format("VoIpConfig: invalid %s value:%s", AUDIO_KEEP_DIRECTION_INCOMING_DEFAULT_PARAM, m_audioKeepDirectionIncomingDefault);
+		throw(exception);
+	}
+	if(CaptureEvent::AudioKeepDirectionToEnum(m_audioKeepDirectionOutgoingDefault) == CaptureEvent::AudioKeepDirectionInvalid)
+	{
+		CStdString exception;
+		exception.Format("VoIpConfig: invalid %s value:%s", AUDIO_KEEP_DIRECTION_OUTGOING_DEFAULT_PARAM, m_audioKeepDirectionOutgoingDefault);
+		throw(exception);
+	}
+
 }
 
 CStdString Config::GetClassName()
