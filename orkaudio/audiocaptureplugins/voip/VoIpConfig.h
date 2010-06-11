@@ -15,6 +15,7 @@
 #define __VOIPCONFIG_H__
 
 #include <list>
+#include <map>
 #include "StdString.h"
 #include "Object.h"
 #include "boost/shared_ptr.hpp"
@@ -40,6 +41,7 @@ public:
 	bool IsRtpTrackingIpAddress(struct in_addr addr);
 	bool IsDeviceWanted(CStdString device);
 	bool IsPacketWanted(IpHeaderStruct* ipHeader);
+	void PopulateIntMapFromCsv(Serializer *s, const char *param, std::map<unsigned int, unsigned int>& intList);
 
 	CStdString m_device;				// old style but can still be used for specifying single device
 	std::list<CStdString> m_devices;	// new style devices csv
@@ -78,6 +80,7 @@ public:
 	bool m_rtpTrackByUdpPortOnly;
 	bool m_rtpAllowMultipleMappings;
 	int m_rtpSeqGapThreshold;
+	std::map<unsigned int, unsigned int> m_rtpPayloadTypeBlockList;
 
 	bool m_iax2Support;
 	bool m_iax2TreatCallerIdNameAsXUniqueId;
