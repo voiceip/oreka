@@ -133,6 +133,8 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("Iax2Support", m_iax2Support);
 	s->BoolValue("Iax2TreatCallerIdNameAsXUniqueId", m_iax2TreatCallerIdNameAsXUniqueId);
 	s->BoolValue("RtpDetectOnOddPorts", m_rtpDetectOnOddPorts);
+	PopulateIntMapFromCsv(s, "RtpPayloadTypeBlockList", m_rtpPayloadTypeBlockList);
+
 	s->CsvValue("SipExtractFields", m_sipExtractFields);
 	s->BoolValue("SipNotifySupport", m_sipNotifySupport);
 	s->BoolValue("SipOverTcpSupport", m_sipOverTcpSupport);
@@ -544,6 +546,25 @@ bool VoIpConfig::IsPacketWanted(IpHeaderStruct* ipHeader)
 		bitWidthIt++;
 	}
 	return wanted;
+}
+
+void VoIpConfig::PopulateIntMapFromCsv(Serializer *s, const char *param, std::map<unsigned int, unsigned int>& intList)
+{
+	std::list<CStdString> csvList;
+	std::list<CStdString>::iterator it;
+
+	s->CsvValue(param, csvList);
+	if(csvList.size() > 0)
+	{
+		for(it = csvList.begin(); it != csvList.end(); it++)
+		{
+			CStdString element = *it;
+			unsigned int elem = 0;
+
+			elem = StringToInt(element);
+			intList.insert(std::make_pair(elem, 1));
+		}
+	}
 }
 
 bool VoIpConfig::IsDeviceWanted(CStdString device)

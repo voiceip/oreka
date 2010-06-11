@@ -1383,6 +1383,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 {
 	bool result = false;
 	RtpHeaderStruct* rtpHeader = (RtpHeaderStruct*)udpPayload;
+	std::map<unsigned int, unsigned int>::iterator pair;
 
 	/* Ensure that the UDP payload is at least sizeof(RtpHeaderStruct) */
 	if(ntohs(udpHeader->len) < sizeof(RtpHeaderStruct))
@@ -1392,6 +1393,37 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 	{
 		if((!(ntohs(udpHeader->source)%2) && !(ntohs(udpHeader->dest)%2)) || DLLCONFIG.m_rtpDetectOnOddPorts)	// udp ports usually even 
 		{
+			pair = DLLCONFIG.m_rtpPayloadTypeBlockList.find(rtpHeader->pt);
+			if(pair != DLLCONFIG.m_rtpPayloadTypeBlockList.end())
+			{
+				if(s_rtpPacketLog->isDebugEnabled())
+				{
+					RtpPacketInfoRef rtpInfo(new RtpPacketInfo());
+					u_char* payload = (u_char *)rtpHeader + sizeof(RtpHeaderStruct);
+					u_char* packetEnd = (u_char *)ipHeader + ntohs(ipHeader->ip_len);
+					u_int payloadLength = packetEnd - payload;
+					CStdString logMsg;
+
+					rtpInfo->m_sourceIp = ipHeader->ip_src;
+					rtpInfo->m_destIp =  ipHeader->ip_dest;
+					rtpInfo->m_sourcePort = ntohs(udpHeader->source);
+					rtpInfo->m_destPort = ntohs(udpHeader->dest);
+					rtpInfo->m_payloadSize = payloadLength;
+					rtpInfo->m_payloadType = rtpHeader->pt;
+					rtpInfo->m_seqNum = ntohs(rtpHeader->seq);
+					rtpInfo->m_timestamp = ntohl(rtpHeader->ts);
+					rtpInfo->m_payload = payload;
+					rtpInfo->m_arrivalTimestamp = time(NULL);
+					memcpy(rtpInfo->m_sourceMac, ethernetHeader->sourceMac, sizeof(rtpInfo->m_sourceMac));
+					memcpy(rtpInfo->m_destMac, ethernetHeader->destinationMac, sizeof(rtpInfo->m_destMac));
+
+					rtpInfo->ToString(logMsg);
+					LOG4CXX_DEBUG(s_rtpPacketLog, "Dropped RTP packet with payload type:" + IntToString(rtpHeader->pt) + " " + logMsg);
+				}
+
+				return true;
+			}
+
 			if((rtpHeader->pt <= 34 &&  rtpHeader->pt != 13) || (rtpHeader->pt >= 97 && rtpHeader->pt < 127) )         
 			// pt=13 is CN (Comfort Noise)
 			// pt=34 is H263
