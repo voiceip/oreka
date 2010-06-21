@@ -49,7 +49,11 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_started = false;
 	m_stopped = false;
 	m_onHold = false;
-	m_keep = false;
+	m_keepRtp = true;
+	if(CONFIG.m_lookBackRecording == false)
+	{
+		m_keepRtp = false;
+	}
 	m_nonLookBackSessionStarted = false;
 	m_beginDate = 0;
 	m_hasDuplicateRtp = false;
@@ -985,12 +989,11 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 			ReportMetadata();
 			m_nonLookBackSessionStarted = true;
 		}
-
-		if(!m_keep)
-		{
-			m_lastUpdated = time(NULL);
-			return true;
-		}
+	}
+	if(!m_keepRtp)
+	{
+		m_lastUpdated = rtpPacket->m_arrivalTimestamp;
+		return true;
 	}
 
 	// Dismiss packets that should not be part of a Skinny session
@@ -1373,7 +1376,7 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 			value = pair->second;
 			if(DLLCONFIG.m_sipOnDemandFieldValue.Compare(value) == 0)
 			{
-				m_keep = true;
+				m_keepRtp = true;
 				m_onDemand = true;
 				LOG4CXX_INFO(m_log, "[" + m_trackingId + "] " + DLLCONFIG.m_sipOnDemandFieldName + ":" + value + " triggered recording");
 			}
@@ -3189,7 +3192,7 @@ void RtpSessions::StartCaptureOrkuid(CStdString& orkuid, CStdString& side)
 
 		if(session->OrkUidMatches(orkuid))
 		{
-			session->m_keep = true;
+			session->m_keepRtp = true;
 			found = true;
 		}
 	}
@@ -3227,7 +3230,7 @@ CStdString RtpSessions::StartCaptureNativeCallId(CStdString& nativecallid, CStdS
 
 		if(session->NativeCallIdMatches(nativecallid))
 		{
-			session->m_keep = true;
+			session->m_keepRtp = true;
 			found = true;
 			orkUid = session->GetOrkUid();
 		}
@@ -3268,7 +3271,7 @@ CStdString RtpSessions::StartCapture(CStdString& party, CStdString& side)
 
 		if (session->PartyMatches(party))
 		{
-			session->m_keep = true;
+			session->m_keepRtp = true;
 			found = true;
 			orkUid = session->GetOrkUid();
 		}
@@ -3309,7 +3312,7 @@ CStdString RtpSessions::PauseCapture(CStdString& party)
 
 		if (session->PartyMatches(party))
 		{
-			session->m_keep = false;
+			session->m_keepRtp = false;
 			found = true;
 			orkUid = session->GetOrkUid();
 		}
@@ -3342,7 +3345,7 @@ void RtpSessions::PauseCaptureOrkuid(CStdString& orkuid)
 
 		if(session->OrkUidMatches(orkuid))
 		{
-			session->m_keep = false;
+			session->m_keepRtp = false;
 			found = true;
 		}
 	}
@@ -3373,7 +3376,7 @@ CStdString RtpSessions::PauseCaptureNativeCallId(CStdString& nativecallid)
 
 		if(session->NativeCallIdMatches(nativecallid))
 		{
-			session->m_keep = false;
+			session->m_keepRtp = false;
 			found = true;
 			orkUid = session->GetOrkUid();
 		}
