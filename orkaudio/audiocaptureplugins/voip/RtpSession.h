@@ -246,7 +246,7 @@ public:
 	ACE_Time_Value m_skinnyLastCallInfoTime;
 	int m_skinnyLineInstance;
 	bool m_onHold;
-	bool m_keep;
+	bool m_keepRtp;
 	bool m_nonLookBackSessionStarted;
 	bool m_onDemand;
 	std::list<CStdString> m_mediaAddresses;
