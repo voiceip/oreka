@@ -2084,7 +2084,7 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 		{
 			if(DLLCONFIG.m_skinnyCallInfoStopsPreviousToleranceSec == 0)
 			{
-				logMsg.Format("[%s] stopped by [%s] CallInfo (SkinnyCallInfoStopsPreviousToleranceSec:0)", session->m_trackingId, previousSession->m_trackingId);
+				logMsg.Format("[%s] stopped by [%s] CallInfo (SkinnyCallInfoStopsPreviousToleranceSec:0)", previousSession->m_trackingId, session->m_trackingId);
 				LOG4CXX_INFO(m_log, logMsg);
 				Stop(previousSession);
 			}
@@ -2095,13 +2095,13 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 				diff = (time(NULL) - previousSession->m_lastRtpStreamStart);
 				if(diff <= DLLCONFIG.m_skinnyCallInfoStopsPreviousToleranceSec)
 				{
-					logMsg.Format("[%s] stopped by [%s] CallInfo, last RTP stream had just started (%d sec. ago)", session->m_trackingId, previousSession->m_trackingId, diff);
+					logMsg.Format("[%s] stopped by [%s] CallInfo, last RTP stream had just started (%d sec. ago)", previousSession->m_trackingId, session->m_trackingId, diff);
 					LOG4CXX_INFO(m_log, logMsg);
 					Stop(previousSession);
 				}
 				else
 				{
-					logMsg.Format("[%s] not stopped by [%s] CallInfo, last RTP stream started long ago (%d sec. ago)", session->m_trackingId, previousSession->m_trackingId, diff);
+					logMsg.Format("[%s] not stopped by [%s] CallInfo, last RTP stream started long ago (%d sec. ago)", previousSession->m_trackingId, session->m_trackingId, diff);
 					LOG4CXX_INFO(m_log, logMsg);
 				}
 			}
