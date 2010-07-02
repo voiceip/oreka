@@ -262,8 +262,8 @@ private:
 	void ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket);
 	void ReportMetadata();
 	void GenerateOrkUid();
-	void HandleRtpEvent(RtpPacketInfoRef& rtpPacket);
-	void RecordRtpEvent();
+	void HandleRtpEvent(RtpPacketInfoRef& rtpPacket, int channel);
+	void RecordRtpEvent(int channel);
 	bool MatchesSipDomain(CStdString& domain);
 	bool MatchesReferenceAddresses(struct in_addr inAddr);
 	bool IsInSkinnyReportingList(CStdString item);

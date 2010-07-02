@@ -880,7 +880,7 @@ void RtpSession::ReportMetadata()
 	g_captureEventCallBack(event, m_capturePort);
 }
 
-void RtpSession::RecordRtpEvent()
+void RtpSession::RecordRtpEvent(int channel)
 {
 	CaptureEventRef event(new CaptureEvent());
 	CStdString dtmfEventString, dtmfEventKey;
@@ -894,8 +894,8 @@ void RtpSession::RecordRtpEvent()
 	timeDiff = timeNow - beginTime;
 	msDiff = (timeDiff.sec() * 1000) + (timeDiff.usec() / 1000);
 
-	dtmfEventString.Format("event:%d timestamp:%d duration:%d volume:%d seqno:%d offsetms:%d", m_currentRtpEvent, m_currentRtpEventTs, m_currentDtmfDuration, m_currentDtmfVolume, m_currentSeqNo, msDiff);
-	dtmfEventKey.Format("%d_RtpDtmfEvent", m_currentRtpEventTs);
+	dtmfEventString.Format("event:%d timestamp:%d duration:%d volume:%d seqno:%d offsetms:%d channel:%d", m_currentRtpEvent, m_currentRtpEventTs, m_currentDtmfDuration, m_currentDtmfVolume, m_currentSeqNo, msDiff, channel);
+	dtmfEventKey.Format("RtpDtmfEvent_%d", m_currentRtpEventTs);
 	event->m_type = CaptureEvent::EtKeyValue;
 	event->m_key = dtmfEventKey;
 	event->m_value = dtmfEventString;
@@ -904,7 +904,7 @@ void RtpSession::RecordRtpEvent()
 	LOG4CXX_INFO(m_log, "[" + m_trackingId + "] RTP DTMF event [ " + dtmfEventString + " ]");
 }
 
-void RtpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket)
+void RtpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket, int channel)
 {
 	CStdString logMsg;
 
@@ -934,7 +934,7 @@ void RtpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket)
 
 	if((m_currentRtpEvent != 65535) && (m_currentRtpEvent != rtpEventInfo->m_event))
 	{
-		RecordRtpEvent();
+		RecordRtpEvent(channel);
 	}
 	else if(rtpEventInfo->m_end)
 	{
@@ -947,7 +947,7 @@ void RtpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket)
 
 			if(m_lastEventEndSeqNo != rtpPacket->m_seqNum)
 			{
-				RecordRtpEvent();
+				RecordRtpEvent(channel);
 				m_lastEventEndSeqNo = rtpPacket->m_seqNum;
 			}
 
@@ -959,7 +959,7 @@ void RtpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket)
 	}
 	else if((m_currentRtpEvent != 65535) && m_currentDtmfDuration && (rtpEventInfo->m_duration < m_currentDtmfDuration))
 	{
-		RecordRtpEvent();
+		RecordRtpEvent(channel);
 	}
 
 	if(!rtpEventInfo->m_end)
@@ -1003,23 +1003,6 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 			(unsigned int)rtpPacket->m_destIp.s_addr != (unsigned int)m_endPointIp.s_addr     )
 		{
 			return true;	// dismiss packet that has neither source or destination matching the endpoint.
-		}
-	}
-
-	if(m_protocol == ProtSip)
-	{
-		if(DLLCONFIG.m_rtpReportDtmf)
-		{
-			/* Check if this is a telephone-event */
-			if(m_sessionTelephoneEventPtDefined)
-			{
-				if(rtpPacket->m_payloadType == StringToInt(m_telephoneEventPayloadType))
-				{
-					// This is a telephone-event
-					HandleRtpEvent(rtpPacket);
-					return true;
-				}
-			}
 		}
 	}
 
@@ -1180,6 +1163,23 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 			{
 				m_lastRtpPacketSide2 = rtpPacket;
 				channel = 2;
+			}
+		}
+	}
+
+	if(m_protocol == ProtSip)
+	{
+		if(DLLCONFIG.m_rtpReportDtmf)
+		{
+			/* Check if this is a telephone-event */
+			if(m_sessionTelephoneEventPtDefined)
+			{
+				if(rtpPacket->m_payloadType == StringToInt(m_telephoneEventPayloadType))
+				{
+					// This is a telephone-event
+					HandleRtpEvent(rtpPacket, channel);
+					return true;
+				}
 			}
 		}
 	}
