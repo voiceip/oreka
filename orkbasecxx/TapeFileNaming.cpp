@@ -120,7 +120,7 @@ void TapeFileNaming::ThreadHandler(void *args)
 				{
 					if(ACE_OS::rename((PCSTR)originalFilename, (PCSTR)newFilename) != 0)
 					{
-						logMsg.Format("[%s] error renaming file from %s to %s.", trackingId, originalFilename, newFilename);
+						logMsg.Format("[%s] error renaming file from %s to %s: %s", trackingId, originalFilename, newFilename, strerror(errno));
 						LOG4CXX_ERROR(LOG.tapeFileNamingLog, logMsg);
 					}
 				}
