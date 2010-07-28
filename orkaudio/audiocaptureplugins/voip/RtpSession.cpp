@@ -1637,6 +1637,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			SetMediaAddress(session, invite->m_fromRtpIp, rtpPort);
 		}
 
+		session->ReportSipInvite(invite);
 		return;
 	}
 
