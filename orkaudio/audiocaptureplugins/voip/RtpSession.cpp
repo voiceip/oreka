@@ -1362,7 +1362,23 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	}
 
 	// Gather extracted fields
-	std::copy(invite->m_extractedFields.begin(), invite->m_extractedFields.end(), std::inserter(m_tags, m_tags.begin()));
+	if(m_started)
+	{
+		std::map<CStdString, CStdString>::iterator i = invite->m_extractedFields.begin();
+		for( ; i != invite->m_extractedFields.end(); ++i )
+		{		
+			// Report Key Values to Audio Tape
+			CaptureEventRef event(new CaptureEvent());
+			event->m_type = CaptureEvent::EtKeyValue;
+			event->m_key = i->first;
+			event->m_value = i->second;
+			g_captureEventCallBack(event, m_capturePort);
+		}
+	}
+	else
+	{
+		std::copy(invite->m_extractedFields.begin(), invite->m_extractedFields.end(), std::inserter(m_tags, m_tags.begin()));
+	}
 
 	if(DLLCONFIG.m_sipOnDemandFieldName.size())
 	{
