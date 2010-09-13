@@ -74,6 +74,7 @@
 #define BATCH_PROCESSING_QUEUE_SIZE_DEFAULT 20000
 #define BATCH_PROCESSING_ENHANCE_PRIORITY_PARAM "BatchProcessingEnhancePriority"
 #define BATCH_PROCESSING_ENHANCE_PRIORITY_DEFAULT false
+#define BATCH_PROCESSING_RECORD_SILENCE "BatchProcessingRecordSilence"
 #define DELETE_FAILED_CAPTURE_FILE_PARAM "DeleteFailedCaptureFile"
 #define DELETE_FAILED_CAPTURE_FILE_DEFAULT false
 #define CAPTURE_PORT_FILTERS_PARAM "CapturePortFilters" 
@@ -129,6 +130,8 @@
 #define AUDIO_KEEP_DIRECTION_OUTGOING_DEFAULT_PARAM "AudioKeepDirectionOutgoingDefault"
 #define AUDIO_KEEP_DIRECTION_OUTGOING_DEFAULT_DEFAULT "both"
 #define SOCKET_STREAMER_TARGETS_PARAM "SocketStreamerTargets"
+#define RECORDING_START_SHELL_COMMAND_PARAM "RecordingStartShellCommand"
+#define RECORDING_STOP_SHELL_COMMAND_PARAM "RecordingStopShellCommand"
 
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
@@ -202,6 +205,10 @@ public:
 	CStdString m_audioKeepDirectionIncomingDefault;
 	CStdString m_audioKeepDirectionOutgoingDefault;
 	std::list<CStdString> m_socketStreamerTargets;
+
+	bool m_recordSilence;
+	CStdString m_recordingStartShellCommand;
+	CStdString m_recordingStopShellCommand;
 
 private:
 	log4cxx::LoggerPtr m_log;
