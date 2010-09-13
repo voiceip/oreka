@@ -514,6 +514,38 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 	else if(captureEventRef->m_type == CaptureEvent::EtStop || captureEventRef->m_type == CaptureEvent::EtStart || captureEventRef->m_type == CaptureEvent::EtUpdate)
 	{
 		PopulateTapeMessage(pTapeMsg, captureEventRef->m_type);
+
+#ifdef _WIN32
+		// Execute Start and Stop Shell Commands. Only for Windows at the moment
+		if(captureEventRef->m_type == CaptureEvent::EtStart && CONFIG.m_recordingStartShellCommand.length() !=  0 )
+		{
+			CStdString logMsg;
+			CStdString commandArgs;
+			commandArgs.Format("%s %s %s",CONFIG.m_recordingStartShellCommand,m_localParty,m_remoteParty);
+			
+			logMsg.Format("Executing recording start shell command \"%s\" with parameters localparty=%s, remoteparty=%s",CONFIG.m_recordingStartShellCommand,m_localParty,m_remoteParty);
+			LOG4CXX_INFO(LOG.tapeLog,logMsg);
+			if( (int)spawnl(P_NOWAITO, CONFIG.m_recordingStartShellCommand,commandArgs, NULL) < 0)
+			{
+				logMsg.Format("Error executing recording start shell command \"s\"",CONFIG.m_recordingStartShellCommand);
+				LOG4CXX_ERROR(LOG.tapeLog,logMsg);
+			}
+		}
+		else if (captureEventRef->m_type == CaptureEvent::EtStop && CONFIG.m_recordingStopShellCommand.length() !=  0)
+		{
+			CStdString logMsg;
+			CStdString commandArgs;
+			commandArgs.Format("%s %s %s",CONFIG.m_recordingStopShellCommand,m_localParty,m_remoteParty);
+			
+			logMsg.Format("Executing recording stop shell command \"%s\" with parameters localparty=%s, remoteparty=%s",CONFIG.m_recordingStopShellCommand,m_localParty,m_remoteParty);
+			LOG4CXX_INFO(LOG.tapeLog,logMsg);
+			if( (int)spawnl(P_NOWAITO, CONFIG.m_recordingStopShellCommand,commandArgs, NULL) < 0 )
+			{
+				logMsg.Format("Error executing recording stop shell command \"s\"",CONFIG.m_recordingStopShellCommand);
+				LOG4CXX_ERROR(LOG.tapeLog,logMsg);
+			}
+		}
+#endif
 	}
 	else
 	{
