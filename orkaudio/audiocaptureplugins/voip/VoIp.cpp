@@ -2743,10 +2743,14 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		memcpy(info->m_senderMac, ethernetHeader->sourceMac, sizeof(info->m_senderMac));
 		memcpy(info->m_receiverMac, ethernetHeader->destinationMac, sizeof(info->m_receiverMac));
 
-		CStdString logMsg;
-		info->ToString(logMsg);
-		logMsg = sipMethod + ": " + logMsg;
-		LOG4CXX_INFO(s_sipPacketLog, logMsg);
+		if(sipMethod.Equals(SIP_METHOD_INVITE) || info->m_fromRtpPort.size())
+		{
+			// Only log SIP non-INVITE messages that contain SDP (i.e. with a valid RTP port)
+			CStdString logMsg;
+			info->ToString(logMsg);
+			logMsg = sipMethod + ": " + logMsg;
+			LOG4CXX_INFO(s_sipPacketLog, logMsg);
+		}
 
 		if(drop == false && info->m_fromRtpPort.size() && info->m_from.size() && info->m_to.size() && info->m_callId.size())
 		{
@@ -2754,7 +2758,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		}
 		else
 		{
-			if(drop == false && DLLCONFIG.m_sipUse200OkMediaAddress && info->m_from.size() && info->m_to.size() && info->m_callId.size())
+			if(drop == false && DLLCONFIG.m_sipUse200OkMediaAddress && info->m_fromRtpPort.size() && info->m_from.size() && info->m_to.size() && info->m_callId.size())
 			{
 				// Get information from 200 OK
 				RtpSessionsSingleton::instance()->ReportSipInvite(info);
