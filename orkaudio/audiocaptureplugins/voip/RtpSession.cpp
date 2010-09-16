@@ -1651,6 +1651,10 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 		if(!session->m_ipAndPort.Equals(ipAndPort) && DLLCONFIG.m_sipDynamicMediaAddress)
 		{
 			SetMediaAddress(session, invite->m_fromRtpIp, rtpPort);
+			if(DLLCONFIG.m_sipTrackMediaAddressOnSender)
+			{
+				SetMediaAddress(session, invite->m_senderIp, rtpPort);
+			}
 		}
 
 		session->ReportSipInvite(invite);
