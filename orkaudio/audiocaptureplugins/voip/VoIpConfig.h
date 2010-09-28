@@ -140,6 +140,7 @@ public:
 	IpRanges m_mediaAddressBlockedIpRanges;
 
 	bool m_dahdiIntercept;
+	bool m_holdReportStats;
 };
 
 //========================================

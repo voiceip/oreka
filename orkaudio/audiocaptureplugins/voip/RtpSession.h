@@ -203,6 +203,8 @@ public:
 	bool NativeCallIdMatches(CStdString &callid);
 	void UpdateMetadataSkinny();
 	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader);
+	void GoOnHold(time_t onHoldTime);
+	void GoOffHold(time_t offHoldTime);
 	CStdString GetOrkUid();
 	void MarkAsOnDemand(CStdString& side);
 	bool Stopped();
@@ -252,6 +254,8 @@ public:
 	std::list<CStdString> m_mediaAddresses;
 	bool m_newRtpStream;
 	time_t m_lastRtpStreamStart;
+	int m_holdDuration;
+	int m_holdBegin;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
