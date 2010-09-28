@@ -95,6 +95,7 @@ VoIpConfig::VoIpConfig()
 	m_lanIpRanges.Compute();
 
 	m_dahdiIntercept = false;
+	m_holdReportStats = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -190,6 +191,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->IpRangesValue("MediaAddressBlockedIpRanges", m_mediaAddressBlockedIpRanges);
 
 	s->BoolValue("DahdiIntercept", m_dahdiIntercept);
+	s->BoolValue("HoldReportStats",m_holdReportStats);
 }
 
 void VoIpConfig::Validate()

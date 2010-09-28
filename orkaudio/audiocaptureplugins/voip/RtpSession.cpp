@@ -80,6 +80,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_lastRtpStreamStart = 0;
 	m_rtpNumMissingPkts = 0;
 	m_rtpNumSeqGaps = 0;
+	m_holdDuration = 0;
 }
 
 void RtpSession::Stop()
@@ -904,6 +905,28 @@ void RtpSession::RecordRtpEvent(int channel)
 	LOG4CXX_INFO(m_log, "[" + m_trackingId + "] RTP DTMF event [ " + dtmfEventString + " ]");
 }
 
+void RtpSession::GoOnHold(time_t onHoldTime)
+{
+	m_onHold = true;
+	m_holdBegin = onHoldTime;
+}
+
+void RtpSession::GoOffHold(time_t offHoldTime)
+{
+	m_onHold = false;
+	m_holdDuration += offHoldTime - m_holdBegin;
+
+	if(DLLCONFIG.m_holdReportStats)
+	{
+		// Report holdtime to Audio Tape
+		CaptureEventRef event(new CaptureEvent());
+		event->m_type = CaptureEvent::EtKeyValue;
+		event->m_key = "holdtime";
+		event->m_value.Format("%d", m_holdDuration);
+		g_captureEventCallBack(event,  m_capturePort);
+	}
+}
+
 void RtpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket, int channel)
 {
 	CStdString logMsg;
@@ -1017,7 +1040,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 				// presence of new RTP indicates session has gone out of hold
 				logMsg =  "[" + m_trackingId + "] Session going off hold due to RTP activity";
 				LOG4CXX_INFO(m_log, logMsg);
-				m_onHold = false;
+				GoOffHold(rtpPacket->m_arrivalTimestamp);
 			}
 		}
 	}
@@ -1599,7 +1622,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 		{
 			if(invite->m_attrSendonly)
 			{
-				session->m_onHold = true;
+				session->GoOnHold(invite->m_recvTime);
 				LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going on hold");
 				return;
 			}
@@ -1607,7 +1630,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			{
 				if(session->m_onHold && DLLCONFIG.m_sipInviteCanPutOffHold)
 				{
-					session->m_onHold = false;
+					session->GoOffHold(invite->m_recvTime);
 					session->m_lastUpdated = time(NULL);	// so that timeout countdown is reset
 					LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going off hold");
 					return;
@@ -1631,7 +1654,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 		 */
 		if(invite->m_attrSendonly)
 		{
-			session->m_onHold = true;
+			session->GoOnHold(invite->m_recvTime);
 			LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going on hold");
 			return;
 		}
@@ -1641,7 +1664,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			 * then we go off hold */
 			if(session->m_onHold && DLLCONFIG.m_sipInviteCanPutOffHold)
 			{
-				session->m_onHold = false;
+				session->GoOffHold(invite->m_recvTime);
 				session->m_lastUpdated = time(NULL);	// so that timeout countdown is reset
 				LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going off hold");
 				return;
@@ -2748,7 +2771,7 @@ void RtpSessions::ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, 
 	}
 	if(session.get())
 	{
-		session->m_onHold = true;
+		session->GoOnHold(time(NULL));
 		logMsg.Format("[%s] Going on hold due to SoftKeyEvent: HOLD", session->m_trackingId);
 		LOG4CXX_INFO(m_log, logMsg);
 	}
@@ -2778,7 +2801,7 @@ void RtpSessions::ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent
 	}
     if(session.get())
     {
-		session->m_onHold = false;
+		session->GoOffHold(time(NULL));
 		session->m_lastUpdated = time(NULL);	// so that timeout countdown is reset
 		logMsg.Format("[%s] Going off hold due to SoftKeyEvent: RESUME", session->m_trackingId);
 		LOG4CXX_INFO(m_log, logMsg);

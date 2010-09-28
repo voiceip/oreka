@@ -479,10 +479,21 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		{
 			m_toSendEventQueue.push(eventRef);
 		}
-		// Store the tags
+		// Store or update the tags
 		if(eventRef->m_type == CaptureEvent::EtKeyValue && eventRef->m_value.size() > 0 && eventRef->m_key.size() > 0)
 		{
-			m_tags.insert(std::make_pair(eventRef->m_key, eventRef->m_value));
+			std::map<CStdString,CStdString>::iterator i = m_tags.find(eventRef->m_key);
+
+			if(i == m_tags.end())
+			{
+				m_tags.insert(std::make_pair(eventRef->m_key, eventRef->m_value));
+			}
+			else
+			{
+				i->second = eventRef->m_value;
+			}
+
+			
 		}
 	}
 }
