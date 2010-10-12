@@ -28,6 +28,7 @@ OrkLogManager* OrkLogManager::Instance()
 
 void OrkLogManager::Initialize()
 {
+	BasicConfigurator::resetConfiguration();
 	BasicConfigurator::configure();
 
 	char* logCfgFilename = NULL;
