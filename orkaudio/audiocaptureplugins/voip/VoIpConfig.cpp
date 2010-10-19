@@ -43,7 +43,7 @@ VoIpConfig::VoIpConfig()
 	m_rtpDiscontinuityMinSeqDelta = 1000;
 	m_iax2Support = false; // Disabled by default
 	m_iax2TreatCallerIdNameAsXUniqueId = true;
-	m_rtpDetectOnOddPorts = false;
+	m_rtpDetectOnOddPorts = true;
 	m_sipOverTcpSupport = true;
 	m_sipLogFailedCalls = false;
 	m_sipUse200OkMediaAddress = true;
