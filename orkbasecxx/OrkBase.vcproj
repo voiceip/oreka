@@ -148,7 +148,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
+				Optimization="0"
 				InlineFunctionExpansion="0"
 				AdditionalIncludeDirectories=".;.\filters\gsm;.\filters\gsm\gsm610;.\filters\ilbc;.\filters\ilbc\ilbc;C:\devExt\libsndfile\src;C:\devExt\boost\boost_1_32_0;C:\devExt\ACE_wrappers;C:\devext\xerces\src;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;.\filters\g722codec"
 				PreprocessorDefinitions="BUILD_ORKBASE;WIN32;NDEBUG;_WINDOWS;_USRDLL;inline=__inline"
