@@ -96,6 +96,7 @@ VoIpConfig::VoIpConfig()
 
 	m_dahdiIntercept = false;
 	m_holdReportStats = false;
+	m_Iax2RewriteTimestamps = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -192,6 +193,7 @@ void VoIpConfig::Define(Serializer* s)
 
 	s->BoolValue("DahdiIntercept", m_dahdiIntercept);
 	s->BoolValue("HoldReportStats",m_holdReportStats);
+	s->BoolValue("Iax2RewriteTimestamps",m_Iax2RewriteTimestamps);
 }
 
 void VoIpConfig::Validate()
