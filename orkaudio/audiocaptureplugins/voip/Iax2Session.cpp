@@ -419,7 +419,11 @@ bool Iax2Session::AddIax2Packet(Iax2PacketInfoRef& iax2Packet)
 		// Comparing destination IP address to find out if side1, see (1)
 		if((unsigned int)iax2Packet->m_destIp.s_addr == (unsigned int)m_lastIax2PacketSide1->m_destIp.s_addr)
 		{
-			if(iax2Packet->m_timestamp == m_lastIax2PacketSide1->m_timestamp)
+			if(DLLCONFIG.m_Iax2RewriteTimestamps == true)
+			{
+				iax2Packet->m_timestamp =+ m_lastIax2PacketSide1->m_timestamp + 20;
+			}
+			else if(iax2Packet->m_timestamp == m_lastIax2PacketSide1->m_timestamp)
 			{
 				m_hasDuplicateIax2 = true;
 				return true;	// dismiss duplicate IAX2 packet
@@ -464,7 +468,11 @@ bool Iax2Session::AddIax2Packet(Iax2PacketInfoRef& iax2Packet)
 			}
 			else
 			{
-				if(iax2Packet->m_timestamp == m_lastIax2PacketSide2->m_timestamp)
+				if(DLLCONFIG.m_Iax2RewriteTimestamps == true)
+				{
+					iax2Packet->m_timestamp += m_lastIax2PacketSide2->m_timestamp + 20;
+				}
+				else if(iax2Packet->m_timestamp == m_lastIax2PacketSide2->m_timestamp)
 				{
 					m_hasDuplicateIax2 = true;
 					return true;	// dismiss duplicate IAX2 packet
