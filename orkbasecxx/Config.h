@@ -80,7 +80,7 @@
 #define CAPTURE_PORT_FILTERS_PARAM "CapturePortFilters" 
 #define TAPE_PROCESSORS_PARAM "TapeProcessors"
 #define CAPTURE_FILE_BATCH_SIZE_KBYTE_PARAM "CaptureFileBatchSizeKByte"
-#define CAPTURE_FILE_BATCH_SIZE_KBYTE_DEFAULT 4
+#define CAPTURE_FILE_BATCH_SIZE_KBYTE_DEFAULT 64
 #define DEBUG_PARAM "Debug"
 #define DEBUG_DEFAULT false
 #define TAPE_FILE_NAMING_PARAM "TapeFileNaming"
