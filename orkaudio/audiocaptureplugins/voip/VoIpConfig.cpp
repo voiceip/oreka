@@ -36,7 +36,7 @@ VoIpConfig::VoIpConfig()
 	m_rtpSessionOnHoldTimeOutSec = 1800;
 	m_rtpReportDtmf = false;
 	m_rtpTrackByUdpPortOnly = false;
-	m_rtpAllowMultipleMappings = false;
+	m_rtpAllowMultipleMappings = true;
 	m_rtpSeqGapThreshold = 500;
 	m_pcapTest= false;
 	m_rtpDiscontinuityDetect = false;
@@ -49,18 +49,18 @@ VoIpConfig::VoIpConfig()
 	m_sipUse200OkMediaAddress = true;
 	m_sipDetectSessionProgress = true; // Enabled by default
 	m_sipReportFullAddress = false;
-	m_sipDynamicMediaAddress = false;
+	m_sipDynamicMediaAddress = true;
 	m_sipIgnoreBye = false;
 	m_sipNotifySupport = false;
 	m_sipReportNamesAsTags = false;
 	m_sipRequestUriAsLocalParty = true;
-	m_sipTreat200OkAsInvite = false;
+	m_sipTreat200OkAsInvite = true;
 	m_sipAllowMultipleMediaAddresses = false;	// deprecated
 	m_sip302MovedTemporarilySupport = true;
 	m_sipInviteCanPutOffHold = false;
 	m_sipOnDemandFieldName = "X-record";
 	m_sipOnDemandFieldValue = "1";
-	m_sipTrackMediaAddressOnSender = false;
+	m_sipTrackMediaAddressOnSender = true;
 
 	m_rtcpDetect = false;
 	m_inInMode = false;
