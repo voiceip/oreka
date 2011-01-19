@@ -24,6 +24,9 @@
 #include "StdString.h"
 #include "SipTcp.h"
 
+#ifdef WIN32
+#define snprintf _snprintf
+#endif
 
 SafeBuffer::SafeBuffer()
 {
