@@ -17,6 +17,11 @@
 #include "sys/socket.h"
 #endif
 
+#ifdef WIN32
+#define snprintf _snprintf
+#endif
+
+
 #include <list>
 #include "ace/OS_NS_unistd.h"
 #include "ace/OS_NS_string.h"
