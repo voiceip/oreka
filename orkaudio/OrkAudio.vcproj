@@ -46,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="0"
-				AdditionalIncludeDirectories=".;..\OrkBaseCxx;..\OrkBaseCxx\filters\gsm;..\OrkBaseCxx\filters\ilbc;..\OrkBaseCxx\filters\ilbc\ilbc;C:\devExt\libsndfile\src\GSM610;C:\devExt\boost\boost_1_32_0\;C:\devExt\ACE_wrappers;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;C:\devext\xerces\src;C:\devExt\libsndfile\src;..\OrkBaseCxx\filters\g722codec"
+				AdditionalIncludeDirectories=".;..\OrkBaseCxx;..\OrkBaseCxx\filters\gsm;..\OrkBaseCxx\filters\ilbc;..\OrkBaseCxx\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0\;C:\devExt\ACE_wrappers;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;C:\devext\xerces\src;C:\devExt\libsndfile\include;..\OrkBaseCxx\filters\g722codec"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -72,11 +72,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OrkBase.lib LIBSNDFILE.lib xerces-c_2.lib log4cxx.lib ace.lib odbc32.lib odbccp32.lib"
+				AdditionalDependencies="OrkBase.lib LIBSNDFILE-1.lib xerces-c_2.lib log4cxx.lib ace.lib odbc32.lib odbccp32.lib"
 				OutputFile=".\Release/OrkAudio.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\OrkbaseCxx\Release;C:\devExt\ACE_wrappers\lib;C:\devext\xerces\Build\Win32\VC8\Release;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\projects\Release&quot;;C:\devExt\libsndfile\Release"
+				AdditionalLibraryDirectories="..\OrkbaseCxx\Release;C:\devExt\ACE_wrappers\lib;C:\devext\xerces\Build\Win32\VC8\Release;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\projects\Release&quot;;C:\devExt\libsndfile"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Release/OrkAudio.pdb"
 				GenerateMapFile="true"
@@ -140,7 +140,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;..\OrkBaseCxx;..\OrkBaseCxx\filters\gsm;..\OrkBaseCxx\filters\ilbc;..\OrkBaseCxx\filters\ilbc\ilbc;C:\devExt\libsndfile\src\GSM610;C:\devExt\boost\boost_1_32_0\;C:\devExt\ACE_wrappers;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;C:\devext\libsndfile\src;C:\devext\xerces\src;..\OrkBaseCxx\filters\g722codec"
+				AdditionalIncludeDirectories=".;..\OrkBaseCxx;..\OrkBaseCxx\filters\gsm;..\OrkBaseCxx\filters\gsm\gsm610;..\OrkBaseCxx\filters\ilbc;..\OrkBaseCxx\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0\;C:\devExt\ACE_wrappers;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;C:\devext\libsndfile\include;C:\devext\xerces\src;..\OrkBaseCxx\filters\g722codec"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -167,11 +167,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OrkBaseD.lib LIBSNDFILE.lib xerces-c_2D.lib log4cxx.lib aced.lib odbc32.lib odbccp32.lib"
+				AdditionalDependencies="OrkBaseD.lib LIBSNDFILE-1.lib xerces-c_2D.lib log4cxx.lib aced.lib odbc32.lib odbccp32.lib"
 				OutputFile=".\Debug/OrkAudio.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\OrkbaseCxx\Debug;C:\devExt\ACE_wrappers\lib;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\projects\Debug&quot;;C:\devext\xerces\Build\Win32\VC8\Debug;C:\devExt\libsndfile\Debug"
+				AdditionalLibraryDirectories="..\OrkbaseCxx\Debug;C:\devExt\ACE_wrappers\lib;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\projects\Debug&quot;;C:\devext\xerces\Build\Win32\VC8\Debug;C:\devExt\libsndfile"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/OrkAudio.pdb"
 				GenerateMapFile="true"
