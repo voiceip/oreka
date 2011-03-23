@@ -659,6 +659,16 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 		LOG4CXX_WARN(m_log,  "[" + m_trackingId + "] " + m_ipAndPort + " alien RTP packet");
 	}
 
+	if(m_sipDialedNumber.length() != 0)
+	{
+		ProcessMetadataSipOutgoing();
+		m_remoteParty = m_invite->m_sipDialedNumber;
+		m_localParty = m_invite->m_from;
+		m_direction = CaptureEvent::DirOut;
+	
+		return;
+	}
+
 	if(DLLCONFIG.m_sipDirectionReferenceIpAddresses.m_asciiIpRanges.size())
 	{
 		if(MatchesReferenceAddresses(m_invite->m_senderIp))
@@ -1689,6 +1699,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	RtpSessionRef newSession(new RtpSession(trackingId));
 	newSession->m_callId = invite->m_callId;
 	newSession->m_protocol = RtpSession::ProtSip;
+	newSession->m_sipDialedNumber = invite->m_sipDialedNumber;
 	newSession->ReportSipInvite(invite);
 	newSession->m_sipLastInvite = ACE_OS::gettimeofday();
 	SetMediaAddress(newSession, invite->m_fromRtpIp, rtpPort);

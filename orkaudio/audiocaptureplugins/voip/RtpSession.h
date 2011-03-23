@@ -71,6 +71,7 @@ public:
 	CStdString m_fromName;
 	CStdString m_toName;
 	CStdString m_userAgent;
+	CStdString m_sipDialedNumber;
 
 	time_t m_recvTime;
 };
@@ -256,6 +257,7 @@ public:
 	time_t m_lastRtpStreamStart;
 	int m_holdDuration;
 	int m_holdBegin;
+	CStdString m_sipDialedNumber;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
