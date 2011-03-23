@@ -2492,6 +2492,13 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		{
 			callIdField = memFindAfter("\ni:", (char*)udpPayload, sipEnd);
 		}
+
+		char * dialedNumber = NULL;
+		if(! DLLCONFIG.m_sipDialedNumberFieldName.empty() )
+		{
+			dialedNumber = memFindAfter(DLLCONFIG.m_sipDialedNumberFieldName + ":", (char*)udpPayload,sipEnd);
+		}
+
 		char* localExtensionField = memFindAfter("x-Local-Extension:", (char*)udpPayload, sipEnd);
 		char* audioField = NULL;
 		char* connectionAddressField = NULL;
@@ -2617,6 +2624,12 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 				}
 				GrabSipUriDomain(toField, toFieldEnd, info->m_toDomain);
 			}
+		}
+		if(dialedNumber)
+		{
+			CStdString token;
+			GrabTokenSkipLeadingWhitespaces(dialedNumber, sipEnd, token);
+			info->m_sipDialedNumber = token;
 		}
 		if(callIdField)
 		{
