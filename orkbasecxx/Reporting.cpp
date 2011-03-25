@@ -361,16 +361,25 @@ void ReportingThread::Run()
 
 							if(tr->m_deleteTape)
 							{
-								CStdString tapeFilename = ptapeMsg->m_fileName;
-
-								CStdString absoluteFilename = CONFIG.m_audioOutputPath + "/" + tapeFilename;
-								if (ACE_OS::unlink((PCSTR)absoluteFilename) == 0)
+								if(ptapeMsg->m_stage.Equals("start"))
 								{
-									LOG4CXX_INFO(LOG.reportingLog, "[" + m_threadId + "] " + "Deleted tape: " + tapeFilename);
+									CStdString orkUid = ptapeMsg->m_recId;
+									CStdString empty;
+									CapturePluginProxy::Singleton()->PauseCapture(empty, orkUid, empty);
 								}
-								else
+								else if(ptapeMsg->m_stage.Equals("ready"))
 								{
-									LOG4CXX_DEBUG(LOG.reportingLog, "[" + m_threadId + "] " + "Could not delete tape: " + tapeFilename);
+									CStdString tapeFilename = ptapeMsg->m_fileName;
+
+									CStdString absoluteFilename = CONFIG.m_audioOutputPath + "/" + tapeFilename;
+									if (ACE_OS::unlink((PCSTR)absoluteFilename) == 0)
+									{
+										LOG4CXX_INFO(LOG.reportingLog, "[" + m_threadId + "] " + "Deleted tape: " + tapeFilename);
+									}
+									else
+									{
+										LOG4CXX_DEBUG(LOG.reportingLog, "[" + m_threadId + "] " + "Could not delete tape: " + tapeFilename);
+									}
 								}
 
 							}
