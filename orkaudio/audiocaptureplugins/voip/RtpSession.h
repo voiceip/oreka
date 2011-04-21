@@ -72,6 +72,8 @@ public:
 	CStdString m_toName;
 	CStdString m_userAgent;
 	CStdString m_sipDialedNumber;
+	CStdString m_sipRemoteParty;
+	bool m_SipGroupPickUpPatternDetected;
 
 	time_t m_recvTime;
 };
@@ -258,6 +260,7 @@ public:
 	int m_holdDuration;
 	int m_holdBegin;
 	CStdString m_sipDialedNumber;
+	CStdString m_sipRemoteParty;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);

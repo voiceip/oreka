@@ -60,6 +60,8 @@ VoIpConfig::VoIpConfig()
 	m_sipInviteCanPutOffHold = false;
 	m_sipOnDemandFieldName = "X-record";
 	m_sipDialedNumberFieldName = "";
+	m_sipRemotePartyFieldName = "";
+	m_sipGroupPickUpPattern = "";
 	m_sipOnDemandFieldValue = "1";
 	m_sipTrackMediaAddressOnSender = true;
 
@@ -157,6 +159,8 @@ void VoIpConfig::Define(Serializer* s)
 	s->StringValue("SipOnDemandFieldName", m_sipOnDemandFieldName);
 	s->StringValue("SipOnDemandFieldValue", m_sipOnDemandFieldValue);
 	s->StringValue("SipDialedNumberFieldName", m_sipDialedNumberFieldName);
+	s->StringValue("SipRemotePartyFieldName", m_sipRemotePartyFieldName);
+	s->StringValue("SipGroupPickUpPattern", m_sipGroupPickUpPattern);
 	s->BoolValue("SipTrackMediaAddressOnSender", m_sipTrackMediaAddressOnSender);
 
 	s->BoolValue("RtcpDetect", m_rtcpDetect);

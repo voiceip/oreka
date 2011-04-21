@@ -709,6 +709,17 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 			ProcessMetadataSipOutgoing();
 		}
 	}
+
+	if(m_invite->m_SipGroupPickUpPatternDetected == true)
+	{
+		m_direction = CaptureEvent::DirIn;
+	}
+
+	if(m_sipRemoteParty != "")
+	{
+		m_remoteParty = m_sipRemoteParty;
+	}
+
 }
 
 void RtpSession::ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket)
@@ -1392,6 +1403,11 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	{
 		m_telephoneEventPayloadType = invite->m_telephoneEventPayloadType;
 		m_sessionTelephoneEventPtDefined = true;
+	}
+
+	if(invite->m_sipRemoteParty != "")
+	{
+		m_sipRemoteParty = invite->m_sipRemoteParty;
 	}
 
 	// Gather extracted fields
