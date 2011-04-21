@@ -102,6 +102,8 @@ public:
 	CStdString m_sipOnDemandFieldName;
 	CStdString m_sipOnDemandFieldValue;
 	CStdString m_sipDialedNumberFieldName;
+	CStdString m_sipRemotePartyFieldName;
+	CStdString m_sipGroupPickUpPattern;
 	bool m_sipTrackMediaAddressOnSender;
 
 	bool m_rtcpDetect;

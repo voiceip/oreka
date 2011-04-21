@@ -2498,6 +2498,12 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		{
 			dialedNumber = memFindAfter(DLLCONFIG.m_sipDialedNumberFieldName + ":", (char*)udpPayload,sipEnd);
 		}
+		
+		char * sipRemoteParty = NULL;
+		if(! DLLCONFIG.m_sipRemotePartyFieldName.empty() )
+		{
+			sipRemoteParty = memFindAfter(DLLCONFIG.m_sipRemotePartyFieldName + ":", (char*)udpPayload,sipEnd);
+		}
 
 		char* localExtensionField = memFindAfter("x-Local-Extension:", (char*)udpPayload, sipEnd);
 		char* audioField = NULL;
@@ -2624,12 +2630,45 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 				}
 				GrabSipUriDomain(toField, toFieldEnd, info->m_toDomain);
 			}
+			if(DLLCONFIG.m_sipGroupPickUpPattern == info->m_to)
+			{
+				info->m_SipGroupPickUpPatternDetected = true;
+			}
 		}
 		if(dialedNumber)
 		{
 			CStdString token;
 			GrabTokenSkipLeadingWhitespaces(dialedNumber, sipEnd, token);
 			info->m_sipDialedNumber = token;
+		}
+		if(sipRemoteParty)
+		{
+			CStdString token;
+
+			char* sip = memFindAfter("sip:", sipRemoteParty, sipEnd);
+			if(sip)
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sip, sipEnd, token);
+				}
+				else
+				{
+					GrabSipUriUser(sip, sipEnd, token);
+				}
+			}
+			else
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sipRemoteParty, sipEnd, token);
+				}
+				else
+				{
+					GrabSipUriUser(sipRemoteParty, sipEnd, token);
+				}
+			}
+			info->m_sipRemoteParty = token;
 		}
 		if(callIdField)
 		{
