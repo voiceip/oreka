@@ -663,7 +663,7 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 	{
 		ProcessMetadataSipOutgoing();
 		m_remoteParty = m_invite->m_sipDialedNumber;
-		m_localParty = m_invite->m_from;
+		m_localParty = m_invite->m_to;
 		m_direction = CaptureEvent::DirOut;
 	
 		return;
