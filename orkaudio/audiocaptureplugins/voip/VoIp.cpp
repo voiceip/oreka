@@ -3385,12 +3385,12 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 
 		if(ntohs(tcpHeader->source) == DLLCONFIG.m_skinnyTcpPort || ntohs(tcpHeader->dest) == DLLCONFIG.m_skinnyTcpPort)
 		{
-			u_char* startTcpPayload = (u_char*)tcpHeader + TCP_HEADER_LENGTH;
+			u_char* startTcpPayload = (u_char*)tcpHeader + (tcpHeader->off * 4);
 			SkinnyHeaderStruct* skinnyHeader = (SkinnyHeaderStruct*)(startTcpPayload);
 
 			// Scan all skinny messages in this TCP packet
 			while(	ipPacketEnd > (u_char*)skinnyHeader && 
-					(u_char*)skinnyHeader>=((u_char*)tcpHeader + TCP_HEADER_LENGTH) &&
+					(u_char*)skinnyHeader>=startTcpPayload &&
 					(ipPacketEnd - (u_char*)skinnyHeader) > SKINNY_MIN_MESSAGE_SIZE	&&
 					skinnyHeader->len > 1 && skinnyHeader->len < 2048 &&
 					skinnyHeader->messageType >= 0x0 && skinnyHeader->messageType <= 0x200 )	// Last known skinny message by ethereal is 0x13F, but seen higher message ids in the field.
