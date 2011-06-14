@@ -35,6 +35,7 @@ DLL_EXPORT void __CDECL__  StopCapture(CStdString& party, CStdString& orkuid, CS
 DLL_EXPORT void __CDECL__  PauseCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid);
 DLL_EXPORT void __CDECL__  SetOnHold(CStdString& port, CStdString& orkuid);
 DLL_EXPORT void __CDECL__  SetOffHold(CStdString& port, CStdString& orkuid);
+DLL_EXPORT void __CDECL__  GetConnectionStatus(CStdString& msg);
 }
 
 #endif
