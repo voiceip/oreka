@@ -28,6 +28,7 @@ CapturePluginProxy::CapturePluginProxy()
 	m_runFunction = NULL;
 	m_startCaptureFunction = NULL;
 	m_stopCaptureFunction = NULL;
+	m_GetConnectionStatusFunction = NULL;
 
 	m_loaded = false;
 }
@@ -140,7 +141,15 @@ bool CapturePluginProxy::Init()
 										m_setOffHoldFunction = (SetOffHoldFunction)m_dll.symbol("SetOffHold");
 										if(m_setOffHoldFunction)
 										{
-											m_loaded = true;
+											m_GetConnectionStatusFunction = (GetConnectionStatusFunction)m_dll.symbol("GetConnectionStatus");
+											if(m_GetConnectionStatusFunction)
+											{
+												m_loaded = true;
+											}
+											else
+											{
+												LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find GetConnectionStatus function in ") + pluginPath);
+											}
 										}
 										else
 										{
@@ -273,6 +282,18 @@ void CapturePluginProxy::PauseCapture(CStdString& party, CStdString& orkuid, CSt
 	}
 }
 
+void CapturePluginProxy::GetConnectionStatus(CStdString& msg)
+{
+	if(m_loaded)
+	{
+		m_GetConnectionStatusFunction(msg);
+	}
+	else
+	{
+		throw(CStdString("Check Health: plugin not yet loaded"));
+	}
+}
+
 void __CDECL__  CapturePluginProxy::AudioChunkCallBack(AudioChunkRef chunkRef, CStdString& capturePort)
 {
 	// find the right port and give it the audio chunk
@@ -310,4 +331,6 @@ void __CDECL__ CapturePluginProxy::CaptureEventCallBack(CaptureEventRef eventRef
 		portRef->AddCaptureEvent(eventRef);
 	}
 }
+
+
 

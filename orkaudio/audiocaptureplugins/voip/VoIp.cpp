@@ -102,6 +102,7 @@ public:
 	CStdString GetPcapDeviceName(pcap_t* pcapHandle);
 	void ProcessLocalPartyMap(char *line, int ln);
 	void LoadPartyMaps();
+	void GetConnectionStatus(CStdString& msg);
 
 private:
 	void OpenDevices();
@@ -4095,6 +4096,11 @@ void VoIp::SetOffHold(CStdString& port, CStdString& orkuid)
 	;
 }
 
+void VoIp::GetConnectionStatus(CStdString& msg)
+{
+	;
+}
+
 void __CDECL__ Initialize()
 {
 	VoIpSingleton::instance()->Initialize();
@@ -4131,6 +4137,11 @@ void __CDECL__ SetOnHold(CStdString& port, CStdString& orkuid)
 }
 
 void __CDECL__ SetOffHold(CStdString& port, CStdString& orkuid)
+{
+	;
+}
+
+void __CDECL__  GetConnectionStatus(CStdString& msg)
 {
 	;
 }

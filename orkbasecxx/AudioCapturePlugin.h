@@ -46,6 +46,7 @@ typedef void (__CDECL__* StopCaptureFunction)(CStdString& port, CStdString& orkU
 typedef void (__CDECL__* PauseCaptureFunction)(CStdString& port, CStdString& orkUid, CStdString& nativecallid);
 typedef void (__CDECL__* SetOnHoldFunction)(CStdString& port, CStdString& orkUid);
 typedef void (__CDECL__* SetOffHoldFunction)(CStdString& port, CStdString& orkUid);
+typedef void (__CDECL__* GetConnectionStatusFunction)(CStdString& msg);
 
 
 #endif
