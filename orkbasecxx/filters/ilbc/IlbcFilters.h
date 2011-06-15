@@ -30,7 +30,7 @@ public:
 	AudioEncodingEnum __CDECL__ GetInputAudioEncoding();
 	AudioEncodingEnum __CDECL__ GetOutputAudioEncoding();
 	CStdString __CDECL__ GetName();
-	int __CDECL__ GetInputRtpPayloadType();
+	bool __CDECL__ SupportsInputRtpPayloadType(int rtpPayloadType );
 	void __CDECL__ CaptureEventIn(CaptureEventRef& event);
 	void __CDECL__ CaptureEventOut(CaptureEventRef& event);
 

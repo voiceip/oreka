@@ -17,6 +17,12 @@ extern "C"
 {
 #include "g711.h"
 }
+
+bool Filter::SupportsInputRtpPayloadType( int rtpPayloadType )
+{
+	return false;
+}
+
 void FilterRegistry::RegisterFilter(FilterRef& Filter) 
 {
 	m_Filters.push_back(Filter);
@@ -45,7 +51,7 @@ FilterRef FilterRegistry::GetNewFilter(int rtpPayloadType)
 	{
 		FilterRef Filter = *it;
 
-		if(	Filter->GetInputRtpPayloadType() == rtpPayloadType ) 
+		if(Filter->SupportsInputRtpPayloadType(rtpPayloadType) == true) 
 		{
 			return Filter->Instanciate();
 		}
@@ -81,16 +87,6 @@ FilterRegistry* FilterRegistry::instance()
 
 //====================================================================
 
-int Filter::GetInputRtpPayloadType()
-{
-	// default: the filter does not accept any RTP payload type
-	return -1;
-}
-
-
-//====================================================================
-
-
 FilterRef AlawToPcmFilter::Instanciate()
 {
 	FilterRef Filter(new AlawToPcmFilter());
@@ -110,7 +106,8 @@ void AlawToPcmFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 		return;
 	}
 	AudioChunkDetails outputDetails = *inputAudioChunk->GetDetails();
-	if(outputDetails.m_rtpPayloadType != GetInputRtpPayloadType())
+
+	if(SupportsInputRtpPayloadType(outputDetails.m_rtpPayloadType) == false)
 	{
 		return;
 	}
@@ -151,9 +148,9 @@ CStdString AlawToPcmFilter::GetName()
 	return "ALawToPcm";
 }
 
-int AlawToPcmFilter::GetInputRtpPayloadType()
+bool AlawToPcmFilter::SupportsInputRtpPayloadType(int rtpPayloadType)
 {
-	return 0x8;
+	return rtpPayloadType == 0x8;
 }
 
 void AlawToPcmFilter::CaptureEventIn(CaptureEventRef& event)
@@ -189,7 +186,7 @@ void UlawToPcmFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 	}
 
 	AudioChunkDetails outputDetails = *inputAudioChunk->GetDetails();
-	if(outputDetails.m_rtpPayloadType != GetInputRtpPayloadType())
+	if(SupportsInputRtpPayloadType(outputDetails.m_rtpPayloadType) == false)
 	{
 		return;
 	}
@@ -230,9 +227,9 @@ CStdString UlawToPcmFilter::GetName()
 	return "UlawToPcm";
 }
 
-int UlawToPcmFilter::GetInputRtpPayloadType()
+bool UlawToPcmFilter::SupportsInputRtpPayloadType(int rtpPayloadType)
 {
-	return 0x0;
+	return rtpPayloadType == 0x0;
 }
 
 void UlawToPcmFilter::CaptureEventIn(CaptureEventRef& event)

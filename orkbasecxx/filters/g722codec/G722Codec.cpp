@@ -53,8 +53,8 @@ void G722ToPcmFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 	}
 
 	AudioChunkDetails outputDetails = *inputAudioChunk->GetDetails();
-
-	if(outputDetails.m_rtpPayloadType != GetInputRtpPayloadType()) {
+	if(SupportsInputRtpPayloadType(outputDetails.m_rtpPayloadType) == false)
+	{
 		return;
 	}
 
@@ -93,9 +93,9 @@ CStdString G722ToPcmFilter::GetName()
 	return "G722ToPcm";
 }
 
-int G722ToPcmFilter::GetInputRtpPayloadType(void)
+bool G722ToPcmFilter::SupportsInputRtpPayloadType(int rtpPayloadType)
 {
-	return 9;
+	return rtpPayloadType == 9;
 }
 
 void G722ToPcmFilter::CaptureEventIn(CaptureEventRef& event)

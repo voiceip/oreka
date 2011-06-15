@@ -141,11 +141,6 @@ CStdString AudioGainFilter::GetName()
 	return "AudioGain";
 }
 
-int AudioGainFilter::GetInputRtpPayloadType()
-{
-	return -1;
-}
-
 void AudioGainFilter::CaptureEventIn(CaptureEventRef& event)
 {
 	;

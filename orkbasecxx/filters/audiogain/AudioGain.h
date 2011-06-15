@@ -26,7 +26,6 @@ public:
 	AudioEncodingEnum __CDECL__ GetInputAudioEncoding();
 	AudioEncodingEnum __CDECL__ GetOutputAudioEncoding();
 	CStdString __CDECL__ GetName();
-	int __CDECL__ GetInputRtpPayloadType();
 	inline void __CDECL__ CaptureEventIn(CaptureEventRef& event);
 	inline void __CDECL__ CaptureEventOut(CaptureEventRef& event);
 

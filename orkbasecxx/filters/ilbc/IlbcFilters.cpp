@@ -64,10 +64,8 @@ void IlbcToPcmFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 
 	AudioChunkDetails outputDetails = *inputAudioChunk->GetDetails();
 
-	if(outputDetails.m_rtpPayloadType != GetInputRtpPayloadType()) {
-#if 0
-		LOG4CXX_ERROR(this->s_ilbclog, "Error, invalid payload type received");
-#endif
+	if(SupportsInputRtpPayloadType(outputDetails.m_rtpPayloadType) == false)
+	{
 		return;
 	}
 
@@ -157,10 +155,9 @@ CStdString IlbcToPcmFilter::GetName()
 	return "IlbcToPcm";
 }
 
-int IlbcToPcmFilter::GetInputRtpPayloadType()
+bool IlbcToPcmFilter::SupportsInputRtpPayloadType(int rtpPayloadType)
 {
-	/* For now, return 0x61 (97) which is Asterisk's default */
-	return 0x61;
+	return (rtpPayloadType == 0x61 || rtpPayloadType == 0x62);
 }
 
 void IlbcToPcmFilter::CaptureEventIn(CaptureEventRef& event)

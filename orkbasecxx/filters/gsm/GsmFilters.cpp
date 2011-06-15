@@ -50,7 +50,8 @@ void GsmToPcmFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 		return;
 	}
 	AudioChunkDetails outputDetails = *inputAudioChunk->GetDetails();
-	if(outputDetails.m_rtpPayloadType != GetInputRtpPayloadType())
+
+	if(SupportsInputRtpPayloadType(outputDetails.m_rtpPayloadType) == false)
 	{
 		return;
 	}
@@ -86,9 +87,9 @@ CStdString GsmToPcmFilter::GetName()
 	return "GsmToPcm";
 }
 
-int GsmToPcmFilter::GetInputRtpPayloadType()
+bool GsmToPcmFilter::SupportsInputRtpPayloadType(int rtpPayloadType)
 {
-	return 0x3;
+	return  rtpPayloadType == 0x3;
 }
 
 void GsmToPcmFilter::CaptureEventIn(CaptureEventRef& event)
