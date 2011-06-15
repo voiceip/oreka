@@ -4098,7 +4098,7 @@ void VoIp::SetOffHold(CStdString& port, CStdString& orkuid)
 
 void VoIp::GetConnectionStatus(CStdString& msg)
 {
-	;
+	msg = "unknown";
 }
 
 void __CDECL__ Initialize()
@@ -4143,6 +4143,6 @@ void __CDECL__ SetOffHold(CStdString& port, CStdString& orkuid)
 
 void __CDECL__  GetConnectionStatus(CStdString& msg)
 {
-	;
+	VoIpSingleton::instance()->GetConnectionStatus(msg);
 }
 
