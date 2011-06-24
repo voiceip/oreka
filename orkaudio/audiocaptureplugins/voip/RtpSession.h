@@ -266,7 +266,7 @@ private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
 	void ProcessMetadataSipIncoming();
 	void ProcessMetadataSipOutgoing();
-	void UpdateMetadataSip(RtpPacketInfoRef& rtpPacket, bool);
+	void UpdateMetadataSipOnRtpChange(RtpPacketInfoRef& rtpPacket, bool);
 	void ProcessMetadataRawRtp(RtpPacketInfoRef&);
 	void ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket);
 	void ReportMetadata();

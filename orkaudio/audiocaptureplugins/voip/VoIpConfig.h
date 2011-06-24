@@ -105,6 +105,7 @@ public:
 	CStdString m_sipRemotePartyFieldName;
 	CStdString m_sipGroupPickUpPattern;
 	bool m_sipTrackMediaAddressOnSender;
+	bool m_sipAllowMetadataUpdateOnRtpChange;
 
 	bool m_rtcpDetect;
 	bool m_inInMode;
