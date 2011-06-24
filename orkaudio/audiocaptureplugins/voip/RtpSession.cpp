@@ -509,7 +509,7 @@ void RtpSession::UpdateMetadataSkinny()
 	g_captureEventCallBack(event, m_capturePort);
 }
 
-void RtpSession::UpdateMetadataSip(RtpPacketInfoRef& rtpPacket, bool sourceRtpAddressIsNew)
+void RtpSession::UpdateMetadataSipOnRtpChange(RtpPacketInfoRef& rtpPacket, bool sourceRtpAddressIsNew)
 {
 	// Find out if the new RTP packet could match one of the SIP invites associated with the session
 	SipInviteInfoRef invite;
@@ -1249,9 +1249,9 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		LOG4CXX_INFO(m_log, logMsg);
 		m_lastRtpStreamStart = time(NULL);
 
-		if(m_protocol == ProtSip && m_started)	// make sure this only happens if ReportMetadata() already been called for the session
+		if(m_protocol == ProtSip && m_started && DLLCONFIG.m_sipAllowMetadataUpdateOnRtpChange)	// make sure this only happens if ReportMetadata() already been called for the session
 		{
-			UpdateMetadataSip(rtpPacket, hasDestAddress);
+			UpdateMetadataSipOnRtpChange(rtpPacket, hasDestAddress);
 		}
 	}
 
