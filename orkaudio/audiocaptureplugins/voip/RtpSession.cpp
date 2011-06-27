@@ -3598,6 +3598,7 @@ SipInviteInfo::SipInviteInfo()
 	m_validated = false;
 	m_attrSendonly = false;
 	m_telephoneEventPtDefined = false;
+	m_SipGroupPickUpPatternDetected = false;
 }
 
 void SipInviteInfo::ToString(CStdString& string)
