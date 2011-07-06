@@ -29,6 +29,7 @@ Config::Config()
 	m_capturePluginPath = CAPTURE_PLUGIN_PATH_DEFAULT;
 	m_storageAudioFormat = STORAGE_AUDIO_FORMAT_DEFAULT;
 	m_numBatchThreads = NUM_BATCH_THREADS_DEFAULT;
+	m_numCommandThreads = NUM_COMMAND_THREADS_DEFAULT;
 	m_deleteNativeFile = DELETE_NATIVE_FILE_DEFAULT;
 	m_audioChunkDefaultSize = AUDIO_CHUNK_DEFAULT_SIZE_DEFAULT;
 	m_audioSegmentation = AUDIO_SEGMENTATION_DEFAULT;
@@ -80,10 +81,12 @@ Config::Config()
 	m_audioKeepDirectionDefault = AUDIO_KEEP_DIRECTION_DEFAULT_DEFAULT;
 	m_audioKeepDirectionIncomingDefault = AUDIO_KEEP_DIRECTION_INCOMING_DEFAULT_DEFAULT;
 	m_audioKeepDirectionOutgoingDefault = AUDIO_KEEP_DIRECTION_OUTGOING_DEFAULT_DEFAULT;
+	m_commandProcessingCommand = "";
 }
 
 void Config::Define(Serializer* s)
 {
+	s->StringValue(COMMAND_PROCESSING_COMMAND_PARAM,m_commandProcessingCommand);
 	s->StringValue(RECORDING_START_SHELL_COMMAND_PARAM,m_recordingStartShellCommand);
 	s->StringValue(RECORDING_STOP_SHELL_COMMAND_PARAM,m_recordingStopShellCommand);
 	s->BoolValue(BATCH_PROCESSING_RECORD_SILENCE,m_recordSilence);
@@ -95,6 +98,7 @@ void Config::Define(Serializer* s)
 	s->StringValue(PLUGINS_DIRECTORY_PARAM, m_pluginsDirectory);
 	s->EnumValue(STORAGE_AUDIO_FORMAT_PARAM, (int&)m_storageAudioFormat, FileFormatToEnum, FileFormatToString);
 	s->IntValue(NUM_BATCH_THREADS_PARAM, m_numBatchThreads);
+	s->IntValue(NUM_COMMAND_THREADS_PARAM, m_numCommandThreads);
 	s->BoolValue(DELETE_NATIVE_FILE_PARAM, m_deleteNativeFile);
 	s->IntValue(AUDIO_CHUNK_DEFAULT_SIZE_PARAM, m_audioChunkDefaultSize);
 	s->BoolValue(AUDIO_SEGMENTATION_PARAM, m_audioSegmentation);
