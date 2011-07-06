@@ -18,6 +18,11 @@ extern "C"
 #include "g711.h"
 }
 
+void Filter::SetSessionInfo(CStdString& trackingId)
+{
+	m_trackingId = trackingId;
+}
+
 bool Filter::SupportsInputRtpPayloadType( int rtpPayloadType )
 {
 	return false;

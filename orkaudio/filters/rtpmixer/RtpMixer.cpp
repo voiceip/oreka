@@ -218,8 +218,8 @@ void RtpMixer::DoStats(	AudioChunkDetails* details, AudioChunkDetails* lastDetai
 	{
 		seqNumDiscontinuities++;
 		CStdString logMsg;
-		logMsg.Format("RTP discontinuity s%d: before: seq:%u ts:%u after: seq:%u ts:%u", 
-			details->m_channel, lastDetails->m_sequenceNumber, lastDetails->m_timestamp, 
+		logMsg.Format("[%s] RTP discontinuity s%d: before: seq:%u ts:%u after: seq:%u ts:%u", 
+			m_trackingId, details->m_channel, lastDetails->m_sequenceNumber, lastDetails->m_timestamp, 
 			details->m_sequenceNumber, details->m_timestamp);
 		LOG4CXX_DEBUG(m_log, logMsg);
 	}
@@ -251,7 +251,8 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 	}
 	if(chunk.get() == NULL)
 	{
-		LOG4CXX_DEBUG(m_log, "Null input chunk");
+		logMsg.Format("[%s] Null input chunk",m_trackingId);
+		LOG4CXX_DEBUG(m_log, logMsg);
 		return;
 	}
 
@@ -281,8 +282,8 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 		}
 		else
 		{
-			logMsg.Format("EOS s1: misses:%d maxgap:%d oo:%d disc:%d  s2: misses:%d maxgap:%d oo:%d disc:%d", 
-				m_seqNumMissesS1, m_seqMaxGapS1, m_seqNumOutOfOrderS1, m_seqNumDiscontinuitiesS1,
+			logMsg.Format("[%s] EOS s1: misses:%d maxgap:%d oo:%d disc:%d  s2: misses:%d maxgap:%d oo:%d disc:%d", 
+				m_trackingId, m_seqNumMissesS1, m_seqMaxGapS1, m_seqNumOutOfOrderS1, m_seqNumDiscontinuitiesS1,
 				m_seqNumMissesS2, m_seqMaxGapS2, m_seqNumOutOfOrderS2, m_seqNumDiscontinuitiesS2);
 			
 		}
@@ -300,13 +301,15 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 	}
 	else if(chunk->GetNumSamples() == 0)
 	{
-		LOG4CXX_DEBUG(m_log, "Empty input chunk");
+		logMsg.Format("[%s] Empty input chunk",m_trackingId);
+		LOG4CXX_DEBUG(m_log, logMsg);
 		return;
 	}
 	if(chunk->GetNumBytes() > 100000)
 	{
 		m_error = true;
-		LOG4CXX_ERROR(m_log, "RtpMixer: input chunk too big");
+		logMsg.Format("[%s] RtpMixer: input chunk too big",m_trackingId);
+		LOG4CXX_ERROR(m_log,logMsg);
 		return;
 	}
 	if(details->m_encoding != PcmAudio)
@@ -348,7 +351,8 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 		if(m_numProcessedSamples > 115200000)	// arbitrary high number (= 4 hours worth of 8KHz samples)
 		{
 			m_error = true;
-			LOG4CXX_ERROR(m_log, "RtpMixer: Reached input stream size limit");
+			logMsg.Format("[%s] RtpMixer: Reached input stream size limit",m_trackingId);
+			LOG4CXX_ERROR(m_log, logMsg);
 			return;
 		}
 	}
@@ -432,7 +436,7 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 			if(m_invalidChannelReported == false)
 			{
 				m_invalidChannelReported = true;
-				logMsg.Format("Invalid Channel:%d", details->m_channel);
+				logMsg.Format("[%s] Invalid Channel:%d",m_trackingId,details->m_channel);
 				LOG4CXX_ERROR(m_log, logMsg);
 			}
 		}
@@ -441,7 +445,7 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 
 	if(m_log->isDebugEnabled())
 	{
-		logMsg.Format("New chunk, s%d seq:%u ts:%u corr-ts:%u", details->m_channel, details->m_sequenceNumber, details->m_timestamp, correctedTimestamp);
+		logMsg.Format("[%s] New chunk, s%d seq:%u ts:%u corr-ts:%u",m_trackingId, details->m_channel, details->m_sequenceNumber, details->m_timestamp, correctedTimestamp);
 		LOG4CXX_DEBUG(m_log, logMsg);
 	}
 
@@ -450,7 +454,8 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 		if(details->m_channel == 1)
 		{
 			// First RTP packet of the session
-			LOG4CXX_DEBUG(m_log, "first chunk");
+			logMsg.Format("[%s] First chunk",m_trackingId);
+			LOG4CXX_DEBUG(m_log, logMsg);
 			m_writeTimestamp = correctedTimestamp;
 			m_readTimestamp = m_writeTimestamp;
 			m_oneS1PacketState = true;
@@ -504,7 +509,7 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 	}
 	if(m_log->isDebugEnabled())
 	{
-		logMsg.Format("free:%u used:%u wr:%x rd:%x wrts:%u rdts:%d", FreeSpace(), UsedSpace(), m_writePtr, m_readPtr, m_writeTimestamp, m_readTimestamp);
+		logMsg.Format("[%s] free:%u used:%u wr:%x rd:%x wrts:%u rdts:%d",m_trackingId, FreeSpace(), UsedSpace(), m_writePtr-m_buffer, m_readPtr-m_buffer, m_writeTimestamp, m_readTimestamp);
 		LOG4CXX_DEBUG(m_log, logMsg);
 	}
 }
@@ -515,7 +520,7 @@ void RtpMixer::ManageOutOfRangeTimestamp(AudioChunkRef& chunk)
 
 	AudioChunkDetails* details = chunk->GetDetails();
 
-	logMsg.Format("ManageOutOfRangeTimestamp - channel:%d", details->m_channel);
+	logMsg.Format("[%s] ManageOutOfRangeTimestamp - channel:%d",m_trackingId, details->m_channel);
 	LOG4CXX_DEBUG(m_log, logMsg);
 	if(details->m_channel == 1)
 	{
@@ -628,7 +633,7 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk, unsigned int correctedT
 		}
 		int silenceSize = endRtpTimestamp - m_writeTimestamp;
 		m_writeTimestamp = endRtpTimestamp;
-		debug.Format("Zeroed %d samples, wr:%x wrts:%u", silenceSize, m_writePtr, m_writeTimestamp);
+		debug.Format("[%s] Zeroed %d samples, wr:%x wrts:%u",m_trackingId, silenceSize, m_writePtr-m_buffer, m_writeTimestamp);
 		LOG4CXX_DEBUG(m_log, debug);
 	}
 
@@ -664,7 +669,7 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk, unsigned int correctedT
 			tempWritePtr = m_buffer;
 		}
 	}
-	debug.Format("Copied %d samples, tmpwr:%x", audioChunk->GetNumSamples(), tempWritePtr);
+	debug.Format("[%s] Copied %d samples, tmpwr:%x",m_trackingId, audioChunk->GetNumSamples(), tempWritePtr-m_buffer);
 	LOG4CXX_DEBUG(m_log, debug);
 }
 
@@ -728,7 +733,7 @@ void RtpMixer::HandleMixedOutput(AudioChunkRef &chunk, AudioChunkDetails& detail
 	{
 		CStdString logMsg;
 
-		logMsg.Format("Out of memory in RtpMixer::AddMixedChannels while allocating %d bytes", details.m_numBytes);
+		logMsg.Format("[%s] Out of memory in RtpMixer::AddMixedChannels while allocating %d bytes",m_trackingId, details.m_numBytes);
 		LOG4CXX_ERROR(m_log, logMsg);
 
 		if(tapeChannels[0])
@@ -857,7 +862,7 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 	m_readTimestamp += shortSize;
 
 	CStdString debug;
-	debug.Format("Ship %d samples, rd:%x rdts:%u", shortSize, m_readPtr, m_readTimestamp);
+	debug.Format("[%s] Ship %d samples, rd:%x rdts:%u",m_trackingId, shortSize, m_readPtr-m_buffer, m_readTimestamp);
 	LOG4CXX_DEBUG(m_log, debug);
 
 
@@ -895,7 +900,7 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 		m_shippedSamples += shortSize;
 		m_readPtr = CircularPointerAddOffset(m_readPtr ,shortSize);
 		m_readTimestamp += shortSize;
-		debug.Format("Ship wrapped %d samples, rd:%x rdts:%u", shortSize, m_readPtr, m_readTimestamp);
+		debug.Format("[%s] Ship wrapped %d samples, rd:%x rdts:%u",m_trackingId, shortSize, m_readPtr-m_buffer, m_readTimestamp);
 		LOG4CXX_DEBUG(m_log, debug);
 	}
 
@@ -933,7 +938,7 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 		m_shippedSamples += silenceSize;
 		m_readPtr = CircularPointerAddOffset(m_readPtr ,silenceSize);
 		m_readTimestamp += silenceSize;
-		debug.Format("Ship %d silence samples, rd:%x rdts:%u", silenceSize, m_readPtr, m_readTimestamp);
+		debug.Format("[%s] Ship %d silence samples, rd:%x rdts:%u",m_trackingId, silenceSize, m_readPtr-m_buffer, m_readTimestamp);
 		LOG4CXX_DEBUG(m_log, debug);
 	}
 }
@@ -959,7 +964,9 @@ bool RtpMixer::CheckChunkDetails(AudioChunkDetails& details)
 	if(details.m_numBytes > 100000)
 	{
 		m_error = true;
-		LOG4CXX_ERROR(m_log, "RtpMixer: output chunk too big");
+		CStdString logMsg;
+		logMsg.Format("[%s] RtpMixer: output chunk too big",m_trackingId);
+		LOG4CXX_ERROR(m_log,logMsg);
 		return false;
 	}
 	if(details.m_numBytes == 0)
