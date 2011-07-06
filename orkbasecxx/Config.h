@@ -30,7 +30,9 @@
 #define STORAGE_AUDIO_FORMAT_PARAM "StorageAudioFormat"
 #define STORAGE_AUDIO_FORMAT_DEFAULT FfGsm
 #define NUM_BATCH_THREADS_PARAM "NumBatchThreads"
+#define NUM_COMMAND_THREADS_PARAM "NumCommandThreads"
 #define NUM_BATCH_THREADS_DEFAULT 1
+#define NUM_COMMAND_THREADS_DEFAULT 1
 #define DELETE_NATIVE_FILE_PARAM "DeleteNativeFile"
 #define DELETE_NATIVE_FILE_DEFAULT true
 #define ENABLE_REPORTING_PARAM "EnableReporting"
@@ -132,6 +134,7 @@
 #define SOCKET_STREAMER_TARGETS_PARAM "SocketStreamerTargets"
 #define RECORDING_START_SHELL_COMMAND_PARAM "RecordingStartShellCommand"
 #define RECORDING_STOP_SHELL_COMMAND_PARAM "RecordingStopShellCommand"
+#define COMMAND_PROCESSING_COMMAND_PARAM "CommandProcessingCommand"
 
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
@@ -152,6 +155,7 @@ public:
 	CStdString m_capturePluginPath;
 	CStdString m_pluginsDirectory;
 	int m_numBatchThreads;
+	int m_numCommandThreads;
 	bool m_deleteNativeFile;
 	int m_audioChunkDefaultSize;
 	bool m_audioSegmentation;
@@ -209,6 +213,7 @@ public:
 	bool m_recordSilence;
 	CStdString m_recordingStartShellCommand;
 	CStdString m_recordingStopShellCommand;
+	CStdString m_commandProcessingCommand;
 
 private:
 	log4cxx::LoggerPtr m_log;

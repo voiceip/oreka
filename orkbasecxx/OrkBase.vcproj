@@ -358,6 +358,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CommandProcessing.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CommandProcessing.h"
+				>
+			</File>
+			<File
 				RelativePath="Config.cpp"
 				>
 				<FileConfiguration
