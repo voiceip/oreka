@@ -40,6 +40,10 @@ public:
 	virtual bool __CDECL__ SupportsInputRtpPayloadType(int rtpPayloadType );
 	virtual void __CDECL__ CaptureEventIn(CaptureEventRef& event) = 0;
 	virtual void __CDECL__ CaptureEventOut(CaptureEventRef& event) = 0;
+	virtual void __CDECL__ SetSessionInfo(CStdString& trackingId);
+protected:
+	CStdString m_trackingId;
+
 };
 //===================================================================
 

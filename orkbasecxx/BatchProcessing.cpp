@@ -424,6 +424,7 @@ void BatchProcessing::ThreadHandler(void *args)
 								debug = "Could not instanciate RTP mixer";
 								throw(debug);
 							}
+							filter->SetSessionInfo(trackingId);
 						}
 
 						CStdString path = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath();
