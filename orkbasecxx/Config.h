@@ -135,6 +135,7 @@
 #define RECORDING_START_SHELL_COMMAND_PARAM "RecordingStartShellCommand"
 #define RECORDING_STOP_SHELL_COMMAND_PARAM "RecordingStopShellCommand"
 #define COMMAND_PROCESSING_COMMAND_PARAM "CommandProcessingCommand"
+#define	TAGS_LIST_USE_INITIAL_VALUE_PARAM "TagsListUseInitialValue"
 
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
@@ -209,7 +210,7 @@ public:
 	CStdString m_audioKeepDirectionIncomingDefault;
 	CStdString m_audioKeepDirectionOutgoingDefault;
 	std::list<CStdString> m_socketStreamerTargets;
-
+	std::list<CStdString> m_tagsListUseInitialValue;
 	bool m_recordSilence;
 	CStdString m_recordingStartShellCommand;
 	CStdString m_recordingStopShellCommand;

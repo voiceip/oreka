@@ -172,6 +172,7 @@ void Config::Define(Serializer* s)
 	s->StringValue(AUDIO_KEEP_DIRECTION_INCOMING_DEFAULT_PARAM, m_audioKeepDirectionIncomingDefault);
 	s->StringValue(AUDIO_KEEP_DIRECTION_OUTGOING_DEFAULT_PARAM, m_audioKeepDirectionOutgoingDefault);
 	s->CsvValue(SOCKET_STREAMER_TARGETS_PARAM, m_socketStreamerTargets);
+	s->CsvValue(TAGS_LIST_USE_INITIAL_VALUE_PARAM,m_tagsListUseInitialValue);
 }
 
 void Config::Validate()
