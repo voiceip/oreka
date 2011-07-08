@@ -490,7 +490,17 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 			}
 			else
 			{
-				i->second = eventRef->m_value;
+				std::list<CStdString>::iterator it;
+				for(it = CONFIG.m_tagsListUseInitialValue.begin(); it != CONFIG.m_tagsListUseInitialValue.end(); it++) // Check if m_tagsListUseInitialValue contains the key to be updated
+				{
+					if(*it == eventRef->m_key)
+						break;
+				}
+
+				if(it == CONFIG.m_tagsListUseInitialValue.end()) // Iterator hit the end which means the key is not in the list, we can update the value
+				{
+					i->second = eventRef->m_value;
+				}
 			}
 
 			
