@@ -8,7 +8,7 @@ liborkbase_la_LDFLAGS =
 liborkbase_la_SOURCES = Filter.cpp g711.c \
 			OrkBase.cpp Object.cpp ObjectFactory.cpp \
 			OrkClient.cpp AudioCapture.cpp Utils.cpp  \
-			AudioTape.cpp \
+			AudioTape.cpp CommandProcessing.cpp  \
 			Config.cpp ConfigManager.cpp LogManager.cpp \
 			MultiThreadedServer.cpp TapeProcessor.cpp \
 			MemUtils.cpp BatchProcessing.cpp \
