@@ -171,10 +171,14 @@ typedef boost::shared_ptr<SipSessionProgressInfo> SipSessionProgressInfoRef;
 class EndpointInfo
 {
 public:
+	EndpointInfo();
 	CStdString m_extension;
 	CStdString m_latestCallId;
 	struct in_addr m_ip;
 	unsigned short m_skinnyPort;
+	time_t m_lastConferencePressed;
+	time_t m_lastConnectedWithConference;
+	CStdString m_origOrkUid;
 };
 typedef boost::shared_ptr<EndpointInfo> EndpointInfoRef;
 
@@ -212,6 +216,7 @@ public:
 	void MarkAsOnDemand(CStdString& side);
 	bool Stopped();
 	RtpPacketInfoRef GetLastRtpPacket();
+	void SkinnyTrackConferencesTransfers(CStdString callId, CStdString capturePort);
 
 	CStdString m_capturePort;
 	CStdString m_trackingId;
@@ -332,6 +337,8 @@ public:
 	void ReportSkinnyLineStat(SkLineStatStruct*, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
 	void ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader);
 	void ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader);
+	void ReportSkinnySoftKeyConfPressed(struct in_addr endpointIp, TcpHeaderStruct* tcpHeader);
+	void ReportSkinnySoftKeySetConfConnected(struct in_addr endpointIp, TcpHeaderStruct* tcpHeader);
 	void ReportRtpPacket(RtpPacketInfoRef& rtpPacket);
 	bool ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo);
 	void ReportSipErrorPacket(SipFailureMessageInfoRef& sipError);

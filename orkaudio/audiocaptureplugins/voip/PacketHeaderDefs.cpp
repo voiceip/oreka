@@ -35,6 +35,10 @@ int SkinnyMessageToEnum(CStdString& msg)
 	{
 		msgEnum = SkSoftKeyEventMessage;
 	}
+	else if (msg.CompareNoCase(SKINNY_MSG_SOFT_KEY_SET_DESCRIPTION) == 0)
+	{
+		msgEnum = SkSoftKeySetDescription;
+	}
 	return msgEnum;
 }
 
@@ -66,6 +70,9 @@ CStdString SkinnyMessageToString(int msgEnum)
 		break;
 	case SkSoftKeyEventMessage:
 		msgString = SKINNY_MSG_SOFT_KEY_EVENT_MESSAGE;
+		break;
+	case SkSoftKeySetDescription:
+		msgString = SKINNY_MSG_SOFT_KEY_SET_DESCRIPTION;
 		break;
 	default:
 		msgString = SKINNY_MSG_UNKN;
@@ -262,6 +269,21 @@ bool SkinnyValidateSoftKeyEvent(SkSoftKeyEventMessageStruct* softKeyEvent, u_cha
 	return valid;
 }
 
+bool SkinnyValidateSoftKeySetDescription(SkSoftKeySetDescriptionStruct* softKeySetDescription, u_char* packetEnd)
+{
+	bool valid = true;
+	if(((u_char*)softKeySetDescription + sizeof(SkSoftKeySetDescriptionStruct)) > packetEnd)
+	{
+		valid = false;
+	}
+	else if(softKeySetDescription->softKeySetDescription > SKINNY_SOFTKEYSET_MAX_EVENT ||
+			softKeySetDescription->softKeySetDescription < SKINNY_SOFTKEYSET_MIN_EVENT)
+	{
+		valid = false;
+	}
+
+	return valid;
+}
 //===================================================================
 int SoftKeyEvent::SoftKeyEventToEnum(CStdString& event)
 {
@@ -414,10 +436,100 @@ CStdString SoftKeyEvent::SoftKeyEventToString(int event)
         case SkSoftKeyGrpCallPickUp:
                 msgString = SKINNY_SOFTKEY_GRPCALLPICKUP;
                 break;
-	default:
-		msgString = SKINNY_SOFTKEY_UNKN;
-		break;
+        default:
+                msgString = SKINNY_SOFTKEY_UNKN;
+                break;
+
 	}
 
 	return msgString;
 }
+//==================================================================================
+int SoftKeySetDescription::SoftKeySetDescriptionToEnum(CStdString& event)
+{
+	int skEnum = SkSoftKeySetUnkn;
+	if(event.CompareNoCase(SKINNY_SOFTKEYSET_ONHOOK) == 0)
+	{
+		skEnum = SkSoftKeySetOnHook;
+	}
+	else if(event.CompareNoCase(SKINNY_SOFTKEYSET_CONNECTED) == 0)
+    {
+        skEnum = SkSoftKeySetConnected;
+    }
+	else if(event.CompareNoCase(SKINNY_SOFTKEYSET_ONHOLD) == 0)
+    {
+        skEnum = SkSoftKeySetOnHold;
+    }
+	else if(event.CompareNoCase(SKINNY_SOFTKEYSET_RINGIN) == 0)
+    {
+        skEnum = SkSoftKeySetRIngIn;
+    }
+	else if(event.CompareNoCase(SKINNY_SOFTKEYSET_OFFHOOK) == 0)
+    {
+        skEnum = SkSoftKeySetOffHook;
+    }
+	else if(event.CompareNoCase(SKINNY_SOFTKEYSET_TRANSFER) == 0)
+    {
+        skEnum = SkSoftKeySetTransfer;
+    }
+	else if(event.CompareNoCase(SKINNY_SOFTKEYSET_DIGITS) == 0)
+    {
+        skEnum = SkSoftKeySetDigits;
+    }
+	else if(event.CompareNoCase(SKINNY_SOFTKEYSET_CONFERENCE) == 0)
+    {
+        skEnum = SkSoftKeySetConference;
+    }
+	else if(event.CompareNoCase(SKINNY_SOFTKEYSET_RINGOUT) == 0)
+    {
+        skEnum = SkSoftKeySetRingOut;
+    }
+	else if(event.CompareNoCase(SKINNY_SOFTKEYSET_ONHOOKFEATURE) == 0)
+    {
+        skEnum = SkSoftKeySetOffHookFeature;
+    }
+	return skEnum;
+}
+
+CStdString SoftKeySetDescription::SoftKeySetDescriptionToString(int event)
+{
+	CStdString descString;
+	switch(event)
+	{
+	case SkSoftKeySetOnHook:
+		descString = SKINNY_SOFTKEYSET_ONHOOK;
+		break;
+	case SkSoftKeySetConnected:
+		descString = SKINNY_SOFTKEYSET_CONNECTED;
+		break;
+	case SkSoftKeySetOnHold:
+		descString = SKINNY_SOFTKEYSET_ONHOLD;
+		break;
+	case SkSoftKeySetRIngIn:
+		descString = SKINNY_SOFTKEYSET_RINGIN;
+		break;
+	case SkSoftKeySetOffHook:
+		descString = SKINNY_SOFTKEYSET_OFFHOOK;
+		break;
+	case SkSoftKeySetTransfer:
+		descString = SKINNY_SOFTKEYSET_TRANSFER;
+		break;
+	case SkSoftKeySetDigits:
+		descString = SKINNY_SOFTKEYSET_DIGITS;
+		break;
+	case SkSoftKeySetConference:
+		descString = SKINNY_SOFTKEYSET_CONFERENCE;
+		break;
+	case SkSoftKeySetRingOut:
+		descString = SKINNY_SOFTKEYSET_RINGOUT;
+		break;
+	case SkSoftKeySetOffHookFeature:
+		descString = SKINNY_SOFTKEYSET_ONHOOKFEATURE;
+		break;
+	default:
+		descString = SKINNY_SOFTKEYSET_UNKN;
+		break;
+	} //switch
+	return descString;
+}
+
