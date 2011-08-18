@@ -2842,6 +2842,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 	SkLineStatStruct* lineStat;
 	SkCcm5CallInfoStruct* ccm5CallInfo;
 	SkSoftKeyEventMessageStruct* softKeyEvent;
+	SkSoftKeySetDescriptionStruct* softKeySetDescription;
 
 	char szEndpointIp[16];
 	struct in_addr endpointIp = ipHeader->ip_dest;	// most of the interesting skinny messages are CCM -> phone
@@ -3117,6 +3118,12 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			case SoftKeyEvent::SkSoftKeyResume:
 				RtpSessionsSingleton::instance()->ReportSkinnySoftKeyResume(softKeyEvent, ipHeader);
 				break;
+			case SoftKeyEvent::SkSoftKeyConfrn:
+				if (DLLCONFIG.m_SkinnyTrackConferencesTransfers == true)
+				{
+					RtpSessionsSingleton::instance()->ReportSkinnySoftKeyConfPressed(endpointIp, tcpHeader);
+				}
+				break;
 			default:
 				CStdString logSoftKey;
 
@@ -3131,6 +3138,34 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		{
 			useful = false;
 			LOG4CXX_WARN(s_skinnyPacketLog, "Invalid SoftKeyEventMessage.");
+		}
+		break;
+	case SkSoftKeySetDescription:
+		softKeySetDescription = (SkSoftKeySetDescriptionStruct*)skinnyHeader;
+		if(SkinnyValidateSoftKeySetDescription(softKeySetDescription, packetEnd))
+		{
+			useful = true;
+			logMsg.Format(" eventString:%s eventNum:%d line:%lu callId:%lu",
+					SoftKeySetDescription::SoftKeySetDescriptionToString(softKeySetDescription->softKeySetDescription),
+					softKeySetDescription->softKeySetDescription,
+					softKeySetDescription->lineInstance,
+					softKeySetDescription->callIdentifier);
+
+			endpointIp = ipHeader->ip_dest;
+			switch(softKeySetDescription->softKeySetDescription)
+			{
+				case SoftKeySetDescription::SkSoftKeySetConference:
+					if (DLLCONFIG.m_SkinnyTrackConferencesTransfers == true)
+					{
+						RtpSessionsSingleton::instance()->ReportSkinnySoftKeySetConfConnected(endpointIp, tcpHeader);
+					}
+					break;
+			}
+		}
+		else
+		{
+			useful = false;
+			LOG4CXX_WARN(s_skinnyPacketLog, "Invalid SoftKeySetDescription.");
 		}
 		break;
 	default:

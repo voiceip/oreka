@@ -247,6 +247,17 @@ typedef struct
 
 bool SkinnyValidateSoftKeyEvent(SkSoftKeyEventMessageStruct *, u_char* packetEnd);
 
+
+typedef struct
+{
+	SkinnyHeaderStruct header;
+	unsigned int lineInstance;
+	unsigned int callIdentifier;
+	unsigned int softKeySetDescription;
+} SkSoftKeySetDescriptionStruct;
+
+bool SkinnyValidateSoftKeySetDescription(SkSoftKeySetDescriptionStruct*, u_char* packetEnd);
+
 #define SKINNY_CTRL_PORT 2000
 #define SKINNY_MIN_MESSAGE_SIZE 12
 #define SKINNY_HEADER_LENGTH 8
@@ -260,6 +271,7 @@ bool SkinnyValidateSoftKeyEvent(SkSoftKeyEventMessageStruct *, u_char* packetEnd
 #define SKINNY_MSG_LINE_STAT_MESSAGE "LineStatMessage"
 #define SKINNY_MSG_CCM5_CALL_INFO_MESSAGE "Ccm5CallInfoMessage"
 #define SKINNY_MSG_SOFT_KEY_EVENT_MESSAGE "SoftKeyEventMessage"
+#define SKINNY_MSG_SOFT_KEY_SET_DESCRIPTION "SoftKeySetDescription"
 
 #define SKINNY_CALL_TYPE_INBOUND 1
 #define SKINNY_CALL_TYPE_OUTBOUND 2
@@ -275,6 +287,7 @@ typedef enum
 	SkCloseReceiveChannel = 0x0106,
 	SkCcm5CallInfoMessage = 0x14A,
 	SkSoftKeyEventMessage = 0x0026,
+	SkSoftKeySetDescription = 0x0110,
 	SkUnkn = 0x0
 } SkinnyMessageEnum;
 int SkinnyMessageToEnum(CStdString& msg);
@@ -331,7 +344,40 @@ public:
 	static int SoftKeyEventToEnum(CStdString& event);
 	static CStdString SoftKeyEventToString(int event);
 };
-
+//==================================================================
+#define SKINNY_SOFTKEYSET_MAX_EVENT	10
+#define SKINNY_SOFTKEYSET_MIN_EVENT	0
+class SoftKeySetDescription
+{
+public:
+#define SKINNY_SOFTKEYSET_ONHOOK "OnHook"
+#define SKINNY_SOFTKEYSET_CONNECTED "Connected"
+#define SKINNY_SOFTKEYSET_ONHOLD "OnHold"
+#define SKINNY_SOFTKEYSET_RINGIN "RingIn"
+#define SKINNY_SOFTKEYSET_OFFHOOK "OffHook"
+#define SKINNY_SOFTKEYSET_TRANSFER "ConnectedWithTransfer"
+#define SKINNY_SOFTKEYSET_DIGITS "DigitsAfterDialingFirstDigit"
+#define SKINNY_SOFTKEYSET_CONFERENCE "ConnectedWithConference"
+#define SKINNY_SOFTKEYSET_RINGOUT "RingOut"
+#define SKINNY_SOFTKEYSET_ONHOOKFEATURE "OnHookWithFeature"
+#define SKINNY_SOFTKEYSET_UNKN "Unknown"
+	typedef enum {
+		SkSoftKeySetOnHook = 0,
+		SkSoftKeySetConnected = 1,
+		SkSoftKeySetOnHold = 2,
+		SkSoftKeySetRIngIn = 3,
+		SkSoftKeySetOffHook = 4,
+		SkSoftKeySetTransfer = 5,
+		SkSoftKeySetDigits = 6,
+		SkSoftKeySetConference = 7,
+		SkSoftKeySetRingOut = 8,
+		SkSoftKeySetOffHookFeature = 9,
+		SkSoftKeySetUnkn = 10
+	} SoftKeySetDescriptionEnum;
+	static int SoftKeySetDescriptionToEnum(CStdString& event);
+	static CStdString SoftKeySetDescriptionToString(int event);
+private:
+};
 
 //===================================================================
 /*

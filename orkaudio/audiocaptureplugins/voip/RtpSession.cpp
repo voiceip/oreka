@@ -30,6 +30,8 @@ extern CaptureEventCallBackFunction g_captureEventCallBack;
 extern VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
 
+#define CONFRC_TAG_KEY "orig-orkuid"
+
 RtpSession::RtpSession(CStdString& trackingId)
 {
 	m_trackingId = trackingId;
@@ -268,6 +270,11 @@ void RtpSession::Start()
 	CStdString timestamp = IntToString(startEvent->m_timestamp);
 	LOG4CXX_INFO(m_log,  "[" + m_trackingId + "] " + m_capturePort + " " + ProtocolToString(m_protocol) + " Session start, timestamp:" + timestamp);
 	g_captureEventCallBack(startEvent, m_capturePort);
+
+	if (DLLCONFIG.m_SkinnyTrackConferencesTransfers == true)
+	{
+		SkinnyTrackConferencesTransfers(m_callId, m_capturePort);
+	}
 }
 
 void RtpSession::GenerateOrkUid()
@@ -1594,6 +1601,36 @@ void RtpSession::MarkAsOnDemand(CStdString& side)
 	}
 }
 
+
+void RtpSession::SkinnyTrackConferencesTransfers(CStdString callId, CStdString capturePort)
+{
+	CStdString logMsg;
+	EndpointInfoRef endpoint;
+	time_t time_now = time(NULL);
+	std::map<CStdString, EndpointInfoRef>::iterator it;
+
+	endpoint = RtpSessionsSingleton::instance()->GetEndpointInfo(m_endPointIp, m_endPointSignallingPort);
+
+	if((time_now - endpoint->m_lastConferencePressed) > 3 && (time_now - endpoint->m_lastConnectedWithConference) > 3)
+	{
+		endpoint->m_origOrkUid = "";
+	}
+	else
+	{
+		if(endpoint->m_origOrkUid != "")
+		{
+			CaptureEventRef event (new CaptureEvent());
+			event->m_type = CaptureEvent::EtKeyValue;
+			event->m_key = CONFRC_TAG_KEY;
+			event->m_value = endpoint->m_origOrkUid;
+			g_captureEventCallBack(event, capturePort);
+			logMsg.Format("SkinnyTrackConferencesTransfers:[%s] new leg, tagging with orig-orkuid:%s",m_trackingId, endpoint->m_origOrkUid);
+			LOG4CXX_INFO(m_log, logMsg);
+		}
+	}
+
+}
+
 //=====================================================================
 RtpSessions::RtpSessions()
 {
@@ -2826,6 +2863,72 @@ void RtpSessions::ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent
         LOG4CXX_WARN(m_log, logMsg);
     }
 }
+void RtpSessions::ReportSkinnySoftKeyConfPressed(struct in_addr endpointIp, TcpHeaderStruct* tcpHeader)
+{
+	CStdString logMsg;
+	time_t time_now = time(NULL);
+	unsigned short skinnyPort;
+	skinnyPort = ntohs(tcpHeader->source);
+	EndpointInfoRef endpoint;
+	char szEndpointIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
+
+	endpoint = GetEndpointInfo(endpointIp, skinnyPort);
+	if(endpoint == NULL)
+	{
+		logMsg.Format("ReportSkinnySoftKeyConfPressed: unable to find endpoint:%s,%d", szEndpointIp, skinnyPort);
+		LOG4CXX_WARN(m_log, logMsg);
+		return;
+	}
+
+	std::map<CStdString, RtpSessionRef> ::iterator rtpSessionPair;
+	RtpSessionRef rtpSession;
+	rtpSessionPair = m_byCallId.find(endpoint->m_latestCallId);
+	if(rtpSessionPair == m_byCallId.end())
+	{
+		logMsg.Format("ReportSkinnySoftKeyConfPressed: unable to find callId:%s for endpoint:%s,%d", endpoint->m_latestCallId, szEndpointIp, skinnyPort);
+		LOG4CXX_WARN(m_log, logMsg);
+		return;
+	}
+	rtpSession = rtpSessionPair->second;
+
+	if(endpoint->m_lastConnectedWithConference < endpoint->m_lastConferencePressed || endpoint->m_lastConferencePressed == 0)
+	{
+		CaptureEventRef event (new CaptureEvent());
+		event->m_type = CaptureEvent::EtKeyValue;
+		event->m_key = CONFRC_TAG_KEY;
+		event->m_value = rtpSession->GetOrkUid();
+		endpoint->m_origOrkUid = rtpSession->GetOrkUid();
+		g_captureEventCallBack(event, rtpSession->m_capturePort);
+
+		logMsg.Format("ReportSkinnySoftKeyConfPressed:[%s] new conference, endpoint:%s,%d, tagging with orig-orkuid:%s", rtpSession->m_trackingId , szEndpointIp, skinnyPort, rtpSession->GetOrkUid());
+		LOG4CXX_INFO(m_log, logMsg);
+	}
+
+	else
+	{
+		logMsg.Format("ReportSkinnySoftKeyConfPressed:[%s] existing conference, endpoint:%s,%d", rtpSession->m_trackingId, szEndpointIp, skinnyPort);
+		LOG4CXX_WARN(m_log, logMsg);
+	}
+	endpoint->m_lastConferencePressed = time(NULL);
+}
+void RtpSessions::ReportSkinnySoftKeySetConfConnected(struct in_addr endpointIp, TcpHeaderStruct* tcpHeader)
+{
+	CStdString logMsg;
+	unsigned short skinnyPort;
+	skinnyPort = ntohs(tcpHeader->dest);
+	char szEndpointIp[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
+	EndpointInfoRef endpoint;
+	endpoint = GetEndpointInfo(endpointIp, skinnyPort);
+	if(endpoint == NULL)
+	{
+		logMsg.Format("ReportSkinnySoftKeyConfConnected unable to find endpoint:%s,%d", szEndpointIp, skinnyPort);
+		LOG4CXX_WARN(m_log, logMsg);
+		return;
+	}
+	endpoint->m_lastConnectedWithConference = time(NULL);
+}
 
 EndpointInfoRef RtpSessions::GetEndpointInfo(struct in_addr endpointIp, unsigned short skinnyPort)
 {
@@ -3730,4 +3833,11 @@ SipNotifyInfo::SipNotifyInfo()
 	m_senderIp.s_addr = 0;
 	m_receiverIp.s_addr = 0;
 }
+//================================================
 
+EndpointInfo::EndpointInfo()
+{
+	m_lastConferencePressed = 0;
+	m_lastConnectedWithConference = 0;
+	m_origOrkUid = "";
+}
