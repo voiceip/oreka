@@ -180,7 +180,7 @@
 				OutputFile=".\Release/OrkBase.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:\devExt\libsndfile;C:\devExt\ACE_wrappers\lib;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\projects\Release&quot;;C:\devext\xerces\Build\Win32\VC8\Release"
+				AdditionalLibraryDirectories="C:\DevExt\libsndfile\lib;C:\devExt\libsndfile;C:\devExt\ACE_wrappers\lib;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\projects\Release&quot;;C:\devext\xerces\Build\Win32\VC8\Release"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Release/OrkBase.pdb"
 				GenerateMapFile="true"

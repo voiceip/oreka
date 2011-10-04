@@ -76,7 +76,7 @@
 				OutputFile=".\Release/OrkAudio.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\OrkbaseCxx\Release;C:\devExt\ACE_wrappers\lib;C:\devext\xerces\Build\Win32\VC8\Release;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\projects\Release&quot;;C:\devExt\libsndfile"
+				AdditionalLibraryDirectories="C:\DevExt\libsndfile\lib;..\OrkbaseCxx\Release;C:\devExt\ACE_wrappers\lib;C:\devext\xerces\Build\Win32\VC8\Release;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\projects\Release&quot;;C:\devExt\libsndfile"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Release/OrkAudio.pdb"
 				GenerateMapFile="true"
