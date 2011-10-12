@@ -82,6 +82,7 @@ Config::Config()
 	m_audioKeepDirectionIncomingDefault = AUDIO_KEEP_DIRECTION_INCOMING_DEFAULT_DEFAULT;
 	m_audioKeepDirectionOutgoingDefault = AUDIO_KEEP_DIRECTION_OUTGOING_DEFAULT_DEFAULT;
 	m_commandProcessingCommand = "";
+	m_directionForceOutgoingForRemotePartyPrefix = "";
 }
 
 void Config::Define(Serializer* s)
@@ -173,6 +174,7 @@ void Config::Define(Serializer* s)
 	s->StringValue(AUDIO_KEEP_DIRECTION_OUTGOING_DEFAULT_PARAM, m_audioKeepDirectionOutgoingDefault);
 	s->CsvValue(SOCKET_STREAMER_TARGETS_PARAM, m_socketStreamerTargets);
 	s->CsvValue(TAGS_LIST_USE_INITIAL_VALUE_PARAM,m_tagsListUseInitialValue);
+	s->StringValue(DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_PREFIX,m_directionForceOutgoingForRemotePartyPrefix);
 }
 
 void Config::Validate()
