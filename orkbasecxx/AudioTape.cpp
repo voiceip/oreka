@@ -595,6 +595,21 @@ void AudioTape::PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum ev
 	msg->m_localEntryPoint = m_localEntryPoint;
 	msg->m_remoteParty = m_remoteParty;
 	msg->m_direction = CaptureEvent::DirectionToString(m_direction);
+	
+	if( !CONFIG.m_directionForceOutgoingForRemotePartyPrefix.empty() )
+	{
+		if( m_localParty.Find(CONFIG.m_directionForceOutgoingForRemotePartyPrefix) == 0 )
+		{
+			msg->m_direction = CaptureEvent::DirectionToString( CaptureEvent::DirectionEnum::DirOut );
+			msg->m_remoteParty = m_localParty;
+			msg->m_localParty = m_remoteParty;
+		}
+		else if( m_remoteParty.Find(CONFIG.m_directionForceOutgoingForRemotePartyPrefix) == 0 )
+		{
+			msg->m_direction = CaptureEvent::DirectionToString( CaptureEvent::DirectionEnum::DirOut );
+		}
+	}
+	
 	//msg->m_localSide = CaptureEvent::LocalSideToString(m_localSide);
 	msg->m_audioKeepDirection = CaptureEvent::AudioKeepDirectionToString(m_audioKeepDirectionEnum);
 	msg->m_duration = m_duration;
