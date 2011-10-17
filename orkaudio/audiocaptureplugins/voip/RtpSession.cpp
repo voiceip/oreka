@@ -1674,7 +1674,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			// Do nothing here so that we end up stopping this Raw RTP session 
 			// and creating new session below
 		}
-		else if (invite->m_callId.Equals(session->m_callId) == false)
+		else if (DLLCONFIG.m_rtpAllowMultipleMappings == false && invite->m_callId.Equals(session->m_callId) == false)
 		{
 			LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] Detecting new SIP callId:" +  invite->m_callId + " stopping...");
 			// Forcing previous session type to Raw RTP so that SetMediaAddress() successfully
