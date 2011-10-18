@@ -137,7 +137,8 @@
 #define COMMAND_PROCESSING_COMMAND_PARAM "CommandProcessingCommand"
 #define	TAGS_LIST_USE_INITIAL_VALUE_PARAM "TagsListUseInitialValue"
 #define DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_PREFIX "DirectionForceOutgoingForRemotePartyPrefix"
-
+#define DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_MIN_LENGTH "DirectionForceOutgoingForRemotePartyMinLength"
+#define DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_MIN_LENGTH_DEFAULT 11
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -217,6 +218,7 @@ public:
 	CStdString m_recordingStopShellCommand;
 	CStdString m_commandProcessingCommand;
 	CStdString m_directionForceOutgoingForRemotePartyPrefix;
+	int m_directionForceOutgoingForRemotePartyMinLength;
 
 private:
 	log4cxx::LoggerPtr m_log;

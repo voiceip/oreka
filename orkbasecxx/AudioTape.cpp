@@ -598,13 +598,15 @@ void AudioTape::PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum ev
 	
 	if( !CONFIG.m_directionForceOutgoingForRemotePartyPrefix.empty() )
 	{
-		if( m_localParty.Find(CONFIG.m_directionForceOutgoingForRemotePartyPrefix) == 0 )
+		if( m_localParty.length() >= CONFIG.m_directionForceOutgoingForRemotePartyMinLength  && 
+			m_localParty.Find(CONFIG.m_directionForceOutgoingForRemotePartyPrefix) == 0  )
 		{
 			msg->m_direction = DIR_OUT;
 			msg->m_remoteParty = m_localParty;
 			msg->m_localParty = m_remoteParty;
 		}
-		else if( m_remoteParty.Find(CONFIG.m_directionForceOutgoingForRemotePartyPrefix) == 0 )
+		else if( m_remoteParty.length() >= CONFIG.m_directionForceOutgoingForRemotePartyMinLength  &&
+			     m_remoteParty.Find(CONFIG.m_directionForceOutgoingForRemotePartyPrefix) == 0 )
 		{
 			msg->m_direction = DIR_OUT;
 		}
