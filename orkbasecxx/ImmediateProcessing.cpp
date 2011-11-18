@@ -151,6 +151,13 @@ void ImmediateProcessing::ThreadHandler(void *args)
 						logMsg.Format("[%s] is less than %d sec, discarding", audioTapeRef->m_trackingId, CONFIG.m_tapeDurationMinimumSec);
 						LOG4CXX_INFO(LOG.immediateProcessingLog, logMsg);
 					}
+					else if(audioTapeRef->m_keep == false)
+					{
+						audioTapeRef->GetAudioFileRef()->Delete();
+						CStdString logMsg;
+						logMsg.Format("[%s] Do Not Keep detected , deleting", audioTapeRef->m_trackingId, CONFIG.m_tapeDurationMinimumSec);
+						LOG4CXX_INFO(LOG.immediateProcessingLog, logMsg);
+					}
 					else
 					{
 						// Pass the tape to the tape processor chain
