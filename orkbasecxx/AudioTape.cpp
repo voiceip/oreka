@@ -124,6 +124,7 @@ AudioTape::AudioTape(CStdString &portId)
 	m_highMark = 0;
 	m_chunkQueueDataSize = 0;
 	m_chunkQueueErrorReported = false;
+	m_keep = true;
 
 	GenerateCaptureFilePathAndIdentifier();
 }
@@ -468,6 +469,18 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 			// If this reported, the recording was started by the API
 			m_onDemand = true;
 		}
+		else if(eventRef->m_key.CompareNoCase("Keep") == 0)
+		{
+			if(eventRef->m_value.CompareNoCase("1") == 0)
+			{
+				m_keep = true;
+			}
+			else
+			{
+				m_keep = false;
+			}
+		}
+
 		break;
 	}
 

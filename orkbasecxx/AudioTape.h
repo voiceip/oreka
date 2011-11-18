@@ -102,6 +102,7 @@ public:
 	StateEnum m_state;
 	int m_numErrors;
 	bool m_onDemand;
+	bool m_keep;
 
 	TapeResponseRef m_tapeResponse;
 
