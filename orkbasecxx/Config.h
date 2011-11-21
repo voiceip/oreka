@@ -139,6 +139,8 @@
 #define DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_PREFIX "DirectionForceOutgoingForRemotePartyPrefix"
 #define DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_MIN_LENGTH "DirectionForceOutgoingForRemotePartyMinLength"
 #define DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_MIN_LENGTH_DEFAULT 11
+#define PAUSE_RECORDING_ON_REJECTED_START "PauseRecordingOnRejectedStart"
+#define PAUSE_RECORDING_ON_REJECTED_START_DEFAULT false;
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -219,6 +221,7 @@ public:
 	CStdString m_commandProcessingCommand;
 	CStdString m_directionForceOutgoingForRemotePartyPrefix;
 	int m_directionForceOutgoingForRemotePartyMinLength;
+	bool m_pauseRecordingOnRejectedStart;
 
 private:
 	log4cxx::LoggerPtr m_log;

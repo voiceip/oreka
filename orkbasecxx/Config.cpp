@@ -84,6 +84,7 @@ Config::Config()
 	m_commandProcessingCommand = "";
 	m_directionForceOutgoingForRemotePartyPrefix = "";
 	m_directionForceOutgoingForRemotePartyMinLength = DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_MIN_LENGTH_DEFAULT;
+	m_pauseRecordingOnRejectedStart = PAUSE_RECORDING_ON_REJECTED_START_DEFAULT; 
 }
 
 void Config::Define(Serializer* s)
@@ -177,6 +178,7 @@ void Config::Define(Serializer* s)
 	s->CsvValue(TAGS_LIST_USE_INITIAL_VALUE_PARAM,m_tagsListUseInitialValue);
 	s->StringValue(DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_PREFIX,m_directionForceOutgoingForRemotePartyPrefix);
 	s->IntValue(DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_MIN_LENGTH,m_directionForceOutgoingForRemotePartyMinLength);
+	s->BoolValue(PAUSE_RECORDING_ON_REJECTED_START,m_pauseRecordingOnRejectedStart);
 }
 
 void Config::Validate()

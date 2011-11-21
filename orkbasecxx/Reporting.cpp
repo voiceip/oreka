@@ -1,5 +1,5 @@
-/*
- * Oreka -- A media capture and retrieval platform
+	/*
+	 * Oreka -- A media capture and retrieval platform
  * 
  * Copyright (C) 2005, orecx LLC
  *
@@ -359,29 +359,26 @@ void ReportingThread::Run()
 								LOG4CXX_ERROR(LOG.reportingLog, "[" + m_threadId + "] " + CStdString("Orktrack successfully contacted"));
 							}
 
-							if(tr->m_deleteTape)
+							if(tr->m_deleteTape && ptapeMsg->m_stage.Equals("ready") )
 							{
-								if(ptapeMsg->m_stage.Equals("start"))
-								{
-									CStdString orkUid = ptapeMsg->m_recId;
-									CStdString empty;
-									CapturePluginProxy::Singleton()->PauseCapture(empty, orkUid, empty);
-								}
-								else if(ptapeMsg->m_stage.Equals("ready"))
-								{
-									CStdString tapeFilename = ptapeMsg->m_fileName;
+								CStdString tapeFilename = ptapeMsg->m_fileName;
 
-									CStdString absoluteFilename = CONFIG.m_audioOutputPath + "/" + tapeFilename;
-									if (ACE_OS::unlink((PCSTR)absoluteFilename) == 0)
-									{
-										LOG4CXX_INFO(LOG.reportingLog, "[" + m_threadId + "] " + "Deleted tape: " + tapeFilename);
-									}
-									else
-									{
-										LOG4CXX_DEBUG(LOG.reportingLog, "[" + m_threadId + "] " + "Could not delete tape: " + tapeFilename);
-									}
-								}
+                                                        	CStdString absoluteFilename = CONFIG.m_audioOutputPath + "/" + tapeFilename;
+                                                         	if (ACE_OS::unlink((PCSTR)absoluteFilename) == 0)
+                                                                {
+                                                                	LOG4CXX_INFO(LOG.reportingLog, "[" + m_threadId + "] " + "Deleted tape: " + tapeFilename);
+                                                                }
+                                                               	else
+								{
+                                                                	LOG4CXX_DEBUG(LOG.reportingLog, "[" + m_threadId + "] " + "Could not delete tape: " + tapeFilename);
+                                                                }
 
+							}
+							else if(tr->m_deleteTape && ptapeMsg->m_stage.Equals("start") && CONFIG.m_pauseRecordingOnRejectedStart == true)
+							{
+								CStdString orkUid = ptapeMsg->m_recId;
+								CStdString empty;
+								CapturePluginProxy::Singleton()->PauseCapture(empty, orkUid, empty);
 							}
 							else 
 							{
