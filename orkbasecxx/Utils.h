@@ -116,6 +116,7 @@ class DLL_IMPORT_EXPORT_ORKBASE IpRanges
 public:
 	bool Matches(struct in_addr ip);
 	void Compute();
+	bool Empty();
 
 	std::list<CStdString> m_asciiIpRanges;
 private:
