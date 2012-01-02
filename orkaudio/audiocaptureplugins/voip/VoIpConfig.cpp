@@ -200,6 +200,7 @@ void VoIpConfig::Define(Serializer* s)
 	
 	s->IpRangesValue("LanIpRanges", m_lanIpRanges);
 	s->IpRangesValue("MediaAddressBlockedIpRanges", m_mediaAddressBlockedIpRanges);
+	s->IpRangesValue("MediaAddressAllowedIpRanges", m_mediaAddressAllowedIpRanges);
 
 	s->BoolValue("DahdiIntercept", m_dahdiIntercept);
 	s->BoolValue("HoldReportStats",m_holdReportStats);

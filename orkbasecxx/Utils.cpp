@@ -434,3 +434,11 @@ bool IpRanges::Matches(struct in_addr ip)
 	return matches;
 }
 
+bool IpRanges::Empty()
+{
+	if(m_asciiIpRanges.empty())
+		return true;
+	else
+		return false;
+}
+

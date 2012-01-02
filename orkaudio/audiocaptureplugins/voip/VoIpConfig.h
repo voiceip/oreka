@@ -143,6 +143,7 @@ public:
 	std::list<CStdString> m_sipDirectionReferenceUserAgents;
 	IpRanges m_lanIpRanges;
 	IpRanges m_mediaAddressBlockedIpRanges;
+	IpRanges m_mediaAddressAllowedIpRanges;
 
 	bool m_dahdiIntercept;
 	bool m_holdReportStats;
