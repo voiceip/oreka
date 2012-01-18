@@ -222,6 +222,9 @@ public:
 	CStdString m_directionForceOutgoingForRemotePartyPrefix;
 	int m_directionForceOutgoingForRemotePartyMinLength;
 	bool m_pauseRecordingOnRejectedStart;
+	CStdString m_partyFilterChars;
+	CStdString m_partyFilterCharsReplaceWith;
+	std::map<char, char> m_partyFilterMap;
 
 private:
 	log4cxx::LoggerPtr m_log;

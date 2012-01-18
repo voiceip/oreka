@@ -179,6 +179,33 @@ void Config::Define(Serializer* s)
 	s->StringValue(DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_PREFIX,m_directionForceOutgoingForRemotePartyPrefix);
 	s->IntValue(DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_MIN_LENGTH,m_directionForceOutgoingForRemotePartyMinLength);
 	s->BoolValue(PAUSE_RECORDING_ON_REJECTED_START,m_pauseRecordingOnRejectedStart);
+	s->StringValue("PartyFilterChars", m_partyFilterChars);
+	s->StringValue("PartyFilterCharsReplaceWith", m_partyFilterCharsReplaceWith);
+
+	//Construct the partyFilterMap
+	if(m_partyFilterCharsReplaceWith.size() != 0)
+	{
+		for(int i=0; i<m_partyFilterChars.size(); i++)
+		{
+			if(i < m_partyFilterCharsReplaceWith.size())
+			{
+				m_partyFilterMap.insert(std::make_pair(m_partyFilterChars.at(i), m_partyFilterCharsReplaceWith.at(i)));
+			}
+			else
+			{
+				m_partyFilterMap.insert(std::make_pair(m_partyFilterChars.at(i), '?'));		//use ? as a reserved char which will remove the filtered character altogether
+			}
+
+		}
+	}
+	else
+	{
+		for(int i=0; i<m_partyFilterChars.size(); i++)
+		{
+			m_partyFilterMap.insert(std::make_pair(m_partyFilterChars.at(i), '?'));		//use ? as a reserved char which will remove the filtered character altogether
+		}
+	}
+
 }
 
 void Config::Validate()
@@ -258,6 +285,12 @@ void Config::Validate()
 		CStdString exception;
 		exception.Format("VoIpConfig: invalid %s value:%s", AUDIO_KEEP_DIRECTION_OUTGOING_DEFAULT_PARAM, m_audioKeepDirectionOutgoingDefault);
 		throw(exception);
+	}
+	if(m_partyFilterCharsReplaceWith.size() > m_partyFilterChars.size())
+	{
+		CStdString exception;
+		exception.Format("Config: PartyFilterCharsReplaceWith must have less or equal characters with PartyFilterChars");
+		throw (exception);
 	}
 
 }
