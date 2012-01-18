@@ -370,7 +370,8 @@ void BatchProcessing::ThreadHandler(void *args)
 					if(details.m_rtpPayloadType < -1 || details.m_rtpPayloadType >= RTP_PAYLOAD_TYPE_MAX)
 					{
 						logMsg.Format("RTP payload type out of bound:%d", details.m_rtpPayloadType);
-						throw(logMsg);
+						LOG4CXX_DEBUG(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + logMsg);
+						continue;
 					}
 
 					// Instanciate any decoder we might need during a VoIP session
