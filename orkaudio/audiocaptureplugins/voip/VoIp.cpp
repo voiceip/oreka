@@ -44,6 +44,7 @@
 #include "RtpSession.h"
 #include "Iax2Session.h"
 #include "SipTcp.h"
+#include "Win1251.h"
 
 extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;
@@ -74,6 +75,7 @@ static unsigned int s_numPacketsPerSecond;
 static unsigned int s_minPacketsPerSecond;
 static unsigned int s_maxPacketsPerSecond;
 static std::list<SipTcpStreamRef> s_SipTcpStreams;
+static unsigned short utf[256];		//UTF-8 encoding table (partial)
 
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
@@ -2917,9 +2919,12 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		{
 			if(s_skinnyPacketLog->isInfoEnabled())
 			{
-				logMsg.Format(" CallId:%u calling:%s called:%s callingname:%s calledname:%s line:%d callType:%d", 
-								callInfo->callId, callInfo->callingParty, callInfo->calledParty, 
+				ConvertWin1251ToUtf8(callInfo->callingPartyName, utf);
+				ConvertWin1251ToUtf8(callInfo->calledPartyName, utf);
+				logMsg.Format(" CallId:%u calling:%s called:%s callingname:%s calledname:%s line:%d callType:%d",
+								callInfo->callId, callInfo->callingParty, callInfo->calledParty,
 								callInfo->callingPartyName, callInfo->calledPartyName, callInfo->lineInstance, callInfo->callType);
+
 			}
 			RtpSessionsSingleton::instance()->ReportSkinnyCallInfo(callInfo, ipHeader, tcpHeader);
 		}
@@ -4009,6 +4014,7 @@ void VoIp::Initialize()
 		s_liveCapture = true;
 	}
 
+	InitializeWin1251Table(utf);
 	LoadPartyMaps();
 }
 
@@ -4022,7 +4028,7 @@ void VoIp::ReportPcapStats()
 			pcap_stats(*it, &stats);
 			CStdString logMsg;
 			logMsg.Format("handle:%x received:%u dropped:%u", *it, stats.ps_recv, stats.ps_drop);
-			LOG4CXX_INFO(s_packetStatsLog, logMsg)
+			LOG4CXX_INFO(s_packetStatsLog, logMsg);
 		}
 	}
 }
