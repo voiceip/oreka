@@ -425,6 +425,14 @@
 				RelativePath="VoIpConfig.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Win1251.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Win1251.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
