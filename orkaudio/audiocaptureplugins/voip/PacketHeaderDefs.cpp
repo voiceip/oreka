@@ -130,7 +130,8 @@ bool checkPartyString(char* string, int size)
 		{
 			endOfStringFound = true;
 		}
-		else if(string[i] > 122 || string[i] < 32)
+		//check if characters is valid (between 32&122 for latins, 192&255 for Cyrillic
+		else if((unsigned char)string[i] < 32 || ((unsigned char)string[i] > 122 && (unsigned char)string[i] < 192) || (unsigned char)string[i] > 255)
 		{
 			invalidCharFound = true;
 		}
