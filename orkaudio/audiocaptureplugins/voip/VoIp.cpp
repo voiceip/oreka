@@ -1809,19 +1809,14 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 	startTcpPayload = (u_char*)tcpHeader + (tcpHeader->off * 4);
 	tcpLengthPayloadLength = ((u_char*)ipHeader+ntohs(ipHeader->ip_len)) - startTcpPayload;
 
-    if(tcpLengthPayloadLength < SIP_METHOD_INVITE_SIZE+3)
-    {
-		LOG4CXX_DEBUG(s_sipTcpPacketLog, "Payload shorter");
-		return false;
-    }
-
-	if((memcmp(SIP_METHOD_INVITE, (void*)startTcpPayload, SIP_METHOD_INVITE_SIZE) == 0) ||
-	   (memcmp(SIP_METHOD_ACK, (void*)startTcpPayload, SIP_METHOD_ACK_SIZE) == 0) ||
-	   (memcmp(SIP_METHOD_BYE, (void*)startTcpPayload, SIP_METHOD_BYE_SIZE) == 0) ||
-	   (memcmp("SIP/2.0 4", (void*)startTcpPayload, 9) == 0) ||
-	   (memcmp("SIP/2.0 5", (void*)startTcpPayload, 9) == 0) ||
-	   (memcmp("SIP/2.0 6", (void*)startTcpPayload, 9) == 0) ||
-	   (memcmp("CANCEL ", (void*)startTcpPayload, 7) == 0))
+    if( (tcpLengthPayloadLength >= SIP_METHOD_INVITE_SIZE+3) &&
+		  ((memcmp(SIP_METHOD_INVITE, (void*)startTcpPayload, SIP_METHOD_INVITE_SIZE) == 0) ||
+		   (memcmp(SIP_METHOD_ACK, (void*)startTcpPayload, SIP_METHOD_ACK_SIZE) == 0) ||
+		   (memcmp(SIP_METHOD_BYE, (void*)startTcpPayload, SIP_METHOD_BYE_SIZE) == 0) ||
+		   (memcmp("SIP/2.0 4", (void*)startTcpPayload, 9) == 0) ||
+		   (memcmp("SIP/2.0 5", (void*)startTcpPayload, 9) == 0) ||
+		   (memcmp("SIP/2.0 6", (void*)startTcpPayload, 9) == 0) ||
+		   (memcmp("CANCEL ", (void*)startTcpPayload, 7) == 0)) )
 	{
 		SipTcpStreamRef tcpstream(new SipTcpStream());
 		int exists = 0;
@@ -1892,6 +1887,10 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 		LOG4CXX_INFO(s_sipTcpPacketLog, "Obtained incomplete TCP Stream: " + tcpStream);
 
 		return true;
+	}
+	else
+	{
+		LOG4CXX_DEBUG(s_sipTcpPacketLog,"Short payload, will look if it belongs to a previous TCP stream");
 	}
 
 	for(std::list<SipTcpStreamRef>::iterator it = s_SipTcpStreams.begin(); it != s_SipTcpStreams.end(); it++)
