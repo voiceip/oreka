@@ -360,8 +360,8 @@ void GrabSipUriUser(char* in, char* limit, CStdString& out)
 		return;
 	}
 	// What stops a SIP URI user is a ':' (separating user from pwd) or an '@' (separating user from hostname)
-	// but no need to test for these as we only allow alphanums and '#'
-	for(char* c = userStart; (ACE_OS::ace_isalnum(*c) || *c == '#' || *c == '*' || *c == '.' || *c == '+' || *c == '-' || *c == '_' ) && c < limit ; c = c+1)
+	// but no need to test for these as we only allow alphanums and a few other chars
+	for(char* c = userStart; (ACE_OS::ace_isalnum(*c) || *c == '#' || *c == '*' || *c == '.' || *c == '+' || *c == '-' || *c == '_' || *c == '%') && c < limit ; c = c+1)
 	{
 		out += *c;
 	}
