@@ -83,6 +83,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_rtpNumMissingPkts = 0;
 	m_rtpNumSeqGaps = 0;
 	m_holdDuration = 0;
+	m_ipAndPort = 0;
 }
 
 void RtpSession::Stop()
@@ -1704,14 +1705,14 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	{
 		rtpPort = rtpPortAsInt;
 	}
-	CStdString ipAndPort;
+	unsigned long long ipAndPort;
 
-	CraftMediaAddress(ipAndPort, invite->m_fromRtpIp, rtpPortAsInt);
+	Craft64bitMediaAddress(ipAndPort, invite->m_fromRtpIp, rtpPortAsInt);
 	RtpSessionRef session = findByMediaAddress(invite->m_fromRtpIp, rtpPortAsInt);
 
 	if(session.get() == NULL && DLLCONFIG.m_sipTrackMediaAddressOnSender)
 	{
-		CraftMediaAddress(ipAndPort, invite->m_senderIp, rtpPortAsInt);
+		Craft64bitMediaAddress(ipAndPort, invite->m_senderIp, rtpPortAsInt);
 		RtpSessionRef session = findByMediaAddress(invite->m_senderIp, rtpPortAsInt);
 	}
 	if(session.get())
@@ -1782,7 +1783,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			}
 		}
 
-		if(!session->m_ipAndPort.Equals(ipAndPort) && DLLCONFIG.m_sipDynamicMediaAddress)
+		if(!session->m_ipAndPort == ipAndPort && DLLCONFIG.m_sipDynamicMediaAddress)
 		{
 			SetMediaAddress(session, invite->m_fromRtpIp, rtpPort);
 			if(DLLCONFIG.m_sipTrackMediaAddressOnSender)
@@ -2056,7 +2057,7 @@ void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessi
 
 EndpointInfoRef RtpSessions::GetEndpointInfoByIp(struct in_addr *ip)
 {
-	std::map<CStdString, EndpointInfoRef>::iterator pair;
+	std::map<unsigned long long, EndpointInfoRef>::iterator pair;
 	EndpointInfoRef endpoint;
 
 	for(pair = m_endpoints.begin(); pair != m_endpoints.end(); pair++)
@@ -2259,11 +2260,11 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 
 RtpSessionRef RtpSessions::findByMediaAddress(struct in_addr ipAddress, unsigned short udpPort)
 {
-	CStdString mediaAddress;
-	CraftMediaAddress(mediaAddress, ipAddress, udpPort);
+	unsigned long long mediaAddress;
+	Craft64bitMediaAddress(mediaAddress, ipAddress, udpPort);
 
 	RtpSessionRef session;
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, RtpSessionRef>::iterator pair;
 	pair = m_byIpAndPort.find(mediaAddress);
 	if (pair != m_byIpAndPort.end())
 	{
@@ -2276,7 +2277,7 @@ RtpSessionRef RtpSessions::findByMediaAddress(struct in_addr ipAddress, unsigned
 RtpSessionRef RtpSessions::findByEndpointIpUsingIpAndPort(struct in_addr endpointIpAddr)
 {
 	RtpSessionRef session;
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, RtpSessionRef>::iterator pair;
 
 	// Scan all sessions and try to find a session on the same IP endpoint
 	// This function uses the m_byIpAndPort mapping unlike findByEndpointIp()
@@ -2323,7 +2324,7 @@ RtpSessionRef RtpSessions::findByEndpointIp(struct in_addr endpointIpAddr, int p
 // Find session with newest RTP
 RtpSessionRef RtpSessions::findNewestRtpByEndpointIp(struct in_addr endpointIpAddr)
 {
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, RtpSessionRef>::iterator pair;
 	RtpSessionRef session;
 	RtpPacketInfoRef lastPacket;
 	int latest = 0;
@@ -2468,7 +2469,9 @@ RtpSessionRef RtpSessions::findNewestByEndpointIp(struct in_addr endpointIpAddr)
 //	return result;
 //}
 
-
+/*
+ * Deprecated, use Craft64bitMediaAddress instead
+ * */
 void RtpSessions::CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort)
 {
 	char szIpAddress[16];
@@ -2484,6 +2487,40 @@ void RtpSessions::CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipA
 	}
 }
 
+void RtpSessions::Craft64bitMediaAddress(unsigned long long& mediaAddress, struct in_addr ipAddress, unsigned short udpPort)
+{
+	if(DLLCONFIG.m_rtpTrackByUdpPortOnly == false)
+	{
+		mediaAddress = (((unsigned long long)ipAddress.s_addr) << 16) | udpPort;
+	}
+	else
+	{
+		mediaAddress = (unsigned long long)udpPort;
+	}
+}
+
+CStdString RtpSessions::MediaAddressToString(unsigned long long ipAndPort)
+{
+	CStdString strMediaAddress;
+
+	if(DLLCONFIG.m_rtpTrackByUdpPortOnly == false)
+	{
+		char szIp[16];
+		unsigned int ip;
+		unsigned short port;
+		ip = ipAndPort >> 16;
+		port = ipAndPort & 0xffff;
+		ACE_OS::inet_ntop(AF_INET, (void*)&ip, szIp, sizeof(szIp));
+		strMediaAddress.Format("%s,%u", szIp, port);
+		return strMediaAddress;
+	}
+	else
+	{
+		strMediaAddress.Format("%u", ipAndPort);
+		return strMediaAddress;
+	}
+
+}
 
 void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort)
 {
@@ -2519,8 +2556,8 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 
 	CStdString logMsg;
 
-	CStdString mediaAddress;
-	CraftMediaAddress(mediaAddress, mediaIp, mediaPort);
+	unsigned long long mediaAddress;
+	Craft64bitMediaAddress(mediaAddress, mediaIp, mediaPort);
 
 	bool doChangeMediaAddress = true;
 
@@ -2537,8 +2574,8 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 		else if(oldSession->m_protocol == RtpSession::ProtRawRtp || oldSession->m_numRtpPackets == 0 ||
 			(session->m_protocol == RtpSession::ProtSkinny && DLLCONFIG.m_skinnyAllowMediaAddressTransfer)   )
 		{
-			logMsg.Format("[%s] on %s replaces [%s]", 
-							session->m_trackingId, mediaAddress, oldSession->m_trackingId); 
+			logMsg.Format("[%s] on %s replaces [%s]",
+							session->m_trackingId, MediaAddressToString(mediaAddress), oldSession->m_trackingId);
 			LOG4CXX_INFO(m_log, logMsg);
 			if(oldSession->m_protocol == RtpSession::ProtRawRtp)
 			{
@@ -2555,8 +2592,8 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 		else
 		{
 			doChangeMediaAddress = false;
-			logMsg.Format("[%s] on %s will not replace [%s]", 
-							session->m_trackingId, mediaAddress, oldSession->m_trackingId); 
+			logMsg.Format("[%s] on %s will not replace [%s]",
+							session->m_trackingId, MediaAddressToString(mediaAddress), oldSession->m_trackingId);
 			LOG4CXX_INFO(m_log, logMsg);
 		}
 	}
@@ -2566,7 +2603,7 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 		{
 			char szEndPointIp[16];
 			ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
-			logMsg.Format("[%s] media address:%s %s callId:%s endpoint:%s", session->m_trackingId, mediaAddress, RtpSession::ProtocolToString(session->m_protocol),session->m_callId, szEndPointIp);
+			logMsg.Format("[%s] media address:%s %s callId:%s endpoint:%s", session->m_trackingId, MediaAddressToString(mediaAddress), RtpSession::ProtocolToString(session->m_protocol),session->m_callId, szEndPointIp);
 			LOG4CXX_INFO(m_log, logMsg);
 		}
 
@@ -2586,15 +2623,15 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 	}
 }
 
-void RtpSessions::RemoveFromMediaAddressMap(RtpSessionRef& session, CStdString& mediaAddress)
+void RtpSessions::RemoveFromMediaAddressMap(RtpSessionRef& session, unsigned long long& mediaAddress)
 {
-	if(mediaAddress.size() == 0)
+	if(mediaAddress == 0)
 	{
 		return;
 	}
 
 	// Defensively check if the session referenced in the media address map actually is the same session
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, RtpSessionRef>::iterator pair;
 	pair = m_byIpAndPort.find(mediaAddress);
 	if (pair != m_byIpAndPort.end())
 	{
@@ -2618,7 +2655,7 @@ void RtpSessions::RemoveFromMediaAddressMap(RtpSessionRef& session, CStdString& 
 				sessionOnMapTrackingId = "null";
 			}
 			CStdString logString;
-			logString.Format("rtp:%s belongs to [%s] not to [%s]", mediaAddress, sessionOnMapTrackingId, session->m_trackingId);
+			logString.Format("rtp:%s belongs to [%s] not to [%s]", MediaAddressToString(mediaAddress), sessionOnMapTrackingId, session->m_trackingId);
 			LOG4CXX_INFO(m_log, logString);
 		}
 	}
@@ -2643,7 +2680,7 @@ void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruc
 	RtpSessionRef session = findNewestByEndpointIp(openReceive->endpointIpAddr);
 	if(session.get())
 	{
-		if(session->m_ipAndPort.size() == 0 || DLLCONFIG.m_skinnyDynamicMediaAddress)
+		if(session->m_ipAndPort == 0 || DLLCONFIG.m_skinnyDynamicMediaAddress)
 		{
 			session->m_skinnyPassThruPartyId = openReceive->passThruPartyId;
 			SetMediaAddress(session, openReceive->endpointIpAddr, openReceive->endpointTcpPort);
@@ -2701,7 +2738,7 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 
 	if(session.get())
 	{
-		if(session->m_ipAndPort.size() == 0 || DLLCONFIG.m_skinnyDynamicMediaAddress)
+		if(session->m_ipAndPort == 0 || DLLCONFIG.m_skinnyDynamicMediaAddress)
 		{
 			session->m_skinnyPassThruPartyId = startMedia->passThruPartyId;
 			SetMediaAddress(session, startMedia->remoteIpAddr, startMedia->remoteTcpPort);
@@ -2810,13 +2847,13 @@ void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruc
 
 void RtpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* endpointIp, CStdString& callId, unsigned short skinnyPort)
 {
-	std::map<CStdString, EndpointInfoRef>::iterator pair;
+	std::map<unsigned long long, EndpointInfoRef>::iterator pair;
 	EndpointInfoRef endpoint;
 	char szEndpointIp[16];
-	CStdString ipAndPort;
+	unsigned long long ipAndPort;
 
 	ACE_OS::inet_ntop(AF_INET, (void*)endpointIp, szEndpointIp, sizeof(szEndpointIp));
-	ipAndPort.Format("%s,%d", szEndpointIp, skinnyPort);
+	Craft64bitMediaAddress(ipAndPort, *endpointIp, skinnyPort);
 
 	pair = m_endpoints.find(ipAndPort);
 	if(pair != m_endpoints.end())
@@ -2844,7 +2881,7 @@ void RtpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* en
 			endpoint->m_latestCallId = callId;
 		}
 		m_endpoints.insert(std::make_pair(ipAndPort, endpoint));
-		logMsg.Format("New endpoint created:%s callId:%s map:%s", endpoint->m_extension, endpoint->m_latestCallId, ipAndPort);
+		logMsg.Format("New endpoint created:%s callId:%s map:%s", endpoint->m_extension, endpoint->m_latestCallId, MediaAddressToString(ipAndPort));
 		LOG4CXX_DEBUG(m_log, logMsg);
 	}
 	if(endpoint.get())
@@ -2999,11 +3036,11 @@ void RtpSessions::ReportSkinnySoftKeySetConfConnected(struct in_addr endpointIp,
 EndpointInfoRef RtpSessions::GetEndpointInfo(struct in_addr endpointIp, unsigned short skinnyPort)
 {
 	char szEndpointIp[16];
-	CStdString ipAndPort;
-	std::map<CStdString, EndpointInfoRef>::iterator pair;
+	unsigned long long ipAndPort;
+	std::map<unsigned long long, EndpointInfoRef>::iterator pair;
 
 	ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
-	ipAndPort.Format("%s,%d", szEndpointIp, skinnyPort);
+	Craft64bitMediaAddress(ipAndPort, endpointIp, skinnyPort);
 
 	pair = m_endpoints.find(ipAndPort);
 	if(pair != m_endpoints.end())
@@ -3024,10 +3061,10 @@ void RtpSessions::Stop(RtpSessionRef& session)
 		m_byCallId.erase(session->m_callId);
 	}
 
-	std::list<CStdString>::iterator it;
+	std::list<unsigned long long>::iterator it;
 	for(it = session->m_mediaAddresses.begin(); it != session->m_mediaAddresses.end(); it++)
 	{
-		CStdString mediaAddress = *it;
+		unsigned long long mediaAddress = *it;
 		RemoveFromMediaAddressMap(session, mediaAddress);
 	}
 	session->m_mediaAddresses.clear();
@@ -3191,8 +3228,8 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		{
 			CStdString debug;
 			debug.Format("Merging [%s] %s with callid:%s into [%s] %s with callid:%s",
-				mergeeSession->m_trackingId, mergeeSession->m_ipAndPort, mergeeSession->m_callId,
-				mergerSession->m_trackingId, mergerSession->m_ipAndPort, mergerSession->m_callId);
+				mergeeSession->m_trackingId, MediaAddressToString(mergeeSession->m_ipAndPort), mergeeSession->m_callId,
+				mergerSession->m_trackingId, MediaAddressToString(mergerSession->m_ipAndPort), mergerSession->m_callId);
 			LOG4CXX_INFO(m_log, debug);
 		}
 		Stop(mergeeSession);
@@ -3314,7 +3351,8 @@ void RtpSessions::Hoover(time_t now)
 	LOG4CXX_DEBUG(m_log, "Hoover - check " + numSessions + " sessions time:" + IntToString(now));
 
 	// Go round the ipAndPort session index and find inactive sessions
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, RtpSessionRef>::iterator pair;
+	std::map<CStdString, RtpSessionRef>::iterator pair2;
 	std::list<RtpSessionRef> toDismiss;
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end(); pair++)
@@ -3354,16 +3392,16 @@ void RtpSessions::Hoover(time_t now)
 	{
 		RtpSessionRef session = *it;
 		CStdString logMsg;
-		logMsg.Format("[%s] %s Expired (RTP) ts:%u", session->m_trackingId, session->m_ipAndPort, session->m_lastUpdated);
+		logMsg.Format("[%s] %s Expired (RTP) ts:%u", session->m_trackingId, MediaAddressToString(session->m_ipAndPort), session->m_lastUpdated);
 		LOG4CXX_INFO(m_log, logMsg);
 		Stop(session);
 	}
 
 	// Go round the callId session index and find inactive sessions
 	toDismiss.clear();
-	for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
+	for(pair2 = m_byCallId.begin(); pair2 != m_byCallId.end(); pair2++)
 	{
-		RtpSessionRef session = pair->second;
+		RtpSessionRef session = pair2->second;
 
 		if(session->m_onHold)
 		{
@@ -3396,14 +3434,14 @@ void RtpSessions::Hoover(time_t now)
 	{
 		RtpSessionRef session = *it2;
 		CStdString logMsg;
-		logMsg.Format("[%s] %s Expired (CallID) ts:%u", session->m_trackingId, session->m_ipAndPort, session->m_lastUpdated);
+		logMsg.Format("[%s] %s Expired (CallID) ts:%u", session->m_trackingId, MediaAddressToString(session->m_ipAndPort), session->m_lastUpdated);
 		Stop(session);
 	}
 }
 
 void RtpSessions::StartCaptureOrkuid(CStdString& orkuid, CStdString& side)
 {
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, RtpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
 	RtpSessionRef session;
@@ -3440,7 +3478,7 @@ void RtpSessions::StartCaptureOrkuid(CStdString& orkuid, CStdString& side)
 
 CStdString RtpSessions::StartCaptureNativeCallId(CStdString& nativecallid, CStdString& side)
 {
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, RtpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
 	RtpSessionRef session;
@@ -3481,7 +3519,7 @@ CStdString RtpSessions::StartCaptureNativeCallId(CStdString& nativecallid, CStdS
 
 CStdString RtpSessions::StartCapture(CStdString& party, CStdString& side)
 {
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, RtpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
 	RtpSessionRef session;
@@ -3522,7 +3560,7 @@ CStdString RtpSessions::StartCapture(CStdString& party, CStdString& side)
 
 CStdString RtpSessions::PauseCapture(CStdString& party)
 {
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, RtpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
 	RtpSessionRef session;
@@ -3556,7 +3594,7 @@ CStdString RtpSessions::PauseCapture(CStdString& party)
 
 void RtpSessions::PauseCaptureOrkuid(CStdString& orkuid)
 {
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, RtpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
 	RtpSessionRef session;
@@ -3586,7 +3624,7 @@ void RtpSessions::PauseCaptureOrkuid(CStdString& orkuid)
 
 CStdString RtpSessions::PauseCaptureNativeCallId(CStdString& nativecallid)
 {
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, RtpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
 	RtpSessionRef session;
@@ -3620,7 +3658,7 @@ CStdString RtpSessions::PauseCaptureNativeCallId(CStdString& nativecallid)
 
 CStdString RtpSessions::StopCapture(CStdString& party, CStdString& qos)
 {
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, RtpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
 	RtpSessionRef session;
@@ -3655,7 +3693,7 @@ CStdString RtpSessions::StopCapture(CStdString& party, CStdString& qos)
 
 void RtpSessions::StopCaptureOrkuid(CStdString& orkuid, CStdString& qos)
 {
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, RtpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
 	RtpSessionRef session;
@@ -3686,7 +3724,7 @@ void RtpSessions::StopCaptureOrkuid(CStdString& orkuid, CStdString& qos)
 
 CStdString RtpSessions::StopCaptureNativeCallId(CStdString& nativecallid, CStdString& qos)
 {
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, RtpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
 	RtpSessionRef session;

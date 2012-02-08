@@ -220,7 +220,7 @@ public:
 
 	CStdString m_capturePort;
 	CStdString m_trackingId;
-	CStdString m_ipAndPort;	// IP address and UDP port of one side of the RTP session, serves as a key for session storage and retrieval. Not necessarily the same as the capturePort (capturePort is usually the client (phone) IP+port)
+	unsigned long long m_ipAndPort;	// IP address and UDP port of one side of the RTP session, serves as a key for session storage and retrieval. Not necessarily the same as the capturePort (capturePort is usually the client (phone) IP+port)
 	struct in_addr m_rtpIp;	// IP address of one side of the RTP session
 	CStdString m_callId;
 	SipInviteInfoRef m_invite;
@@ -259,7 +259,7 @@ public:
 	bool m_keepRtp;
 	bool m_nonLookBackSessionStarted;
 	bool m_onDemand;
-	std::list<CStdString> m_mediaAddresses;
+	std::list<unsigned long long> m_mediaAddresses;
 	bool m_newRtpStream;
 	time_t m_lastRtpStreamStart;
 	int m_holdDuration;
@@ -362,6 +362,8 @@ public:
 
 private:
 	void CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort);
+	void Craft64bitMediaAddress(unsigned long long& mediaAddress, struct in_addr ipAddress, unsigned short udpPort);
+	CStdString MediaAddressToString(unsigned long long ipAndPort);
 	RtpSessionRef findByMediaAddress(struct in_addr ipAddress, unsigned short udpPort);
 	RtpSessionRef findByEndpointIp(struct in_addr endpointIpAddr, int passThruPartyId = 0);
 	RtpSessionRef SipfindNewestBySenderIp(struct in_addr receiverIpAddr);
@@ -371,15 +373,15 @@ private:
 	RtpSessionRef findNewestRtpByEndpointIp(struct in_addr endpointIpAddr);
 	bool ChangeCallId(RtpSessionRef& session, unsigned int newId);
 	void SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort);
-	void RemoveFromMediaAddressMap(RtpSessionRef& session, CStdString& mediaAddress);
+	void RemoveFromMediaAddressMap(RtpSessionRef& session, unsigned long long& mediaAddress);
 	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId);
 	void UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
 	void UpdateSessionWithCallInfo(SkCallInfoStruct*, RtpSessionRef&);
 	bool TrySkinnySession(RtpPacketInfoRef& rtpPacket, EndpointInfoRef&);
 
-	std::map<CStdString, RtpSessionRef> m_byIpAndPort;
+	std::map<unsigned long long, RtpSessionRef> m_byIpAndPort;
 	std::map<CStdString, RtpSessionRef> m_byCallId;
-	std::map<CStdString, EndpointInfoRef> m_endpoints;
+	std::map<unsigned long long, EndpointInfoRef> m_endpoints;
 	std::map<CStdString, CStdString> m_localPartyMap;
 	LoggerPtr m_log;
 	AlphaCounter m_alphaCounter;
