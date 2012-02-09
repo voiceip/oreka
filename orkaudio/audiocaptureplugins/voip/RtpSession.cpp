@@ -422,7 +422,7 @@ bool RtpSession::IsInSkinnyReportingList(CStdString item)
 
 void RtpSession::ProcessMetadataSipIncoming()
 {
-	if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0))
+	if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0) && (m_invite->m_requestUri.length() != 0))
 	{
 		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_requestUri);
 		m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
@@ -457,7 +457,7 @@ void RtpSession::ProcessMetadataSipIncoming()
 
 void RtpSession::ProcessMetadataSipOutgoing()
 {
-	if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0))
+	if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0) && (m_invite->m_requestUri.length() != 0))
 	{
 		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_requestUri);
 		m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
