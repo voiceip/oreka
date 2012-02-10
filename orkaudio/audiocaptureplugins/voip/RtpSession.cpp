@@ -1723,6 +1723,12 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			// Do nothing here so that we end up stopping this Raw RTP session 
 			// and creating new session below
 		}
+	    if(session->m_protocol == RtpSession::ProtSip && DLLCONFIG.m_rtpAllowMultipleMappings == true)
+	    {
+	    	// Do nothing here so that this new session ends up receiving
+			// all future RTP packets to this media address
+	    }
+
 		else if (DLLCONFIG.m_rtpAllowMultipleMappings == false && invite->m_callId.Equals(session->m_callId) == false)
 		{
 			LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] Detecting new SIP callId:" +  invite->m_callId + " stopping...");
