@@ -84,6 +84,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_rtpNumSeqGaps = 0;
 	m_holdDuration = 0;
 	m_ipAndPort = 0;
+	m_isCallPickUp = false;
 }
 
 void RtpSession::Stop()
@@ -803,6 +804,21 @@ void RtpSession::ReportMetadata()
 		MemMacToHumanReadable((unsigned char*)m_localMac, m_localParty);
 		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_localParty);
 	}
+
+	//If this session is Call Pick Up, then we revert the direction
+	if(m_isCallPickUp)
+	{
+		if(m_direction == CaptureEvent::DirIn)
+		{
+			m_direction = CaptureEvent::DirOut;
+		}
+		else
+		{
+			m_direction = CaptureEvent::DirIn;
+		}
+		LOG4CXX_INFO(m_log, "[" + m_trackingId + "] " + "is Sip Service Call Pick Up session, reverted call direction");
+	}
+
 
 	//Before report localparty, filtering it
 	std::map<char, char>::iterator it1;
@@ -1755,6 +1771,11 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 				}
 			}
 
+			//now we look to see if this INVITE is from a endpont which just previously sent out SIP SUBSCRIBE for Call Pick Up service
+			if(DLLCONFIG.m_sipCallPickUpSupport)
+			{
+				TrySessionCallPickUp(invite->m_replacesId, session->m_isCallPickUp);
+			}
 			session->ReportSipInvite(invite);
 			return;
 		}
@@ -1797,7 +1818,10 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 				SetMediaAddress(session, invite->m_senderIp, rtpPort);
 			}
 		}
-
+		if(DLLCONFIG.m_sipCallPickUpSupport)
+		{
+			TrySessionCallPickUp(invite->m_replacesId, session->m_isCallPickUp);
+		}
 		session->ReportSipInvite(invite);
 		return;
 	}
@@ -1805,6 +1829,10 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	// create new session and insert into both maps
 	CStdString trackingId = m_alphaCounter.GetNext();
 	RtpSessionRef newSession(new RtpSession(trackingId));
+	if(DLLCONFIG.m_sipCallPickUpSupport)
+	{
+		TrySessionCallPickUp(invite->m_replacesId, newSession->m_isCallPickUp);
+	}
 	newSession->m_callId = invite->m_callId;
 	newSession->m_protocol = RtpSession::ProtSip;
 	newSession->m_sipDialedNumber = invite->m_sipDialedNumber;
@@ -1823,6 +1851,27 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	CStdString inviteString;
 	invite->ToString(inviteString);
 	LOG4CXX_INFO(m_log, "[" + trackingId + "] created by INVITE:" + inviteString);
+}
+
+void RtpSessions::ReportSipSubscribe(SipSubscribeInfoRef& subscribe)
+{
+	int sipSubscripeMapSize = m_sipSubscribeMap.size();
+
+	//Keep the size of the map under 200 Sip Subscribe messages would be reasonable. Ideally, each element will be removed after its followed INVITE comes
+	if(sipSubscripeMapSize > 200)
+	{
+		SipSubscribeSeqIndex& seqIndex = m_sipSubscribeMap.get<IndexSequential>();
+		seqIndex.pop_front();
+	}
+
+	//Get the map instant with search indices to check
+	SipSubscribeSearchIndex& srchIndex = m_sipSubscribeMap.get<IndexSearchable>();
+	SipSubscribeSearchIndex::iterator it = srchIndex.find(subscribe->m_callId);
+	if (it == srchIndex.end())
+	{
+		srchIndex.insert(subscribe);	//even insert new element with different type of index, new element will be appened at the end to preserve Sequence indices
+	}
+
 }
 
 void RtpSessions::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
@@ -3345,6 +3394,21 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 }
 
+void RtpSessions::TrySessionCallPickUp(CStdString replacesCallId, bool& result)
+{
+	CStdString logMsg;
+
+	SipSubscribeSearchIndex& srchIndex = m_sipSubscribeMap.get<IndexSearchable>();
+	SipSubscribeSearchIndex::iterator it = srchIndex.find(replacesCallId);
+	if (it != srchIndex.end())
+	{
+		logMsg.Format("SipSubscribe callID:%s, event:%s is matched with INVITE", (*it)->m_callId, (*it)->m_event);
+		LOG4CXX_INFO(m_log, logMsg);
+		srchIndex.erase(it);
+		result = true;
+	}
+}
+
 void RtpSessions::StopAll()
 {
 	time_t forceExpiryTime = time(NULL) + 2*DLLCONFIG.m_rtpSessionOnHoldTimeOutSec;
@@ -3786,6 +3850,11 @@ CStdString RtpSessions::GetLocalPartyMap(CStdString& oldlocalparty)
 	return newlocalparty;
 }
 
+//=============================================================
+SipSubscribeInfo::SipSubscribeInfo()
+{
+
+}
 //==========================================================
 SipInviteInfo::SipInviteInfo()
 {

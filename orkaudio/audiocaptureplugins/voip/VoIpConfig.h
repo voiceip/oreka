@@ -99,6 +99,7 @@ public:
 	bool m_sipAllowMultipleMediaAddresses;	// deprecated
 	bool m_sip302MovedTemporarilySupport;
 	bool m_sipInviteCanPutOffHold;
+	bool m_sipCallPickUpSupport;
 	CStdString m_sipOnDemandFieldName;
 	CStdString m_sipOnDemandFieldValue;
 	CStdString m_sipDialedNumberFieldName;
