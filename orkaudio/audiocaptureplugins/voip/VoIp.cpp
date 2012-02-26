@@ -1681,6 +1681,7 @@ bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 	return result;
 }
 
+bool TrySipSubscribe(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd);
 bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd);
 bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd);
 bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd);
@@ -2443,6 +2444,48 @@ bool TrySip302MovedTemporarily(EthernetHeaderStruct* ethernetHeader, IpHeaderStr
 	return result;
 }
 
+bool TrySipSubscribe(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
+{
+	bool result = false;
+	CStdString sipMethod;
+	SipSubscribeInfoRef info(new SipSubscribeInfo());
+
+	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
+	char* sipEnd = (char*)udpPayload + sipLength;
+	if(memcmp(SIP_METHOD_SUBSCRIBE, (void*)udpPayload, SIP_METHOD_SUBSCRIBE_SIZE) == 0)
+	{
+		sipMethod = SIP_METHOD_SUBSCRIBE;
+		result = true;
+
+		char* eventField = memFindAfter("Event:", (char*)udpPayload, sipEnd);
+
+		if(eventField)
+		{
+			GrabTokenSkipLeadingWhitespaces(eventField, sipEnd, info->m_event);
+			LOG4CXX_DEBUG(s_sipExtractionLog, "SIP SUBSCRIBE detected, Event:" + info->m_event);
+		}
+
+		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
+		if(!callIdField)
+		{
+			callIdField = memFindAfter("\ni:", (char*)udpPayload, sipEnd);
+		}
+		if(callIdField)
+		{
+			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
+			LOG4CXX_DEBUG(s_sipExtractionLog,  "SIP SUBSCRIBE callId:" + info->m_callId);
+		}
+		//For now, we only concern if SIP SUBSCRIBE is of Sip Call Pick Up Service, otherwise just ignore it
+		if(info->m_event.CompareNoCase("pickup") == 0)
+		{
+			RtpSessionsSingleton::instance()->ReportSipSubscribe(info);
+		}
+
+	}
+
+	return result;
+
+}
 bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
 	bool result = false;
@@ -2493,6 +2536,12 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		if(!callIdField)
 		{
 			callIdField = memFindAfter("\ni:", (char*)udpPayload, sipEnd);
+		}
+
+		char* replacesField = memFindAfter("Replaces:", (char*)udpPayload, sipEnd);
+		if(!replacesField)
+		{
+			replacesField = memFindAfter("\nr:", (char*)udpPayload, sipEnd);
 		}
 
 		char * dialedNumber = NULL;
@@ -2677,6 +2726,19 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
 			audioField = memFindAfter("m=audio ", callIdField, sipEnd);
 			connectionAddressField = memFindAfter("c=IN IP4 ", callIdField, sipEnd);
+		}
+		if(replacesField)
+		{
+			CStdString fieldContent;
+			GrabTokenSkipLeadingWhitespaces(replacesField, sipEnd, fieldContent);
+			int firstsemicoma;
+			firstsemicoma = fieldContent.Find(';');
+			if(firstsemicoma != -1)
+			{
+				info->m_replacesId = fieldContent.substr(0, firstsemicoma);
+			}
+
+			LOG4CXX_DEBUG(s_sipExtractionLog, "replaces CallId:" + info->m_replacesId);
 		}
 		if(localExtensionField)
 		{
@@ -3216,7 +3278,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 
 		CStdString logMsg;
 		logMsg.Format("numPackets:%u maxPPS:%u minPPS:%u", s_numPackets, s_maxPacketsPerSecond, s_minPacketsPerSecond);
-		LOG4CXX_INFO(s_packetStatsLog, logMsg)
+		LOG4CXX_INFO(s_packetStatsLog, logMsg);
 		s_numPackets = 0;
 		s_maxPacketsPerSecond = 0;
 		s_minPacketsPerSecond = 0;
@@ -3368,6 +3430,13 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 
 			if(!detectedUsefulPacket) {
 				detectedUsefulPacket = TryLogFailedSip(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+			}
+
+			if(!detectedUsefulPacket) {
+				if(DLLCONFIG.m_sipCallPickUpSupport == true)
+				{
+					detectedUsefulPacket= TrySipSubscribe(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+				}
 			}
 
 			if(!detectedUsefulPacket) {

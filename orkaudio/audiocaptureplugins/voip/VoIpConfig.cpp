@@ -58,6 +58,7 @@ VoIpConfig::VoIpConfig()
 	m_sipAllowMultipleMediaAddresses = false;	// deprecated
 	m_sip302MovedTemporarilySupport = true;
 	m_sipInviteCanPutOffHold = false;
+	m_sipCallPickUpSupport = false;
 	m_sipOnDemandFieldName = "X-record";
 	m_sipDialedNumberFieldName = "";
 	m_sipRemotePartyFieldName = "";
@@ -158,6 +159,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SipAllowMultipleMediaAddresses", m_sipAllowMultipleMediaAddresses);
 	s->BoolValue("Sip302MovedTemporarilySupport", m_sip302MovedTemporarilySupport);
 	s->BoolValue("SipInviteCanPutOffHold", m_sipInviteCanPutOffHold);
+	s->BoolValue("SipPickUpSupport", m_sipCallPickUpSupport);
 	s->StringValue("SipOnDemandFieldName", m_sipOnDemandFieldName);
 	s->StringValue("SipOnDemandFieldValue", m_sipOnDemandFieldValue);
 	s->StringValue("SipDialedNumberFieldName", m_sipDialedNumberFieldName);

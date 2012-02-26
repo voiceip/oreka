@@ -21,6 +21,12 @@
 #include "ace/OS_NS_sys_time.h"
 #include "ace/Singleton.h"
 #include "PacketHeaderDefs.h"
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include "boost/multi_index/indexed_by.hpp"
+#include "boost/multi_index/sequenced_index.hpp"
+#include <boost/multi_index/identity.hpp>
+#include <boost/multi_index/member.hpp>
 
 using namespace log4cxx;
 
@@ -60,6 +66,7 @@ public:
 	CStdString m_from;
 	CStdString m_to;
 	CStdString m_callId;
+	CStdString m_replacesId;
 	CStdString m_requestUri;
 	bool m_validated;		// true when an RTP stream has been seen for the INVITE
 	bool m_attrSendonly;		// true if the SDP has a:sendonly
@@ -148,6 +155,14 @@ public:
 };
 typedef boost::shared_ptr<Sip200OkInfo> Sip200OkInfoRef;
 
+class SipSubscribeInfo
+{
+public:
+	SipSubscribeInfo();
+	CStdString m_callId;
+	CStdString m_event;
+};
+typedef boost::shared_ptr<SipSubscribeInfo> SipSubscribeInfoRef;
 
 class SipSessionProgressInfo
 {
@@ -182,7 +197,25 @@ public:
 };
 typedef boost::shared_ptr<EndpointInfo> EndpointInfoRef;
 
+//============================================================
+typedef boost::multi_index_container
+		<
+			SipSubscribeInfoRef,
+			boost::multi_index::indexed_by
+			<
+				boost::multi_index::sequenced<>,
+				boost::multi_index::ordered_unique<boost::multi_index::member<SipSubscribeInfo, CStdString,&SipSubscribeInfo::m_callId> >
+			>
+		> SipSubscribeMap;
 
+enum IndexType
+{
+     IndexSequential, // = zero (the first index is the sequenced index)
+     IndexSearchable // = one (the second index is the ordered index on the first member of the pair)
+     //would be able to add more type of index indices
+};
+typedef SipSubscribeMap::nth_index<IndexSequential>::type SipSubscribeSeqIndex;
+typedef SipSubscribeMap::nth_index<IndexSearchable>::type SipSubscribeSearchIndex;
 // ============================================================
 
 class RtpSession
@@ -266,6 +299,7 @@ public:
 	int m_holdBegin;
 	CStdString m_sipDialedNumber;
 	CStdString m_sipRemoteParty;
+	bool m_isCallPickUp;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
@@ -329,6 +363,7 @@ public:
 	void ReportSipInvite(SipInviteInfoRef& invite);
 	void ReportSipNotify(SipNotifyInfoRef& notify);
 	void ReportSipBye(SipByeInfoRef& bye);
+	void ReportSipSubscribe(SipSubscribeInfoRef& subscribe);
 	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
 	void ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct*, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
 	void ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
@@ -378,11 +413,13 @@ private:
 	void UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
 	void UpdateSessionWithCallInfo(SkCallInfoStruct*, RtpSessionRef&);
 	bool TrySkinnySession(RtpPacketInfoRef& rtpPacket, EndpointInfoRef&);
+	void TrySessionCallPickUp(CStdString replacesCallId, bool& result);
 
 	std::map<unsigned long long, RtpSessionRef> m_byIpAndPort;
 	std::map<CStdString, RtpSessionRef> m_byCallId;
 	std::map<unsigned long long, EndpointInfoRef> m_endpoints;
 	std::map<CStdString, CStdString> m_localPartyMap;
+	SipSubscribeMap m_sipSubscribeMap;
 	LoggerPtr m_log;
 	AlphaCounter m_alphaCounter;
 };
