@@ -1810,7 +1810,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			}
 		}
 
-		if(!session->m_ipAndPort == ipAndPort && DLLCONFIG.m_sipDynamicMediaAddress)
+		if(session->m_ipAndPort != ipAndPort && DLLCONFIG.m_sipDynamicMediaAddress)
 		{
 			SetMediaAddress(session, invite->m_fromRtpIp, rtpPort);
 			if(DLLCONFIG.m_sipTrackMediaAddressOnSender)
