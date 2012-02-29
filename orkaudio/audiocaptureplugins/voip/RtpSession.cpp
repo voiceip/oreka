@@ -1127,6 +1127,13 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	{
 		if(m_lastRtpPacket.get())
 		{
+			if( rtpPacket->m_payloadType != m_lastRtpPacket->m_payloadType )
+			{
+				// Some telephony systems have RTP "keepalive" packets while on hold in the dynamic payload type range. Ignore them.
+				
+				return true; // dismiss packet 
+			}
+
 			if( (rtpPacket->m_arrivalTimestamp - m_lastRtpPacket->m_arrivalTimestamp) >  1)
 			{
 				// There's been an RTP interruption of a least 1 second, 
