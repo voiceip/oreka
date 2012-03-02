@@ -3252,7 +3252,47 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		}
 		else
 		{
-			if(session1->m_numRtpPackets < session2->m_numRtpPackets && session1->m_numRtpPackets < 5)
+			// We dont merge/stop the sessions from information taking from SIP INVITE in Multi Mapping mode
+			// Instead we keep both sessions and redirect the media to correct session.
+			// In multiple mapping mode, each session can have several entries in the byIpAndPort map whereas m_ipAndPort only contains the latest media address.
+			// So removing the session from the map with the m_ipAndPort key can be wrong
+			if(DLLCONFIG.m_rtpAllowMultipleMappings == true && session1->m_protocol == RtpSession::ProtSip && session2->m_protocol == RtpSession::ProtSip)
+			{
+				if(session1->m_sipLastInvite > session2->m_sipLastInvite)
+				{
+					if(session2->m_numRtpPackets != 1)			//not the first packet
+					{
+						unsigned long long ipAndPort;
+						Craft64bitMediaAddress(ipAndPort, rtpPacket->m_destIp, destPort);
+						logMsg.Format("session[%s] takes over media address:%s from [%s]", session1->m_trackingId, MediaAddressToString(ipAndPort), session2->m_trackingId);
+						LOG4CXX_INFO(m_log, logMsg);
+						std::map<unsigned long long, RtpSessionRef>::iterator it;
+						it = m_byIpAndPort.find(ipAndPort);
+						if(it != m_byIpAndPort.end())
+						{
+							m_byIpAndPort.erase(it);
+						}
+					}
+				}
+				else
+				{
+					if(session1->m_numRtpPackets != 1)			//not the first packet
+					{
+						unsigned long long ipAndPort;
+						Craft64bitMediaAddress(ipAndPort, rtpPacket->m_sourceIp, sourcePort);
+						logMsg.Format("session[%s] takes over media address:%s from [%s]", session2->m_trackingId, MediaAddressToString(ipAndPort), session1->m_trackingId);
+						LOG4CXX_INFO(m_log, logMsg);
+						std::map<unsigned long long, RtpSessionRef>::iterator it;
+						it = m_byIpAndPort.find(ipAndPort);
+						if(it != m_byIpAndPort.end())
+						{
+							m_byIpAndPort.erase(it);
+						}
+					}
+				}
+				return;
+			}
+			else if(session1->m_numRtpPackets < session2->m_numRtpPackets && session1->m_numRtpPackets < 5)
 			{
 				mergerSession = session2;
 				mergeeSession = session1;
