@@ -1814,6 +1814,7 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 		  ((memcmp(SIP_METHOD_INVITE, (void*)startTcpPayload, SIP_METHOD_INVITE_SIZE) == 0) ||
 		   (memcmp(SIP_METHOD_ACK, (void*)startTcpPayload, SIP_METHOD_ACK_SIZE) == 0) ||
 		   (memcmp(SIP_METHOD_BYE, (void*)startTcpPayload, SIP_METHOD_BYE_SIZE) == 0) ||
+		   (memcmp(SIP_RESPONSE_200_OK, (void*)startTcpPayload, SIP_RESPONSE_200_OK_SIZE) == 0) ||
 		   (memcmp("SIP/2.0 4", (void*)startTcpPayload, 9) == 0) ||
 		   (memcmp("SIP/2.0 5", (void*)startTcpPayload, 9) == 0) ||
 		   (memcmp("SIP/2.0 6", (void*)startTcpPayload, 9) == 0) ||
