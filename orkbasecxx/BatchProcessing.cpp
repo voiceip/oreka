@@ -341,22 +341,25 @@ void BatchProcessing::ThreadHandler(void *args)
 					AudioChunkDetails details = *chunkRef->GetDetails();
 					int channelToSkip = 0;
 
-					if(BatchProcessing::SkipChunk(audioTapeRef, chunkRef, channelToSkip) == true)
+					if(CONFIG.m_directionLookBack == false)					//if DirectionLookBack enable, DirectionSelector Tape should have taken care everything
 					{
-						LOG4CXX_DEBUG(LOG.batchProcessingLog, "[" + trackingId +
-                                                "] Th" + threadIdString +
-                                                " skipping chunk of channel:" +
-						IntToString(details.m_channel));
-
-						if(forceChannel1 == false)
+						if(BatchProcessing::SkipChunk(audioTapeRef, chunkRef, channelToSkip) == true)
 						{
-							if(channelToSkip == 1)
-							{
-								forceChannel1 = true;
-							}
-						}
+							LOG4CXX_DEBUG(LOG.batchProcessingLog, "[" + trackingId +
+	                                                "] Th" + threadIdString +
+	                                                " skipping chunk of channel:" +
+							IntToString(details.m_channel));
 
-						continue;
+							if(forceChannel1 == false)
+							{
+								if(channelToSkip == 1)
+								{
+									forceChannel1 = true;
+								}
+							}
+
+							continue;
+						}
 					}
 
 					if(forceChannel1 == true)

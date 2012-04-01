@@ -32,6 +32,8 @@
 #define NUM_BATCH_THREADS_PARAM "NumBatchThreads"
 #define NUM_COMMAND_THREADS_PARAM "NumCommandThreads"
 #define NUM_BATCH_THREADS_DEFAULT 1
+#define NUM_DIRECTIONSELECTOR_THREADS_PARAM "NumDirSelectorThreads"
+#define NUM_DIRECTIONSELECTOR_THREADS_DEFAULT 1
 #define NUM_COMMAND_THREADS_DEFAULT 1
 #define DELETE_NATIVE_FILE_PARAM "DeleteNativeFile"
 #define DELETE_NATIVE_FILE_DEFAULT true
@@ -74,6 +76,8 @@
 #define IMMEDIATE_PROCESSING_QUEUE_SIZE_DEFAULT 10000
 #define BATCH_PROCESSING_QUEUE_SIZE_PARAM "BatchProcessingQueueSize"
 #define BATCH_PROCESSING_QUEUE_SIZE_DEFAULT 20000
+#define DIRECTIONSELECTOR_QUEUE_SIZE_PARAM "DirectionSelectorQueueSize"
+#define DIRECTIONSELECTOR_QUEUE_SIZE_DEFAULT 20000
 #define BATCH_PROCESSING_ENHANCE_PRIORITY_PARAM "BatchProcessingEnhancePriority"
 #define BATCH_PROCESSING_ENHANCE_PRIORITY_DEFAULT false
 #define BATCH_PROCESSING_RECORD_SILENCE "BatchProcessingRecordSilence"
@@ -140,7 +144,9 @@
 #define DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_MIN_LENGTH "DirectionForceOutgoingForRemotePartyMinLength"
 #define DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_MIN_LENGTH_DEFAULT 11
 #define PAUSE_RECORDING_ON_REJECTED_START "PauseRecordingOnRejectedStart"
-#define PAUSE_RECORDING_ON_REJECTED_START_DEFAULT false;
+#define PAUSE_RECORDING_ON_REJECTED_START_DEFAULT false
+#define DIRECTION_LOOKBACK_PARAM "DirectionLookBack"
+#define DIRECTION_LOOKBACK_DEFAULT false
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -160,6 +166,7 @@ public:
 	CStdString m_capturePluginPath;
 	CStdString m_pluginsDirectory;
 	int m_numBatchThreads;
+	int m_numDirectionSelectorThreads;
 	int m_numCommandThreads;
 	bool m_deleteNativeFile;
 	int m_audioChunkDefaultSize;
@@ -182,6 +189,7 @@ public:
 	CStdString m_audioFileGroup;
 	int m_immediateProcessingQueueSize;
 	int m_batchProcessingQueueSize;
+	int m_directionSelectorQueueSize;
 	bool m_batchProcessingEnhancePriority;
 	bool m_deleteFailedCaptureFile;
 	std::list<CStdString> m_capturePortFilters;
@@ -225,6 +233,7 @@ public:
 	CStdString m_partyFilterChars;
 	CStdString m_partyFilterCharsReplaceWith;
 	std::map<char, char> m_partyFilterMap;
+	bool m_directionLookBack;
 
 private:
 	log4cxx::LoggerPtr m_log;

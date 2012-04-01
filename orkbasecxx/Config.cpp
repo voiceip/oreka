@@ -29,6 +29,7 @@ Config::Config()
 	m_capturePluginPath = CAPTURE_PLUGIN_PATH_DEFAULT;
 	m_storageAudioFormat = STORAGE_AUDIO_FORMAT_DEFAULT;
 	m_numBatchThreads = NUM_BATCH_THREADS_DEFAULT;
+	m_numDirectionSelectorThreads = NUM_DIRECTIONSELECTOR_THREADS_DEFAULT;
 	m_numCommandThreads = NUM_COMMAND_THREADS_DEFAULT;
 	m_deleteNativeFile = DELETE_NATIVE_FILE_DEFAULT;
 	m_audioChunkDefaultSize = AUDIO_CHUNK_DEFAULT_SIZE_DEFAULT;
@@ -48,6 +49,7 @@ Config::Config()
 	m_immediateProcessingQueueSize = IMMEDIATE_PROCESSING_QUEUE_SIZE_DEFAULT;
 	m_batchProcessingQueueSize = BATCH_PROCESSING_QUEUE_SIZE_DEFAULT;
 	m_batchProcessingEnhancePriority = BATCH_PROCESSING_ENHANCE_PRIORITY_DEFAULT;
+	m_directionSelectorQueueSize = DIRECTIONSELECTOR_QUEUE_SIZE_DEFAULT;
 	m_deleteFailedCaptureFile = DELETE_FAILED_CAPTURE_FILE_DEFAULT;
 	m_captureFileBatchSizeKByte = CAPTURE_FILE_BATCH_SIZE_KBYTE_DEFAULT;
 
@@ -85,6 +87,7 @@ Config::Config()
 	m_directionForceOutgoingForRemotePartyPrefix = "";
 	m_directionForceOutgoingForRemotePartyMinLength = DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_MIN_LENGTH_DEFAULT;
 	m_pauseRecordingOnRejectedStart = PAUSE_RECORDING_ON_REJECTED_START_DEFAULT; 
+	m_directionLookBack = DIRECTION_LOOKBACK_DEFAULT;
 }
 
 void Config::Define(Serializer* s)
@@ -101,6 +104,7 @@ void Config::Define(Serializer* s)
 	s->StringValue(PLUGINS_DIRECTORY_PARAM, m_pluginsDirectory);
 	s->EnumValue(STORAGE_AUDIO_FORMAT_PARAM, (int&)m_storageAudioFormat, FileFormatToEnum, FileFormatToString);
 	s->IntValue(NUM_BATCH_THREADS_PARAM, m_numBatchThreads);
+	s->IntValue(NUM_DIRECTIONSELECTOR_THREADS_PARAM, m_numDirectionSelectorThreads);
 	s->IntValue(NUM_COMMAND_THREADS_PARAM, m_numCommandThreads);
 	s->BoolValue(DELETE_NATIVE_FILE_PARAM, m_deleteNativeFile);
 	s->IntValue(AUDIO_CHUNK_DEFAULT_SIZE_PARAM, m_audioChunkDefaultSize);
@@ -144,6 +148,7 @@ void Config::Define(Serializer* s)
 	s->IntValue(IMMEDIATE_PROCESSING_QUEUE_SIZE_PARAM, m_immediateProcessingQueueSize);
 	s->IntValue(BATCH_PROCESSING_QUEUE_SIZE_PARAM, m_batchProcessingQueueSize);
 	s->BoolValue(BATCH_PROCESSING_ENHANCE_PRIORITY_PARAM, m_batchProcessingEnhancePriority);
+	s->IntValue(DIRECTIONSELECTOR_QUEUE_SIZE_PARAM, m_directionSelectorQueueSize);
 	s->BoolValue(DELETE_FAILED_CAPTURE_FILE_PARAM, m_deleteFailedCaptureFile);
 	s->CsvValue(CAPTURE_PORT_FILTERS_PARAM, m_capturePortFilters);
 	s->CsvValue(TAPE_PROCESSORS_PARAM, m_tapeProcessors);
@@ -181,6 +186,7 @@ void Config::Define(Serializer* s)
 	s->BoolValue(PAUSE_RECORDING_ON_REJECTED_START,m_pauseRecordingOnRejectedStart);
 	s->StringValue("PartyFilterChars", m_partyFilterChars);
 	s->StringValue("PartyFilterCharsReplaceWith", m_partyFilterCharsReplaceWith);
+	s->BoolValue(DIRECTION_LOOKBACK_PARAM,m_directionLookBack);
 
 	//Construct the partyFilterMap
 	if(m_partyFilterCharsReplaceWith.size() != 0)

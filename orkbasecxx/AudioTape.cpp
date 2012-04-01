@@ -371,7 +371,7 @@ void AudioTape::SetShouldStop()
 void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 {
 	CStdString logMsg;
-
+	AudioDirectionMarksRef audioDirectionMarks(new AudioDirectionMarks);
 	// Extract useful info from well known events
 	switch(eventRef->m_type)
 	{
@@ -415,6 +415,15 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		break;
 	case CaptureEvent::EtAudioKeepDirection:
 		m_audioKeepDirectionEnum = (CaptureEvent::AudioKeepDirectionEnum)CaptureEvent::AudioKeepDirectionToEnum(eventRef->m_value);
+
+		audioDirectionMarks.reset(new AudioDirectionMarks());
+		audioDirectionMarks->m_timestamp = time(NULL);
+		audioDirectionMarks->m_audioKeepDirectionEnum = m_audioKeepDirectionEnum;
+		if(m_audioDirectionMarks.size() > 0)	//This is not the first kept-direction report, so let it be the end-mark for the previous interval
+		{
+			m_audioDirectionMarks.back()->m_nextTimestampMark = time(NULL);
+		}
+		m_audioDirectionMarks.push_back(audioDirectionMarks);		//now add to the map
 		break;
 	case CaptureEvent::EtDirection:
 		m_direction = (CaptureEvent::DirectionEnum)CaptureEvent::DirectionToEnum(eventRef->m_value);
@@ -1249,3 +1258,12 @@ int TapeAttributes::TapeAttributeToEnum(CStdString& ta)
 
 	return TaUnknown;
 }
+
+AudioDirectionMarks::AudioDirectionMarks()
+{
+	m_timestamp = 0;
+	m_nextTimestampMark = 0;
+	m_audioKeepDirectionEnum = CaptureEvent::AudioKeepDirectionBoth;
+}
+
+

@@ -42,6 +42,7 @@ public:
 	LoggerPtr tapelistLog;
 	LoggerPtr tapeLog;
 	LoggerPtr clientLog;
+	LoggerPtr directionSelectorLog;
 
 private:
 	static OrkLogManager m_orkLogManager;
