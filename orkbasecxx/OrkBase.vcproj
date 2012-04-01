@@ -444,6 +444,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DirectionSelector.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DirectionSelector.h"
+				>
+			</File>
+			<File
 				RelativePath="dll.h"
 				>
 			</File>

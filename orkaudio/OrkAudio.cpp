@@ -36,6 +36,7 @@
 #include "Reporting.h"
 #include "CommandProcessing.h"
 #include "TapeFileNaming.h"
+#include "DirectionSelector.h"
 #include "ConfigManager.h"
 #include "Daemon.h"
 #include "ObjectFactory.h"
@@ -260,6 +261,7 @@ void MainThread()
 	CommandProcessing::Initialize();
 	Reporting::Initialize();
 	TapeFileNaming::Initialize();
+	DirectionSelector::Initialize();
 	TapeProcessorRegistry::instance()->CreateProcessingChain();
 
 	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(ImmediateProcessing::ThreadHandler)))
@@ -286,6 +288,11 @@ void MainThread()
 	if (!ACE_Thread_Manager::instance()->spawn_n(CONFIG.m_numCommandThreads,ACE_THR_FUNC(CommandProcessing::ThreadHandler)))
 	{
 		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create the Command Processing thread"));
+	}
+
+	if (!ACE_Thread_Manager::instance()->spawn_n(CONFIG.m_numDirectionSelectorThreads,ACE_THR_FUNC(DirectionSelector::ThreadHandler)))
+	{
+		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create the DirectionSelector thread"));
 	}
 
 	// Create command line server on port 10000

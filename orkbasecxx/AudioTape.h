@@ -19,9 +19,21 @@
 #include "StdString.h"
 #include "boost/shared_ptr.hpp"
 #include <queue>
+#include <vector>
 #include "AudioCapture.h"
 #include "audiofile/AudioFile.h"
 #include "messages/TapeMsg.h"
+
+class AudioDirectionMarks
+{
+public:
+	AudioDirectionMarks();
+
+	time_t m_timestamp;
+	time_t m_nextTimestampMark;
+	CaptureEvent::AudioKeepDirectionEnum m_audioKeepDirectionEnum;
+};
+typedef boost::shared_ptr<AudioDirectionMarks> AudioDirectionMarksRef;
 
 
 class DLL_IMPORT_EXPORT_ORKBASE AudioTapeDescription : public Object
@@ -84,7 +96,7 @@ public:
 	bool IsReadyForBatchProcessing();
 	void GetDetails(TapeMsg* msg);
 
-
+	std::vector<AudioDirectionMarksRef> m_audioDirectionMarks;
 	CStdString m_portId;
 	CStdString m_localParty;
 	CStdString m_localEntryPoint;

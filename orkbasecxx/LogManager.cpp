@@ -88,6 +88,7 @@ void OrkLogManager::Initialize()
 	tapelistLog = Logger::getLogger("tapelist");
 	tapeLog = Logger::getLogger("tape");
 	clientLog = Logger::getLogger("orkclient");
+	directionSelectorLog = Logger::getLogger("directionSelector");
 }
 
 void OrkLogManager::Shutdown()
