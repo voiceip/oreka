@@ -146,7 +146,7 @@
 #define PAUSE_RECORDING_ON_REJECTED_START "PauseRecordingOnRejectedStart"
 #define PAUSE_RECORDING_ON_REJECTED_START_DEFAULT false
 #define DIRECTION_LOOKBACK_PARAM "DirectionLookBack"
-#define DIRECTION_LOOKBACK_DEFAULT false
+#define DIRECTION_LOOKBACK_DEFAULT true
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
