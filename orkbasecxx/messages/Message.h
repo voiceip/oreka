@@ -37,7 +37,7 @@
 #define NATIVE_CALLID_PARAM "nativecallid"
 #define SIDE_PARAM "side"
 
-#define SUCCESS_PARAM "sucess"
+#define SUCCESS_PARAM "success"
 #define SUCCESS_DEFAULT true
 
 /** A Message is an Object that is meant to be sent to a remote server.
