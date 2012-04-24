@@ -84,7 +84,7 @@ VoIpConfig::VoIpConfig()
 	m_skinnyNameAsLocalParty = false;
 	m_skinnyCallInfoStopsPrevious = false;
 	m_skinnyCallInfoStopsPreviousToleranceSec = 3;
-	m_cucm7_1Mode = false;
+	m_cucm7_1Mode = true;
 	m_skinnyAllowMediaAddressTransfer = false;
 	m_skinnyRtpSearchesForCallInfo = false;
 	m_SkinnyTrackConferencesTransfers = false;
