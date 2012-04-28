@@ -72,6 +72,7 @@ bool DLL_IMPORT_EXPORT_ORKBASE MatchesStringList(CStdString& string, std::list<C
 CStdString DLL_IMPORT_EXPORT_ORKBASE GetHostFromAddressPair(CStdString& hostname);
 int DLL_IMPORT_EXPORT_ORKBASE GetPortFromAddressPair(CStdString& hostname);
 CStdString DLL_IMPORT_EXPORT_ORKBASE FormatDataSize(unsigned long int size);
+CStdString DLL_IMPORT_EXPORT_ORKBASE HexToString(const CStdString& hexInput);		//Only return digits
 
 //========================================================
 // file related stuff

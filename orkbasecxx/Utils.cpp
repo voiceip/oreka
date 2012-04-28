@@ -30,7 +30,7 @@ bool StringIsPhoneNumber(CStdString& string)
 	for(int i=0; i<size; i++)
 	{
 		char c = string.GetAt(i);
-		if(isdigit(c) == false && c != '-' && c != '*' && c != '#')
+		if(isdigit(c) == false && c != '-' && c != '*' && c != '#' && c != '(' && c != ')' )
 		{
 			return false;
 		}
@@ -111,6 +111,42 @@ CStdString FormatDataSize(unsigned long int size)
 	return sizeStr;
 }
 
+CStdString HexToString(const CStdString& hexInput)
+{
+   	static const char* const lut = "0123456789ABCDEF";
+    size_t len = hexInput.length();
+    if (len & 1) 	//odd length
+	{
+		return "Invalid Hex";
+	}
+
+    CStdString output;
+    output.reserve(len / 2);
+    for (size_t i = 0; i < len; i += 2)
+    {
+        char a = hexInput.at(i);
+        const char* p = std::lower_bound(lut, lut + 16, a);
+        if (*p != a) 	//not a hex digit
+		{
+			continue;
+		}
+
+        char b = hexInput.at(i + 1);
+        const char* q = std::lower_bound(lut, lut + 16, b);
+        if (*q != b) 	//not a hex digit
+		{
+			continue;
+		}
+
+		int asciiVal = ((p - lut) << 4) | (q - lut);
+		if(asciiVal  > 47 && asciiVal < 58)		//only take number here
+		{
+        	output.push_back(((p - lut) << 4) | (q - lut));
+		}
+    }
+    return output;
+
+}
 //========================================================
 // file related stuff
 
