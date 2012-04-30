@@ -48,6 +48,8 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_localSide = CaptureEvent::LocalSideUnkn;
 	m_protocol = ProtUnkn;
 	m_numRtpPackets = 0;
+	m_numIgnoredRtpPackets = 0;
+	m_metadataProcessed = false;
 	m_started = false;
 	m_stopped = false;
 	m_onHold = false;
@@ -1097,20 +1099,40 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	CStdString logMsg;
 	unsigned char channel = 0;
 
-	if((CONFIG.m_lookBackRecording == false) && (m_numRtpPackets > 0))
+	
+	if( m_metadataProcessed == false )
 	{
-		if(m_numRtpPackets == 1 && !m_nonLookBackSessionStarted)
+		m_metadataProcessed = true;
+		
+		if(m_protocol == ProtRawRtp)
+		{
+			ProcessMetadataRawRtp(rtpPacket);
+		}
+		else if(m_protocol == ProtSip)
+		{
+			ProcessMetadataSip(rtpPacket);
+		}
+		else if(m_protocol == ProtSkinny)
+		{
+			ProcessMetadataSkinny(rtpPacket);
+		}
+
+		// Non lookback session starts only if there is signalling for it. This prevents false positives
+		if(CONFIG.m_lookBackRecording == false && m_nonLookBackSessionStarted == false && m_protocol != ProtRawRtp )
 		{
 			Start();
 			ReportMetadata();
 			m_nonLookBackSessionStarted = true;
 		}
 	}
+
 	if(!m_keepRtp)
 	{
 		m_lastUpdated = rtpPacket->m_arrivalTimestamp;
+		m_numIgnoredRtpPackets++;
 		return true;
 	}
+
 
 	// Dismiss packets that should not be part of a Skinny session
 	if(m_protocol == ProtSkinny)
@@ -1145,24 +1167,6 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		}
 	}
 
-	if(m_lastRtpPacket.get() == NULL)
-	{
-		// Until now, we knew the remote IP and port for RTP (at best, as given by SIP invite or Skinny StartMediaTransmission)
-		// With the first RTP packet, we can extract local and remote IP and ports for RTP
-		// And from that, we can figure out a bit of metadata
-		if(m_protocol == ProtRawRtp)
-		{
-			ProcessMetadataRawRtp(rtpPacket);
-		}
-		else if(m_protocol == ProtSip)
-		{
-			ProcessMetadataSip(rtpPacket);
-		}
-		else if(m_protocol == ProtSkinny)
-		{
-			ProcessMetadataSkinny(rtpPacket);
-		}
-	}
 	m_lastRtpPacket = rtpPacket;
 
 	if(m_lastRtpPacketSide1.get() == NULL)
@@ -1347,7 +1351,8 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	{
 		// We've got enough packets to start the session.
 		// For Raw RTP, the high number is to make sure we have a "real" raw RTP session, not a leftover from a SIP/Skinny session
-		if(CONFIG.m_lookBackRecording == true) {
+		if(CONFIG.m_lookBackRecording == true || ( m_protocol == ProtRawRtp && DLLCONFIG.m_trackRawRtpSessionInNonLookBackMode == true ) ) 
+		{
 			Start();
 			ReportMetadata();
 		}
@@ -3359,7 +3364,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 			}
 		}
 	}
-	else if((numSessionsFound == 0) && (CONFIG.m_lookBackRecording == true))
+	else if((numSessionsFound == 0) && ((CONFIG.m_lookBackRecording == true) || DLLCONFIG.m_trackRawRtpSessionInNonLookBackMode == true))
 	{
 		EndpointInfoRef endpoint;
 
