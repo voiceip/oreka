@@ -149,6 +149,7 @@ public:
 	bool m_dahdiIntercept;
 	bool m_holdReportStats;
 	bool m_Iax2RewriteTimestamps;
+	bool m_trackRawRtpSessionInNonLookBackMode;
 
 };
 

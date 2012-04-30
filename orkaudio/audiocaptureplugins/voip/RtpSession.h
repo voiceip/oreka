@@ -275,6 +275,8 @@ public:
 	CaptureEvent::LocalSideEnum m_localSide;
 
 	int m_numRtpPackets;
+	int m_numIgnoredRtpPackets;
+	bool m_metadataProcessed;
 	unsigned int m_highestRtpSeqNumDelta;
 	double m_minRtpSeqDelta;
 	double m_minRtpTimestampDelta;
