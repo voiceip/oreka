@@ -19,7 +19,7 @@
 //}
 
 #define SIMPLERESPONSE_CLASS "simpleresponse"
-#define SUCCESS_PARAM "sucess"
+#define SUCCESS_PARAM "success"
 #define SUCCESS_DEFAULT true
 #define COMMENT_PARAM "comment"
 
