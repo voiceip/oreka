@@ -40,7 +40,7 @@ public class TapeManager {
 		if (tapeMessage.getStage() == TapeMessage.CaptureStage.START) {
 			; // tape start message
 		}
-		else {
+		else if (tapeMessage.getStage() == TapeMessage.CaptureStage.READY){
 			// Tape stop message
 			long date = ((long)tapeMessage.getTimestamp()) * 1000;
 			Date timestamp = new Date(date);
