@@ -16,9 +16,7 @@ package net.sf.oreka.orktrack.messages;
 import net.sf.oreka.Direction;
 import net.sf.oreka.OrkException;
 import net.sf.oreka.messages.AsyncMessage;
-import net.sf.oreka.messages.SimpleResponseMessage;
 import net.sf.oreka.messages.SyncMessage;
-import net.sf.oreka.orktrack.LogManager;
 import net.sf.oreka.orktrack.OrkTrack;
 import net.sf.oreka.orktrack.ServiceManager;
 import net.sf.oreka.orktrack.TapeManager;
@@ -32,7 +30,7 @@ import org.hibernate.Transaction;
 
 public class TapeMessage extends SyncMessage {
 
-	public enum CaptureStage {START , STOP, COMPLETE, UNKN};
+	public enum CaptureStage {START , STOP, READY, COMPLETE, UNKN};
 	
 	static Logger logger = Logger.getLogger(TapeMessage.class);
 	
