@@ -20,6 +20,7 @@ install-orkaudioconfDATA:
 	mkdir -p /etc/orkaudio
 	cp logging-linux-template.properties /etc/orkaudio/logging.properties
 	cp config-linux-template.xml /etc/orkaudio/config.xml
+	ldconfig
 	mkdir -p /var/log/orkaudio
 
 
