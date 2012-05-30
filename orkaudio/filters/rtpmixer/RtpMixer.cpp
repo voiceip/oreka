@@ -47,6 +47,7 @@ public:
 	int m_seqMaxGap;
 	int m_seqNumOutOfOrder;
 	int m_seqNumDiscontinuities;
+	int m_lastTimestamp;
 };
 typedef boost::shared_ptr<RtpMixerChannel> RtpMixerChannelRef;
 
@@ -99,6 +100,8 @@ private:
 	bool m_oneS1PacketState;
 
 	// Statistics related variables
+	int m_lastTimestampS1;
+	int m_lastTimestampS2;
 	AudioChunkRef m_lastChunkS1;
 	AudioChunkRef m_lastChunkS2;
 	int m_seqNumMissesS1;
@@ -344,7 +347,19 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 		{
 			DoStats(details, m_lastChunkS1->GetDetails(), m_seqNumMissesS1, m_seqMaxGapS1, 
 			m_seqNumOutOfOrderS1, m_seqNumDiscontinuitiesS1);
+		
+			// Correct timestamp of RTP packets sent by rogue User Agents who report it in miliseconds instead of in number of samples
+			if( chunk->GetDetails()->m_timestamp - m_lastTimestampS1 == 20)
+			{
+				m_lastTimestampS1 = chunk->GetDetails()->m_timestamp;
+				chunk->GetDetails()->m_timestamp = m_lastChunkS1->GetDetails()->m_timestamp + 160;
+			}
 		}
+		else
+		{
+			m_lastTimestampS1 = chunk->GetDetails()->m_timestamp;
+		}
+
 		m_lastChunkS1 = chunk;
 		correctedTimestamp = details->m_timestamp;
 		m_numProcessedSamples += chunk->GetNumSamples();
@@ -376,7 +391,19 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 		{
 			DoStats(details, m_lastChunkS2->GetDetails(), m_seqNumMissesS2, m_seqMaxGapS2, 
 				m_seqNumOutOfOrderS2, m_seqNumDiscontinuitiesS2);
+			
+			// Correct timestamp of RTP packets sent by rogue User Agents who report it in miliseconds instead of in number of samples
+			if( chunk->GetDetails()->m_timestamp - m_lastTimestampS2 == 20)
+			{
+				m_lastTimestampS2 = chunk->GetDetails()->m_timestamp;
+				chunk->GetDetails()->m_timestamp = m_lastChunkS2->GetDetails()->m_timestamp + 160;
+			}
 		}
+		else
+		{
+			m_lastTimestampS2 = chunk->GetDetails()->m_timestamp;
+		}
+
 		if(m_oneS1PacketState)
 		{
 			m_timestampCorrectiveDelta = (double)details->m_timestamp - (double)m_writeTimestamp;
@@ -416,6 +443,17 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 				DoStats(details, lastChunk->GetDetails(), m_rtpMixerChannels[chanIdx]->m_seqNumMisses,
 					m_rtpMixerChannels[chanIdx]->m_seqMaxGap, m_rtpMixerChannels[chanIdx]->m_seqNumOutOfOrder,
 					m_rtpMixerChannels[chanIdx]->m_seqNumDiscontinuities);
+				
+				// Correct timestamp of RTP packets sent by rogue User Agents who report it in miliseconds instead of in number of samples
+				if( chunk->GetDetails()->m_timestamp - m_rtpMixerChannels[chanIdx]->m_lastTimestamp == 20)
+				{
+					m_rtpMixerChannels[chanIdx]->m_lastTimestamp = chunk->GetDetails()->m_timestamp;
+					chunk->GetDetails()->m_timestamp = m_rtpMixerChannels[chanIdx]->m_lastChunk->GetDetails()->m_timestamp + 160;
+				}
+			}
+			else
+			{
+				m_rtpMixerChannels[chanIdx]->m_lastTimestamp = chunk->GetDetails()->m_timestamp;
 			}
 			m_rtpMixerChannels[chanIdx]->m_lastChunk = chunk;
 
