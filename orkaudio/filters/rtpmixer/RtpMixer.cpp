@@ -363,13 +363,6 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 		m_lastChunkS1 = chunk;
 		correctedTimestamp = details->m_timestamp;
 		m_numProcessedSamples += chunk->GetNumSamples();
-		if(m_numProcessedSamples > 115200000)	// arbitrary high number (= 4 hours worth of 8KHz samples)
-		{
-			m_error = true;
-			logMsg.Format("[%s] RtpMixer: Reached input stream size limit",m_trackingId);
-			LOG4CXX_ERROR(m_log, logMsg);
-			return;
-		}
 	}
 	else if(details->m_channel == 2)
 	{
