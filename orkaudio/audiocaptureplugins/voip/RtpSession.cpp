@@ -87,6 +87,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_holdDuration = 0;
 	m_ipAndPort = 0;
 	m_isCallPickUp = false;
+	m_lastKeepAlive = time(NULL);
 }
 
 void RtpSession::Stop()
@@ -1128,6 +1129,17 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	if(!m_keepRtp)
 	{
+		if(m_nonLookBackSessionStarted == true && (time(NULL) - m_lastKeepAlive > 1) )
+		{
+			// In case of non-lookback send a keep-alive every second
+			CaptureEventRef event(new CaptureEvent());
+			event->m_type = CaptureEvent::EtUnknown;
+			event->m_value = "";
+
+			m_lastKeepAlive = time(NULL);
+			g_captureEventCallBack(event,m_capturePort);
+		}
+
 		m_lastUpdated = rtpPacket->m_arrivalTimestamp;
 		m_numIgnoredRtpPackets++;
 		return true;

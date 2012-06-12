@@ -260,6 +260,7 @@ public:
 	ACE_Time_Value m_creationDate;		// When the session is first created
 	time_t m_beginDate;			// When the session has seen a few RTP packets
 	time_t m_lastUpdated;
+	time_t m_lastKeepAlive;
 	ProtocolEnum m_protocol;
 	CStdString m_remotePartyNecSip;
 	CStdString m_localParty;
