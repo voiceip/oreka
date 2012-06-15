@@ -181,6 +181,17 @@ public:
 };
 typedef boost::shared_ptr<SipSessionProgressInfo> SipSessionProgressInfoRef;
 
+//===========================================================
+class UrlExtractionValue
+{
+public:
+	UrlExtractionValue();
+	UrlExtractionValue(CStdString value);
+	CStdString m_value;
+	time_t m_timestamp;
+};
+typedef boost::shared_ptr<UrlExtractionValue> UrlExtractionValueRef;
+
 //=============================================================
 
 class EndpointInfo
@@ -194,6 +205,7 @@ public:
 	time_t m_lastConferencePressed;
 	time_t m_lastConnectedWithConference;
 	CStdString m_origOrkUid;
+	std::map<CStdString, UrlExtractionValueRef> m_urlExtractionMap;		//map<urlParam, urlValue>
 };
 typedef boost::shared_ptr<EndpointInfo> EndpointInfoRef;
 
@@ -397,6 +409,9 @@ public:
 	CStdString StopCaptureNativeCallId(CStdString& nativecallid, CStdString& qos);
 	void SaveLocalPartyMap(CStdString& oldparty, CStdString& newparty);
 	CStdString GetLocalPartyMap(CStdString& oldlocalparty);
+	typedef enum {UrlStartState, UrlKeyState, UrlValueState, UrlErrorState} UrlState;
+	void UnEscapeUrl(CStdString& in, CStdString& out);
+	void UrlExtraction(CStdString& input, struct in_addr* endpointIp);
 
 private:
 	void CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort);

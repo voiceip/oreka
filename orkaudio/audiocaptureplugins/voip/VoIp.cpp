@@ -3521,6 +3521,25 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 			//memToHex((unsigned char *)&tcpHeader->seq, 4, tcpSeq);
 			TrySipTcp(ethernetHeader, ipHeader, tcpHeader);
 		}
+		if(DLLCONFIG.m_urlExtractorEnable == true && ntohs(tcpHeader->dest) == DLLCONFIG.m_urlExtractorPort)
+		{
+			char* startTcpPayload = (char*)tcpHeader + (tcpHeader->off * 4);
+			int payloadLength = ntohs(ipHeader->ip_len) - (ipHeader->ip_hl*4) - TCP_HEADER_LENGTH;
+			CStdString urlString;
+			for(int i=0; i<payloadLength; i++)
+			{
+				urlString += *startTcpPayload;
+				startTcpPayload++;
+			}
+			if(DLLCONFIG.m_urlExtractorEndpointIsSender == true)
+			{
+				RtpSessionsSingleton::instance()->UrlExtraction(urlString, &ipHeader->ip_src);
+			}
+			else
+			{
+				RtpSessionsSingleton::instance()->UrlExtraction(urlString, &ipHeader->ip_dest);
+			}
+		}
 	}
 
 	if((now - s_lastHooveringTime) > 5)

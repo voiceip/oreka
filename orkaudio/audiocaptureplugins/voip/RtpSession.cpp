@@ -149,6 +149,34 @@ void RtpSession::Stop()
 			}
 		}
 
+		if(DLLCONFIG.m_urlExtractorEnable == true)
+		{
+			EndpointInfoRef endpoint;
+			endpoint = RtpSessionsSingleton::instance()->GetEndpointInfo(m_localIp, 0);
+			if(!endpoint.get())
+			{
+				endpoint = RtpSessionsSingleton::instance()->GetEndpointInfo(m_remoteIp, 0);
+			}
+
+			if(endpoint.get())
+			{
+				std::map<CStdString, UrlExtractionValueRef>::iterator it;
+				it = endpoint->m_urlExtractionMap.find(DLLCONFIG.m_remotePartyUseExtractedKey);
+				if(it != endpoint->m_urlExtractionMap.end())
+				{
+					if((it->second->m_timestamp >= m_creationDate.sec()) && (it->second->m_timestamp <= m_lastUpdated))
+					{
+						m_remoteParty = it->second->m_value;
+						CaptureEventRef event(new CaptureEvent());
+						event->m_type = CaptureEvent::EtRemoteParty;
+						event->m_value = m_remoteParty;
+						g_captureEventCallBack(event, m_capturePort);
+					}
+				}
+			}
+
+		}
+
 		CaptureEventRef event(new CaptureEvent);
 		event->m_type = CaptureEvent::EtLocalSide;
 		event->m_value = CaptureEvent::LocalSideToString(m_localSide);
@@ -3473,6 +3501,153 @@ void RtpSessions::TrySessionCallPickUp(CStdString replacesCallId, bool& result)
 	}
 }
 
+
+void RtpSessions::UnEscapeUrl(CStdString& in, CStdString& out)
+{
+	// Translates all %xx escaped sequences to corresponding ascii characters
+	out = "";
+	char pchHex[3];
+	for (unsigned int i = 0; i<in.size(); i++)
+	{
+		switch (in.GetAt(i))
+		{
+			case '+':
+				out += ' ';
+				break;
+			case '%':
+				if (in.GetAt(++i) == '%')
+				{
+					out += '%';
+					break;
+				}
+				pchHex[0] = in.GetAt(i);
+				pchHex[1] = in.GetAt(++i);
+				pchHex[2] = 0;
+				out += (char)strtol(pchHex, NULL, 16);
+				break;
+			default:
+				out += in.GetAt(i);
+		}
+	}
+}
+
+void RtpSessions::UrlExtraction(CStdString& input, struct in_addr* endpointIp)
+{
+	// read string and extract values into map
+	UrlState state = RtpSessions::UrlStartState;
+	CStdString key;
+	CStdString value;
+	CStdString errorDescription;
+
+	input.Trim();
+
+	for(unsigned int i=0; i<input.length() && state!= RtpSessions::UrlErrorState; i++)
+	{
+		TCHAR character = input[i];
+
+		switch(state)
+		{
+		case RtpSessions::UrlStartState:
+			if(character == '&')
+			{
+				;	// ignore ampersands
+			}
+			else if ( ACE_OS::ace_isalnum(character) )
+			{
+				state = RtpSessions::UrlKeyState;
+				key = character;
+			}
+			else
+			{
+				state = RtpSessions::UrlErrorState;
+				errorDescription = "Cannot find key start, keys must be alphanum";
+			}
+			break;
+		case RtpSessions::UrlKeyState:
+			if( ACE_OS::ace_isalnum(character) )
+			{
+				key += character;
+			}
+			else if (character == '=')
+			{
+				state = RtpSessions::UrlValueState;
+				value.Empty();
+			}
+			else
+			{
+				state = RtpSessions::UrlErrorState;
+				errorDescription = "Invalid key character, keys must be alphanum";
+			}
+			break;
+		case RtpSessions::UrlValueState:
+			if( character == '=')
+			{
+				state = RtpSessions::UrlErrorState;
+				errorDescription = "Value followed by = sign, value should always be followed by space sign";
+			}
+			else if (character == '&')
+			{
+				state = RtpSessions::UrlStartState;
+			}
+			else
+			{
+				value += character;
+			}
+			break;
+		default:
+			state = RtpSessions::UrlErrorState;
+			errorDescription = "Non-existing state";
+		}	// switch(state)
+
+		if ( (state == RtpSessions::UrlStartState) || (i == (input.length()-1)) )
+		{
+			if (!key.IsEmpty())
+			{
+				// Url unescape
+				CStdString unescapedValue;
+				UnEscapeUrl(value, unescapedValue);
+
+				std::map<unsigned long long, EndpointInfoRef>::iterator pair;
+				EndpointInfoRef endpoint;
+				unsigned long long ipAndPort;
+
+				Craft64bitMediaAddress(ipAndPort, *endpointIp, 0);
+
+				pair = m_endpoints.find(ipAndPort);
+				if(pair != m_endpoints.end())
+				{
+					endpoint = pair->second;
+					std::map<CStdString, UrlExtractionValueRef>::iterator it;
+					it = endpoint->m_urlExtractionMap.find(key);
+					if(it != endpoint->m_urlExtractionMap.end())
+					{
+						it->second->m_value = unescapedValue;
+						it->second->m_timestamp = time(NULL);
+					}
+					else
+					{
+						UrlExtractionValueRef urlExtractionValue(new UrlExtractionValue(unescapedValue));
+						endpoint->m_urlExtractionMap.insert(std::make_pair(key, urlExtractionValue));
+					}
+				}
+				else
+				{
+					UrlExtractionValueRef urlExtractionValue(new UrlExtractionValue(unescapedValue));
+					endpoint.reset(new EndpointInfo);
+					memcpy(&endpoint->m_ip, endpointIp, sizeof(endpoint->m_ip));
+					endpoint->m_urlExtractionMap.insert(std::make_pair(key, urlExtractionValue));
+					m_endpoints.insert(std::make_pair(ipAndPort, endpoint));
+
+				}
+
+				key.Empty();
+				value.Empty();
+			}
+		}
+	}
+
+}
+
 void RtpSessions::StopAll()
 {
 	time_t forceExpiryTime = time(NULL) + 2*DLLCONFIG.m_rtpSessionOnHoldTimeOutSec;
@@ -3914,6 +4089,17 @@ CStdString RtpSessions::GetLocalPartyMap(CStdString& oldlocalparty)
 	return newlocalparty;
 }
 
+//============================================================
+UrlExtractionValue::UrlExtractionValue()
+{
+	m_timestamp = time(NULL);
+}
+
+UrlExtractionValue::UrlExtractionValue(CStdString value)
+{
+	m_value = value;
+	m_timestamp = time(NULL);
+}
 //=============================================================
 SipSubscribeInfo::SipSubscribeInfo()
 {
