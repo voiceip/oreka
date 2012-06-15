@@ -151,6 +151,11 @@ public:
 	bool m_Iax2RewriteTimestamps;
 	bool m_trackRawRtpSessionInNonLookBackMode;
 
+	bool m_urlExtractorEnable;
+	int m_urlExtractorPort;
+	CStdString m_urlExtractorPattern;
+	bool m_urlExtractorEndpointIsSender;
+	CStdString m_remotePartyUseExtractedKey;
 };
 
 //========================================

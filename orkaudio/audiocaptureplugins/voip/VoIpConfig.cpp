@@ -104,6 +104,10 @@ VoIpConfig::VoIpConfig()
 	m_holdReportStats = false;
 	m_Iax2RewriteTimestamps = false;
 	m_trackRawRtpSessionInNonLookBackMode = false;
+
+	m_urlExtractorEnable = false;
+	m_urlExtractorPort = 9080;
+	m_urlExtractorEndpointIsSender =  true;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -209,6 +213,12 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("HoldReportStats",m_holdReportStats);
 	s->BoolValue("Iax2RewriteTimestamps",m_Iax2RewriteTimestamps);
 	s->BoolValue("TrackRawRtpSessionInNonLookBackMode", m_trackRawRtpSessionInNonLookBackMode);
+
+	s->BoolValue("UrlExtractorEnable", m_urlExtractorEnable);
+	s->BoolValue("UrlExtractorEndpointIsSender", m_urlExtractorEndpointIsSender);
+	s->IntValue("UrlExtractorPort", m_urlExtractorPort);
+	s->StringValue("UrlExtractorPattern", m_urlExtractorPattern);
+	s->StringValue("RemotePartyUseExtractedKey", m_remotePartyUseExtractedKey);
 }
 
 void VoIpConfig::Validate()
