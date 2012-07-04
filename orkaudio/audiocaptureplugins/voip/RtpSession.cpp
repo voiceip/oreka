@@ -2102,6 +2102,12 @@ void RtpSessions::UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeade
 		SetEndpointExtension(extension, &ipHeader->ip_dest, callId, ntohs(tcpHeader->dest));
 		break;
 	}
+	case SKINNY_CALL_TYPE_FORWARD:
+	{
+		extension = callInfo->calledParty;
+		SetEndpointExtension(extension, &ipHeader->ip_dest, callId, ntohs(tcpHeader->dest));
+		break;
+	}
 	}
 }
 
