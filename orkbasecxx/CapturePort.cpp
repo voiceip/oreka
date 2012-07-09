@@ -19,9 +19,10 @@
 #include "ImmediateProcessing.h"
 #include "Reporting.h"
 #include "ConfigManager.h"
+#include "ace/Thread_Mutex.h"
 
 static LoggerPtr s_log;
-
+static ACE_Thread_Mutex s_mutex;
 
 CapturePort::CapturePort(CStdString& id)
 {
@@ -417,8 +418,8 @@ CapturePorts::CapturePorts()
 
 CapturePortRef CapturePorts::GetPort(CStdString & portId)
 {
+	MutexSentinel mutexSentinel(s_mutex);
 	Hoover();
-
 	std::map<CStdString, CapturePortRef>::iterator pair;
 
 	pair = m_ports.find(portId);
@@ -436,11 +437,10 @@ CapturePortRef CapturePorts::GetPort(CStdString & portId)
 
 CapturePortRef CapturePorts::AddAndReturnPort(CStdString & portId)
 {
-	//MutexGuard mutexGuard(m_mutex);		// To make sure a channel cannot be created twice - not used for now. CapturePorts only ever gets interaction from capture single thread 
-
 	CapturePortRef portRef = GetPort(portId);
 	if (portRef.get() == NULL)
 	{
+		MutexSentinel mutexSentinel(s_mutex);
 		// The port does not already exist, create it.
 		CapturePortRef newPortRef(new CapturePort(portId));
 		m_ports.insert(std::make_pair(portId, newPortRef));
