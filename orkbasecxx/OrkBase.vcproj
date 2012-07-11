@@ -150,7 +150,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				InlineFunctionExpansion="0"
-				AdditionalIncludeDirectories=".;.\filters\gsm;.\filters\gsm\gsm610;.\filters\ilbc;.\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0;C:\devExt\ACE_wrappers;C:\devext\xerces\src;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;.\filters\g722codec"
+				AdditionalIncludeDirectories=".;.\filters\gsm;.\filters\gsm\gsm610;.\filters\ilbc;.\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0;C:\devExt\ACE_wrappers;C:\devext\xerces\src;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;.\filters\g722codec;&quot;C:\DevExt\speex\speex-1.2beta3-win32\include&quot;"
 				PreprocessorDefinitions="BUILD_ORKBASE;WIN32;NDEBUG;_WINDOWS;_USRDLL;inline=__inline"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -176,11 +176,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="LIBSNDFILE-1.lib xerces-c_2.lib log4cxx.lib ace.lib odbc32.lib odbccp32.lib"
+				AdditionalDependencies="LIBSNDFILE-1.lib xerces-c_2.lib log4cxx.lib ace.lib odbc32.lib odbccp32.lib libspeex.lib"
 				OutputFile=".\Release/OrkBase.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:\DevExt\libsndfile\lib;C:\devExt\libsndfile;C:\devExt\ACE_wrappers\lib;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\projects\Release&quot;;C:\devext\xerces\Build\Win32\VC8\Release"
+				AdditionalLibraryDirectories="C:\DevExt\libsndfile\lib;C:\devExt\libsndfile;C:\devExt\ACE_wrappers\lib;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\projects\Release&quot;;C:\devext\xerces\Build\Win32\VC8\Release;&quot;C:\DevExt\speex\speex-1.2beta3-win32\lib&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Release/OrkBase.pdb"
 				GenerateMapFile="true"
@@ -2373,6 +2373,18 @@
 					</File>
 					<File
 						RelativePath="filters\g722codec\G722Codec.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="speex"
+					>
+					<File
+						RelativePath=".\filters\speex\SpeexCodec.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\filters\speex\SpeexCodec.h"
 						>
 					</File>
 				</Filter>

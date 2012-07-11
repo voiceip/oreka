@@ -52,6 +52,7 @@
 #include "EventStreaming.h"
 #include "OrkTrack.h"
 #include "SocketStreamer.h"
+#include "SpeexCodec.h"
 
 static volatile bool serviceStop = false;
 
@@ -162,7 +163,9 @@ void Transcode(CStdString &file)
 	FilterRegistry::instance()->RegisterFilter(filter);
 	filter.reset(new G722ToPcmFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
-
+	filter.reset(new SpeexDecoder() );
+	FilterRegistry::instance()->RegisterFilter(filter);
+	
 	// Register in-built tape processors and build the processing chain
 	BatchProcessing::Initialize();
 	Reporting::Initialize();
@@ -255,7 +258,9 @@ void MainThread()
 	FilterRegistry::instance()->RegisterFilter(filter);
 	filter.reset(new G722ToPcmFilter());
 	FilterRegistry::instance()->RegisterFilter(filter);
-
+	filter.reset(new SpeexDecoder() );
+	FilterRegistry::instance()->RegisterFilter(filter);
+	
 	// Register in-built tape processors and build the processing chain
 	BatchProcessing::Initialize();
 	CommandProcessing::Initialize();

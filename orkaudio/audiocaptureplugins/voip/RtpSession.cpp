@@ -1400,6 +1400,19 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	if(m_started)
 	{
+		CStdString payloadType;
+	
+		payloadType.Format("%d",rtpPacket->m_payloadType);
+
+		for(std::list<CStdString>::iterator it = CONFIG.m_speexPayloadTypes.begin() ; it != CONFIG.m_speexPayloadTypes.end() ; it++)
+		{
+			if( *it == payloadType ) 
+			{
+				rtpPacket->m_payloadType = 66;
+				break;
+			}
+		}
+
 		AudioChunkDetails details;
 		details.m_arrivalTimestamp = rtpPacket->m_arrivalTimestamp;
 		details.m_numBytes = rtpPacket->m_payloadSize;
