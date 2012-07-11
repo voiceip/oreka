@@ -147,6 +147,7 @@
 #define PAUSE_RECORDING_ON_REJECTED_START_DEFAULT false
 #define DIRECTION_LOOKBACK_PARAM "DirectionLookBack"
 #define DIRECTION_LOOKBACK_DEFAULT true
+#define SPEEX_PAYLOAD_TYPES "SpeexPayloadTypes"
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -234,6 +235,7 @@ public:
 	CStdString m_partyFilterCharsReplaceWith;
 	std::map<char, char> m_partyFilterMap;
 	bool m_directionLookBack;
+	std::list<CStdString> m_speexPayloadTypes;
 
 private:
 	log4cxx::LoggerPtr m_log;

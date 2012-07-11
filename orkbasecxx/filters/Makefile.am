@@ -1,1 +1,1 @@
-SUBDIRS = gsm ilbc audiogain g722codec
+SUBDIRS = gsm ilbc audiogain g722codec speex

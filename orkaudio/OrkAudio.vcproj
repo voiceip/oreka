@@ -46,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="0"
-				AdditionalIncludeDirectories=".;..\OrkBaseCxx;..\OrkBaseCxx\filters\gsm;..\OrkBaseCxx\filters\ilbc;..\OrkBaseCxx\filters\ilbc\ilbc;..\OrkBaseCxx\filters\gsm\gsm610;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0\;C:\devExt\ACE_wrappers;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;C:\devext\xerces\src;C:\devExt\libsndfile\include;..\OrkBaseCxx\filters\g722codec"
+				AdditionalIncludeDirectories=".;..\OrkBaseCxx;..\OrkBaseCxx\filters\gsm;..\OrkBaseCxx\filters\ilbc;..\OrkBaseCxx\filters\ilbc\ilbc;..\OrkBaseCxx\filters\gsm\gsm610;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0\;C:\devExt\ACE_wrappers;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;C:\devext\xerces\src;..\OrkBaseCxx\filters\g722codec;C:\sfTrunk\orkbasecxx\filters\speex;&quot;C:\DevExt\speex\speex-1.2beta3-win32\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				StringPooling="true"
 				RuntimeLibrary="2"

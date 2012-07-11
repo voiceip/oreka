@@ -187,7 +187,7 @@ void Config::Define(Serializer* s)
 	s->StringValue("PartyFilterChars", m_partyFilterChars);
 	s->StringValue("PartyFilterCharsReplaceWith", m_partyFilterCharsReplaceWith);
 	s->BoolValue(DIRECTION_LOOKBACK_PARAM,m_directionLookBack);
-
+	s->CsvValue(SPEEX_PAYLOAD_TYPES,m_speexPayloadTypes);
 	//Construct the partyFilterMap
 	if(m_partyFilterCharsReplaceWith.size() != 0)
 	{
