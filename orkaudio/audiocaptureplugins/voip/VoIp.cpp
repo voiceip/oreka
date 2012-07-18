@@ -2896,6 +2896,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 	SkStartMediaTransmissionStruct smtmp;
 	SkStopMediaTransmissionStruct* stopMedia;
 	SkCallInfoStruct* callInfo;
+	SkCallStateMessageStruct* callStateMessage;
 	SkOpenReceiveChannelAckStruct* openReceiveAck;
 	SkOpenReceiveChannelAckStruct orcatmp;
 	SkLineStatStruct* lineStat;
@@ -2991,6 +2992,12 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			LOG4CXX_WARN(s_skinnyPacketLog, "Invalid CallInfoMessage.");
 		}
 		break;
+	case SkCallStateMessage:
+		callStateMessage = (SkCallStateMessageStruct*)skinnyHeader;
+		if(SkinyValidateCallStateMessage(callStateMessage, packetEnd))
+		{
+			RtpSessionsSingleton::instance()->ReportSkinnyCallStateMessage(callStateMessage, ipHeader);
+		}
 	case SkCcm5CallInfoMessage:
 		ccm5CallInfo = (SkCcm5CallInfoStruct*)skinnyHeader;
 		if(SkinnyValidateCcm5CallInfo(ccm5CallInfo, packetEnd))

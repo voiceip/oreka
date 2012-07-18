@@ -173,6 +173,17 @@ bool SkinnyValidateCallInfo(SkCallInfoStruct* sci, u_char* packetEnd)
 	return valid;
 }
 
+bool SkinyValidateCallStateMessage(SkCallStateMessageStruct* sci, u_char* packetEnd)
+{
+	bool valid = true;
+	if(((u_char*)sci + sizeof(SkCallStateMessageStruct)) > packetEnd)
+	{
+		valid = false;
+	}
+
+	return valid;
+
+}
 
 bool SkinnyValidateCcm5CallInfo(SkCcm5CallInfoStruct *sci, u_char* packetEnd)
 {
