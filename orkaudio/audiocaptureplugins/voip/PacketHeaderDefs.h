@@ -185,6 +185,15 @@ typedef struct
 
 bool SkinnyValidateCallInfo(SkCallInfoStruct *, u_char* packetEnd);
 
+typedef struct
+{
+	SkinnyHeaderStruct header;
+	unsigned int callState;
+	unsigned int line;
+	unsigned int callId;
+} SkCallStateMessageStruct;
+
+bool SkinyValidateCallStateMessage(SkCallStateMessageStruct*, u_char* packetEnd);
 
 #define SKINNY_CCM5_PARTIES_BLOCK_SIZE 76
 typedef struct
@@ -272,6 +281,7 @@ bool SkinnyValidateSoftKeySetDescription(SkSoftKeySetDescriptionStruct*, u_char*
 #define SKINNY_MSG_CCM5_CALL_INFO_MESSAGE "Ccm5CallInfoMessage"
 #define SKINNY_MSG_SOFT_KEY_EVENT_MESSAGE "SoftKeyEventMessage"
 #define SKINNY_MSG_SOFT_KEY_SET_DESCRIPTION "SoftKeySetDescription"
+#define SKINNY_MSG_CALL_STATE_MESSAGE "CallStateMessage"
 
 #define SKINNY_CALL_TYPE_INBOUND 1
 #define SKINNY_CALL_TYPE_OUTBOUND 2
@@ -288,6 +298,7 @@ typedef enum
 	SkCcm5CallInfoMessage = 0x14A,
 	SkSoftKeyEventMessage = 0x0026,
 	SkSoftKeySetDescription = 0x0110,
+	SkCallStateMessage = 0x0111,
 	SkUnkn = 0x0
 } SkinnyMessageEnum;
 int SkinnyMessageToEnum(CStdString& msg);

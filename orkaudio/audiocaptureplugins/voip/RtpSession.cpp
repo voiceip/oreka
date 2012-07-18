@@ -1702,6 +1702,19 @@ void RtpSession::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct
 	}
 }
 
+void RtpSession::ReportSkinnyCallStateMessage(SkCallStateMessageStruct* callStateMessage, IpHeaderStruct* ipHeader)
+{
+	if(callStateMessage->callState == 8)	//on hold
+	{
+		CStdString logMsg;
+		m_onHold = true;
+		m_holdBegin = time(NULL);
+		logMsg.Format("[%s] Going on hold due to CallStateMessage: HOLD", m_trackingId);
+		LOG4CXX_INFO(m_log,logMsg);
+
+	}
+}
+
 CStdString RtpSession::GetOrkUid()
 {
 	return m_orkUid;
@@ -2382,6 +2395,28 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 	CStdString numSessions = IntToString(m_byIpAndPort.size());
 	LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
 
+}
+
+void RtpSessions::ReportSkinnyCallStateMessage(SkCallStateMessageStruct* callStateMessage, IpHeaderStruct* ipHeader)
+{
+	CStdString logMsg;
+	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, callStateMessage->callId);
+	std::map<CStdString, RtpSessionRef>::iterator pair;
+	pair = m_byCallId.find(callId);
+	RtpSessionRef session;
+	if (pair != m_byCallId.end())
+	{
+		session = pair->second;
+		session->ReportSkinnyCallStateMessage(callStateMessage, ipHeader);
+	}
+	else
+	{
+		char szEndpointIp[16];
+		struct in_addr endpointIp = ipHeader->ip_dest;
+		ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
+		logMsg.Format("hold detected on endpoint:%s but session not found. Try SkinnyIgnoreStopMediaTransmission", szEndpointIp);
+		LOG4CXX_INFO(m_log, logMsg);
+	}
 }
 
 RtpSessionRef RtpSessions::findByMediaAddress(struct in_addr ipAddress, unsigned short udpPort)

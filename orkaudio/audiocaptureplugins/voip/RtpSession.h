@@ -255,6 +255,7 @@ public:
 	bool NativeCallIdMatches(CStdString &callid);
 	void UpdateMetadataSkinny();
 	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader);
+	void ReportSkinnyCallStateMessage(SkCallStateMessageStruct*, IpHeaderStruct* ipHeader);
 	void GoOnHold(time_t onHoldTime);
 	void GoOffHold(time_t offHoldTime);
 	CStdString GetOrkUid();
@@ -380,6 +381,7 @@ public:
 	void ReportSipBye(SipByeInfoRef& bye);
 	void ReportSipSubscribe(SipSubscribeInfoRef& subscribe);
 	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
+	void ReportSkinnyCallStateMessage(SkCallStateMessageStruct*, IpHeaderStruct* ipHeader);
 	void ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct*, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
 	void ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct*, IpHeaderStruct* ipHeader);
 	void ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct* openReceive, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
