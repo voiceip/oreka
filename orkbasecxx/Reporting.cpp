@@ -221,6 +221,7 @@ void Reporting::AddTapeMessage(MessageRef& messageRef)
 
 void Reporting::AddAudioTape(AudioTapeRef& audioTapeRef)
 {
+	audioTapeRef->m_isDoneProcessed = true; 	//to notify API caller the importing is good so far
 	MessageRef msgRef;
 	audioTapeRef->GetMessage(msgRef);
 	AddTapeMessage(msgRef);

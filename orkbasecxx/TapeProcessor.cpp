@@ -35,7 +35,14 @@ void TapeProcessor::RunNextProcessor(AudioTapeRef& tape)
 {
 	if(m_nextProcessor.get())
 	{
-		m_nextProcessor->AddAudioTape(tape);
+		if(tape->m_isExternal && tape->m_mediaType != MediaType::AudioType && tape->m_mediaType != MediaType::VideoType && m_nextProcessor->GetName().CompareNoCase("CommandProcessing") == 0)	//Skip CommandProcessing (where transcoding happens in case of external audio) if the tape is Instant message
+		{
+			m_nextProcessor->RunNextProcessor(tape);
+		}
+		else
+		{
+			m_nextProcessor->AddAudioTape(tape);
+		}
 	}
 }
 
@@ -115,6 +122,17 @@ void TapeProcessorRegistry::RunProcessingChain(AudioTapeRef& tape)
 {
 	if(m_firstTapeProcessor.get())
 	{
-		m_firstTapeProcessor->AddAudioTape(tape);
+		if(!tape->m_isExternal)
+		{
+			m_firstTapeProcessor->AddAudioTape(tape);
+		}
+		else	// this is manually imported tape
+		{
+			if(m_firstTapeProcessor->GetName().CompareNoCase("BatchProcessing") == 0)	//Skip BatchProcessing tape processor for imported tape
+			{
+				m_firstTapeProcessor->RunNextProcessor(tape);
+			}
+
+		}
 	}
 }

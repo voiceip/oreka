@@ -35,6 +35,24 @@ public:
 };
 typedef boost::shared_ptr<AudioDirectionMarks> AudioDirectionMarksRef;
 
+class DLL_IMPORT_EXPORT_ORKBASE MediaType
+{
+public:
+#define UNKNOWN_TYPE "unknown"
+#define AUDIO_TYPE "audio"
+#define VIDEO_TYPE "video"
+#define INSTANT_MSG "im"
+	MediaType();
+	typedef enum{
+		UnKnownType = 0,
+		AudioType = 1,
+		VideoType = 2,
+		InstantMessageType = 3
+	} MediaTypeEnum;
+	MediaTypeEnum m_type;
+	static int MediaTypeToEnum(CStdString mediaType);
+	static CStdString MediaTypeToString(int mediaType);
+};
 
 class DLL_IMPORT_EXPORT_ORKBASE AudioTapeDescription : public Object
 {
@@ -115,6 +133,12 @@ public:
 	int m_numErrors;
 	bool m_onDemand;
 	bool m_keep;
+
+	bool m_isExternal;		// set if the tape is imported manually from API
+	MediaType::MediaTypeEnum m_mediaType;		// media type of manually imported tape
+	bool m_isSuccessfulImported;
+	bool m_isDoneProcessed;
+	CStdString m_externalFileName;		//name of imported file, its not conventional orkaudio name, its convetional orkaudio identifier + orginal name
 
 	TapeResponseRef m_tapeResponse;
 
