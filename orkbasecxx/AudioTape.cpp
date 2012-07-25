@@ -97,6 +97,10 @@ AudioTape::AudioTape(CStdString &portId)
 	m_duration = 0;
 	m_direction = CaptureEvent::DirUnkn;
 	m_localSide = CaptureEvent::LocalSideUnkn;
+	m_isExternal = false;
+	m_mediaType = MediaType::AudioType; 	// by default, the tape should be audio
+	m_isSuccessfulImported = true;
+	m_isDoneProcessed = false;
 
 	if(CaptureEvent::AudioKeepDirectionIsDefault(CONFIG.m_audioKeepDirectionIncomingDefault) == false)
 	{
@@ -1266,4 +1270,41 @@ AudioDirectionMarks::AudioDirectionMarks()
 	m_audioKeepDirectionEnum = CaptureEvent::AudioKeepDirectionBoth;
 }
 
+MediaType::MediaType()
+{
+	m_type = UnKnownType;
+}
+
+int MediaType::MediaTypeToEnum(CStdString mediaType)
+{
+	if(mediaType.CompareNoCase(AUDIO_TYPE) == 0)
+	{
+		return AudioType;
+	}
+	if(mediaType.CompareNoCase(VIDEO_TYPE) == 0)
+	{
+		return VideoType;
+	}
+	if(mediaType.CompareNoCase(INSTANT_MSG) == 0)
+	{
+		return InstantMessageType;
+	}
+	return UnKnownType;
+}
+
+CStdString MediaType::MediaTypeToString(int mediaType)
+{
+	switch(mediaType){
+		case AudioType:
+			return AUDIO_TYPE;
+			break;
+		case VideoType:
+			return VIDEO_TYPE;
+			break;
+		case InstantMessageType:
+			return INSTANT_MSG;
+			break;
+		default: return UNKNOWN_TYPE;
+	}
+}
 

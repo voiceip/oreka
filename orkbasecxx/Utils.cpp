@@ -354,6 +354,39 @@ void FileEscapeName(CStdString& in, CStdString& out)
 	}
 }
 
+bool FileIsExist(CStdString fileName)
+{
+	ACE_stat info;
+ 	int file_att = -1;
+
+    file_att = ACE_OS::stat(fileName, &info);
+    if(file_att == 0)
+    {
+		return true;
+    }
+    else
+    {
+    	return false;
+    }
+}
+
+int FileSizeInKb(CStdString fileName)
+{
+	ACE_stat info;
+	int file_att = -1;
+
+	file_att = ACE_OS::stat(fileName, &info);
+
+    if(file_att == 0)
+    {
+		return ((info.st_size)/1024) ;
+    }
+    else
+    {
+    	return 0;
+    }
+}
+
 //=====================================================
 // TcpAddress
 

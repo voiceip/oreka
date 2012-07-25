@@ -15,6 +15,7 @@
 #define __UTILS_H__
 
 #include <list>
+#include <sys/stat.h>
 
 #include "ace/Guard_T.h"	// For some reason, this include must always come before the StdString include
 							// otherwise it gives the following compile error:
@@ -85,6 +86,8 @@ void DLL_IMPORT_EXPORT_ORKBASE FileRecursiveMkdir(CStdString& path, int permissi
 int DLL_IMPORT_EXPORT_ORKBASE FileSetPermissions(CStdString filename, int permissions);
 int DLL_IMPORT_EXPORT_ORKBASE FileSetOwnership(CStdString filename, CStdString owner, CStdString group);
 void DLL_IMPORT_EXPORT_ORKBASE FileEscapeName(CStdString& in, CStdString& out);
+bool DLL_IMPORT_EXPORT_ORKBASE FileIsExist(CStdString fileName);
+int DLL_IMPORT_EXPORT_ORKBASE FileSizeInKb(CStdString fileName);	//return file's size in Kb
 
 //=====================================================
 // threading related stuff
