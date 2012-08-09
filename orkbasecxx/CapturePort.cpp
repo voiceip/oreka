@@ -336,6 +336,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			else
 			{
 				// Received a stop but there is no valid audio file associated with the tape
+				audioTapeRef->m_noAudio = true;
 				LOG4CXX_WARN(s_log, "[" + audioTapeRef->m_trackingId + "] #" + m_id + " no audio reported between last start and stop");
 			}
 			break;
