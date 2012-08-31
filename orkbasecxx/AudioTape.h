@@ -113,6 +113,7 @@ public:
 	AudioFileRef GetAudioFileRef();
 	bool IsReadyForBatchProcessing();
 	void GetDetails(TapeMsg* msg);
+	void PopulateTag(CStdString key, CStdString value);
 
 	std::vector<AudioDirectionMarksRef> m_audioDirectionMarks;
 	CStdString m_portId;
