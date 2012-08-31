@@ -1143,6 +1143,10 @@ bool AudioTape::IsReadyForBatchProcessing()
 	return false;
 }
 
+void AudioTape::PopulateTag(CStdString key, CStdString value)
+{
+	m_tags.insert(std::make_pair(key, value));
+}
 //=================================
 
 CStdString TapeAttributes::TapeAttributeToString(int ta)
