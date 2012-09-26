@@ -64,7 +64,7 @@ VoIpConfig::VoIpConfig()
 	m_sipRemotePartyFieldName = "";
 	m_sipGroupPickUpPattern = "";
 	m_sipOnDemandFieldValue = "1";
-	m_sipTrackMediaAddressOnSender = true;
+	m_sipTrackMediaAddressOnSender = false;
 	m_sipAllowMetadataUpdateOnRtpChange = false;
 
 	m_rtcpDetect = false;
