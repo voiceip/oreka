@@ -1810,11 +1810,23 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 	startTcpPayload = (u_char*)tcpHeader + (tcpHeader->off * 4);
 	tcpLengthPayloadLength = ((u_char*)ipHeader+ntohs(ipHeader->ip_len)) - startTcpPayload;
 
-    if( (tcpLengthPayloadLength >= SIP_METHOD_INVITE_SIZE+3) &&
+
+	if(s_sipPacketLog->isDebugEnabled())
+	{
+		char head[13];
+		memcpy(head, (void*)startTcpPayload, 12);
+		head[12] = 0;
+		CStdString logMsg;
+		logMsg.Format("TCP head:%s", head);
+		LOG4CXX_DEBUG(s_sipPacketLog, logMsg);
+	}
+
+    if( (tcpLengthPayloadLength >= SIP_RESPONSE_SESSION_PROGRESS_SIZE+3) &&	// payload must be longer than the longest method name
 		  ((memcmp(SIP_METHOD_INVITE, (void*)startTcpPayload, SIP_METHOD_INVITE_SIZE) == 0) ||
 		   (memcmp(SIP_METHOD_ACK, (void*)startTcpPayload, SIP_METHOD_ACK_SIZE) == 0) ||
 		   (memcmp(SIP_METHOD_BYE, (void*)startTcpPayload, SIP_METHOD_BYE_SIZE) == 0) ||
 		   (memcmp(SIP_RESPONSE_200_OK, (void*)startTcpPayload, SIP_RESPONSE_200_OK_SIZE) == 0) ||
+		   (memcmp(SIP_RESPONSE_SESSION_PROGRESS, (void*)startTcpPayload, SIP_RESPONSE_SESSION_PROGRESS_SIZE) == 0) ||
 		   (memcmp("SIP/2.0 4", (void*)startTcpPayload, 9) == 0) ||
 		   (memcmp("SIP/2.0 5", (void*)startTcpPayload, 9) == 0) ||
 		   (memcmp("SIP/2.0 6", (void*)startTcpPayload, 9) == 0) ||
@@ -1950,6 +1962,7 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 	return result;
 }
 
+// Not used in the case of SIP over TCP (183 Session Progress parsed by TrySipInvite) - do the same for SIP over TCP at some point?
 bool TrySipSessionProgress(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
 	bool result = false;
@@ -2512,6 +2525,10 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		sipMethod = SIP_METHOD_200_OK;
 		LOG4CXX_DEBUG(s_sipExtractionLog, "TrySipInvite: packet matches 200 OK and SipTreat200OkAsInvite is enabled");
 	}
+	else if((DLLCONFIG.m_sipDetectSessionProgress == true) && (memcmp(SIP_RESPONSE_SESSION_PROGRESS, (void*)udpPayload, SIP_RESPONSE_SESSION_PROGRESS_SIZE) == 0))
+	{
+		sipMethod = SIP_RESPONSE_SESSION_PROGRESS;
+	}
 	else
 	{
 		drop = true;
@@ -2874,7 +2891,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			LOG4CXX_INFO(s_sipPacketLog, logMsg);
 		}
 
-		//Sip INVITE without sdp will be reported, but 200OK without sdp will not be
+		//Sip INVITE without sdp will be reported, but other methods without sdp will not be
 		if(drop == false && sipMethod == SIP_METHOD_INVITE && info->m_from.size() && info->m_to.size() && info->m_callId.size())
 		{
 			RtpSessionsSingleton::instance()->ReportSipInvite(info);
