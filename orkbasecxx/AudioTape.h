@@ -110,6 +110,7 @@ public:
 	CStdString GetPath();
 	CStdString GetExtension();
 	void SetExtension(CStdString& ext);
+	void SetOrkUid(CStdString& orkuid);
 	AudioFileRef GetAudioFileRef();
 	bool IsReadyForBatchProcessing();
 	void GetDetails(TapeMsg* msg);

@@ -376,6 +376,11 @@ void AudioTape::SetShouldStop()
 	m_shouldStop = true;
 }
 
+void AudioTape::SetOrkUid(CStdString& orkuid)
+{
+	m_orkUid = orkuid;
+}
+
 void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 {
 	CStdString logMsg;
