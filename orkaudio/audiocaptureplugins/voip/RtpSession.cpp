@@ -293,9 +293,12 @@ void RtpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpI
 
 void RtpSession::Start()
 {
-	m_started = true;
 	m_beginDate = time(NULL);
-	GenerateOrkUid();
+	if(m_started == false)
+	{
+		GenerateOrkUid();
+	}
+	m_started = true;
 	CaptureEventRef startEvent(new CaptureEvent);
 	startEvent->m_type = CaptureEvent::EtStart;
 	startEvent->m_timestamp = m_beginDate;
@@ -1145,14 +1148,13 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		{
 			ProcessMetadataSkinny(rtpPacket);
 		}
+	}
 
-		// Non lookback session starts only if there is signalling for it. This prevents false positives
-		if(CONFIG.m_lookBackRecording == false && m_nonLookBackSessionStarted == false && m_protocol != ProtRawRtp )
-		{
-			Start();
-			ReportMetadata();
-			m_nonLookBackSessionStarted = true;
-		}
+	if(CONFIG.m_lookBackRecording == false && m_nonLookBackSessionStarted == false && (m_protocol != ProtRawRtp || (DLLCONFIG.m_trackRawRtpSessionInNonLookBackMode == true && m_numIgnoredRtpPackets == DLLCONFIG.m_rtpMinAmountOfPacketsBeforeStart))  )
+	{
+		Start();
+		ReportMetadata();
+		m_nonLookBackSessionStarted = true;
 	}
 
 	if(!m_keepRtp)
@@ -1173,6 +1175,11 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		return true;
 	}
 
+	if(CONFIG.m_lookBackRecording == false && m_numRtpPackets == 0)
+	{
+		Start();
+		ReportMetadata();
+	}
 
 	// Dismiss packets that should not be part of a Skinny session
 	if(m_protocol == ProtSkinny)
@@ -1385,13 +1392,13 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		LOG4CXX_DEBUG(m_log, debug);
 	}
 
-	if(		(m_protocol == ProtRawRtp && m_numRtpPackets == 50)	||
+	if(		(m_protocol == ProtRawRtp && m_numRtpPackets == DLLCONFIG.m_rtpMinAmountOfPacketsBeforeStart)	||
 			(m_protocol == ProtSkinny && m_numRtpPackets == 2)	||
 			(m_protocol == ProtSip && m_numRtpPackets == 2)			)
 	{
 		// We've got enough packets to start the session.
 		// For Raw RTP, the high number is to make sure we have a "real" raw RTP session, not a leftover from a SIP/Skinny session
-		if(CONFIG.m_lookBackRecording == true || ( m_protocol == ProtRawRtp && DLLCONFIG.m_trackRawRtpSessionInNonLookBackMode == true ) ) 
+		if(CONFIG.m_lookBackRecording == true) 
 		{
 			Start();
 			ReportMetadata();

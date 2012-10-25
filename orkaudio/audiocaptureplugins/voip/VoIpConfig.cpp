@@ -108,6 +108,7 @@ VoIpConfig::VoIpConfig()
 	m_urlExtractorEnable = false;
 	m_urlExtractorPort = 9080;
 	m_urlExtractorEndpointIsSender =  true;
+	m_rtpMinAmountOfPacketsBeforeStart = 50;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -219,6 +220,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("UrlExtractorPort", m_urlExtractorPort);
 	s->StringValue("UrlExtractorPattern", m_urlExtractorPattern);
 	s->StringValue("RemotePartyUseExtractedKey", m_remotePartyUseExtractedKey);
+	s->IntValue("RtpMinAmountOfPacketsBeforeStart", m_rtpMinAmountOfPacketsBeforeStart);
 }
 
 void VoIpConfig::Validate()
