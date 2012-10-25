@@ -156,6 +156,7 @@ public:
 	CStdString m_urlExtractorPattern;
 	bool m_urlExtractorEndpointIsSender;
 	CStdString m_remotePartyUseExtractedKey;
+	int m_rtpMinAmountOfPacketsBeforeStart;
 };
 
 //========================================
