@@ -3793,10 +3793,11 @@ void VoIp::OpenPcapFile(CStdString& filename)
 
 void VoIp::SetPcapSocketBufferSize(pcap_t* pcapHandle)
 {
-#ifndef WIN32
 	CStdString logMsg = "failure";
+	size_t bufSize = 0;
+#ifndef WIN32
 	int pcapFileno = pcap_fileno(m_pcapHandle);
-	size_t bufSize = DLLCONFIG.m_pcapSocketBufferSize;
+	bufSize = DLLCONFIG.m_pcapSocketBufferSize;
 	if(bufSize < 1)
 	{
 		return;
@@ -3810,6 +3811,17 @@ void VoIp::SetPcapSocketBufferSize(pcap_t* pcapHandle)
 	}
 	logMsg.Format("Setting pcap socket buffer size:%u bytes ... %s", bufSize, logMsg);
 	LOG4CXX_INFO(s_packetLog, logMsg);
+#elif WIN32
+	bufSize = DLLCONFIG.m_pcapSocketBufferSize;
+	if(bufSize > 0)
+	{
+		if(pcap_setbuff(m_pcapHandle, bufSize) == 0)
+		{
+			logMsg = "success";	
+		}
+		logMsg.Format("Setting pcap socket buffer size:%u bytes ... %s", bufSize, logMsg);
+		LOG4CXX_INFO(s_packetLog, logMsg);
+	}
 #endif
 }
 
