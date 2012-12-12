@@ -56,7 +56,7 @@ VoIpConfig::VoIpConfig()
 	m_sipRequestUriAsLocalParty = true;
 	m_sipTreat200OkAsInvite = true;
 	m_sipAllowMultipleMediaAddresses = false;	// deprecated
-	m_sip302MovedTemporarilySupport = true;
+	m_sip302MovedTemporarilySupport = false;
 	m_sipInviteCanPutOffHold = false;
 	m_sipCallPickUpSupport = false;
 	m_sipOnDemandFieldName = "X-record";
