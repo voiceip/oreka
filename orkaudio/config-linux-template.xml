@@ -10,6 +10,7 @@
 	<!-- See in <VoIpPlugin> below for more precise protocol tuning -->
 	<CapturePlugin>libvoip.so</CapturePlugin>
 	<!--<CapturePlugin>libh323voip.so</CapturePlugin>-->
+	<!--<CapturePlugin>liborksipua.so</CapturePlugin>-->
     
 	<CapturePluginPath>/usr/lib</CapturePluginPath>	
 	
@@ -27,6 +28,9 @@
 	
 	<BatchProcessingEnhancePriority>true</BatchProcessingEnhancePriority>	    
     
+	<AudioFileOwner>tomcat/tomcat</AudioFileOwner>
+	<AudioFileGroup>tomcat/tomcat</AudioFileGroup>
+	<AudioFilePermissions>644</AudioFilePermissions>
 	<!--<TapeDurationMinimumSec>3</TapeDurationMinimumSec>-->
 
 	<!-- Uncomment the parameter below and fill in a comma-separated -->
@@ -39,6 +43,9 @@
     
 	<VoIpPlugin>
 		<PcapSocketBufferSize>8388608</PcapSocketBufferSize>
+
+		<!--queuemetrics integration, uncomment the following line-->
+		<!--<SipExtractFields>X-Unique-ID</SipExtractFields>-->
 
 		<!-- Use this for Nortel proprietary VoIP protocol -->
 		<!--<UnistimDetect>yes</UnistimDetect>-->
