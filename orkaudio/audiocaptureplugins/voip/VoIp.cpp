@@ -2578,6 +2578,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		char* audioField = NULL;
 		char* connectionAddressField = NULL;
 		char* attribSendonly = memFindAfter("a=sendonly", (char*)udpPayload, sipEnd);
+		char* attribInactive = memFindAfter("a=inactive", (char*)udpPayload, sipEnd);
 		char* rtpmapAttribute = memFindAfter("\na=rtpmap:", (char*)udpPayload, sipEnd);
 		char* userAgentField = memFindAfter("\nUser-Agent:", (char*)udpPayload, sipEnd);
 
@@ -2775,7 +2776,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		{
 			GrabToken(audioField, sipEnd, info->m_fromRtpPort);
 		}
-		if(attribSendonly)
+		if(attribSendonly || attribInactive)
 		{
 			info->m_attrSendonly = true;
 		}
