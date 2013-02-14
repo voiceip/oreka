@@ -1583,7 +1583,7 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 			CStdString value;
 
 			value = pair->second;
-			if(DLLCONFIG.m_sipOnDemandFieldValue.Compare(value) == 0)
+			if(DLLCONFIG.m_sipOnDemandFieldValue.find(value) >= 0)
 			{
 				m_keepRtp = true;
 				m_onDemand = true;
