@@ -1583,7 +1583,7 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 			CStdString value;
 
 			value = pair->second;
-			if(DLLCONFIG.m_sipOnDemandFieldValue.find(value) >= 0)
+			if(value.find(DLLCONFIG.m_sipOnDemandFieldValue) != std::string::npos)
 			{
 				m_keepRtp = true;
 				m_onDemand = true;
