@@ -2923,7 +2923,12 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 	SkSoftKeySetDescriptionStruct* softKeySetDescription;
 
 	char szEndpointIp[16];
+	char szCmIp[16];
 	struct in_addr endpointIp = ipHeader->ip_dest;	// most of the interesting skinny messages are CCM -> phone
+	struct in_addr cmIp = ipHeader->ip_src;
+	unsigned short endpointTcpPort = tcpHeader->dest;
+	unsigned short cmTcpPort = tcpHeader->source;
+
 
 	memset(&smtmp, 0, sizeof(smtmp));
 	memset(&orcatmp, 0, sizeof(orcatmp));
@@ -3138,6 +3143,9 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 				logMsg.Format(" PassThru:%u media address:%s,%u", openReceiveAck->passThruPartyId, szMediaIp, openReceiveAck->endpointTcpPort);
 			}
 			endpointIp = ipHeader->ip_src;	// this skinny message is phone -> CCM
+			cmIp = ipHeader->ip_dest;
+			unsigned short endpointTcpPort = tcpHeader->source;
+			unsigned short cmTcpPort = tcpHeader->dest;
 			RtpSessionsSingleton::instance()->ReportSkinnyOpenReceiveChannelAck(openReceiveAck, ipHeader, tcpHeader);
 		}
 		else if(SkinnyValidateCcm7_1SkOpenReceiveChannelAckStruct(orca, packetEnd))
@@ -3157,6 +3165,9 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 				logMsg.Format(" (CCM 7.1) PassThru:%u media address:%s,%u", openReceiveAck->passThruPartyId, szMediaIp, openReceiveAck->endpointTcpPort);
 			}
 			endpointIp = ipHeader->ip_src;	// this skinny message is phone -> CCM
+			cmIp = ipHeader->ip_dest;
+			unsigned short endpointTcpPort = tcpHeader->source;
+			unsigned short cmTcpPort = tcpHeader->dest;
 			RtpSessionsSingleton::instance()->ReportSkinnyOpenReceiveChannelAck(openReceiveAck, ipHeader, tcpHeader);			
 		}
 		
@@ -3196,6 +3207,9 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 					softKeyEvent->callIdentifier);
 
 			endpointIp = ipHeader->ip_src;  // this skinny message is phone -> CCM
+			cmIp = ipHeader->ip_dest;
+			unsigned short endpointTcpPort = tcpHeader->source;
+			unsigned short cmTcpPort = tcpHeader->dest;
 
 			switch(softKeyEvent->softKeyEvent)
 			{
@@ -3262,7 +3276,8 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 	{
 		CStdString msg = SkinnyMessageToString(skinnyHeader->messageType);
 		ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
-		logMsg = "processed " + msg + logMsg + " endpoint:" + szEndpointIp;
+		ACE_OS::inet_ntop(AF_INET, (void*)&cmIp, szCmIp, sizeof(szCmIp));
+		logMsg.Format("processed %s%s endpoint:%s,%u cm:%s,%u", msg, logMsg, szEndpointIp,endpointTcpPort, szCmIp,cmTcpPort);
 		LOG4CXX_INFO(s_skinnyPacketLog, logMsg);
 	}
 }
