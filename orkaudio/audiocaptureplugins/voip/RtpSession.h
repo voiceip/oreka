@@ -422,7 +422,7 @@ private:
 	RtpSessionRef findByMediaAddress(struct in_addr ipAddress, unsigned short udpPort);
 	RtpSessionRef findByEndpointIp(struct in_addr endpointIpAddr, int passThruPartyId = 0);
 	RtpSessionRef SipfindNewestBySenderIp(struct in_addr receiverIpAddr);
-	RtpSessionRef findNewestByEndpointIp(struct in_addr endpointIpAddr);
+	RtpSessionRef findNewestByEndpoint(struct in_addr endpointIpAddr, unsigned short endpointSignallingPort);
 	RtpSessionRef findByEndpointIpUsingIpAndPort(struct in_addr endpointIpAddr);
 	RtpSessionRef findByEndpointIpAndLineInstance(struct in_addr endpointIpAddr, int lineInstance);
 	RtpSessionRef findNewestRtpByEndpointIp(struct in_addr endpointIpAddr);
