@@ -2575,10 +2575,11 @@ RtpSessionRef RtpSessions::SipfindNewestBySenderIp(struct in_addr receiverIpAddr
 	return session;
 }
 
-RtpSessionRef RtpSessions::findNewestByEndpointIp(struct in_addr endpointIpAddr)
+RtpSessionRef RtpSessions::findNewestByEndpoint(struct in_addr endpointIpAddr, unsigned short endpointSignallingPort)
 {
 	RtpSessionRef session;
 	std::map<CStdString, RtpSessionRef>::iterator pair;
+	unsigned short sessionSignallingPort = 0;
 
 	// Scan all sessions and try to find the most recently signalled session on the IP endpoint
 	// This always scans the entire session list, might be good to index sessions by endpoint at some point
@@ -2586,7 +2587,19 @@ RtpSessionRef RtpSessions::findNewestByEndpointIp(struct in_addr endpointIpAddr)
 	{
 		RtpSessionRef tmpSession = pair->second;
 
-		if((unsigned int)tmpSession->m_endPointIp.s_addr == (unsigned int)endpointIpAddr.s_addr)
+		if(DLLCONFIG.m_skinnyBehindNat)
+		{
+			sessionSignallingPort = tmpSession->m_endPointSignallingPort;
+		}
+		else
+		{
+			// Not behind NAT: make sure that we match on endpoint IP address only
+			endpointSignallingPort = 0;
+			sessionSignallingPort = 0;
+		}
+
+		if((unsigned int)tmpSession->m_endPointIp.s_addr == (unsigned int)endpointIpAddr.s_addr &&
+			sessionSignallingPort == endpointSignallingPort )
 		{
 			if(session.get())
 			{
@@ -2845,7 +2858,7 @@ void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruc
 	{
 		return;
 	}
-	RtpSessionRef session = findNewestByEndpointIp(openReceive->endpointIpAddr);
+	RtpSessionRef session = findNewestByEndpoint(openReceive->endpointIpAddr, ntohs(tcpHeader->source));
 	if(session.get())
 	{
 		if(session->m_ipAndPort == 0 || DLLCONFIG.m_skinnyDynamicMediaAddress)
@@ -2902,7 +2915,7 @@ void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruc
 
 void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct* startMedia, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
-	RtpSessionRef session = findNewestByEndpointIp(ipHeader->ip_dest);
+	RtpSessionRef session = findNewestByEndpoint(ipHeader->ip_dest, ntohs(tcpHeader->dest));
 
 	if(session.get())
 	{
@@ -2934,7 +2947,7 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 				RtpSessionRef session(new RtpSession(trackingId));
 				session->m_endPointIp = ipHeader->ip_dest;	// CallInfo StartMediaTransmission always goes from CM to endpoint 
 				session->m_protocol = RtpSession::ProtSkinny;
-				session->m_endPointSignallingPort = ntohs(tcpHeader->source);
+				session->m_endPointSignallingPort = ntohs(tcpHeader->dest);
 				session->m_skinnyPassThruPartyId = startMedia->passThruPartyId;
 
 				if(endpoint.get())

@@ -88,6 +88,7 @@ VoIpConfig::VoIpConfig()
 	m_skinnyAllowMediaAddressTransfer = false;
 	m_skinnyRtpSearchesForCallInfo = false;
 	m_SkinnyTrackConferencesTransfers = false;
+	m_skinnyBehindNat = false;
 
 	m_sangomaEnable = false;
 	m_sangomaRxTcpPortStart = 0;
@@ -198,6 +199,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SkinnyAllowMediaAddressTransfer", m_skinnyAllowMediaAddressTransfer);
 	s->BoolValue("SkinnyRtpSearchesForCallInfo", m_skinnyRtpSearchesForCallInfo);
 	s->BoolValue("SkinnyTrackConferencesTransfers", m_SkinnyTrackConferencesTransfers);
+	s->BoolValue("SkinnyBehindNat", m_skinnyBehindNat);
 
 	s->IntValue("SangomaRxTcpPortStart", m_sangomaRxTcpPortStart);
 	s->IntValue("SangomaTxTcpPortStart", m_sangomaTxTcpPortStart);
