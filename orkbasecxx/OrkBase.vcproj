@@ -49,7 +49,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;.\filters\gsm;.\filters\gsm\gsm610;.\filters\ilbc;.\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0;C:\devExt\ACE_wrappers;C:\devext\xerces\src;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;.\filters\g722codec"
+				AdditionalIncludeDirectories="&quot;C:\DevExt\speex\speex-1.2beta3-win32\include&quot;;.;.\filters\gsm;.\filters\gsm\gsm610;.\filters\ilbc;.\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0;C:\devExt\ACE_wrappers;C:\devext\xerces\src;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;.\filters\g722codec"
 				PreprocessorDefinitions="BUILD_ORKBASE;WIN32;_DEBUG;_WINDOWS;_USRDLL;inline=__inline"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -76,11 +76,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="LIBSNDFILE-1.lib xerces-c_2D.lib log4cxx.lib aced.lib odbc32.lib odbccp32.lib"
+				AdditionalDependencies="LIBSNDFILE-1.lib xerces-c_2D.lib log4cxx.lib aced.lib odbc32.lib odbccp32.lib libspeex.lib"
 				OutputFile="Debug/OrkBaseD.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:\devExt\libsndfile;C:\devExt\ACE_wrappers\lib;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\projects\Debug&quot;;C:\devext\xerces\Build\Win32\VC8\Debug"
+				AdditionalLibraryDirectories="&quot;C:\DevExt\speex\speex-1.2beta3-debug\win32\VS2008\libspeex\Debug_RTL_dll&quot;;C:\devExt\libsndfile;C:\devExt\ACE_wrappers\lib;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\projects\Debug&quot;;C:\devext\xerces\Build\Win32\VC8\Debug"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/OrkBaseD.pdb"
 				GenerateMapFile="true"

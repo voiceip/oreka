@@ -140,7 +140,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;..\OrkBaseCxx;..\OrkBaseCxx\filters\gsm;..\OrkBaseCxx\filters\gsm\gsm610;..\OrkBaseCxx\filters\ilbc;..\OrkBaseCxx\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0\;C:\devExt\ACE_wrappers;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;C:\devext\libsndfile\include;C:\devext\xerces\src;..\OrkBaseCxx\filters\g722codec"
+				AdditionalIncludeDirectories="C:\sfTrunk\orkbasecxx\filters\speex;.;&quot;C:\DevExt\speex\speex-1.2beta3-win32\include&quot;;..\OrkBaseCxx;..\OrkBaseCxx\filters\gsm;..\OrkBaseCxx\filters\gsm\gsm610;..\OrkBaseCxx\filters\ilbc;..\OrkBaseCxx\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0\;C:\devExt\ACE_wrappers;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;C:\devext\libsndfile\include;C:\devext\xerces\src;..\OrkBaseCxx\filters\g722codec"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -167,11 +167,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OrkBaseD.lib LIBSNDFILE-1.lib xerces-c_2D.lib log4cxx.lib aced.lib odbc32.lib odbccp32.lib"
+				AdditionalDependencies="OrkBaseD.lib LIBSNDFILE-1.lib xerces-c_2D.lib log4cxx.lib aced.lib libspeex.lib odbc32.lib odbccp32.lib"
 				OutputFile=".\Debug/OrkAudio.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\OrkbaseCxx\Debug;C:\devExt\ACE_wrappers\lib;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\projects\Debug&quot;;C:\devext\xerces\Build\Win32\VC8\Debug;C:\devExt\libsndfile"
+				AdditionalLibraryDirectories="&quot;C:\Program Files\Intel\Composer XE 2011 SP1\ipp\lib\ia32&quot;;&quot;C:\DevExt\speex\speex-1.2beta3-debug\win32\VS2008\libspeex\Debug_RTL_dll&quot;;..\OrkbaseCxx\Debug;C:\devExt\ACE_wrappers\lib;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\projects\Debug&quot;;C:\devext\xerces\Build\Win32\VC8\Debug;C:\devExt\libsndfile"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/OrkAudio.pdb"
 				GenerateMapFile="true"
