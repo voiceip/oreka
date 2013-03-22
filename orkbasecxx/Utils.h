@@ -153,28 +153,31 @@ public:
 			unsigned short srandom = (short)hrtime;
 			double drandom = (double)srandom/65536.0; 	// 0 <= random < 1 
 
-			m_counter = (unsigned int)(drandom*(26*26*26));
+			m_counter = (unsigned int)(drandom*(26*26*26*26));
 		}
 	}
 
 	inline CStdString GetNext()
 	{
 		m_counter++;
-		if(m_counter >= (26*26*26) )
+		if(m_counter >= (26*26*26*26) )
 		{
 			m_counter = 0;
 		}
-		unsigned int char1val = m_counter/(26*26);
-		unsigned int remains = m_counter%(26*26);
-		unsigned int char2val = remains/26;
-		unsigned int char3val = remains%26;
+		unsigned int char1val = m_counter/(26*26*26);
+		unsigned int remains = m_counter%(26*26*26);
+		unsigned int char2val = remains/(26*26);
+		unsigned int remains2 = remains%(26*26);
+		unsigned int char3val = remains2/26;
+		unsigned int char4val = remains2%26;
 
 		char1val += 65;
 		char2val += 65;
 		char3val += 65;
+		char4val += 65;
 
 		CStdString string;
-		string.Format("%c%c%c", char1val, char2val, char3val);
+		string.Format("%c%c%c%c", char1val, char2val, char3val, char4val);
 		return string;
 	}
 
