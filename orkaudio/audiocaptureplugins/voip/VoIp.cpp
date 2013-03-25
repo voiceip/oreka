@@ -1420,6 +1420,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 					rtpInfo->m_payloadType = rtpHeader->pt;
 					rtpInfo->m_seqNum = ntohs(rtpHeader->seq);
 					rtpInfo->m_timestamp = ntohl(rtpHeader->ts);
+					rtpInfo->m_ssrc = ntohl(rtpHeader->ssrc);
 					rtpInfo->m_payload = payload;
 					rtpInfo->m_arrivalTimestamp = time(NULL);
 					memcpy(rtpInfo->m_sourceMac, ethernetHeader->sourceMac, sizeof(rtpInfo->m_sourceMac));
@@ -1467,6 +1468,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 					rtpInfo->m_payloadType = rtpHeader->pt;
 					rtpInfo->m_seqNum = ntohs(rtpHeader->seq);
 					rtpInfo->m_timestamp = ntohl(rtpHeader->ts);
+					rtpInfo->m_ssrc = ntohl(rtpHeader->ssrc);
 					rtpInfo->m_payload = payload;
 					rtpInfo->m_arrivalTimestamp = time(NULL);
 					memcpy(rtpInfo->m_sourceMac, ethernetHeader->sourceMac, sizeof(rtpInfo->m_sourceMac));

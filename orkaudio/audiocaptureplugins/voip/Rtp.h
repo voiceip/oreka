@@ -39,6 +39,7 @@ public:
 	unsigned short m_payloadType;
 	unsigned char* m_payload;
 	unsigned short m_seqNum;
+	unsigned int m_ssrc;
 	unsigned int m_timestamp;
 	time_t m_arrivalTimestamp;
 };
