@@ -309,13 +309,14 @@ public:
 	bool m_nonLookBackSessionStarted;
 	bool m_onDemand;
 	std::list<unsigned long long> m_mediaAddresses;
-	bool m_newRtpStream;
 	time_t m_lastRtpStreamStart;
 	int m_holdDuration;
 	int m_holdBegin;
 	CStdString m_sipDialedNumber;
 	CStdString m_sipRemoteParty;
 	bool m_isCallPickUp;
+	unsigned int m_numAlienRtpPacketsS1;
+	unsigned int m_numAlienRtpPacketsS2;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);

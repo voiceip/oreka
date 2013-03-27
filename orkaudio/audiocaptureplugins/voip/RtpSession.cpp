@@ -80,7 +80,6 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_rtpIp.s_addr = 0;
 	m_skinnyLineInstance = 0;
 	m_onDemand = false;
-	m_newRtpStream = true;
 	m_lastRtpStreamStart = 0;
 	m_rtpNumMissingPkts = 0;
 	m_rtpNumSeqGaps = 0;
@@ -88,6 +87,8 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_ipAndPort = 0;
 	m_isCallPickUp = false;
 	m_lastKeepAlive = time(NULL);
+	m_numAlienRtpPacketsS1 = 0;
+	m_numAlienRtpPacketsS2 = 0;
 }
 
 void RtpSession::Stop()
@@ -1221,6 +1222,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		// First RTP packet for side 1
 		m_lastRtpPacketSide1 = rtpPacket;
 		channel = 1;
+
 		if(m_log->isInfoEnabled())
 		{
 			rtpPacket->ToString(logMsg);
@@ -1230,13 +1232,9 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 	else
 	{
-		// Comparing destination IP address and port to find out if side1, see (1)
-		if( m_newRtpStream == true ||
-			( (unsigned int)rtpPacket->m_destIp.s_addr == (unsigned int)m_lastRtpPacketSide1->m_destIp.s_addr &&
-			  rtpPacket->m_destPort == m_lastRtpPacketSide1->m_destPort )  )
+		if( rtpPacket->m_ssrc == m_lastRtpPacketSide1->m_ssrc  )
 		{
-			m_newRtpStream = false;
-
+			// Subsequent RTP packet for side 1
 			if(rtpPacket->m_timestamp == m_lastRtpPacketSide1->m_timestamp)
 			{
 				m_hasDuplicateRtp = true;
@@ -1274,12 +1272,16 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 			}
 			m_lastRtpPacketSide1 = rtpPacket;
 			channel = 1;
+			m_numAlienRtpPacketsS1 = 0;
 		}
 		else
 		{
 			if(m_lastRtpPacketSide2.get() == NULL)
 			{
 				// First RTP packet for side 2
+				m_lastRtpPacketSide2 = rtpPacket;
+				channel = 2;
+
 				if(m_log->isInfoEnabled())
 				{
 					rtpPacket->ToString(logMsg);
@@ -1289,54 +1291,83 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 			}
 			else
 			{
-				if(rtpPacket->m_timestamp == m_lastRtpPacketSide2->m_timestamp)
+				if(rtpPacket->m_ssrc == m_lastRtpPacketSide2->m_ssrc)
 				{
-					m_hasDuplicateRtp = true;
-					return true;	// dismiss duplicate RTP packet
+					// Subsequent RTP packet for side 2
+					if(rtpPacket->m_timestamp == m_lastRtpPacketSide2->m_timestamp)
+					{
+						m_hasDuplicateRtp = true;
+						return true;	// dismiss duplicate RTP packet
+					}
+					else
+					{
+						double seqNumDelta = (double)rtpPacket->m_seqNum - (double)m_lastRtpPacketSide2->m_seqNum;
+						if(DLLCONFIG.m_rtpDiscontinuityDetect)
+						{
+							double timestampDelta = (double)rtpPacket->m_timestamp - (double)m_lastRtpPacketSide2->m_timestamp;
+							if(	abs(seqNumDelta) > m_minRtpSeqDelta  &&
+								abs(timestampDelta) > m_minRtpTimestampDelta)
+							{
+								logMsg.Format("[%s] RTP discontinuity s2: before: seq:%u ts:%u after: seq:%u ts:%u",
+									m_trackingId, m_lastRtpPacketSide2->m_seqNum, m_lastRtpPacketSide2->m_timestamp,
+									rtpPacket->m_seqNum, rtpPacket->m_timestamp);
+								LOG4CXX_INFO(m_log, logMsg);
+								return false;
+							}
+						}
+						if(seqNumDelta > (double)m_highestRtpSeqNumDelta)
+						{
+							m_highestRtpSeqNumDelta = (unsigned int)seqNumDelta;
+						}
+					}
+
+					m_lastRtpPacketSide2 = rtpPacket;
+					channel = 2;
+					m_numAlienRtpPacketsS2 = 0;
 				}
 				else
 				{
-					double seqNumDelta = (double)rtpPacket->m_seqNum - (double)m_lastRtpPacketSide2->m_seqNum;
-					if(DLLCONFIG.m_rtpDiscontinuityDetect)
+					// this packet does not match either s1 or s2 (on the basis of SSRC)
+
+					m_numAlienRtpPacketsS1++;
+					m_numAlienRtpPacketsS2++;
+					bool remapped = false;
+
+					if(m_numAlienRtpPacketsS1 > 10)
 					{
-						double timestampDelta = (double)rtpPacket->m_timestamp - (double)m_lastRtpPacketSide2->m_timestamp;
-						if(	abs(seqNumDelta) > m_minRtpSeqDelta  &&
-							abs(timestampDelta) > m_minRtpTimestampDelta)	
-						{
-							logMsg.Format("[%s] RTP discontinuity s2: before: seq:%u ts:%u after: seq:%u ts:%u", 
-								m_trackingId, m_lastRtpPacketSide2->m_seqNum, m_lastRtpPacketSide2->m_timestamp, 
-								rtpPacket->m_seqNum, rtpPacket->m_timestamp);
-							LOG4CXX_INFO(m_log, logMsg);
-							return false;
-						}
+						// We have seen 10 alien packets and no s1 packets during the same period of time
+						m_numAlienRtpPacketsS1 = 0;
+						remapped = true;
+						channel = 1;
+						m_lastRtpPacketSide1 = rtpPacket;
+
+						rtpPacket->ToString(logMsg);
+						logMsg.Format("[%s] s1 remapped to: %s", m_trackingId, logMsg);
+						LOG4CXX_INFO(m_log, logMsg);
 					}
-					if(seqNumDelta > (double)m_highestRtpSeqNumDelta)
+					else if(m_numAlienRtpPacketsS2 > 10)
 					{
-						m_highestRtpSeqNumDelta = (unsigned int)seqNumDelta;
+						// We have seen 10 alien packets and no s2 packets during the same period of time
+						m_numAlienRtpPacketsS2 = 0;
+						remapped = true;
+						channel = 2;
+						m_lastRtpPacketSide2 = rtpPacket;
+
+						rtpPacket->ToString(logMsg);
+						logMsg.Format("[%s] s2 remapped to: %s", m_trackingId, logMsg);
+						LOG4CXX_INFO(m_log, logMsg);
+					}
+					else
+					{
+						// dismiss packet so that it does not disrupt the current established stream
+						return true;
+					}
+
+					if (remapped)
+					{
+						m_lastRtpStreamStart = time(NULL);
 					}
 				}
-			}
-
-			// If this packet doesn't match the previous S2 packet,
-			// and it doesn't match S1 either then this may be a
-			// new stream. We then map this new packet to belong
-			// to S1 and reset S2
-			if( m_lastRtpPacketSide2.get() &&
-				(
-					((unsigned int)rtpPacket->m_destIp.s_addr != (unsigned int)m_lastRtpPacketSide2->m_destIp.s_addr) ||
-					(rtpPacket->m_destPort != m_lastRtpPacketSide2->m_destPort)
-				)
-			  )
-			{
-				m_newRtpStream = true;
-				channel = 1;
-				m_lastRtpPacketSide1 = rtpPacket;
-				m_lastRtpPacketSide2.reset();
-			}
-			else
-			{
-				m_lastRtpPacketSide2 = rtpPacket;
-				channel = 2;
 			}
 		}
 	}
@@ -1360,24 +1391,18 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	m_numRtpPackets++;
 
-	// Detect RTP stream change
 	bool hasSourceAddress = m_rtpAddressList.HasAddressOrAdd(rtpPacket->m_sourceIp, rtpPacket->m_sourcePort);
 	bool hasDestAddress = m_rtpAddressList.HasAddressOrAdd(rtpPacket->m_destIp, rtpPacket->m_destPort);
-	if(	hasSourceAddress == false || hasDestAddress == false || m_newRtpStream == true)
+	if(	hasSourceAddress == false || hasDestAddress == false )
 	{
-		if(m_newRtpStream == true)
-		{
-			m_newRtpStream = false;
-		}
-		else
-		{
-			m_newRtpStream = true;
-		}
-
+		// A new RTP stream has been detected
+		// (but RTP packets for this new stream will only start to be recorded when
+		// the new stream is confirmed, see numAlienRtpPackets)
+		// NOTE: only the first packet of a bidirectional RTP steam is logged here,
+		// so for now, the log does not contain any trace of the other side until s2 is remapped.
 		rtpPacket->ToString(logMsg);
 		logMsg.Format("[%s] new RTP stream: %s", m_trackingId, logMsg);
 		LOG4CXX_INFO(m_log, logMsg);
-		m_lastRtpStreamStart = time(NULL);
 
 		if(m_protocol == ProtSip && m_started && DLLCONFIG.m_sipAllowMetadataUpdateOnRtpChange)	// make sure this only happens if ReportMetadata() already been called for the session
 		{
