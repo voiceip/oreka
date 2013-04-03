@@ -28,6 +28,11 @@ bool Filter::SupportsInputRtpPayloadType( int rtpPayloadType )
 	return false;
 }
 
+void Filter::Configure(FilterConfigurationParametersRef configParams)
+{
+;
+}
+
 void FilterRegistry::RegisterFilter(FilterRef& Filter) 
 {
 	m_Filters.push_back(Filter);

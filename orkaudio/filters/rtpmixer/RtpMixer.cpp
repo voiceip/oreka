@@ -59,6 +59,7 @@ public:
 	FilterRef __CDECL__ Instanciate();
 	void __CDECL__ AudioChunkIn(AudioChunkRef& chunk);
 	void __CDECL__ AudioChunkOut(AudioChunkRef& chunk);
+	virtual void __CDECL__ Configure(FilterConfigurationParametersRef configParams);
 	AudioEncodingEnum __CDECL__ GetInputAudioEncoding();
 	AudioEncodingEnum __CDECL__ GetOutputAudioEncoding();
 	CStdString __CDECL__ GetName();
@@ -113,6 +114,8 @@ private:
 	int m_seqNumDiscontinuitiesS1;
 	int m_seqNumDiscontinuitiesS2;
 
+	int m_numSampleTrigger;
+	int m_NumSampleShipmentHoldoff;
 	//==========================================================
 	// Multi-channel separated output
 
@@ -166,6 +169,8 @@ RtpMixer::RtpMixer()
 	m_numChannels = 0;
 	m_oneS1PacketState = false;
 	m_rtpMixerChannels.clear();
+	m_numSampleTrigger = NUM_SAMPLES_TRIGGER;
+	m_NumSampleShipmentHoldoff = NUM_SAMPLES_SHIPMENT_HOLDOFF;
 }
 
 void RtpMixer::CreateChannels(int channelNumber)
@@ -504,7 +509,7 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 			// RTP packet fits into current buffer
 			StoreRtpPacket(chunk, correctedTimestamp);
 
-			if(UsedSpace() > NUM_SAMPLES_TRIGGER)
+			if(UsedSpace() > m_numSampleTrigger)
 			{
 				// We have enough stuff, make a shipment
 				CreateShipment();
@@ -603,6 +608,13 @@ void RtpMixer::AudioChunkOut(AudioChunkRef& chunk)
 	{
 		chunk.reset();
 	}
+}
+
+void RtpMixer::Configure(FilterConfigurationParametersRef configParams)
+{
+	m_numSampleTrigger = *(int*)configParams->param1;
+	m_NumSampleShipmentHoldoff = *(int*)configParams->param2;
+
 }
 
 AudioEncodingEnum RtpMixer::GetInputAudioEncoding()
@@ -853,7 +865,7 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 	}
 	else
 	{
-		stopPtr = CicularPointerSubtractOffset(m_writePtr, NUM_SAMPLES_SHIPMENT_HOLDOFF);
+		stopPtr = CicularPointerSubtractOffset(m_writePtr, m_NumSampleShipmentHoldoff);
 	}
 
 	if (stopPtr < m_readPtr)
