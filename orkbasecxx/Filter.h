@@ -18,6 +18,15 @@
 #include "dll.h"
 #include "OrkBase.h"
 
+class FilterConfigurationParameters
+{
+public:
+	void* param1;
+	void* param2;
+
+};
+typedef boost::shared_ptr<FilterConfigurationParameters> FilterConfigurationParametersRef;
+
 class Filter;
 
 typedef boost::shared_ptr<Filter> FilterRef;
@@ -41,6 +50,7 @@ public:
 	virtual void __CDECL__ CaptureEventIn(CaptureEventRef& event) = 0;
 	virtual void __CDECL__ CaptureEventOut(CaptureEventRef& event) = 0;
 	virtual void __CDECL__ SetSessionInfo(CStdString& trackingId);
+	virtual void __CDECL__ Configure(FilterConfigurationParametersRef configParams);
 protected:
 	CStdString m_trackingId;
 
