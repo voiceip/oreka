@@ -2988,7 +2988,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			{
 				logMsg.Format(" ConferenceId:%u PassThruPartyId:%u", stopMedia->conferenceId, stopMedia->passThruPartyId);
 			}
-			RtpSessionsSingleton::instance()->ReportSkinnyStopMediaTransmission(stopMedia, ipHeader);
+			RtpSessionsSingleton::instance()->ReportSkinnyStopMediaTransmission(stopMedia, ipHeader, tcpHeader);
 		}
 		else
 		{
@@ -3021,7 +3021,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 		callStateMessage = (SkCallStateMessageStruct*)skinnyHeader;
 		if(SkinyValidateCallStateMessage(callStateMessage, packetEnd))
 		{
-			RtpSessionsSingleton::instance()->ReportSkinnyCallStateMessage(callStateMessage, ipHeader);
+			RtpSessionsSingleton::instance()->ReportSkinnyCallStateMessage(callStateMessage, ipHeader, tcpHeader);
 		}
 	case SkCcm5CallInfoMessage:
 		ccm5CallInfo = (SkCcm5CallInfoStruct*)skinnyHeader;
@@ -3216,10 +3216,10 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			switch(softKeyEvent->softKeyEvent)
 			{
 			case SoftKeyEvent::SkSoftKeyHold:
-				RtpSessionsSingleton::instance()->ReportSkinnySoftKeyHold(softKeyEvent, ipHeader);
+				RtpSessionsSingleton::instance()->ReportSkinnySoftKeyHold(softKeyEvent, ipHeader, tcpHeader);
 				break;
 			case SoftKeyEvent::SkSoftKeyResume:
-				RtpSessionsSingleton::instance()->ReportSkinnySoftKeyResume(softKeyEvent, ipHeader);
+				RtpSessionsSingleton::instance()->ReportSkinnySoftKeyResume(softKeyEvent, ipHeader, tcpHeader);
 				break;
 			case SoftKeyEvent::SkSoftKeyConfrn:
 				if (DLLCONFIG.m_SkinnyTrackConferencesTransfers == true)

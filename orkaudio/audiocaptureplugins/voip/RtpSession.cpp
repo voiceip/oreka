@@ -2144,7 +2144,7 @@ void RtpSessions::ReportSipNotify(SipNotifyInfoRef& notify)
 void RtpSessions::UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	CStdString extension;
-	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, callInfo->callId);
+	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, ntohs(tcpHeader->dest), callInfo->callId);
 
 	switch(callInfo->callType)
 	{
@@ -2310,7 +2310,7 @@ bool RtpSessions::TrySkinnySession(RtpPacketInfoRef& rtpPacket, EndpointInfoRef&
 
 void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
-	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, callInfo->callId);
+	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, ntohs(tcpHeader->dest), callInfo->callId);
 	CStdString logMsg;
 
 	UpdateEndpointWithCallInfo(callInfo, ipHeader, tcpHeader);
@@ -2429,10 +2429,10 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 
 }
 
-void RtpSessions::ReportSkinnyCallStateMessage(SkCallStateMessageStruct* callStateMessage, IpHeaderStruct* ipHeader)
+void RtpSessions::ReportSkinnyCallStateMessage(SkCallStateMessageStruct* callStateMessage, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	CStdString logMsg;
-	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, callStateMessage->callId);
+	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, ntohs(tcpHeader->dest), callStateMessage->callId);
 	std::map<CStdString, RtpSessionRef>::iterator pair;
 	pair = m_byCallId.find(callId);
 	RtpSessionRef session;
@@ -2868,12 +2868,19 @@ void RtpSessions::RemoveFromMediaAddressMap(RtpSessionRef& session, unsigned lon
 }
 
 
-CStdString RtpSessions::GenerateSkinnyCallId(struct in_addr endpointIp, unsigned int callId)
+CStdString RtpSessions::GenerateSkinnyCallId(struct in_addr endpointIp, unsigned short endpointSkinnyPort, unsigned int callId)
 {
 	char szEndPointIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndPointIp, sizeof(szEndPointIp));
 	CStdString skinnyCallId;
-	skinnyCallId.Format("%u@%s", callId, szEndPointIp);
+	if(DLLCONFIG.m_skinnyBehindNat == true)
+	{
+		skinnyCallId.Format("%u@%s,%u", callId, szEndPointIp, endpointSkinnyPort);
+	}
+	else
+	{
+		skinnyCallId.Format("%u@%s", callId, szEndPointIp);
+	}
 	return skinnyCallId;
 }
 
@@ -2995,7 +3002,7 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 	}
 }
 
-void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct* stopMedia, IpHeaderStruct* ipHeader)
+void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct* stopMedia, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	if(DLLCONFIG.m_skinnyIgnoreStopMediaTransmission)
 	{
@@ -3011,7 +3018,7 @@ void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruc
 	if(stopMedia->conferenceId != 0)
 	{
 		conferenceId = IntToString(stopMedia->conferenceId);
-		skinnyCallId = GenerateSkinnyCallId(ipHeader->ip_dest, stopMedia->conferenceId);
+		skinnyCallId = GenerateSkinnyCallId(ipHeader->ip_dest, ntohs(tcpHeader->dest), stopMedia->conferenceId);
 		pair = m_byCallId.find(skinnyCallId);
 		if (pair != m_byCallId.end())
 		{
@@ -3112,13 +3119,13 @@ void RtpSessions::ReportSkinnyLineStat(SkLineStatStruct* lineStat, IpHeaderStruc
 	}
 }
 
-void RtpSessions::ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader)
+void RtpSessions::ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	RtpSessionRef session;
 	CStdString logMsg;
 
 	std::map<CStdString, RtpSessionRef>::iterator pair;
-	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_src, skEvent->callIdentifier);
+	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_src, ntohs(tcpHeader->source), skEvent->callIdentifier);
 	pair = m_byCallId.find(callId);
 	if (pair != m_byCallId.end())
 	{
@@ -3142,13 +3149,13 @@ void RtpSessions::ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, 
 	}
 }
 
-void RtpSessions::ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader)
+void RtpSessions::ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	RtpSessionRef session;
 	CStdString logMsg;
 
 	std::map<CStdString, RtpSessionRef>::iterator pair;
-	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_src, skEvent->callIdentifier);
+	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_src, ntohs(tcpHeader->source), skEvent->callIdentifier);
 	pair = m_byCallId.find(callId);
 	if (pair != m_byCallId.end())
 	{
