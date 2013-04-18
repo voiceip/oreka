@@ -1256,6 +1256,25 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 						return false;
 					}
 				}
+				//In case of dialer session, rtp keeps on going even when the call is done
+				//If we detect the pausing in rtp, we break the session
+				int deltaTimestamp = rtpPacket->m_timestamp - m_lastRtpPacketSide1->m_timestamp;
+				if(DLLCONFIG.m_rtpBreakupOnStreamPause == true && (abs(seqNumDelta) * 160) < deltaTimestamp)
+				{
+					if((double)rtpPacket->m_seqNum < (double)m_lastRtpPacketSide1->m_seqNum)	//seq reset
+					{
+						seqNumDelta = 65536 - (double)m_lastRtpPacketSide1->m_seqNum + (double)rtpPacket->m_seqNum;
+					}
+					if((seqNumDelta * 160) < deltaTimestamp)
+					{
+						logMsg.Format("[%s] RTP stream pause detected, breaking up s1: before: seq:%u ts:%u after: seq:%u ts:%u",
+									m_trackingId, m_lastRtpPacketSide1->m_seqNum, m_lastRtpPacketSide1->m_timestamp,
+									rtpPacket->m_seqNum, rtpPacket->m_timestamp);
+						LOG4CXX_INFO(m_log, logMsg);
+						return false;
+					}
+				}
+
 				if(seqNumDelta > (double)m_highestRtpSeqNumDelta)
 				{
 					m_highestRtpSeqNumDelta = (unsigned int)seqNumDelta;
@@ -1315,6 +1334,24 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 								return false;
 							}
 						}
+
+						int deltaTimestamp = rtpPacket->m_timestamp - m_lastRtpPacketSide2->m_timestamp;
+						if(DLLCONFIG.m_rtpBreakupOnStreamPause == true )
+						{
+							if((double)rtpPacket->m_seqNum < (double)m_lastRtpPacketSide2->m_seqNum)	//seq reset
+							{
+								seqNumDelta = 65536 - (double)m_lastRtpPacketSide2->m_seqNum + (double)rtpPacket->m_seqNum;
+							}
+							if((seqNumDelta * 160) < deltaTimestamp)
+							{
+								logMsg.Format("[%s] RTP stream pause detected, breaking up s2: before: seq:%u ts:%u after: seq:%u ts:%u",
+										m_trackingId, m_lastRtpPacketSide2->m_seqNum, m_lastRtpPacketSide2->m_timestamp,
+										rtpPacket->m_seqNum, rtpPacket->m_timestamp);
+								LOG4CXX_INFO(m_log, logMsg);
+								return false;
+							}
+						}
+
 						if(seqNumDelta > (double)m_highestRtpSeqNumDelta)
 						{
 							m_highestRtpSeqNumDelta = (unsigned int)seqNumDelta;
