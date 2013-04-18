@@ -158,6 +158,7 @@ public:
 	bool m_urlExtractorEndpointIsSender;
 	CStdString m_remotePartyUseExtractedKey;
 	int m_rtpMinAmountOfPacketsBeforeStart;
+	bool m_rtpBreakupOnStreamPause;
 };
 
 //========================================

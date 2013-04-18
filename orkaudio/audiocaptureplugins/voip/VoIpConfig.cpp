@@ -110,6 +110,7 @@ VoIpConfig::VoIpConfig()
 	m_urlExtractorPort = 9080;
 	m_urlExtractorEndpointIsSender =  true;
 	m_rtpMinAmountOfPacketsBeforeStart = 50;
+	m_rtpBreakupOnStreamPause = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -223,6 +224,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->StringValue("UrlExtractorPattern", m_urlExtractorPattern);
 	s->StringValue("RemotePartyUseExtractedKey", m_remotePartyUseExtractedKey);
 	s->IntValue("RtpMinAmountOfPacketsBeforeStart", m_rtpMinAmountOfPacketsBeforeStart);
+	s->BoolValue("RtpBreakupOnStreamPause", m_rtpBreakupOnStreamPause);
 }
 
 void VoIpConfig::Validate()
