@@ -183,7 +183,7 @@ void AudioTape::AddAudioChunk(AudioChunkRef chunkRef)
 			if(m_chunkQueueErrorReported == false)
 			{
 				m_chunkQueueErrorReported = true;
-				LOG4CXX_ERROR(LOG.tapeLog, "Rejected additional chunk -- Queued Data Size:" + FormatDataSize(m_chunkQueueDataSize) + " is greater than 3*CaptureFileBatchSizeKByte:" + FormatDataSize(CONFIG.m_captureFileBatchSizeKByte * 3 * 1024));
+				LOG4CXX_ERROR(LOG.tapeLog, "Rejected additional chunk due to slow hard drive -- Queued Data Size:" + FormatDataSize(m_chunkQueueDataSize) + " is greater than 3*CaptureFileBatchSizeKByte:" + FormatDataSize(CONFIG.m_captureFileBatchSizeKByte * 3 * 1024));
 			}
 
 			return;
