@@ -26,7 +26,7 @@
 #include "AudioTape.h"
 #include "ConfigManager.h"
 #include "PartyFilter.h"
-
+#include "ConfigManager.h"
 
 AudioTapeDescription::AudioTapeDescription()
 {
@@ -442,26 +442,62 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		m_direction = (CaptureEvent::DirectionEnum)CaptureEvent::DirectionToEnum(eventRef->m_value);
 		break;
 	case CaptureEvent::EtRemoteParty:
-		m_remoteParty = eventRef->m_value;
-		if(!m_passedPartyFilterTest && PartyFilterActive())
 		{
-			m_passedPartyFilterTest = PartyFilterMatches(m_remoteParty);
-			if(m_passedPartyFilterTest)
+			m_remoteParty = eventRef->m_value;
+			if(!m_passedPartyFilterTest && PartyFilterActive())
 			{
-				logMsg.Format("[%s] remote party passed PartyFilter test", m_trackingId);
-				LOG4CXX_INFO(LOG.tapeLog, logMsg);
+				m_passedPartyFilterTest = PartyFilterMatches(m_remoteParty);
+				if(m_passedPartyFilterTest)
+				{
+					logMsg.Format("[%s] remote party passed PartyFilter test", m_trackingId);
+					LOG4CXX_INFO(LOG.tapeLog, logMsg);
+				}
+			}
+			std::map<char, char>::iterator it;
+			for(it=CONFIG.m_partyFilterMap.begin(); it!=CONFIG.m_partyFilterMap.end(); it++)
+			{
+				int pos;
+				while((pos = m_remoteParty.find(it->first)) != -1)
+				{
+					if(it->second != '?')
+					{
+						m_remoteParty.at(pos) = it->second;
+					}
+					else
+					{
+						m_remoteParty.erase(pos, 1);
+					}
+				}
 			}
 		}
 		break;
 	case CaptureEvent::EtLocalParty:
-		m_localParty = eventRef->m_value;
-		if(!m_passedPartyFilterTest && PartyFilterActive())
 		{
-			m_passedPartyFilterTest = PartyFilterMatches(m_localParty);
-			if(m_passedPartyFilterTest)
+			m_localParty = eventRef->m_value;
+			if(!m_passedPartyFilterTest && PartyFilterActive())
 			{
-				logMsg.Format("[%s] local party passed PartyFilter test", m_trackingId);
-				LOG4CXX_INFO(LOG.tapeLog, logMsg);
+				m_passedPartyFilterTest = PartyFilterMatches(m_localParty);
+				if(m_passedPartyFilterTest)
+				{
+					logMsg.Format("[%s] local party passed PartyFilter test", m_trackingId);
+					LOG4CXX_INFO(LOG.tapeLog, logMsg);
+				}
+			}
+			std::map<char, char>::iterator it;
+			for(it=CONFIG.m_partyFilterMap.begin(); it!=CONFIG.m_partyFilterMap.end(); it++)
+			{
+				int pos;
+				while((pos = m_localParty.find(it->first)) != -1)
+				{
+					if(it->second != '?')
+					{
+						m_localParty.at(pos) = it->second;
+					}
+					else
+					{
+						m_localParty.erase(pos, 1);
+					}
+				}
 			}
 		}
 		break;
