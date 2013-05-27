@@ -854,25 +854,6 @@ void RtpSession::ReportMetadata()
 		LOG4CXX_INFO(m_log, "[" + m_trackingId + "] " + "is Sip Service Call Pick Up session, reverted call direction");
 	}
 
-
-	//Before report localparty, filtering it
-	std::map<char, char>::iterator it1;
-	for(it1=CONFIG.m_partyFilterMap.begin(); it1!=CONFIG.m_partyFilterMap.end(); it1++)
-	{
-		int pos;
-		while((pos = m_localParty.find(it1->first)) != -1)
-		{
-			if(it1->second != '?')
-			{
-				m_localParty.at(pos) = it1->second;
-			}
-			else
-			{
-				m_localParty.erase(pos, 1);
-			}
-		}
-	}
-
 	// Report Local party
 	CaptureEventRef event(new CaptureEvent());
 	event->m_type = CaptureEvent::EtLocalParty;
@@ -888,36 +869,6 @@ void RtpSession::ReportMetadata()
 	}
 	g_captureEventCallBack(event, m_capturePort);
 	m_localPartyReported = true;
-
-	//Before report remoteparty, filtering it
-	std::map<char, char>::iterator it2;
-	for(it2=CONFIG.m_partyFilterMap.begin(); it2!=CONFIG.m_partyFilterMap.end(); it2++)
-	{
-		int pos;
-		while((pos = m_remotePartyName.find(it2->first)) != -1)
-		{
-			if(it2->second != '?')
-			{
-				m_remotePartyName.at(pos) = it2->second;
-			}
-			else
-			{
-				m_remotePartyName.erase(pos, 1);
-			}
-		}
-
-		while((pos = m_remoteParty.find(it2->first)) != -1)
-		{
-			if(it2->second != '?')
-			{
-				m_remoteParty.at(pos) = it2->second;
-			}
-			else
-			{
-				m_remoteParty.erase(pos, 1);
-			}
-		}
-	}
 
 	// Report remote party
 	event.reset(new CaptureEvent());
