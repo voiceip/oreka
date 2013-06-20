@@ -2233,7 +2233,7 @@ EndpointInfoRef RtpSessions::GetEndpointInfoByIp(struct in_addr *ip)
 	return endpoint;
 }
 
-bool RtpSessions::TrySkinnySession(RtpPacketInfoRef& rtpPacket, EndpointInfoRef& endpoint)
+bool RtpSessions::SkinnyFindMostLikelySessionForRtp(RtpPacketInfoRef& rtpPacket, EndpointInfoRef& endpoint)
 {
 	std::map<CStdString, RtpSessionRef>::iterator sessionpair;
 	RtpSessionRef session;
@@ -2292,6 +2292,66 @@ bool RtpSessions::TrySkinnySession(RtpPacketInfoRef& rtpPacket, EndpointInfoRef&
 
 	logMsg.Format("[%s] RTP stream detected on endpoint:%s extension:%s RTP:%s,%d %s,%d callid:%s", session->m_trackingId, szEndPointIp, endpoint->m_extension, szRtpSrcIp, rtpPacket->m_sourcePort, szRtpDstIp, rtpPacket->m_destPort, endpoint->m_latestCallId);
 	LOG4CXX_INFO(m_log, logMsg);
+
+	return true;
+}
+
+bool RtpSessions::SkinnyFindMostLikelySessionForRtpBehindNat(RtpPacketInfoRef& rtpPacket)
+{
+	std::map<CStdString, RtpSessionRef>::iterator it;
+	RtpSessionRef session, tmpSession, mostRecentSession;
+	CStdString logMsg;
+
+	ACE_Time_Value latestSkinnyTimestamp, rtpArrivalTimestamp;
+	rtpArrivalTimestamp = ACE_OS::gettimeofday();
+
+	for(it=m_byCallId.begin(); it!=m_byCallId.end(); it++)
+	{
+		tmpSession = it->second;
+		if(tmpSession.get() == NULL)
+		{
+			continue;
+		}
+		if(((unsigned int)tmpSession->m_endPointIp.s_addr) == ((unsigned int)rtpPacket->m_sourceIp.s_addr) || ((unsigned int)tmpSession->m_endPointIp.s_addr) == ((unsigned int)rtpPacket->m_destIp.s_addr))
+		{
+			if((tmpSession->m_skinnyLastCallInfoTime >= latestSkinnyTimestamp) && (tmpSession->m_ipAndPort == 0))
+			{
+				latestSkinnyTimestamp = tmpSession->m_skinnyLastCallInfoTime;
+				mostRecentSession = tmpSession;
+			}
+		}
+	}
+	if(mostRecentSession.get() != NULL)
+	{
+		if(((int)(rtpArrivalTimestamp.sec() - latestSkinnyTimestamp.sec()) > 30) )
+		{
+			return false;
+		}
+
+		session = mostRecentSession;
+		CStdString rtpString;
+		rtpPacket->ToString(rtpString);
+		logMsg.Format("[%s] SkinnyFindMostLikelySessionForRtpBehindNat: associating RTP: %s", mostRecentSession->m_trackingId, rtpString);
+		LOG4CXX_INFO(m_log, logMsg);
+	}
+
+	if(session.get() == NULL)
+	{
+		return false;
+	}
+	if(session->Stopped())
+	{
+		return false;
+	}
+
+	if(((unsigned int)session->m_endPointIp.s_addr) == ((unsigned int)rtpPacket->m_sourceIp.s_addr))
+	{
+		SetMediaAddress(session, rtpPacket->m_destIp, rtpPacket->m_destPort);
+	}
+	else
+	{
+		SetMediaAddress(session, rtpPacket->m_sourceIp, rtpPacket->m_sourcePort);
+	}
 
 	return true;
 }
@@ -3505,9 +3565,19 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		// Check if a Skinny session can be found on the endpoint
 		if(DLLCONFIG.m_skinnyRtpSearchesForCallInfo)
 		{
-			if(TrySkinnySession(rtpPacket, endpoint) == true)
+			if(DLLCONFIG.m_skinnyBehindNat != true)
 			{
-				return;
+				if(SkinnyFindMostLikelySessionForRtp(rtpPacket, endpoint) == true)
+				{
+					return;
+				}
+			}
+			else
+			{
+				if(SkinnyFindMostLikelySessionForRtpBehindNat(rtpPacket) == true)
+				{
+					return;
+				}
 			}
 		}
 
