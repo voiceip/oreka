@@ -433,7 +433,8 @@ private:
 	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned short endpointSkinnyPort, unsigned int callId);
 	void UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
 	void UpdateSessionWithCallInfo(SkCallInfoStruct*, RtpSessionRef&);
-	bool TrySkinnySession(RtpPacketInfoRef& rtpPacket, EndpointInfoRef&);
+	bool SkinnyFindMostLikelySessionForRtp(RtpPacketInfoRef& rtpPacket, EndpointInfoRef&);
+	bool SkinnyFindMostLikelySessionForRtpBehindNat(RtpPacketInfoRef& rtpPacket);
 	void TrySessionCallPickUp(CStdString replacesCallId, bool& result);
 
 	std::map<unsigned long long, RtpSessionRef> m_byIpAndPort;
