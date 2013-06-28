@@ -476,6 +476,10 @@ void VoIpConfig::Validate()
 	{
 		m_sipExtractFields.push_back(m_sipOnDemandFieldName);
 	}
+	if(m_iax2Support == true)
+	{
+		m_rtpDetectOnOddPorts = false;
+	}
 }
 
 bool VoIpConfig::IsPartOfLan(struct in_addr addr)
