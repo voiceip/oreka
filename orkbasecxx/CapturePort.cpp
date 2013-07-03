@@ -53,12 +53,14 @@ void CapturePort::LoadFilters()
 			LOG4CXX_ERROR(s_log, CStdString("Filter:") + filterName + " does not exist, please check <CapturePortFilters> in config.xml");
 		}
 	}
-
-	FilterRef decoder;
-	for(int pt = 0; pt < RTP_PAYLOAD_TYPE_MAX; pt++)
+	if(CONFIG.m_vad == true)
 	{
-		decoder = FilterRegistry::instance()->GetNewFilter(pt);
-		m_decoders.push_back(decoder);
+		FilterRef decoder;
+		for(int pt = 0; pt < RTP_PAYLOAD_TYPE_MAX; pt++)
+		{
+			decoder = FilterRegistry::instance()->GetNewFilter(pt);
+			m_decoders.push_back(decoder);
+		}
 	}
 }
 
