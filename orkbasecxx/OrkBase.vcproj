@@ -150,7 +150,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				InlineFunctionExpansion="0"
-				AdditionalIncludeDirectories=".;.\filters\gsm;.\filters\gsm\gsm610;.\filters\ilbc;.\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0;C:\devExt\ACE_wrappers;C:\devext\xerces\src;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;.\filters\g722codec;&quot;C:\DevExt\speex\speex-1.2beta3-win32\include&quot;"
+				AdditionalIncludeDirectories=".;.\filters\gsm;.\filters\gsm\gsm610;.\filters\ilbc;.\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0;C:\devExt\ACE_wrappers;C:\devext\xerces\src;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;.\filters\g722codec;&quot;C:\DevExt\speex\speex-1.2beta3-win32\include&quot;;C:\sfTrunk\orkbasecxx\filters\g726codecs\g72x;C:\sfTrunk\orkbasecxx\filters\g726codecs"
 				PreprocessorDefinitions="BUILD_ORKBASE;WIN32;NDEBUG;_WINDOWS;_USRDLL;inline=__inline"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -2387,6 +2387,42 @@
 						RelativePath=".\filters\speex\SpeexCodec.h"
 						>
 					</File>
+				</Filter>
+				<Filter
+					Name="g726codes"
+					>
+					<File
+						RelativePath=".\filters\g726codecs\G721Codec.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\filters\g726codecs\G721Codec.h"
+						>
+					</File>
+					<Filter
+						Name="g72x"
+						>
+						<File
+							RelativePath=".\filters\g726codecs\g72x\g721.c"
+							>
+						</File>
+						<File
+							RelativePath=".\filters\g726codecs\g72x\g723_24.c"
+							>
+						</File>
+						<File
+							RelativePath=".\filters\g726codecs\g72x\g723_40.c"
+							>
+						</File>
+						<File
+							RelativePath=".\filters\g726codecs\g72x\g72x.c"
+							>
+						</File>
+						<File
+							RelativePath=".\filters\g726codecs\g72x\g72x.h"
+							>
+						</File>
+					</Filter>
 				</Filter>
 			</Filter>
 		</Filter>
