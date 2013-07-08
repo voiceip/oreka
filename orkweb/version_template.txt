@@ -1,0 +1,5 @@
+About OrkWeb
+____________
+
+Version   :  $WCRANGE$ 
+Build date:  $WCNOW$

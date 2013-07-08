@@ -41,6 +41,7 @@
    <property name="mgrUsername" value="admin" />
    <property name="mgrPassword" value="" />
    <property name="javadependencies" value="c:/oreka-0.5-java-dependencies" />
+   <property name="svnRevCmd" value="C:/Program Files/TortoiseSVN/bin/SubWCRev" />	
 	<!-- Change these properties to suit your needs (End)-->
 
 	
@@ -102,6 +103,7 @@
 	      	   <include name="WEB-INF/*.html" />
 	      	   <include name="WEB-INF/*.properties" />   
 	      	   <include name="WEB-INF/*.xml" />    	    	   
+	      	   <include name="WEB-INF/version.txt" />      	   
 	      	   <include name="css/*.css" />
 	      	</fileset>
 	      </war>
@@ -148,6 +150,18 @@
 	      <delete file="temp.txt" />	
 	</target>
 	
-   <target name="do_everything" depends="create_war,remove_context,deploy,install_context" />
+	<!--Get updated subversion revision of the working folder-->
+	<target name="version">
+		<exec executable="cmd">
+			<arg value="/c"/>
+			<arg value="${svnRevCmd}"/>
+			<arg value="${workspaceHome}"/>
+			<arg value="${workspaceHome}/${application}/version_template.txt"/>
+			<arg value="${contextHome}/WEB-INF/version.txt"/>
+			<arg value="-p"/>			
+		</exec>
+	</target>
+
+   <target name="do_everything" depends="version,create_war,remove_context,deploy,install_context" />
 
 </project>
