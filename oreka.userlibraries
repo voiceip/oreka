@@ -42,7 +42,7 @@
 <archive path="C:/dev2/lib/hibernate-3.1beta1/lib/xerces-2.6.2.jar"/>
 </library>
 <library name="MySQL" systemlibrary="false">
-<archive path="C:/dev2/lib/mysql/mysql-connector-java-3.1.7-bin.jar"/>
+<archive path="C:/dev2/lib/mysql/mysql-connector-java-5.1.23-bin.jar"/>
 </library>
 <library name="apache-commons" systemlibrary="false">
 <archive path="C:/dev2/lib/commons-lang-1.0.jar"/>
