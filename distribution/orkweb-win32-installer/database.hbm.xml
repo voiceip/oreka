@@ -4,7 +4,7 @@
 		"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
     <session-factory>    
-	<property name="hibernate.dialect">org.hibernate.dialect.MySQLInnoDBDialect</property>
+	<property name="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</property>
 	<property name="hibernate.connection.maxconnections">100</property>
 	<property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
 	<property name="hibernate.connection.url">jdbc:mysql://localhost/test</property>
