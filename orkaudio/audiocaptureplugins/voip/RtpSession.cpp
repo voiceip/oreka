@@ -89,6 +89,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_lastKeepAlive = time(NULL);
 	m_numAlienRtpPacketsS1 = 0;
 	m_numAlienRtpPacketsS2 = 0;
+	m_mappedS1S2 =  false;
 }
 
 void RtpSession::Stop()
@@ -1358,6 +1359,37 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 				}
 			}
 		}
+	}
+	//re-evaluate s1/s2 mapping
+	if(DLLCONFIG.m_rtpS1S2MappingDeterministic == true && m_mappedS1S2 == false)
+	{
+		if(m_lastRtpPacketSide1.get() != NULL && m_lastRtpPacketSide2.get() != NULL)	//We have received at least one packet for both sides
+		{
+			if((unsigned int)m_lastRtpPacketSide1->m_sourceIp.s_addr == (unsigned int)m_localIp.s_addr)
+			{
+				// Mapping is good as it is, do not touch anything
+			}
+			else if(m_protocol == ProtSip || m_protocol == ProtSkinny)
+			{
+				RtpPacketInfoRef tmpRtpPacketInfoRef;
+				tmpRtpPacketInfoRef = m_lastRtpPacketSide1;
+				m_lastRtpPacketSide1 = m_lastRtpPacketSide2;
+				m_lastRtpPacketSide2 = tmpRtpPacketInfoRef;
+				if(channel == 1)
+				{
+					channel = 2;
+				}
+				else if(channel == 2)
+				{
+					channel = 1;
+				}
+				logMsg =  "[" + m_trackingId + "] deterministic audio channel mapping: swapped s1 and s2";
+				LOG4CXX_INFO(m_log, logMsg);
+
+			}
+			m_mappedS1S2 =  true;
+		}
+
 	}
 
 	if(m_protocol == ProtSip)
