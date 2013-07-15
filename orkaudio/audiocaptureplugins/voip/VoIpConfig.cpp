@@ -111,6 +111,7 @@ VoIpConfig::VoIpConfig()
 	m_urlExtractorEndpointIsSender =  true;
 	m_rtpMinAmountOfPacketsBeforeStart = 50;
 	m_rtpBreakupOnStreamPause = false;
+	m_rtpS1S2MappingDeterministic = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -225,6 +226,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->StringValue("RemotePartyUseExtractedKey", m_remotePartyUseExtractedKey);
 	s->IntValue("RtpMinAmountOfPacketsBeforeStart", m_rtpMinAmountOfPacketsBeforeStart);
 	s->BoolValue("RtpBreakupOnStreamPause", m_rtpBreakupOnStreamPause);
+	s->BoolValue("RtpS1S2MappingDeterministic", m_rtpS1S2MappingDeterministic);
 }
 
 void VoIpConfig::Validate()

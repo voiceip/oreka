@@ -367,6 +367,7 @@ private:
 	unsigned int m_currentDtmfVolume;
 	unsigned int m_currentSeqNo;
 	unsigned int m_lastEventEndSeqNo;
+	bool m_mappedS1S2;
 };
 typedef boost::shared_ptr<RtpSession> RtpSessionRef;
 
