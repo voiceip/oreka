@@ -8,10 +8,16 @@
 ##   --silent
 ##
 ## Defaults are:
-##    Java path  :  /opt/java/jre1.6.0_16
-##    Tomcat path:  /opt/tomcat5
+##    Java path  :  /opt/java/jre1.7.0_02
+##    Tomcat path:  /opt/tomcat7
 ##    MySQL      :  username=root, password=, database name=oreka
 ##
+##
+## By default, Tomcat will be installed as non-root, group/under tomcat/tomcat 
+##
+use IO::Handle;
+use POSIX 'strftime';
+
 $verifyMySQLInstalled = 1;
 $installJava   = 1;
 $installTomcat = 1;
@@ -46,28 +52,54 @@ use File::Copy;
 #use Net::FTP;
 
 $tomcatInstalledAsService = 0;
+$tomcatInstalledAsRoot = 0;
 $mysqlVerified  = 0;
 $tomcatVerified = 0;
 $javaVerified   = 0;
 
 $catalinaHome = "";
+$defaultCatalinaHome = "/opt/tomcat7";
 $javaHome = "";
+$defaultJavaHome = "/opt/java/jre1.7.0_02";
 $orkwebConfigDir = "/etc/orkweb/";
 $audioDir = "/var/log/orkaudio/audio";
+$loggingDir = "/var/log/orkweb";
+  
+$tomcatUser = "tomcat";
+$tomcatGroup = "tomcat";
+$tomcatUserHome = "/home/tomcat";
+$catalinaFile = "catalina.sh"; 
+
 $mysqlCommandlineLocation = "";
+$which="which";
+$wget="/usr/bin/wget";
 $unzip="/usr/bin/unzip";
 $gunzip="/bin/gunzip";
+$tar="/bin/tar";
+$chown="/bin/chown";
+$groupadd="/usr/sbin/groupadd";
+$useradd="/usr/sbin/useradd";
+$whichExists = 0;
+
 
 # Default OS to CentOS
 $operatingSystem="centos";
+$typeOS=32;
 &getOperatingSystem();
 
 print "\n**** Welcome to the Oreka Web User Interface installer by OrecX LLC ****\n";
 
-## Verifying that unzip, gunzip are found
-print "\nSearching for required system binaries (unzip, gunzip)\n";
-&verifyTools("unzip");
-&verifyTools("gunzip");
+## Verifying that wget and unzip are found
+# print "\nSearching for required system binaries (wget, unzip, ...)\n";
+$which = &verifyTools("which");
+if ($which ne '') { $whichExists=1 };
+$wget = &verifyTools("wget");
+$unzip = &verifyTools("unzip");
+$gunzip = &verifyTools("gunzip");
+$tar = &verifyTools("tar");
+$chown = &verifyTools("chown");
+$groupadd = &verifyTools("groupadd");
+$useradd = &verifyTools("useradd");
 
 ## Verify MySQL existence
 if ($verifyMySQLInstalled == 1) {
@@ -93,7 +125,7 @@ if ($verifyMySQLInstalled == 1) {
 
 if ($installJava == 1) {
   ## Check for Java, need >= JRE 1.6.  Install it if user agrees.
-  &verifyJava();
+  &installJava();
 }
 
 if ($installTomcat == 1) {
@@ -110,7 +142,7 @@ if ($installTomcat == 1) {
 if ($installOreka == 1) {
 
   ## Get database params if not already obtained (and if not in silent mode)
-  if ($mysqlVerified = 0 && $installSilent == 0) {
+  if ($verifyMySQLInstalled == 1 && $mysqlVerified == 0 && $installSilent == 0) {
     ## Request basic data for database connection
     print "\nClick enter to accept defaults...\n";
 
@@ -134,20 +166,26 @@ if ($installOreka == 1) {
   &updateOrkwebConfig();
 
   ## Modify database.hbm.xml
+  if ($verifyMySQLInstalled == 1) {
   &updateHibernateConfig();
+  }   
 
   ## Modify logging.properties
   &updateLoggingConfig();
 
+  ## Deploy orkweb and orktrack to tomcat, and modify their web.xml files
   &deployWebAppsToTomcat();
-
-  ## Modify orktrack and orkweb - web.xml files
   &updateAppWebXML();
 
   ## Create default audio file storage directory
   $cmd = "mkdir -p ".$audioDir;
   $pid = `$cmd`;
 
+}
+
+## Make sure Tomcat runs in desired mode (tomcat or root) 
+if ($installTomcat == 1 || $installOreka == 1) {
+  &configureTomcatRunMode();
 }
 
 if($tomcatInstall == 1) {
@@ -164,7 +202,7 @@ print "\nIf you need any help, please contact support\@orecx.com\n\n";
 
 ################################## SUBROUTINES ######################################
 
-## Read into /etc/*release file for OS version
+## Read into /etc/*release file for OS version, and get OS type (32 or 64bit)
 sub getOperatingSystem() {
 
   $os = `cat /etc/*release`; 
@@ -176,6 +214,13 @@ sub getOperatingSystem() {
   } else {
     $operatingSystem = "unknown";
   }
+  
+  ## Is OS 32-bit or 64-bit?
+  $type = `/usr/bin/getconf LONG_BIT`;
+  if ($type==64) {
+    $typeOS = 64;
+    print "64-bit OS detected...\n";
+  }
 }
 
 ## Install utility passed as param using yum
@@ -185,8 +230,24 @@ sub yumInstall {
 
   if ($_[0] ne '') {
 
-    $yum = `which yum`;
-    if ($yum ne '') {
+    ## Find yum 
+    $yumExists = 0;
+    
+    if ($whichExists == 1) {
+       $yum = `$which yum`;
+       if ($yum ne '') {$yumExists = 1} 
+    } else {
+        if (-e "/usr/bin/yum"){$yumExists = 1}
+        elsif (-e "/bin/yum") {$yumExists = 1}
+        elsif (-e "/usr/sbin/yum") {$yumExists = 1}
+    }
+    
+    ## If no yum found exit.    
+    if ($yumExists == 0){
+
+       die "\nThe yum package management system is missing. Is this a redhat based derivative Linux system ?\nExiting ...";
+
+    } else {
        
        $resp = '';
        if ($installSilent == 0) {
@@ -204,13 +265,18 @@ sub yumInstall {
          } else {
             system("yum install $_[0]");
          }   
-         $ret_val = `which $_[0]`;
+         if ($whichExists == 1) {        
+             $ret_val = `$which $_[0]`;
+         } else {
+            if (-e "/usr/bin/$_[0]"){$ret_val = "/usr/bin/$_[0]";}
+            elsif (-e "/bin/$_[0]") {$ret_val = "/bin/$_[0]";}
+            elsif (-e "/usr/sbin/$_[0]") {$ret_val = "/usr/sbin/$_[0]";}
+         }
+         
          if ($ret_val eq '') {
-           print "\nWARNING: Installiation of $_[0] failed!\n\n";
+            print "\nWARNING: Installation of $_[0] failed!\n\n";
          }
        } 
-    } else {
-        die "\nERROR: Installiation of $_[0] failed.  Cannot find 'yum' to install.\n\n";
     }
   }
   print "\n";
@@ -220,8 +286,25 @@ sub yumInstall {
 ## Verify if tool passed as param is installed (e.g. wget, unzip, ...)
 sub verifyTools {
   
-  $cmd = `which $_[0]`;
+  if ($whichExists == 0) {
 
+      if (-e "/usr/bin/$_[0]") {
+        $cmd = "/usr/bin/$_[0]";
+      } elsif (-e "/bin/$_[0]") {
+        $cmd = "/bin/$_[0]";
+      } elsif (-e "/usr/sbin/$_[0]") {
+        $cmd = "/usr/sbin/$_[0]";
+      } else {
+        $cmd = "";
+      } 
+      
+  } else {  
+    $cmd = `$which $_[0]`;
+  }   
+
+  $errorPrompt = "";
+  $retval = "";
+  
   ## If binary not found, first attempt to install it 
   if ($cmd eq '') { 
     print "'$_[0]' was not found.\n";
@@ -230,11 +313,25 @@ sub verifyTools {
 
   if ($cmd eq '') {
     
-    if ($_[0] eq 'unzip') {
+    if ($_[0] eq 'which') {
+
+      print "WARN: 'which' not found...will try to do without it.\n";
+    
+    } elsif ($_[0] eq 'wget') {
+      
+      $errorPrompt = "'$_[0]' is required to install Java and Tomcat.  If Java and Tomcat are already installed, you may continue.\n" .
+                     "Otherwise, exit this installer and install '$_[0]' first.\n" .
+                     "Would you like to continue (y/n)?  ";
+
+    } elsif ($_[0] eq 'unzip') {
       die "'$_[0]' is required to install orkweb and orktrack.  Please install '$_[0]' before proceeding.\n" . 
           "\n\nNo installation was performed. Exiting installer.\n";
       
     } elsif ($_[0] eq 'gunzip') {
+      die "'$_[0]' is required to install java.  Please install '$_[0]' before proceeding.\n" . 
+          "\n\nNo installation was performed. Exiting installer.\n";
+      
+    } elsif ($_[0] eq 'tar') {
       die "'$_[0]' is required to install java.  Please install '$_[0]' before proceeding.\n" . 
           "\n\nNo installation was performed. Exiting installer.\n";
       
@@ -246,7 +343,7 @@ sub verifyTools {
       }  
     }
 
-    if ($installSilent == 0) {
+    if ($installSilent == 0 && $errorPrompt != "") {
        do {          
          print $errorPrompt;
          $response= <STDIN>;
@@ -261,18 +358,12 @@ sub verifyTools {
     } 
     
   } else {
-      print "Found '$_[0]' command.\n";
-      if ($_[0] eq 'wget') {
-        $wget = $cmd;
-        $wget =~ s/\n//;
-      } elsif ($_[0] eq 'unzip') {
-        $unzip = $cmd;
-        $unzip =~ s/\n//;
-      } elsif ($_[0] eq 'gunzip') {
-        $gunzip = $cmd;
-        $gunzip =~ s/\n//;
-      }
+      $retval = $cmd;
+      $retval =~ s/\n//;
+      #print "Found '$_[0]' command: $retval \n";
   }
+  
+  return $retval;
 }
 
 sub obtainMysqlLocation {
@@ -350,13 +441,18 @@ sub verifyDatabase {
   ## Verify mysql connectivity
   print "Verifying database connection...\n";
 
-  $mysqlConnResponse = `$mysqlCommandlineLocation --user=$mysqlUser --password=$mysqlPwd1 $mysqlDatabase --execute="SHOW TABLES" 2>&1`;
+  #$mysqlConnResponse = `$mysqlCommandlineLocation --user=$mysqlUser --password=$mysqlPwd1 $mysqlDatabase --execute="SHOW TABLES" 2>&1`;
+  $mysqlConnResponse = `$mysqlCommandlineLocation --user=$mysqlUser --password=$mysqlPwd1 --execute="SHOW DATABASES" 2>&1`;
 
   if($mysqlConnResponse =~ /ERROR/i) {
     die $mysqlConnResponse."\n\n";
   }
 
   print "Connected successfully!\n";
+  
+  ## Force MySQL service to be restarted automatically after a reboot
+  `/sbin/chkconfig mysqld on`;    
+
 }
 
 sub createDatabase {
@@ -364,7 +460,7 @@ sub createDatabase {
 
   $databaseName = $_[0];
 
-  print "\nCreating database: ".$databaseName." ...\n";
+  print "Creating database: ".$databaseName." ...\n";
   if(length($mysqlPwd1)) {
     $mysqlConnResponse = `$mysqlCommandlineLocation --user=$mysqlUser --password=$mysqlPwd1 --execute="CREATE DATABASE IF NOT EXISTS $databaseName" 2>&1`;
   } else {
@@ -378,7 +474,7 @@ sub createDatabase {
 
 sub getHostName {
 
-  print "\nMySQL hostname (default: localhost):\n";
+  print "MySQL hostname (default: localhost):\n";
   $mysqlHost = <STDIN>;
   chop $mysqlHost;
 
@@ -434,7 +530,7 @@ sub getPasswords {
 
 ## If the installation is silent, Java is installed to the default path, otherwise
 ## user is prompted for installation location
-sub verifyJava {
+sub installJava {
 
   if ($installSilent == 0) {
       $JREPrompt = "\nDo you want install Java? (y/n)\n";  
@@ -458,79 +554,17 @@ sub verifyJava {
    
    ## In silent mode, install Java to default path
    else {
-      print "\nInstalling Java - JRE 1.6\n";
+      print "\nInstalling Java - JRE 1.7\n";
       &installJRE();
    }  		
    $javaVerified = 1;
-}
-
-## Extract JRE from installer and install it
-sub installJRE {
-
-  ## The JRE is installed in jre1.6.(version number) sub-directory under the current directory (where the installer is). 
-  ## e.g. the JRE is installed in the /usr/java/jre1.6.0_16 directory. 
-  ## Verify that the jre1.6.0_16 sub-directory is listed under the current directory. 
-
-  $JRESubDir = "jre1.6.0_16";
-  $JRESubDirPath = "./jre1.6.0_16";
-  $JREgz = "jre-6u16-linux-i586.bin.gz";
-  $JREbin = "./jre-6u16-linux-i586.bin";
- 
-   if ($installSilent == 0) {
-      $jrePathPrompt = "\nEnter desired path to install Java - the JRE will be installed in a subdirectory named ".$JRESubDir."\n(default: /opt/java):\n";
-      print $jrePathPrompt;
-      $javaPath = <STDIN>;
-      chop $javaPath;
-   } else {
-      $javaPath = "/opt/java"; 
-      $jrePathPrompt = "\Java JRE will be installed in ".$javaPath."/".$JRESubDir."\n";
-      print $jrePathPrompt;
-   }   
-  
-   if ($javaPath eq "") {
-     $javaPath = "/opt/java";
-   }
-  
-  ## Test for path's existence
-  if (!-d $javaPath) {
-    print "\nDirectory ".$javaPath." does not exist, will create it...\n";
-    
-    $cmd = "mkdir ".$javaPath;
-    $pid = `$cmd`;
-  }
-  
-  ## Gunzip JRE then run the binary installer.  This will extract the files to 
-  ## the $JRESubDirPath. 
- 
-  ## Extract
-  $extractCmd = $gunzip." ./".$JREgz;
-  `$extractCmd`;
-  
-  ## Make sure it is executable first.
-  $chmodCmd = "chmod +x ".$JREbin;
-  `$chmodCmd`;
-  print "\nInstalling Java ".$JREbin."...\n";
-  `$JREbin`;
-
-  ## Move it to installation path
-  $mvCmd = "mv ".$JRESubDirPath." ".$javaPath;
-  `$mvCmd`;
-
-  ## Delete source file
-  $rmCmd = "rm -f "."./".$JREgz;
-  `$rmCmd`;
-
-  ## Set variable that will become JAVA_HOME
-  $javaHome = $javaPath."/".$JRESubDir;
-  
-  print "\nJRE has been successfully installed in: ".$javaHome."\n";
 }
 
 ## Check for Java, need >= JRE 1.6
 ## If this is a silent installation, the defaults will be assumed 
 sub verifyJavaExistence {
 
-  $defaultJavaHome = "/opt/java/jre1.6.0_16";
+  $oldDefaultJavaHome = "/opt/java/jre1.5.0";
   $jrePathPrompt = "\nEnter the path to your current Java installation, (default:$defaultJavaHome)\nThe right directory should have at least a jre and bin subdirectories\n";
   print $jrePathPrompt;
   $javaHome = $defaultJavaHome;
@@ -559,7 +593,7 @@ sub verifyJavaExistence {
   
      ## Check if java path exists
      if (!-d $javaHome) {
-        $javaHome = "/opt/java/jre1.5.0";
+        $javaHome = $oldDefaultJavaHome;
         if (!-d $javaHome) {
            print "WARNING: *** Directory ".$javaHome." does not exist.  Tomcat will not run correctly!!!\n";
         }
@@ -578,11 +612,69 @@ sub verifyJavaExistence {
   }
 }
 
+## Extract JRE from installer and install it
+sub installJRE {
+
+  ## For 32bit OS, the JRE is installed in jre1.7.0_02 sub-directory under the current 
+  ## directory (where the installer is) 
+  ## e.g. the JRE is installed in the /usr/java/jre1.7.0_02 directory. 
+  ## Verify that the jre1.7.0_02 sub-directory is listed under the current directory. 
+
+  ## 32-bit Java
+  if ($typeOS==32) {
+    $JRESubDir = "jre1.7.0_02";
+    $JRESubDirPath = "./jre1.7.0_02";
+    $JREgz = "jre-7u2-linux-i586.tar.gz";
+  ## 64-bit Java
+  } else {
+    $JRESubDir = "jre1.7.0_04";
+    $JRESubDirPath = "./jre1.7.0_04";
+    $JREgz = "jre-7u4-linux-x64.tar.gz";  
+  }  
+ 
+   if ($installSilent == 0) {
+      $jrePathPrompt = "Enter desired path to install Java - the JRE will be installed in a subdirectory named ".$JRESubDir."\n(default: /opt/java):\n";
+      print $jrePathPrompt;
+      $javaPath = <STDIN>;
+      chop $javaPath;
+   } else {
+      $javaPath = "/opt/java"; 
+      $jrePathPrompt = "\Java JRE will be installed in ".$javaPath."/".$JRESubDir."\n";
+      print $jrePathPrompt;
+   }   
+  
+   if ($javaPath eq "") {
+     $javaPath = "/opt/java";
+   }
+  
+  ## Test for path's existence
+  if (!-d $javaPath) {
+    print "\nDirectory ".$javaPath." does not exist, will create it...\n";    
+    $pid = `mkdir $javaPath`;
+  }
+  
+  ## Gunzip JRE then untar the tar file installer.  This will extract the files to 
+  ## the $JRESubDirPath. 
+  print "\nInstalling Java ".$JREgz."...\n";
+  `$tar -xzf $JREgz`;
+
+  ## Move it to installation path
+  `mv $JRESubDirPath $javaPath`;
+
+  ## Delete source file
+  `rm -f $JREgz`;
+
+  ## Set variable that will become JAVA_HOME
+  $javaHome = $javaPath."/".$JRESubDir;
+  
+  print "\nJRE has been successfully installed in: ".$javaHome."\n";
+}
+
 ## Ask if Tomcat should be installed.  If --silent is used, install it anyway.
 sub verifyTomcat {
 
   if ($installSilent == 0) {
-     $installTomcatPrompt = "\nDo you want to install Tomcat (V.4 OR HIGHER IS REQUIRED)? (y/n)\n";
+     $installTomcatPrompt = "\nDo you want to install Tomcat 7 (V.4 OR HIGHER IS REQUIRED)? (y/n)\n";
      print $installTomcatPrompt;
 
      $installTomcat = <STDIN>;
@@ -593,37 +685,33 @@ sub verifyTomcat {
        $installTomcat = <STDIN>;
        chop $installTomcat;
      }
+   }
 
-     if ($installTomcat eq 'y'){
+   if ($installSilent == 1 || $installTomcat eq 'y'){
        &installTomcat();
      } else {
        &verifyTomcatExistence();
      }	
-   }
-   ## In silent mode install Tomcat without asking
-   else {
-      print "\nInstalling Tomcat 5\n";
-      &installTomcat();
-   }  		
   
   $tomcatVerified = 1;
 
   &addTomcatService();
 }
 
-
 sub installTomcat { 
 
-  ## The JRE is installed in jre1.6.(version number) sub-directory under the current directory (where the installer is).
-  ## e.g. the JRE is installed in the /usr/java/jre1.6.0_16 directory.
-  ## Verify that the jre1.6.0_16 sub-directory is listed under the current directory.
+  ## The JRE is installed in jre1.7.0_02 sub-directory under the current directory (where the installer is).
+  ## e.g. the JRE is installed in the /opt/java/1.7.0_02 directory.
+  ## Verify that the jre1.7.0_02 sub-directory is listed under the current directory.
 
-  $TomcatSubDir = "apache-tomcat-5.5.20";
-  $TomcatSubDirPath = "./apache-tomcat-5.5.20";
-  $TomcatTGZ = "apache-tomcat-5.5.20.tar.gz";
+  print "\nInstalling Tomcat 7\n";
+  $TomcatSubDir = "apache-tomcat-7.0.23";
+  $TomcatSubDirPath = "./apache-tomcat-7.0.23";
+  $TomcatTGZ = "apache-tomcat-7.0.23.tar.gz";
+  $TomcatDir = "tomcat7";
  
   if ($installSilent == 0) { 
-     $tomcatPathPrompt = "\nEnter desired path to install Tomcat - a subdirectory called tomcat5 will be created under the directory you enter (default: /opt/tomcat5):\n";
+     $tomcatPathPrompt = "Enter the path for Tomcat installation (default: /opt).\nA subdirectory called tomcat7 will be created under the directory you enter (e.g.: /opt/tomcat7): \n";
      print $tomcatPathPrompt;
      $tomcatPath = <STDIN>;
      chop $tomcatPath;
@@ -637,47 +725,83 @@ sub installTomcat {
   
   ## Test for path's existence
   if (!-d $tomcatPath) {
-    print "\nDirectory ".$tomcatPath." does not exist, will create...\n";
-      
-    $cmd = "mkdir ".$tomcatPath;
-    $pid = `$cmd`;
+    print "Directory ".$tomcatPath." does not exist, will create it...\n";
+    $pid = `mkdir $tomcatPath`;
   }
   
   ## Gunzip Tomcat then run the binary installer.  This will extract the files to 
-  ## the $TomcatSubDirPath. 
-
-  ## Extract
-  $extractCmd = "tar xzvf "."./".$TomcatTGZ;
-  `$extractCmd`;
-  
-  ## Rename first
-  $renameCmd = "mv ".$TomcatSubDirPath." tomcat5";
-  `$renameCmd`;
-
-  ## Move
-  $mvCmd = "mv ./tomcat5 ".$tomcatPath;
-  `$mvCmd`;
-  
-
-  ## Delete source file
-  $rmCmd = "rm -f "."./".$TomcatTGZ;
-  `$rmCmd`;
+  ## the $TomcatSubDirPath.   
+  `$tar -xzf $TomcatTGZ`;              ## Extract
+  `mv $TomcatSubDirPath $TomcatDir`;   ## Rename first
+  `mv ./$TomcatDir $tomcatPath`;       ## Move
+  `rm -f ./$TomcatTGZ`;                ## Delete source file
 
   ## Set variable that will become CATALINA_HOME
-  $catalinaHome = $tomcatPath."/tomcat5";
+  $catalinaHome = $tomcatPath."/".$TomcatDir;
 
   ## Set JAVA_HOME and CATALINA_HOME and update CATALINA_OPTS in the tomcat startup script
-  &configureTomcatInitScript(1);
-  ## Configure tomcat to use secure connection
-  &configureHttpsForTomcat($catalinaHome);
+  ## Also configure start and stop commands to run as tomcat user, by default
+  &configureTomcatInitScript(1,0);
+  ## Configure tomcat to use secure connection and shared lib
+  &configureTomcatConfig($catalinaHome);
   
   print "\nTomcat has been successfully installed in: ".$catalinaHome."\n";
 }
 
+## Configure tomcat group/user as tomcat/tomcat by default
+sub configureTomcatRunMode {
+
+  ## Ask if Tomcat should be configured to run as default tomcat user, tomcat group.  
+  ## This is the default behavior.  Otherwise, keep as root.
+  if ($installSilent == 0) {
+     $configureTomcatPrompt = "\nBy default, tomcat will be configured to run as user tomcat (group tomcat). Select 'y' to accept, 'n' to run tomcat as root (y/n)\n";
+     print $configureTomcatPrompt;
+
+     $configureTomcat = <STDIN>;
+     chop $configureTomcat;
+
+     while ($configureTomcat ne 'y' && $configureTomcat ne 'n'){          
+       print $configureTomcatPrompt;
+       $configureTomcat = <STDIN>;
+       chop $configureTomcat;
+     }
+
+     if ($configureTomcat eq 'y'){
+        $tomcatInstalledAsRoot = 0;
+     } else {
+        $tomcatInstalledAsRoot = 1;
+     }     
+  }
+
+  if ($tomcatInstalledAsRoot==0) {
+    
+    print "Configuring Tomcat 7 to run as tomcat.tomcat...\n";
+    
+    ## Create tomcat group and user
+    `$groupadd $tomcatGroup`;
+    `$useradd -g $tomcatGroup $tomcatUser`; 
+    
+    ## Update user's environment with JAVA_HOME and CATALINA_HOME path
+    if (!-e $tomcatUserHome) {
+      `mkdir -p .$tomcatUserHome`;                  
+    }
+    
+    ## Make tomcat directory accessible to tomcat user
+    `$chown -Rf $tomcatGroup.$tomcatUser $catalinaHome`;
+    ## Make logging directory accessible to tomcat user
+    `$chown -Rf $tomcatGroup.$tomcatUser $loggingDir`;
+    ## Make configuration directory accessible to tomcat user
+    `$chown -Rf $tomcatGroup.$tomcatUser $orkwebConfigDir`;
+    
+  } else {
+    ## Make tomcat script invoke Tomcat software as group/user root/root 
+    &configureTomcatInitScript(0,$tomcatInstalledAsRoot);
+  }             
+          
+}
 
 sub verifyTomcatExistence {
 
-  $defaultCatalinaHome = "/opt/tomcat5";
   $tomcatPathPrompt = "\nEnter the path to your current Tomcat installation (default:$defaultCatalinaHome)\nThe right directory should have at least a bin subdirectory\n";
 
   if ($installSilent == 0) { 
@@ -720,15 +844,20 @@ sub verifyTomcatExistence {
 
   if (!-e $initd_tomcat_startup)
   {
-     &configureTomcatInitScript(1);
+     &configureTomcatInitScript(1,0);
   } 
   else 
   {
     `rm $initd_tomcat_startup`;  # for now, force deletion and reinstall
-    &configureTomcatInitScript(1);
+    &configureTomcatInitScript(1,0);
   }
   
-  $tomcatVerified = 1;
+  print "\nNOTE: if you need to configure Tomcat to use secure mode (https), contact support\@orecx.com\n";
+  if ($installSilent == 0) {  
+     print "Press any key to continue.\n";
+     $keyPress = <STDIN>;
+     chop $keyPress;
+}
 }
 
 
@@ -736,6 +865,7 @@ sub verifyTomcatExistence {
 sub configureTomcatInitScript {
 
   $createScript = $_[0];
+  $configureRunMode = $_[1];     # For configuring how to run tomcat 
 
   $initd_dir = "/etc/init.d/";
 
@@ -748,21 +878,19 @@ sub configureTomcatInitScript {
     print "Copying tomcat init script to: ".$initd_dir."\n";
     copy("./tomcat",$initd_dir) or die("**** Operation failed\n");
   }
-  else {
-    ## update
-    print "Updating JAVA_HOME, CATALINA_HOME and CATALINA_OPTS in existing /etc/init.d/tomcat script\n";
-  }
-
-  print "Configuring $initd_tomcat_startup init script\n";
-  ## Update following paths in tomcat startup script (JAVA_HOME and CATALINA_HOME)
-  ## export JAVA_HOME=/usr/local/j2sdk
-  ## export CATALINA_HOME=/usr/local/tomcat
-  ## Update CATALINA_OPTS to ensure that 512MB of Java memory is reserved for tomcat
 
   $tomcat_script = $initd_dir."tomcat";
 
   open (IN, "$tomcat_script") or die "Couldn't open $tomcat_script: $!";
   open (OUT, "> $tomcat_script.bak") or die "Couldn't open $tomcat_script: $!";
+
+  if ($configureRunMode == 0) {
+
+    if ($createScript == 0) {
+      print "Updating JAVA_HOME, CATALINA_HOME and CATALINA_OPTS in existing /etc/init.d/tomcat script\n";
+    }
+
+    print "Configuring $initd_tomcat_startup init script\n";
 
   ## Configure tomcat memory usage based on total system memory
   $totalMemory = `cat /proc/meminfo | grep MemTotal`;
@@ -779,7 +907,10 @@ sub configureTomcatInitScript {
     print "\n**** WARNING: total system memory is too low ($totalMemory kB). Tomcat will be set to use 256MB RAM. *****\n\n";
   }
 
-  ## As we write to OUT, modify with current user paths
+    ## Update following paths in tomcat startup script (JAVA_HOME and CATALINA_HOME)
+    ## export JAVA_HOME=/opt/java/jre1.7.0_02
+    ## export CATALINA_HOME=/opt/tomcat7
+    ## Update CATALINA_OPTS to ensure that 512MB of Java memory is reserved for tomcat
   while(<IN>){
     s/JAVA_HOME=.*/JAVA_HOME=$javaHome/;
     s/CATALINA_HOME=.*/CATALINA_HOME=$catalinaHome/;
@@ -793,23 +924,37 @@ sub configureTomcatInitScript {
     }
     print OUT;
   }
+  }  
+  elsif ($tomcatInstalledAsRoot == 1) {
+      print "Configuring $initd_tomcat_startup init script to run Tomcat as root\n";
+  
+      ## Modify how script is run, as tomcat or root user
+      while(<IN>){
+        s/\/bin\/su - tomcat //;                             # Remove part that calls scripts as tomcat user
+        print OUT;
+      }
+  }
 
   close(IN);
   close(OUT);
-
 
   ## copy the modified .bak file contents to the original file,
   ## thereby overwriting the original
   rename("$tomcat_script.bak","$tomcat_script") || die $!;
   
   ## make sure it is executable
-  $chmodCmd = "chmod +x ".$tomcat_script;
-  `$chmodCmd`;
+  `chmod +x $tomcat_script`;
+  
+  ## Add JAVA_HOME, CATALINA_HOME and CATALINA_OPTS to CATALINA_HOME/bin/catalina.sh
+  &updateCatalinaFile($tomcatMemory);
+
 }
 
-## Configure Tomcat to support secure SSL through https on port 8443
-## This requires changing server.xml and is Tomcat-version dependent
-sub configureHttpsForTomcat {
+## Configure Tomcat configuration: 
+##  - Update server.xml file to add support for secure SSL through https on port 
+##    8443 and keystore file, as well as maxPostSize setting 
+##  - Update catalina.properties file to add access to shared/lib folder
+sub configureTomcatConfig {
 
   $tomcatPath = $_[0];
   $tomcatConfigPath = "$tomcatPath/conf";
@@ -829,6 +974,11 @@ sub configureHttpsForTomcat {
   copy("$tomcatConfigPath/server.xml","$tomcatConfigPath/server.xml.ori") or print("Warning: did not find $tomcatConfigPath/server.xml file!\n"); 
   copy("./server.xml",$tomcatConfigPath) or print("Warning: could not create new server.xml due to error: $! \n Installation may have problems.\n"); 
   
+  ## Copy catalina.properties to $tomcat/conf folder  
+  #print "Configuring catalina.properties file...\n";
+  copy("$tomcatConfigPath/catalina.properties","$tomcatConfigPath/catalina.properties.ori") or print("Warning: did not find $tomcatConfigPath/catalina.properties file!\n"); 
+  copy("./catalina.properties",$tomcatConfigPath) or print("Warning: could not create new catalina.properties due to error: $! \n Installation may have problems.\n"); 
+
   ## Install .keystore under $Tomcat/OrecX folder  
   #print "Configuring OrecX/.keystore file...\n";
   if (!-d $orecxPath) {
@@ -908,7 +1058,6 @@ sub updateOrkwebConfig {
 ## Modify database.hbm.xml
 sub updateHibernateConfig {
 
-  if ($installSilent==0) {
     open (IN, "$database") or die "Couldn't open $database: $!";
     open (OUT, "> $database.bak") or die "Couldn't open $database: $!";
 
@@ -927,14 +1076,11 @@ sub updateHibernateConfig {
     ## thereby overwriting the original
     rename("$database.bak","$database") || die $!;
   }
-}
 
 
 ## Modify logging.properties
 sub updateLoggingConfig {
 
-  $loggingDir = "/var/log/orkweb";  
-  
   if (!-d $loggingDir) {
       print "Creating orkweb logging directory in: ".$loggingDir."\n";
       mkdir($loggingDir) || die "Cannot mkdir newdir: $!"." ".$loggingDir;
@@ -1064,3 +1210,144 @@ sub updateAppWebXML {
 
 }
 
+## Update JAVA_HOME, CATALINA_HOME, CATALINA_OPTS in catalina.sh file.  Add them
+## if they do not exist.  These would be used regardless of what user starts Tomcat.
+## Expects Tomcat Memory requirements as parameter (e.g. "512m") 
+## Example:
+##    export JAVA_HOME=/opt/java/jre1.7.0_02
+##    export CATALINA_HOME=/opt/tomcat7
+##    export CATALINA_OPTS="-Xms512m -Xmx512m -Dbuild.compiler.emacs=true -Dfile.encoding=UTF-8"
+sub updateCatalinaFile() {
+
+  my $tomcatMemory = shift;
+
+  $javaHomeLine     = 'export JAVA_HOME=';
+  $catalinaHomeLine = 'export CATALINA_HOME=';
+  $catalinaOptsLine = 'export CATALINA_OPTS="-Dbuild.compiler.emacs=true -Dfile.encoding=UTF-8"';
+
+  $matchedJava = $matchedCatalina = $matchedOpts = "";
+  $catalinaFile = $catalinaHome."/bin/".$catalinaFile;
+
+  ## Back up catalina.sh file to catalina.sh.datetime
+  my $dt=strftime('%Y%m%d_%H%M%S', localtime);
+  copy("$catalinaFile","$catalinaFile.$dt") || die $!;
+
+  open (my $inputFH, "$catalinaFile") or die "Couldn't open $catalinaFile: $!";
+
+  print "Updating JAVA_HOME, CATALINA_HOME and CATALINA_OPTS in existing $catalinaFile file... \n";
+
+  while(<$inputFH>) {
+
+    my $updateLineNumber = 0;
+    $found = s/export JAVA_HOME=.*/export JAVA_HOME=$javaHome/ if !/^\s*#/;
+    if ($found ne '') {
+       $matchedJava = $found;
+       $updateLineNumber = 1;
+    }
+    $found = s/export CATALINA_HOME=.*/export CATALINA_HOME=$catalinaHome/ if !/^\s*#/;
+    if ($found ne '') {
+       $matchedCatalina = $found;
+       $updateLineNumber = 1;
+    }
+    $found = s/export CATALINA_OPTS="-Dbuild.compiler.emacs=true -Dfile.encoding=UTF-8"*/CATALINA_OPTS="-Dbuild.compiler.emacs=true -Dfile.encoding=UTF-8 -Xms$tomcatMemory -Xmx$tomcatMemory"/ if !/^\s*#/;
+    if ($found ne '') {
+       $matchedOpts = $found;
+       $updateLineNumber = 1;
+    }
+    
+    ## Update line number if entry found
+    if ($updateLineNumber eq 1) {
+       my $lineNumber = $inputFH->input_line_number();
+       if ($lineNumber > $lastFoundEntryLineNumber) {
+         $lastFoundEntryLineNumber = $lineNumber;
+       }
+    }
+  }
+
+  close($inputFH);
+
+  ## If at least one of the variables was not updated because it did not exist,
+  ## add it and any other the missing one.
+  if (($matchedJava eq '') || ($matchedCatalina eq '') || ($matchedOpts eq '')) {
+
+     ## Determine line where entry(ies) should be added
+     if ($lastFoundEntryLineNumber > 0) {
+        $lineNumber = $lastFoundEntryLineNumber;
+     } else {
+        $lineNumber = &getInsertLineNumber($catalinaFile);
+     }
+     
+     # Open file and update contents
+     open (my $inputFH, "$catalinaFile") or die "Couldn't open $catalinaFile: $!";
+     open (OUT, "> $catalinaFile.bak") or die "Couldn't open $catalinaFile: $!";
+
+     # Print lines before the line to insert...
+     while(<$inputFH>) {
+       print OUT $_; 
+       last if $. == $lineNumber;
+     }
+
+     # Insert new lines...
+     if ($matchedJava eq '') {
+        print OUT $javaHomeLine.$javaHome."\n"; 
+     }
+     if ($matchedCatalina eq '') {
+        print OUT $catalinaHomeLine.$catalinaHome."\n"; 
+     }
+     if ($matchedOpts eq '') {
+        $catalinaOptsLine =~ s/"-Dbuild.compiler.emacs=true -Dfile.encoding=UTF-8"/"-Dbuild.compiler.emacs=true -Dfile.encoding=UTF-8 -Xms$tomcatMemory -Xmx$tomcatMemory"/; 
+        print OUT $catalinaOptsLine."\n";
+     }
+     print OUT "\n";
+
+     # Print lines after the inserted lines...
+     while(<$inputFH>) {
+       print OUT $_;
+     }
+
+     close(OUT);
+     close($inputFH);
+
+     ## Copy the modified .bak file contents to the original file overwriting it
+     rename("$catalinaFile.bak","$catalinaFile") || die $!;
+  
+     ## make sure it is executable
+     `chmod +x $catalinaFile`;
+
+  }
+
+}
+
+## Get line number in file where to insert environment variables.
+## This should be just before the first non-comment/non-blank line. 
+sub getInsertLineNumber {
+
+   my $inputFile = shift;
+
+   open (my $file, "$inputFile") or die "Couldn't open $file: $!";
+
+   while (my $line = <$file>) {
+
+      if ($line =~ /^\s*$/) {
+         $blankLineNumber = $file->input_line_number();   ## blank line number
+      }
+      elsif ($line =~ /^\s*#/) {
+         $commentLineNumber = $file->input_line_number(); ## comment line number
+      } else {
+         $dataLineNumber = $file->input_line_number();    ## first non-blank/comment line
+         last;
+      }
+      next;
+   }
+
+   close($file);
+
+   ## Determine insertion line
+   if ($blankLineNumber == 0) {
+      $insertLineNumber = $dataLineNumber;
+   } else {
+      $insertLineNumber = $blankLineNumber;
+   }
+
+   return $insertLineNumber;
+}
