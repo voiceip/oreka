@@ -2,12 +2,10 @@ package net.sf.oreka.services;
 
 import java.util.ArrayList;
 
-import net.sf.oreka.HibernateManager;
 import net.sf.oreka.orkweb.ContextListener;
 import net.sf.oreka.orkweb.OrkWeb;
 import net.sf.oreka.persistent.OrkUser;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;

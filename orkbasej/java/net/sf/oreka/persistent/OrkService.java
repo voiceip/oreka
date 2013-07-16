@@ -19,7 +19,8 @@ package net.sf.oreka.persistent;
 import java.io.Serializable;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratorType;
+import javax.persistence.GenerationType;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -32,6 +33,7 @@ import net.sf.oreka.ServiceClass;
 @Table(name = "orkservice")
 public class OrkService implements Serializable {
 	
+	static final long serialVersionUID = 1l;
 	private int id;
 	private String name = "";
 	private String hostname = "";
@@ -143,7 +145,7 @@ public class OrkService implements Serializable {
 	 * generator-class="native"
 	 * @return Returns the id.
 	 */
-	@Id(generate=GeneratorType.AUTO)
+	@Id @GeneratedValue(strategy=GenerationType.AUTO)
 	public int getId() {
 		return id;
 	}

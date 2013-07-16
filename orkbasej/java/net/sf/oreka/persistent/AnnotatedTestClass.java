@@ -15,7 +15,8 @@ package net.sf.oreka.persistent;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratorType;
+import javax.persistence.GenerationType;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 
@@ -35,7 +36,8 @@ public class AnnotatedTestClass {
 	public void setFirstname(String firstname) {
 		this.firstname = firstname;
 	}
-	@Id(generate=GeneratorType.AUTO)
+
+	@Id @GeneratedValue(strategy=GenerationType.AUTO)
 	public long getId() {
 		return Id;
 	}

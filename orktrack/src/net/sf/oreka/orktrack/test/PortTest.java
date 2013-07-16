@@ -21,7 +21,6 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import net.sf.oreka.Direction;
-import net.sf.oreka.HibernateManager;
 import net.sf.oreka.orktrack.OrkTrack;
 import net.sf.oreka.orktrack.PortManager;
 import net.sf.oreka.orktrack.ProgramManager;

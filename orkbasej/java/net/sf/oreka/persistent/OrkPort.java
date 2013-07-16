@@ -16,7 +16,8 @@ package net.sf.oreka.persistent;
 import java.io.Serializable;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratorType;
+import javax.persistence.GenerationType;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -24,9 +25,10 @@ import javax.persistence.Table;
 @Table(name = "orkport")
 public class OrkPort implements Serializable {
 
+	static final long serialVersionUID = 1l;
 	private int id;
 
-	@Id(generate=GeneratorType.AUTO)
+	@Id @GeneratedValue(strategy=GenerationType.AUTO)
 	public int getId() {
 		return id;
 	}

@@ -19,7 +19,6 @@ import java.util.List;
 
 import net.sf.oreka.Cycle;
 import net.sf.oreka.Direction;
-import net.sf.oreka.HibernateManager;
 import net.sf.oreka.persistent.OrkProgram;
 import net.sf.oreka.persistent.OrkSegment;
 

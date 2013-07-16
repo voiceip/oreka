@@ -17,7 +17,8 @@ import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratorType;
+import javax.persistence.GenerationType;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -28,6 +29,8 @@ import javax.persistence.Transient;
 @Entity
 @Table(name = "orksession")
 public class OrkSession implements Serializable {
+	
+	static final long serialVersionUID = 1l;
 	private int id;
 	private Date timestamp = new Date(0);
 	private long duration;
@@ -49,7 +52,7 @@ public class OrkSession implements Serializable {
 	* @hibernate.id
 	* generator-class="native"
 	*/
-	@Id(generate=GeneratorType.AUTO)
+	@Id @GeneratedValue(strategy=GenerationType.AUTO)
 	public int getId() {
 		return id;
 	}

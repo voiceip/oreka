@@ -21,19 +21,17 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import net.sf.oreka.OrkException;
-import net.sf.oreka.OrkObjectFactory;
 import net.sf.oreka.messages.AsyncMessage;
 import net.sf.oreka.messages.SimpleResponseMessage;
 import net.sf.oreka.messages.SyncMessage;
-import net.sf.oreka.messages.test.TestMessage;
 import net.sf.oreka.serializers.ServletRequestSerializer;
 import net.sf.oreka.serializers.SingleLineSerializer;
 
 import org.apache.log4j.Logger;
 
 public class CommandServlet extends HttpServlet {
-	
+
+	static final long serialVersionUID = 1l;
 	static Logger logger = Logger.getLogger(CommandServlet.class);		
 	
     public void doGet(HttpServletRequest request, HttpServletResponse response)
