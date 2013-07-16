@@ -15,6 +15,8 @@ package net.sf.oreka;
 
 public class OrkException extends Exception {
 	
+	static final long serialVersionUID = 1l;
+	
 	public OrkException(String message)
 	{
 		super(message);

@@ -14,7 +14,6 @@
 package net.sf.oreka.orktrack.messages;
 
 import net.sf.oreka.OrkException;
-import net.sf.oreka.HibernateManager;
 import net.sf.oreka.messages.AsyncMessage;
 import net.sf.oreka.messages.SimpleResponseMessage;
 import net.sf.oreka.messages.SyncMessage;

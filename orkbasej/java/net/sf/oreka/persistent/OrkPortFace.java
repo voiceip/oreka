@@ -24,6 +24,7 @@ import javax.persistence.Table;
 @Table(name = "orkportface")
 public class OrkPortFace implements Serializable {
 
+	static final long serialVersionUID = 1l;
 	private OrkPort port;
 	private OrkService service;
 	private String name;

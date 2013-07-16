@@ -19,7 +19,8 @@ import java.util.Collection;
 import java.util.Date;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratorType;
+import javax.persistence.GenerationType;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -37,6 +38,7 @@ import net.sf.oreka.Direction;
 @Table(name = "orksegment")
 public class OrkSegment implements Serializable {
 	
+	static final long serialVersionUID = 1l;
 	private int id;
 	private OrkSession session;
 	private long sessionOffset;
@@ -104,7 +106,7 @@ public class OrkSegment implements Serializable {
 	 * class="RecProgram"
 	 * @return Returns the id.
 	 */
-	@Id(generate=GeneratorType.AUTO)
+	@Id @GeneratedValue(strategy=GenerationType.AUTO)
 	public int getId() {
 		return id;
 	}
@@ -263,7 +265,7 @@ public class OrkSegment implements Serializable {
 	 */
 	@ManyToMany
     @JoinTable(
-    		table=@Table(name="orkprogtoseg"),
+    		name="orkprogtoseg",
     		joinColumns={@JoinColumn(name="segId")},
     		inverseJoinColumns={@JoinColumn(name="progId")}
     )

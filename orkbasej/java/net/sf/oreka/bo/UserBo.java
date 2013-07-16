@@ -1,15 +1,14 @@
 package net.sf.oreka.bo;
 
 import java.io.Serializable;
-import java.util.Iterator;
 
-import net.sf.oreka.persistent.OrkLoginString;
 import net.sf.oreka.persistent.OrkUser;
 
 import org.apache.log4j.Logger;
 
 public class UserBo implements Serializable {
 	
+	static final long serialVersionUID = 1l;
 	static Logger logger = Logger.getLogger(UserBo.class);	
 	private OrkUser user = new OrkUser();
 	

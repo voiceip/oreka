@@ -18,14 +18,11 @@ package net.sf.oreka.persistent;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratorType;
+import javax.persistence.GenerationType;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -35,6 +32,7 @@ import javax.persistence.Table;
 @Table(name = "orkuser")
 public class OrkUser implements Serializable {
 	
+	static final long serialVersionUID = 1l;
 	private int id = 0;
 	private String password = "";
 	private String firstname = "";
@@ -89,7 +87,7 @@ public class OrkUser implements Serializable {
 	 * generator-class="native"
 	 * @return Returns the id.
 	 */
-	@Id(generate=GeneratorType.AUTO)
+	@Id @GeneratedValue(strategy=GenerationType.AUTO)
 	public int getId() {
 		return id;
 	}
@@ -98,7 +96,6 @@ public class OrkUser implements Serializable {
 	/**
 	 * @param id The id to set.
 	 */
-	@Id(generate=GeneratorType.AUTO)
 	public void setId(int id) {
 		this.id = id;
 	}

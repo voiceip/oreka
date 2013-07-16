@@ -17,7 +17,8 @@ import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratorType;
+import javax.persistence.GenerationType;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -32,6 +33,7 @@ import net.sf.oreka.Direction;
 @Table(name = "orktape")
 public class OrkTape implements Serializable {
 	
+	static final long serialVersionUID = 1l;
 	private int id;
 	private Date timestamp = new Date(0);
 	private long duration;
@@ -123,7 +125,7 @@ public class OrkTape implements Serializable {
 	 * generator-class="native"
 	 * @return Returns the id.
 	 */
-	@Id(generate=GeneratorType.AUTO)
+	@Id @GeneratedValue(strategy=GenerationType.AUTO)
 	public int getId() {
 		return id;
 	}

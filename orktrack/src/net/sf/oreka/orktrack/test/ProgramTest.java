@@ -23,7 +23,6 @@ import junit.framework.TestSuite;
 import net.sf.oreka.Cycle;
 import net.sf.oreka.Day;
 import net.sf.oreka.Direction;
-import net.sf.oreka.HibernateManager;
 import net.sf.oreka.orktrack.OrkTrack;
 import net.sf.oreka.orktrack.ProgramManager;
 import net.sf.oreka.persistent.OrkLoginString;

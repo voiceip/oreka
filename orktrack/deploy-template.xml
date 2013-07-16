@@ -40,7 +40,7 @@
    <property name="workspaceHome" value="c:/devOrk/" />
    <property name="mgrUsername" value="admin" />
    <property name="mgrPassword" value="" />
-   <property name="javadependencies" value="c:/oreka-0.5-java-dependencies" />
+   <property name="javadependencies" value="c:/oreka-1.7-java-dependencies" />
    <property name="svnRevCmd" value="C:/Program Files/TortoiseSVN/bin/SubWCRev" />
 	<!-- Change these properties to suit your needs (End)-->
 

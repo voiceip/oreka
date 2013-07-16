@@ -1,70 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<eclipse-userlibraries version="1">
+<eclipse-userlibraries version="2">
 <library name="servlet" systemlibrary="false">
 <archive path="C:/dev2/lib/servlet-api.jar"/>
 </library>
-<library name="hibernate-3.1beta1" systemlibrary="false">
-<archive path="C:/dev2/lib/hibernate-3.1beta1/hibernate3.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/xml-apis.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/ant-1.6.3.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/ant-antlr-1.6.3.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/ant-junit-1.6.3.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/ant-launcher-1.6.3.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/antlr-2.7.5H3.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/ant-swing-1.6.3.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/asm.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/asm-attrs.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/c3p0-0.9.0.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/cglib-2.1.2.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/cleanimports.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/commons-collections-2.1.1.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/commons-logging-1.0.4.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/concurrent-1.3.2.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/connector.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/dom4j-1.6.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/ehcache-1.1.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/jaas.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/jacc-1_0-fr.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/jaxen-1.1-beta-4.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/jboss-cache.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/jboss-common.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/jboss-jmx.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/jboss-system.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/jdbc2_0-stdext.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/jgroups-2.2.7.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/jta.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/junit-3.8.1.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/log4j-1.2.9.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/oscache-2.1.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/proxool-0.8.3.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/swarmcache-1.0rc2.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/versioncheck.jar"/>
-<archive path="C:/dev2/lib/hibernate-3.1beta1/lib/xerces-2.6.2.jar"/>
-</library>
+<library name="hibernate-3.2.6.GA" systemlibrary="false">
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/hibernate3.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/ant-1.6.5.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/ant-antlr-1.6.5.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/ant-junit-1.6.5.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/ant-launcher-1.6.5.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/ant-swing-1.6.5.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/antlr-2.7.6.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/asm-attrs.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/asm.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/c3p0-0.9.1.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/cglib-2.1.3.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/checkstyle-all.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/cleanimports.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/commons-collections-2.1.1.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/commons-logging-1.0.4.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/concurrent-1.3.2.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/dom4j-1.6.1.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/ehcache-1.2.3.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/jaas.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/jacc-1_0-fr.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/javassist.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/jaxen-1.1-beta-7.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/jboss-cache.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/jboss-common.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/jboss-jmx.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/jboss-system.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/jgroups-2.2.8.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/jta.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/junit-3.8.1.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/log4j-1.2.11.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/oscache-2.1.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/proxool-0.8.3.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/swarmcache-1.0rc2.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/syndiag2.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/versioncheck.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/xerces-2.6.2.jar"/>
+<archive path="C:/dev2/lib/hibernate-3.2.6.GA/lib/xml-apis.jar"/>              
+</library>  
 <library name="MySQL" systemlibrary="false">
 <archive path="C:/dev2/lib/mysql/mysql-connector-java-5.1.23-bin.jar"/>
 </library>
-<library name="apache-commons" systemlibrary="false">
-<archive path="C:/dev2/lib/commons-lang-1.0.jar"/>
-</library>
-<library name="hibernate-annotations-3.1beta4" systemlibrary="false">
-<archive path="C:/dev2/lib/hibernate-annotations-3.1beta4/hibernate-annotations.jar" source="C:/temp/hibernate/hibernate-annotations-3.1beta4/src"/>
-<archive path="C:/dev2/lib/hibernate-annotations-3.1beta4/lib/ejb3-persistence.jar"/>
-</library>
-<library name="Tapestry-4.9-beta-9" systemlibrary="false">
-<archive path="C:/dev2/lib/tapestry-4.0-beta-9/tapestry-portlet-4.0-beta-9.jar"/>
-<archive path="C:/dev2/lib/tapestry-4.0-beta-9/tapestry-4.0-beta-9.jar"/>
-<archive path="C:/dev2/lib/tapestry-4.0-beta-9/tapestry-annotations-4.0-beta-9.jar"/>
-<archive path="C:/dev2/lib/tapestry-4.0-beta-9/tapestry-contrib-4.0-beta-9.jar"/>
-<archive path="C:/dev2/lib/tapestry-4.0-beta-9/lib/oro-2.0.8.jar"/>
-<archive path="C:/dev2/lib/tapestry-4.0-beta-9/lib/bsf-2.3.0.jar"/>
-<archive path="C:/dev2/lib/tapestry-4.0-beta-9/lib/commons-codec-1.3.jar"/>
-<archive path="C:/dev2/lib/tapestry-4.0-beta-9/lib/commons-fileupload-1.0.jar"/>
-<archive path="C:/dev2/lib/tapestry-4.0-beta-9/lib/commons-logging-1.0.4.jar"/>
-<archive path="C:/dev2/lib/tapestry-4.0-beta-9/lib/hivemind-1.1-rc-1.jar"/>
-<archive path="C:/dev2/lib/tapestry-4.0-beta-9/lib/hivemind-lib-1.1-rc-1.jar"/>
-<archive path="C:/dev2/lib/tapestry-4.0-beta-9/lib/javassist-3.0.jar"/>
-<archive path="C:/dev2/lib/tapestry-4.0-beta-9/lib/ognl-2.6.7.jar"/>
+<library name="commons-lang-2.1" systemlibrary="false">
+<archive path="C:/dev2/lib/commons-lang-2.1/commons-lang-2.1.jar"/>
+</library>                                                                          
+<library name="hibernate-annotations-3.3.1.GA" systemlibrary="false">                 
+<archive path="C:/dev2/lib/hibernate-annotations-3.3.1.GA/hibernate-annotations.jar"/>
+<archive path="C:/dev2/lib/hibernate-annotations-3.3.1.GA/lib/ejb3-persistence.jar"/>
+<archive path="C:/dev2/lib/hibernate-annotations-3.3.1.GA/lib/hibernate-commons-annotations.jar"/>
+</library>                                                                            
+<library name="tapestry-4.0.2" systemlibrary="false">
+<archive path="C:/dev2/lib/tapestry-4.0.2/tapestry-contrib-4.0.2.jar"/>
+<archive path="C:/dev2/lib/tapestry-4.0.2/tapestry-annotations-4.0.2.jar"/>
+<archive path="C:/dev2/lib/tapestry-4.0.2/tapestry-4.0.2.jar"/>
+<archive path="C:/dev2/lib/tapestry-4.0.2/lib/commons-codec-1.3.jar"/>
+<archive path="C:/dev2/lib/tapestry-4.0.2/lib/commons-fileupload-1.1.jar"/>
+<archive path="C:/dev2/lib/tapestry-4.0.2/lib/commons-io-1.1.jar"/>
+<archive path="C:/dev2/lib/tapestry-4.0.2/lib/commons-logging-1.0.4.jar"/>
+<archive path="C:/dev2/lib/tapestry-4.0.2/lib/hivemind-1.1.1.jar"/>
+<archive path="C:/dev2/lib/tapestry-4.0.2/lib/hivemind-lib-1.1.1.jar"/>
+<archive path="C:/dev2/lib/tapestry-4.0.2/lib/javassist-3.0.jar"/>
+<archive path="C:/dev2/lib/tapestry-4.0.2/lib/ognl-2.6.7.jar"/>
+<archive path="C:/dev2/lib/tapestry-4.0.2/lib/oro-2.0.8.jar"/>
 </library>
 <library name="hsqldb1.8.0.2" systemlibrary="false">
 <archive path="C:/dev2/lib/hsqldb1.8.0.2/hsqldb.jar"/>
