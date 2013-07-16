@@ -7,7 +7,7 @@
 ;!include "FileFunc.nsh"
 !include MUI.nsh
 !include "MUI2.nsh"
-
+!include x64.nsh
 
 ; The name of the installer
 Name "OrkWeb"
@@ -29,6 +29,12 @@ Function .onInit
   File /oname=$PLUGINSDIR\verify-java-page.ini verify-java-page.ini
   File /oname=$PLUGINSDIR\verify-tomcat-page.ini verify-tomcat-page.ini
   File /oname=$PLUGINSDIR\verify-mysql-page.ini verify-mysql-page.ini
+  ; Get the OS version (32bit versus 64bit) and set registry view accordingly
+  ${If} ${RunningX64}
+    ; MessageBox MB_OK "running on x64"
+    SetRegView 64
+  ${EndIf}
+
 FunctionEnd
 
 ;---------------------------------
@@ -321,10 +327,10 @@ FunctionEnd
 Function VerifyJavaPageValidate
   ; At this point the user has pressed Next
   ReadINIStr $0 "$PLUGINSDIR\verify-java-page.ini" "Field 2" "State"
-  StrCmp $0 0 done  ;Install JRE 1.6 if box is checked
+  StrCmp $0 0 done  ;Install JRE 7.0.27 if box is checked
     SetOutPath $INSTDIR\Prerequisites
-    File ".\Prerequisites\jre-6u16-windows-i586-s.exe"
-    ExecWait '"$INSTDIR\Prerequisites\jre-6u16-windows-i586-s.exe" /v"/passive /log ./JREsetup.logs"'
+    File ".\Prerequisites\jre-7u2-windows-i586.exe"
+    ExecWait '"$INSTDIR\Prerequisites\jre-7u2-windows-i586.exe" /v"/passive /log ./JREsetup.logs"'
   done:
 FunctionEnd
 
@@ -333,7 +339,7 @@ Function VerifyTomcatPageShow
   Push $R0
   
   ; Read Tomcat Path from registry
-  ReadRegStr $9 HKLM "SOFTWARE\Apache Software Foundation\Tomcat\5.5"  "InstallPath"   ; get Tomcat path from Registry
+  ReadRegStr $9 HKLM "SOFTWARE\Apache Software Foundation\Tomcat\7.0\Tomcat7"  "InstallPath"   ; get Tomcat path from Registry
   IfErrors 0 updateDefaultTomcatPath
   StrCpy $9 ""   ; no path found in registry, default to none
   
@@ -349,27 +355,35 @@ Function VerifyTomcatPageValidate
   ; At this point the user has pressed Next
 
   ReadINIStr $0 "$PLUGINSDIR\verify-tomcat-page.ini" "Field 2" "State"
-  StrCmp $0 0 noInstall  ;Install Apache Tomcat 5.5.23 if box is checked
+  StrCmp $0 0 noInstall  ;Install Apache Tomcat 7.0.27 if box is checked
     SetOutPath $INSTDIR\Prerequisites
-    File ".\Prerequisites\apache-tomcat-5.5.23.exe"
-    ExecWait "$INSTDIR\Prerequisites\apache-tomcat-5.5.23.exe"
+    File ".\Prerequisites\apache-tomcat-7.0.27.exe"
+    ExecWait "$INSTDIR\Prerequisites\apache-tomcat-7.0.27.exe"
     SetOutPath $INSTDIR
 
   configTomcat:
-    ; Update tomcat registry to allocate a min and max of 512MB for Java
-    File ".\Tomcat.reg"
-    ExecWait 'regedt32.exe /S "$INSTDIR\Tomcat.reg"'
     ; Replace Tomcat server.xml with one that has port 8443 open for secure access. This file is tomcat-version dependent.
     ; Also install secure key in OrecX/.keystore
     File ".\server.xml"
+    File ".\catalina.properties"
     File ".\.keystore"
-    ReadRegStr $9 HKLM "SOFTWARE\Apache Software Foundation\Tomcat\5.5"  "InstallPath"   ; get Tomcat path from Registry
+    ReadRegStr $9 HKLM "SOFTWARE\Apache Software Foundation\Tomcat\7.0\Tomcat7"  "InstallPath"   ; get Tomcat path from Registry
     IfFileExists $9 0 invalidTomcatFolder
     
-    IfFileExists $9\conf\server.xml.ori copySecureModeFiles 0   
+    ; Update tomcat registry to allocate a min and max of 512MB for Java
+    File ".\Tomcat.reg"
+    ExecWait 'regedt32.exe /S "$INSTDIR\Tomcat.reg"'
+    ; Update tomcat JVM options with -Dfile.encoding=UTF-8
+    ExecWait '"$9\bin\tomcat7" //US//Tomcat7 ++JvmOptions=-Dfile.encoding=UTF-8'
+
+    IfFileExists $9\conf\server.xml.ori copyCatalinaProperties 0
         CopyFiles $9\conf\server.xml $9\conf\server.xml.ori
-    copySecureModeFiles:
+    copyCatalinaProperties:
+        IfFileExists $9\conf\catalina.properties.ori copyTomcatConfFiles 0
+           CopyFiles $9\conf\catalina.properties $9\conf\catalina.properties.ori
+    copyTomcatConfFiles:
         CopyFiles $INSTDIR\server.xml $9\conf   ;replace server.xml but keep a copy of original one.
+        CopyFiles $INSTDIR\catalina.properties $9\conf   ;replace catalina.properties but keep a copy of original one.
         CreateDirectory $9\OrecX
         CopyFiles $INSTDIR\.keystore $9\OrecX   ;install key for secure access.
         Delete $INSTDIR\server.xml
@@ -387,9 +401,11 @@ Function VerifyTomcatPageValidate
       MessageBox MB_ICONEXCLAMATION|MB_OK "Please enter a valid Tomcat Root Directory."
       Abort
     invalidTomcatFolder:
-      MessageBox MB_ICONEXCLAMATION|MB_OK "Could not find Tomcat folder.  Tomcat secure mode oonfiguration skipped."
+      MessageBox MB_ICONEXCLAMATION|MB_OK "Could not find Tomcat folder.  Tomcat configuration failed."
       Abort
   done:
+    ; Make Tomcat service auto-restart
+    Exec "sc config Tomcat7 start= auto"
 FunctionEnd
 
 Function VerifyMySQLPageShow
@@ -489,7 +505,7 @@ writeOrkWeb:
 	file /r orkweb
 	textreplace::ReplaceInFile "$9\webapps\orkweb\WEB-INF\web.xml" "$9\webapps\orkweb\WEB-INF\web.xml" "c:/oreka/" "$INSTDIR/" .r0
         textreplace::ReplaceInFile "$9\webapps\orkweb\WEB-INF\web.xml" "$9\webapps\orkweb\WEB-INF\web.xml" \
-                                   "c:/Program Files/Apache Software Foundation/Tomcat 5.5" \
+                                   "c:/Program Files/Apache Software Foundation/Tomcat 7.0" \
                                    "$9" .r0
 	
 deleteOrkTrack:
@@ -506,7 +522,9 @@ deleteOrkTrack:
 writeOrkTrack:
 	file /r orktrack
 	textreplace::ReplaceInFile "$9\webapps\orktrack\WEB-INF\web.xml" "$9\webapps\orktrack\WEB-INF\web.xml" "c:/oreka/" "$INSTDIR/" .r0
-
+	textreplace::ReplaceInFile "$9\webapps\orkweb\WEB-INF\web.xml" "$9\webapps\orkweb\WEB-INF\web.xml" \
+                                   "c:/Program Files/Apache Software Foundation/Tomcat 7.0" \
+                                   "$9" .r0
 deleteSharedLib:
 	ClearErrors
 	IfFileExists $9\shared\lib 0 writeSharedLib

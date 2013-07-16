@@ -35,8 +35,8 @@
 	
 	<!-- Change these properties to suit your needs (Begin)-->
    <property name="application" value="orktrack" />
-   <property name="tomcatHome" value="C:\Program Files\Apache Software Foundation\Tomcat 5.5" />
-   <property name="tomcatHomeEsc" value="C:/Program%20Files/Apache%20Software%20Foundation/Tomcat%205.5" />
+   <property name="tomcatHome" value="C:\Program Files\Apache Software Foundation\Tomcat 7.0" />
+   <property name="tomcatHomeEsc" value="C:/Program%20Files/Apache%20Software%20Foundation/Tomcat%207.0" />
    <property name="workspaceHome" value="c:/devOrk/" />
    <property name="mgrUsername" value="admin" />
    <property name="mgrPassword" value="" />
@@ -51,9 +51,9 @@
    <property name="contextHome" value="${workspaceHome}/${application}/context" />
    <property name="srcHome" value="${workspaceHome}/${application}/src" /> 
    <property name="deployWarDir" value="${workspaceHome}/${application}/DeployWar" />
-   <property name="mgrUrl" value="http://localhost:8080/manager" />
-   <property name="mgrRemoveUrl" value="${mgrUrl}/remove" />
-   <property name="mgrDeployUrl" value="${mgrUrl}/install" />
+   <property name="mgrUrl" value="http://localhost:8080/manager/text" />
+   <property name="mgrRemoveUrl" value="${mgrUrl}/undeploy" />
+   <property name="mgrDeployUrl" value="${mgrUrl}/deploy" />
    <property name="orkbasejHome" value="${workspaceHome}/orkbasej" />
 
    <target name="compile_java_base">
@@ -160,6 +160,14 @@
 		</exec>
 	</target>
 
-   <target name="do_everything" depends="version,create_war,remove_context,deploy,install_context" />
+ 	<!--Print build date/time-->
+	<target name="build_timestamp">
+	  <tstamp>
+		<format property="current.time" pattern="yyyy-MM-dd HH:mm:ss" />
+	  </tstamp>
+	  <echo>Build date/time: ${current.time}</echo>
+	</target>
+
+   <target name="do_everything" depends="version,create_war,remove_context,deploy,install_context,build_timestamp" />
 
 </project>
