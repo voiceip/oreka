@@ -95,7 +95,6 @@ void Config::Define(Serializer* s)
 	s->StringValue(COMMAND_PROCESSING_COMMAND_PARAM,m_commandProcessingCommand);
 	s->StringValue(RECORDING_START_SHELL_COMMAND_PARAM,m_recordingStartShellCommand);
 	s->StringValue(RECORDING_STOP_SHELL_COMMAND_PARAM,m_recordingStopShellCommand);
-	s->BoolValue(BATCH_PROCESSING_RECORD_SILENCE,m_recordSilence);
 	s->BoolValue(LOG_MESSAGES_PARAM, m_logMessages);
 	s->BoolValue(LOG_RMS_PARAM, m_logRms);
 	s->BoolValue(ENABLE_REPORTING_PARAM, m_enableReporting);
