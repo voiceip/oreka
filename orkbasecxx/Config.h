@@ -80,7 +80,6 @@
 #define DIRECTIONSELECTOR_QUEUE_SIZE_DEFAULT 20000
 #define BATCH_PROCESSING_ENHANCE_PRIORITY_PARAM "BatchProcessingEnhancePriority"
 #define BATCH_PROCESSING_ENHANCE_PRIORITY_DEFAULT false
-#define BATCH_PROCESSING_RECORD_SILENCE "BatchProcessingRecordSilence"
 #define DELETE_FAILED_CAPTURE_FILE_PARAM "DeleteFailedCaptureFile"
 #define DELETE_FAILED_CAPTURE_FILE_DEFAULT false
 #define CAPTURE_PORT_FILTERS_PARAM "CapturePortFilters" 
@@ -224,7 +223,6 @@ public:
 	CStdString m_audioKeepDirectionOutgoingDefault;
 	std::list<CStdString> m_socketStreamerTargets;
 	std::list<CStdString> m_tagsListUseInitialValue;
-	bool m_recordSilence;
 	CStdString m_recordingStartShellCommand;
 	CStdString m_recordingStopShellCommand;
 	CStdString m_commandProcessingCommand;
