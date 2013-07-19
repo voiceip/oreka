@@ -305,19 +305,19 @@ void MainThread()
 		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create the DirectionSelector thread"));
 	}
 
-	// Create command line server on port 10000
+	// Create command line server
 	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(CommandLineServer::run), (void *)CONFIG.m_commandLineServerPort))
 	{
 		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create command line server"));
 	}
 
-	// Create Http server on port 20000
+	// Create Http server
 	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(HttpServer::run), (void *)CONFIG.m_httpServerPort))
 	{
 		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create Http server"));
 	}
 
-	// Create streaming server on port 59150 (default)
+	// Create event streaming server
 	if(!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(EventStreamingServer::run), (void *)CONFIG.m_eventStreamingServerPort))
 	{
 		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create event streaming server"));
