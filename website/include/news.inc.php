@@ -36,6 +36,48 @@ function most_recent_news_item() {
 }
 
 add_news_item(
+  "July 3, 2013",
+        "g721-support",
+  _("Oreka can now record G.721 encoded RTP streams"),
+  _('<p>Also, this paves the way for other codecs under the G.726 umbrella.</font></p>')
+);
+
+add_news_item(
+  "Mar 15, 2013",
+        "compile-in-msvc2008-debug-mode",
+  _("Compiling OrkAudio in debug mode under MSVC2008"),
+  _('<p>This is now possible and makes it easier to get informative stack traces with line numbers when OrkAudio crashes.</font></p>')
+);
+
+add_news_item(
+  "Nov 27, 2012",
+        "win-pcap-buffer-size",
+  _("It's now possible to tune the pcap kernel buffer sizes under Windows"),
+  _('<p>This means that Oreka can handle more concurrent conversations under Windows before the kernel starts to drop packets. Set PcapSocketBufferSize with the wanted size in bytes.</font></p>')
+);
+
+add_news_item(
+  "Jul 11, 2012",
+        "speex-support",
+  _("Oreka can now record speex encoded RTP streams"),
+  _('<p>All major patent free codecs are now supported. This increases the RTP payload types coverage, especially for open source PBX and softphone software.</p>')
+);
+
+add_news_item(
+  "Apr 24, 2012",
+        "cucm-8",
+  _("Cisco CUCM 8 successfully tested"),
+  _('<p>Oreka can record the latest version of the Cisco Call Manager. Default detection mode for Cisco is now CUCM 7+. If you are running an older version of CUCM and upgrade Oreka, you will need explicitly configure Oreka for it.</p>')
+);
+
+add_news_item(
+  "Mar 30, 2010",
+        "nec-8100",
+  _("NEC 8100 PBX Support"),
+  _('<p>Remote party phone number can now be correctly extracted from NEC 8100 SIP extensions.</p>')
+);
+
+add_news_item(
   "Dec 31, 2009",
 	"oreka-1.2",
   _("Oreka 1.2 is released"),
