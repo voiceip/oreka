@@ -6,7 +6,7 @@
  */
   require_once "main.inc.php";
   $sectionId = "";
-  $pageTitle = _("Audio streams recording and retrieval");
+  $pageTitle = _("Open source voice recording system");
   include "include/header.inc.php";
   include "include/news.inc.php";
   include "latest/versions.inc.php";
@@ -14,11 +14,15 @@
 
 ?>
 <div id="about">
-  <h2><?=_("The open source, cross-platform audio stream recording and retrieval system")?></h2>
+  <h2><?=_("The Open Source Enterprise Telephony Recording and Retrieval System")?></h2>
   <div id="screenshot">
     <!-- TODO: Auto-select or randomly rotate screenshot? -->
   </div>
-  <p><?=_('Oreka is a modular and cross-platform system for recording and retrieval of audio streams. The project currently supports VoIP and sound device based capture. Recordings metadata can be stored in any mainstream database. Retrieval of captured sessions is web based.')?></p>
+  <p><?=_('Oreka is an enterprise telephony recording and retrieval system with web based user interface. The project currently supports recording voice from VoIP SIP, Cisco Skinny (aka SCCP), raw RTP and audio sound device and runs on multiple operating systems and database systems.')?></p>
+  <p><?=_('It can record audio from most PBX and telephony systems such as BroadWorks, Metaswitch, Asterisk, FreeSwitch, OpenSIPS, Avaya, Nortel, Mitel, Siemens, Cisco Call Manager, Cosmocom, NEC, etc...')?></p>
+  <p><?=_('It is amongst others being used in Call Centers and Contact Centers for Quality monitoring (QM) purposes.')?></p>
+
+  <p><?=_('Oreka is sponsored by OrecX LLC. Professional open source support as well as commercial versions are available <a href="http://www.orecx.com">here</a>')?></p>
 </div>
 
 <div id="download">
