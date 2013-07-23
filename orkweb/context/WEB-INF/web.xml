@@ -18,11 +18,15 @@
 	  <context-param>
 		  <param-name>HibernateConfigFile</param-name>
 		  <param-value>database.hbm.xml</param-value>
-    </context-param>  
+    </context-param>
+	<context-param>
+		<param-name>TomcatHome</param-name>
+		<param-value>C:/Program Files/Apache Software Foundation/Tomcat 7.0</param-value>
+	</context-param>      
     <context-param>
     	<param-name>Debug</param-name>
     	<param-value>false</param-value>
-    </context-param>
+    </context-param>    
     <filter>
         <filter-name>redirect</filter-name>
         <filter-class>org.apache.tapestry.RedirectFilter</filter-class>

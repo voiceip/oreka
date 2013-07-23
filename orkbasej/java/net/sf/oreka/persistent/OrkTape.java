@@ -238,7 +238,7 @@ public class OrkTape implements Serializable {
 		if(service != null) {
 			return service.getFileServeProtocol() + "://" + 
 			service.getHostname() + ":" + service.getFileServeTcpPort() + 
-			"/" + service.getFileServePath() + "/" + filename; 
+			service.getContextPathWithPrefix() +  service.getFileServePathWithPrefix() + "/" + filename; 
 		}
 		else {
 			return "";
