@@ -10,8 +10,9 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
-
 package net.sf.oreka.orktrack;
+
+import net.sf.oreka.util.TomcatServerXMLParser;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -39,28 +40,48 @@ public class ContextListener implements ServletContextListener {
 
 		String log4jConfigFile = context.getInitParameter("Log4jConfigFile");	
 		if (log4jConfigFile == null) {
-			log.error("Log4jConfigFile context-param missing in web.xml");
+			log.error("OrkTrack ContextInitialized() Log4jConfigFile context-param missing in web.xml");
 		} else {
-			log.info("log4jConfigFile is " + log4jConfigFile);
+			log.info("OrkTrack ContextInitialized() log4jConfigFile is " + log4jConfigFile);
 			log4jConfigFile = configFolder + "/" + log4jConfigFile; 
 		}
 
 		String configFile = context.getInitParameter("ConfigFile");
 		if (configFile == null) {
-			log.error("ConfigFile context-param missing in web.xml");
+			log.error("OrkTrack ContextInitialized() ConfigFile context-param missing in web.xml");
 		} else {
-			log.info("configFile is " + configFile);
+			log.info("OrkTrack ContextInitialized() configFile is " + configFile);
 			configFile = configFolder + "/" + configFile; 
 		}
 
 		String hibernateConfigFile = context.getInitParameter("HibernateConfigFile");
 		if (hibernateConfigFile == null) {
-			log.error("HibernateConfigFile context-param missing in web.xml");
+			log.error("OrkTrack ContextInitialized() HibernateConfigFile context-param missing in web.xml");
 		} else {
-			log.info("HibernateConfigFile is " + hibernateConfigFile);
+			log.info("OrkTrack ContextInitialized() HibernateConfigFile is " + hibernateConfigFile);
 			hibernateConfigFile  = configFolder + "/" + hibernateConfigFile ; 
 		}
 		
+		// Get path to server.xml file
+		if (log.isDebugEnabled())
+			log.debug("OrkTrack ContextInitialized(): get Tomcat Home...");
+
+		String tomcatHome = context.getInitParameter("TomcatHome");
+
+		if (tomcatHome == null) {
+			log.warn("OrkTrack ContextInitialized(): TomcatHome context-param missing in web.xml");
+		} else {
+			TomcatServerXMLParser.setTomcatHome(tomcatHome);
+			log.info("OrkTrack ContextInitialized(): TomcatHome is set to " + tomcatHome);
+
+			// Parse Tomcat's server.xml file and set the audio and screen paths among other things
+			try {
+				TomcatServerXMLParser.parseServerXML(tomcatHome);
+			} catch (Exception e) {
+				log.error("OrkTrack ContextInitialized() error parsing server.xml at " + tomcatHome);
+			}			
+		}
+
 		//PortManager.instance().initialize();
 		
 		OrkTrack.initialize(log4jConfigFile, hibernateConfigFile, configFile);

@@ -23,8 +23,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import net.sf.oreka.ServiceClass;
+import net.sf.oreka.util.TomcatServerXMLParser;
 
 /**
  * @hibernate.class
@@ -43,12 +45,14 @@ public class OrkService implements Serializable {
 	private String fileServePath = "";
 	private ServiceClass serviceClass;
 	private boolean recordMaster = false;
+	private String contextPath = ""; 
 	  
 	/**
 	 * 
 	 */
 	public OrkService() {
 		serviceClass = ServiceClass.UNKN;
+		contextPath = TomcatServerXMLParser.getAudioContextPath();
 	}
 	
 	/**
@@ -58,6 +62,8 @@ public class OrkService implements Serializable {
 	 * @return Returns the fileServePath.
 	 */
 	public String getFileServePath() {
+		if (fileServePath==null)
+			fileServePath="";
 		return fileServePath;
 	}
 	
@@ -173,6 +179,39 @@ public class OrkService implements Serializable {
 	public void setRecordMaster(boolean cdrMaster) {
 		this.recordMaster = cdrMaster;
 	}
-	
+
+	public String getContextPath() {
+		if (contextPath==null)
+			contextPath="";
+		return contextPath;
+	}
+
+	public void setContextPath(String contextPath) {
+		this.contextPath = contextPath;
+	}
+
+	@Transient
+	public String getContextPathWithPrefix() {
+		
+		String contextPathWithPrefix = getContextPath(); 
+
+		// Add / prefix if non-existent
+		if (contextPathWithPrefix.trim().length()!=0 && !contextPathWithPrefix.startsWith("/")) 
+			contextPathWithPrefix = "/" + contextPathWithPrefix;
+
+		return contextPathWithPrefix;
+	}
+
+	@Transient
+	public String getFileServePathWithPrefix() {
+		
+		String fileServePathWithPrefix = getFileServePath();
+
+		// Add / prefix if non-existent
+		if (fileServePathWithPrefix.trim().length()!=0 && !fileServePathWithPrefix.startsWith("/"))
+			fileServePathWithPrefix = "/" + fileServePathWithPrefix;
+		
+		return fileServePathWithPrefix;
+	}
 
 }

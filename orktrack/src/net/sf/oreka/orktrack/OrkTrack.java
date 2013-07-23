@@ -97,7 +97,7 @@ public class OrkTrack {
 		//System.out.println("hello");
 		//RecSegment seg = new RecSegment();
 		//System.out.println(seg.getDuration());
-		OrkTrack orkTrack = new OrkTrack();
+		//OrkTrack orkTrack = new OrkTrack();
 	}
 
 }
