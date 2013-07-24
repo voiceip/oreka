@@ -93,6 +93,10 @@ public class ContextListener implements ServletContextListener {
 				debugSwitch = false;
 			}
 		}
+		
+		log.info("OrkWeb started successfully.");
+		log.info("----------------------------------------");
+
 	}
 	
 	public void contextDestroyed(ServletContextEvent arg0) {

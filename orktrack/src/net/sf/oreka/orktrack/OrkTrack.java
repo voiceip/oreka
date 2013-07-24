@@ -79,6 +79,10 @@ public class OrkTrack {
 		//}
 		 */
 		refreshInMemoryObjects();
+
+		logger.info(OrkTrack.APP_NAME + " started successfully.");
+		logger.info("----------------------------------------");
+
 	}
 	
 	public static void refreshInMemoryObjects() {
