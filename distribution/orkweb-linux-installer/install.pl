@@ -1168,7 +1168,7 @@ sub updateAppWebXML {
 
     while(<IN>){
       s/$oldPath/$orkwebConfigDir/;
-      s/c:\/Program\ Files\/Apache\ Software\ Foundation\/Tomcat\ 5.5/$catalinaHome/;
+      s/C:\/Program\ Files\/Apache\ Software\ Foundation\/Tomcat\ 7.0/$catalinaHome/;
       print OUT;
     }
     
@@ -1191,7 +1191,7 @@ sub updateAppWebXML {
 
     while(<IN>){
       s/$oldPath/$orkwebConfigDir/;
-      s/c:\/Program\ Files\/Apache\ Software\ Foundation\/Tomcat\ 5.5/$catalinaHome/;
+      s/C:\/Program\ Files\/Apache\ Software\ Foundation\/Tomcat\ 7.0/$catalinaHome/;
       print OUT;
     }
     
