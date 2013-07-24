@@ -59,6 +59,10 @@ public class ConfigManager {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		try {
 			File file = new File(filename);
+			if (file.length()==0) {
+				log.warn("ConfigManager.load: config file " + filename + " is empty or does not exist.");
+				return;
+			}	
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			InputStream is = new FileInputStream(file);
 			Document doc = builder.parse(is);
@@ -69,7 +73,7 @@ public class ConfigManager {
 			log.error("ConfigManager.load: deserialization error:" + e.getMessage());
 		}
 		catch (FileNotFoundException e) {
-			log.error("ConfigManager.load config file does not exist:" + filename + " check your web.xml");
+			log.warn("ConfigManager.load config file does not exist:" + filename);
 		}
 		catch (Exception e) {
 			log.error("ConfigManager.load: exception:" + e.getMessage());
