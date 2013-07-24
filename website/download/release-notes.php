@@ -13,6 +13,19 @@
 
 <h2><?=$pageTitle?></h2>
 
+<p>2013-07-24 Oreka 1.7</p>
+
+<ul>
+<li><b>IMPORTANT:</b> upgraded Hibernate and Tapestry libraries. Development environment and run-time Tomcat shared/lib libraries must be updated.</li>
+<li>Filenaming configuration in orkaudio, now propagates correctly to orktrack database.</li>
+<li>OrkWeb can now play back files stored at another location than tomcat/webapps/ROOT.</li>
+<li>Modified default hibernate.dialect to support MySQL v5.2+, which expects engine=InnoDB instead of type=InnoDB.  "type" was deprecated in MySQL 5.5.</li> 
+<li>Added new MySQL driver for support of MySQL 5.6+.</li>        
+<li>Installers now deploy Tomcat 7 and Java 7.</li>
+<li>Created new installer for CentOS 6-64bit.</li>          
+<li>Added version.txt files to orkweb and orktrack WEB-INF/ folders, for better version tracking</li>  
+</ul>
+
 <p>2009-12-31 Oreka 1.2</p>
 
 <ul>
