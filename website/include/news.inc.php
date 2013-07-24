@@ -39,21 +39,21 @@ add_news_item(
   "July 3, 2013",
         "g721-support",
   _("Oreka can now record G.721 encoded RTP streams"),
-  _('<p>Also, this paves the way for other codecs under the G.726 umbrella.</font></p>')
+  _('<p>Also, this paves the way for other codecs under the G.726 umbrella.</p>')
 );
 
 add_news_item(
   "Mar 15, 2013",
         "compile-in-msvc2008-debug-mode",
   _("Compiling OrkAudio in debug mode under MSVC2008"),
-  _('<p>This is now possible and makes it easier to get informative stack traces with line numbers when OrkAudio crashes.</font></p>')
+  _('<p>This is now possible and makes it easier to get informative stack traces with line numbers when OrkAudio crashes.</p>')
 );
 
 add_news_item(
   "Nov 27, 2012",
         "win-pcap-buffer-size",
   _("It's now possible to tune the pcap kernel buffer sizes under Windows"),
-  _('<p>This means that Oreka can handle more concurrent conversations under Windows before the kernel starts to drop packets. Set PcapSocketBufferSize with the wanted size in bytes.</font></p>')
+  _('<p>This means that Oreka can handle more concurrent conversations under Windows before the kernel starts to drop packets. Set PcapSocketBufferSize with the wanted size in bytes.</p>')
 );
 
 add_news_item(
