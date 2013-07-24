@@ -25,7 +25,7 @@
 <h3>Optional download</h3>
 <ul>
 	<li>Windows C++ dependencies package: <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-0.5-313/oreka-0.5-313-cxx-win32-dependencies.zip/download">oreka-0.5-313-cxx-win32-dependencies.zip</a> (has not changed)</li>
-	<li>Java dependencies package: <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2-669/orkweb/oreka-1.2-669-java-dependencies.zip/download">oreka-1.2-669-java-dependencies.zip</a></li>
+	<li>Java dependencies package: <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.7-838/orkweb/oreka-1.7-838-java-dependencies.zip/download">oreka-1.7-838-java-dependencies.zip</a></li>
 </ul>
 
 <?php
