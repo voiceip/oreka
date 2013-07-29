@@ -141,8 +141,9 @@ void __CDECL__ Reporting::SkipTapes(int number, CStdString trackingServer)
 	}
 }
 
-void Reporting::AddTapeMessage(MessageRef& messageRef)
+bool Reporting::AddTapeMessage(MessageRef& messageRef)
 {
+	bool ret = true;
 	std::map<CStdString, ReportingThreadInfoRef>::iterator pair;
 	CStdString logMsg;
 	TapeMsg *pTapeMsg = (TapeMsg*)messageRef.get(), *pRptTapeMsg;
@@ -181,6 +182,7 @@ void Reporting::AddTapeMessage(MessageRef& messageRef)
 			reportingThread->m_queueFullError = false;
 			logMsg.Format("[%s] enqueued: %s", reportingThread->m_threadId, msgAsSingleLineString);
 			LOG4CXX_INFO(LOG.reportingLog, logMsg);
+			ret = true;
 		}
 		else
 		{
@@ -189,6 +191,7 @@ void Reporting::AddTapeMessage(MessageRef& messageRef)
 				logMsg.Format("[%s] queue full, rejected: %s", reportingThread->m_threadId, msgAsSingleLineString);
 				LOG4CXX_WARN(LOG.reportingLog, logMsg);
 				reportingThread->m_queueFullError = true;
+				ret = false;
 			}
 		}
 	}
@@ -217,6 +220,7 @@ void Reporting::AddTapeMessage(MessageRef& messageRef)
 	std::copy(pTapeMsg->m_tags.begin(), pTapeMsg->m_tags.end(), std::inserter(pRptTapeMsg->m_tags, pRptTapeMsg->m_tags.begin()));
 
 	EventStreamingSingleton::instance()->AddTapeMessage(reportingMsgRef);
+	return ret;
 }
 
 void Reporting::AddAudioTape(AudioTapeRef& audioTapeRef)
