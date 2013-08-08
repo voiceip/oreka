@@ -3326,6 +3326,27 @@ void RtpSessions::ReportSkinnySoftKeySetConfConnected(struct in_addr endpointIp,
 	endpoint->m_lastConnectedWithConference = time(NULL);
 }
 
+void RtpSessions::ReportSkinnySoftKeySetTransfConnected(SkSoftKeySetDescriptionStruct* skEvent, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
+{
+	CStdString logMsg, skinnyCallId;
+	skinnyCallId = GenerateSkinnyCallId(ipHeader->ip_dest, ntohs(tcpHeader->dest), skEvent->callIdentifier);
+	std::map<CStdString, RtpSessionRef>::iterator it = m_byCallId.end();
+	RtpSessionRef session;
+
+	it = m_byCallId.find(skinnyCallId);
+	if (it != m_byCallId.end())
+	{
+		session = it->second;
+	}
+
+	if(session.get())
+	{
+		logMsg.Format("[%s] is stop due to SoftkeySetTransferConnected", session->m_trackingId);
+		LOG4CXX_INFO(m_log, logMsg);
+		Stop(session);
+	}
+}
+
 EndpointInfoRef RtpSessions::GetEndpointInfo(struct in_addr endpointIp, unsigned short skinnyPort)
 {
 	char szEndpointIp[16];

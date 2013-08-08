@@ -3263,6 +3263,9 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 						RtpSessionsSingleton::instance()->ReportSkinnySoftKeySetConfConnected(endpointIp, tcpHeader);
 					}
 					break;
+				case SoftKeySetDescription::SkSoftKeySetTransfer:
+					RtpSessionsSingleton::instance()->ReportSkinnySoftKeySetTransfConnected(softKeySetDescription, ipHeader, tcpHeader);
+					break;
 			}
 		}
 		else
