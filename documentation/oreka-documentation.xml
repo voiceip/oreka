@@ -2,14 +2,23 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
 "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
 <book>
-  <title>Oreka 1.2 Developer's Guide</title>
+  <title>Oreka 1.7 Developer's Guide</title>
 
   <chapter>
     <title>Introduction</title>
 	<section>
 		<title>What is Oreka ?</title>
 			<para>
-Modular and cross-platform system for recording and retrieval of audio streams. The project currently supports VoIP and sound device based capture.
+			Oreka is an enterprise telephony recording and retrieval system with web based user interface. The project currently supports recording voice from VoIP SIP, Cisco Skinny (aka SCCP), raw RTP and audio sound device and runs on multiple operating systems and database systems.
+			</para>
+			<para>
+			It can record audio from most PBX and telephony systems such as BroadWorks, Metaswitch, Asterisk, FreeSwitch, OpenSIPS, Avaya, Nortel, Mitel, Siemens, Cisco Call Manager, Cosmocom, NEC, etc...
+			</para>
+			<para>
+			It is amongst others being used in Call Centers and Contact Centers for Quality monitoring (QM) purposes.
+			</para>
+			<para>
+			Oreka is sponsored by OrecX LLC. Professional open source support as well as commercial versions are available <ulink url="http://www.orecx.com">here</ulink>			
 			</para>
 			<para>
 The platform currently comprises of three services:
@@ -34,36 +43,65 @@ This program is free software, distributed under the terms of the GNU General Pu
 	</section>
 
   </chapter>
-  <chapter>
+  <chapter id="building-oreka">
 	<title>Building</title>
 	<para>If you only want to run Oreka sofware, you can safely skip this section.</para>
-	<section>
-		<title>Building OrkAudio</title>
-		<section>
-			<title>Build under Linux</title>
-			<para>
-<emphasis>Prerequisites:</emphasis>
-			</para>
-			<para id="linuxdep">
-Install these packages first using your linux distribution packaging system 
-or download sources tarballs from the listed websites.
-			</para>
+	
+	<section id="getting-the-source">
+		<title>Getting the source code</title>
+		<para>Download the latest source code from sourceforge:</para>
+		<para><emphasis>svn checkout svn://svn.code.sf.net/p/oreka/svn/trunk oreka-svn</emphasis></para>
+	</section>
+	
+		<section id="install-rhel-centos-dependencies">
+			<title>Installing dependencies under Linux RHEL/CentOS 6 - 64 bit</title>
 <itemizedlist>
-<listitem>ACE 5.4.2
-	http://www.cs.wustl.edu/~schmidt/ACE.html (Debian/Ubuntu package: libace5.4)</listitem>
-<listitem>boost 1.31.0
-	http://www.boost.org (Debian/Ubuntu package: libboost-dev)</listitem>
-<listitem>xerces-c 2.6
-	http://xml.apache.org/xerces-c/ (Debian/Ubuntu package: libxerces26-dev)</listitem>
-<listitem>log4cxx 0.9.7 - It is important to use this precise version for now
-	http://logging.apache.org/log4cxx/ (Debian/Ubuntu package outdated)</listitem>
-<listitem>libsndfile 1.0.10
-	http://www.mega-nerd.com/libsndfile/ (Debian/Ubuntu package: libsndfile1-dev)</listitem>
-<listitem>libpcap 0.7.2
-	http://www.tcpdump.org/ (Debian/Ubuntu package: libpcap-dev). Only needed if you want to record VoIP calls</listitem>
-<listitem>portaudio v18
-	http://www.portaudio.com (Debian/Ubuntu package: libportaudio-dev). Only needed if you want to record from sound devices</listitem>
+<listitem>Boost: yum install boost-devel
+</listitem>
+<listitem>libpcap: yum install libpcap-devel
+</listitem>
+<listitem>libsndfile: yum install libsndfile-devel
+</listitem>
+<listitem>Apache Portable Runtime: yum install apr-devel apr-util-devel
+</listitem>
+<listitem>Speex: yum install speex-devel
+</listitem>
+<listitem>log4cxx-0.10.0-1: can be downloaded and compiled from
+	<ulink url="http://logging.apache.org/log4cxx/">http://logging.apache.org/log4cxx/</ulink>
+</listitem>
+<listitem>ace-6.1.1-14: can be downloaded and compiled from
+	<ulink url="http://download.dre.vanderbilt.edu/">http://download.dre.vanderbilt.edu/</ulink>
+</listitem>
+<listitem>xercesc-2.8.0: can be downloaded and compiled from
+	<ulink url="http://xerces.apache.org/xerces-c/download.cgi">http://xerces.apache.org/xerces-c/download.cgi</ulink>
+</listitem>
 </itemizedlist>
+		</section>
+
+		<section id="install-ubuntu-dependencies">
+			<title>Installing dependencies under Ubuntu</title>
+<itemizedlist>
+<listitem>Boost: apt-get install libboost-dev
+</listitem>
+<listitem>libpcap: apt-get install libpcap-dev
+</listitem>
+<listitem>libsndfile: apt-get install libsndfile1-dev
+</listitem>
+<listitem>Apache Portable Runtime: apt-get install libapr1-dev
+</listitem>
+<listitem>Speex: apt-get install libspeex-dev
+</listitem>
+<listitem>Log4cxx: apt-get install liblog4cxx10-dev
+</listitem>
+<listitem>Adaptive Communication Environment (ACE): apt-get install libace-dev
+</listitem>
+<listitem>Xerces-C: apt-get install libxerces-c-dev
+</listitem>
+</itemizedlist>
+		</section>
+		
+		<section>
+			<title>Building under Linux/Unix</title>
 			<para>
 <emphasis>Build orkbasecxx on the command line:</emphasis>
 			</para>
@@ -102,33 +140,36 @@ or download sources tarballs from the listed websites.
 <listitem>make -e</listitem>
 </itemizedlist>
 			</para>
-			<para>
-<emphasis>Build using Kdevelop:</emphasis>
-			</para>
-			<para>
-<itemizedlist>
-<listitem>Project/import existing project (libtool based c++ project)</listitem>
-</itemizedlist>
-			</para>
 		</section>
-		<section>
-			<title>Build under Windows</title>
+		
+		<section id="build-under-windows">
+			<title>Build under Windows with Visual Studio 2008 - 32 bit (VC9)</title>
 			<para>
-<emphasis>Build using MSVC6 (SP6)</emphasis>
+				Install and compile C++ dependencies in <emphasis>c:\devExt</emphasis>, edit the orkaudio and orkbase .vcproj files and search for "devExt" to see the exact required paths for each library
+			</para>
+			<para>
+			<itemizedlist>
+				<listitem>ACE 6.2.0, <ulink url="http://download.dre.vanderbilt.edu/">http://download.dre.vanderbilt.edu/</ulink></listitem>
+				<listitem>Boost 1.32.0, <ulink url="http://sourceforge.net/projects/boost/files/boost/1.32.0/">http://sourceforge.net/projects/boost/files/boost/1.32.0/</ulink></listitem>
+				<listitem>apr-util-1.3.10 and apr-1.4.2, <ulink url="http://apr.apache.org/download.cgi">http://apr.apache.org/download.cgi</ulink></listitem>
+				<listitem>log4cxx 0.10.0, <ulink url="http://www.apache.org/dyn/closer.cgi/logging/log4cxx/0.10.0/">http://www.apache.org/dyn/closer.cgi/logging/log4cxx/0.10.0/</ulink></listitem>				
+				<listitem>xerces 2.8.0, <ulink url="http://mirror.its.dal.ca/apache//xerces/c/2/binaries/xerces-c_2_8_0-x86-windows-vc_8_0.zip">http://mirror.its.dal.ca/apache//xerces/c/2/binaries/xerces-c_2_8_0-x86-windows-vc_8_0.zip</ulink></listitem>								
+				<listitem>libsndfile 1.0.25, <ulink url="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.25-w32-setup.exe">http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.25-w32-setup.exe</ulink></listitem>				
+				<listitem>WinPcap 4.1.2, <ulink url="http://www.winpcap.org/install/bin/WpdPack_4_1_2.zip">http://www.winpcap.org/install/bin/WpdPack_4_1_2.zip</ulink></listitem>				
+				<listitem>Speex 1.2beta3, <ulink url="http://downloads.xiph.org/releases/speex/speex-1.2beta3-win32.zip">http://downloads.xiph.org/releases/speex/speex-1.2beta3-win32.zip</ulink></listitem>				
+			</itemizedlist>				
 			</para>
 			<para>
 <itemizedlist>
-<listitem>Download the <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-0.5-313/oreka-0.5-313-cxx-win32-dependencies.zip/download">c++ win32 external library pack</ulink> and unpack into c:\devExt (if you change this  location, you need to change all references in the dsp files)</listitem>
-<listitem>Load orkaudio\OrkAudio.dsw into MSVC</listitem>
+<listitem>Load orkaudio\OrkAudio.sln into Visual Studio 2008</listitem>
 <listitem>Select orkbase as active project, build</listitem>
 <listitem>Select orkaudio as active project, build</listitem>
 </itemizedlist>
 			</para>
 		</section>
-	</section>
 	<section>
 		<title>Building OrkTrack and OrkWeb</title>
-    <para>As of Oreka version 1.0, installers for some platforms are available, e.g. Windows, CentOS, RHEL, Linux SuSE, ....  The steps below are still useful for building for other platforms.</para>		
+    <para>As of Oreka version 1.0, installers for some platforms are available, e.g. Windows, CentOS/RHEL, ....  The steps below are still useful for building for other platforms.</para>		
 		<para>
 <emphasis>Install required software</emphasis>
 		</para>
@@ -167,16 +208,15 @@ or download sources tarballs from the listed websites.
 		<title>Installing OrkAudio</title>
     	<section>
     		<title>Using Installers</title>
-    		<para>You can use the OrkAudio Windows installer <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkaudio/orkaudio-1.2-673-os-win32-installer.zip/download">orkaudio-1.2-673-os-win32-installer.zip</ulink>
-    		 or Linux (RHEL/CentOS/Fedora) installer <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkaudio/orkaudio-1.2-671-os-i386.centos5-installer.sh.tar/download">orkaudio-1.2-671-os-i386.centos5-installer.sh.tar</ulink>.
+    		<para>You can use the OrkAudio Windows or Linux (RHEL/CentOS) installers that are published on the sourceforge project page.
             </para>
     	</section>	
     	<section>
     		<title>Manual Installation</title>
         	<section>
         		<title>Installing Prerequisite Software for OrkAudio</title>
-    			<para>For Linux libraries, please refer to <xref linkend="linuxdep">list of required libraries</xref></para>        			
-    			<para>For Windows libraries, download and install winpcap 3.1 (choose the windows installer version). This is a network packet capture library	<ulink url="http://www.winpcap.org">http://www.winpcap.org</ulink></para>
+    			<para>For Linux libraries, please refer to <xref linkend="install-rhel-centos-dependencies">list of required libraries</xref></para>        			
+    			<para>For Windows, download and install the latest Winpcap (choose the windows installer version). This is a network packet capture library	<ulink url="http://www.winpcap.org">http://www.winpcap.org</ulink></para>
         	</section>	
         	<section id="installorkaudiobinary">
         		<title>Installing OrkAudio manually after a fresh win32 build</title>
