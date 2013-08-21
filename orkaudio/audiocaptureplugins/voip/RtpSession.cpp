@@ -89,6 +89,8 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_lastKeepAlive = time(NULL);
 	m_numAlienRtpPacketsS1 = 0;
 	m_numAlienRtpPacketsS2 = 0;
+	m_ssrcCandidateS1 = 0;
+	m_ssrcCandidateS2 = 0;
 	m_mappedS1S2 =  false;
 }
 
@@ -1244,6 +1246,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 			m_lastRtpPacketSide1 = rtpPacket;
 			channel = 1;
 			m_numAlienRtpPacketsS1 = 0;
+			m_ssrcCandidateS1 = 0;
 		}
 		else
 		{
@@ -1313,19 +1316,35 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 					m_lastRtpPacketSide2 = rtpPacket;
 					channel = 2;
 					m_numAlienRtpPacketsS2 = 0;
+					m_ssrcCandidateS2 = 0;
 				}
 				else
 				{
 					// this packet does not match either s1 or s2 (on the basis of SSRC)
+					if(m_ssrcCandidateS1 == 0)
+					{
+						m_ssrcCandidateS1 = rtpPacket->m_ssrc;
+					}
+					else if(rtpPacket->m_ssrc == m_ssrcCandidateS1)
+					{
+						m_numAlienRtpPacketsS1++;
+					}
+					else if(m_ssrcCandidateS2 == 0)
+					{
+						m_ssrcCandidateS2 = rtpPacket->m_ssrc;
+					}
+					else if(rtpPacket->m_ssrc == m_ssrcCandidateS2)
+					{
+						m_numAlienRtpPacketsS2++;
+					}
 
-					m_numAlienRtpPacketsS1++;
-					m_numAlienRtpPacketsS2++;
 					bool remapped = false;
 
 					if(m_numAlienRtpPacketsS1 > 10)
 					{
 						// We have seen 10 alien packets and no s1 packets during the same period of time
 						m_numAlienRtpPacketsS1 = 0;
+						m_ssrcCandidateS1 = 0;
 						remapped = true;
 						channel = 1;
 						m_lastRtpPacketSide1 = rtpPacket;
@@ -1338,6 +1357,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 					{
 						// We have seen 10 alien packets and no s2 packets during the same period of time
 						m_numAlienRtpPacketsS2 = 0;
+						m_ssrcCandidateS2 = 0;
 						remapped = true;
 						channel = 2;
 						m_lastRtpPacketSide2 = rtpPacket;

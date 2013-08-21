@@ -317,6 +317,8 @@ public:
 	bool m_isCallPickUp;
 	unsigned int m_numAlienRtpPacketsS1;
 	unsigned int m_numAlienRtpPacketsS2;
+	unsigned int m_ssrcCandidateS1;
+	unsigned int m_ssrcCandidateS2;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
