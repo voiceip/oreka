@@ -234,9 +234,7 @@ This program is free software, distributed under the terms of the GNU General Pu
     	<section>
     		<title>Using Installers</title>    		
             <para>Start by installing MySQL or any <ulink url="http://www.hibernate.org/hib_docs/v3/reference/en/html/session-configuration.html#configuration-optional-dialects">database compatible with hibernate</ulink>.</para>
-    		<para>Then use the OrkWeb Windows installer <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/orkweb-1.2-669-os-win32-installer.zip/download">orkweb-1.2-669-os-win32-installer.zip</ulink>
-    		 or the Linux intaller <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/orkweb-1.2-669-os-linux-installer.sh.tar/download">orkweb-1.2-669-os-linux-installer.sh.tar</ulink>.  The Linux installer works 
-             on RHEL, CentOS, Fedora and Linux SuSE.</para>
+    		    <para>You can then use the OrkWeb Windows or Linux (RHEL/CentOS) installers that are published on the sourceforge <ulink url="http://oreka.sourceforge.net/download/war">OrkWeb/OrkTrack download page</ulink>.</para>
     	</section>	
     	<section>
     		<title>Manual Installation</title>
@@ -250,7 +248,7 @@ This program is free software, distributed under the terms of the GNU General Pu
         <listitem>Install Java 5 JDK or later.</listitem>
         <listitem>Install Tomcat 5.5 or later, point it to the Java JDK by setting the JAVA_HOME environment variable to the root of the JDK</listitem>
         <listitem>Make note of the Tomcat admin password</listitem>
-        <listitem>Get the external java dependencies package from <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/oreka-1.2-669-orktrack-orkweb.zip/download">oreka-1.2-669-orktrack-orkweb.zip</ulink></listitem>
+        <listitem>Get the external java dependencies package from <ulink url="http://oreka.sourceforge.net/download/source">the source code page</ulink>.</listitem>
         <listitem>Copy all jar files from the external java dependencies package to {TOMCAT_HOME}/shared/lib</listitem>
         <listitem>Create a database for storing oreka data</listitem>
         <listitem>Create a user/password for reading/writing the newly created database</listitem>
