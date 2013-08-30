@@ -341,6 +341,12 @@ int EventStreamingServer::svc(void)
 				if(message.get())
 				{
 					CStdString msgAsSingleLineString;
+					//Its not clear how this can happen, but sometime it can cause crash because of null localparty
+					TapeMsg* tapeMsg = (TapeMsg*)message.get();
+					if(tapeMsg->m_localParty == NULL) 
+					{	
+						tapeMsg->m_localParty = "";
+					}
 
 					msgAsSingleLineString.Format("%s\r\n", message->SerializeSingleLine());
 					sendRes = peer().send(msgAsSingleLineString, msgAsSingleLineString.GetLength());
