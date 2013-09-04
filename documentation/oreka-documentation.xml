@@ -3,13 +3,22 @@
 "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
 <book>
   <title>Oreka 1.7 Developer's Guide</title>
-
+  
+  <subtitle>Revision 2</subtitle>
+  
+  <bookinfo>
+    <copyright>
+      <holder>OrecX LLC</holder>
+      <year>2013</year>
+    </copyright>
+  </bookinfo>  
+  
   <chapter>
     <title>Introduction</title>
 	<section>
 		<title>What is Oreka ?</title>
 			<para>
-			Oreka is an enterprise telephony recording and retrieval system with web based user interface. The project currently supports recording voice from VoIP SIP, Cisco Skinny (aka SCCP), raw RTP and audio sound device and runs on multiple operating systems and database systems.
+			Oreka is an enterprise telephony recording and retrieval system with web based user interface. The project currently supports recording voice from VoIP SIP, Cisco Skinny (aka SCCP), raw RTP and runs on multiple operating systems and database systems.
 			</para>
 			<para>
 			It can record audio from most PBX and telephony systems such as BroadWorks, Metaswitch, Asterisk, FreeSwitch, OpenSIPS, Avaya, Nortel, Mitel, Siemens, Cisco Call Manager, Cosmocom, NEC, etc...
@@ -24,7 +33,7 @@
 The platform currently comprises of three services:
 				<itemizedlist>
 					<listitem>
-<emphasis>OrkAudio</emphasis>: the audio capture and storage daemon with pluggable capture modules currently comes with modules for VoIP and sound device recording. This service is written in C++.
+<emphasis>OrkAudio</emphasis>: the audio capture and storage daemon with pluggable capture modules. This service is written in C++.
 					</listitem>
 					<listitem>
 <emphasis>OrkTrack</emphasis>: logs all activity from one or more orkaudio services to any mainstream database. This service is implemented as a J2EE servlet based application.
@@ -224,7 +233,7 @@ This program is free software, distributed under the terms of the GNU General Pu
         <listitem>Download the win32 installer from the <ulink url="http://sourceforge.net/projects/oreka">oreka sourceforge project page</ulink></listitem>
         <listitem>Unzip and run the installer. This will set up the environment</listitem>
         <listitem>Build your modified version of OrkAudio, or OrkAudio plugin in release mode</listitem>
-        <listitem>Copy the modified OrkAudio.exe, OrkBase.dll, VoIp.dll, SoundDevice.dll or Generator.dll to your install folder, replacing old files</listitem>
+        <listitem>Copy the modified OrkAudio.exe, OrkBase.dll, VoIp.dll or Generator.dll to your install folder, replacing old files</listitem>
         </itemizedlist>
         	</section>
         </section>
@@ -233,8 +242,8 @@ This program is free software, distributed under the terms of the GNU General Pu
         <title>Installing OrkWeb/OrkTrack</title>
     	<section>
     		<title>Using Installers</title>    		
-            <para>Start by installing MySQL or any <ulink url="http://www.hibernate.org/hib_docs/v3/reference/en/html/session-configuration.html#configuration-optional-dialects">database compatible with hibernate</ulink>.</para>
-    		    <para>You can then use the OrkWeb Windows or Linux (RHEL/CentOS) installers that are published on the sourceforge <ulink url="http://oreka.sourceforge.net/download/war">OrkWeb/OrkTrack download page</ulink>.</para>
+            <para>Start by installing MySQL or any database compatible with hibernate.</para>
+    		    <para>You can then use the OrkWeb Windows or Linux (RHEL/CentOS) installers that are published on the sourceforge <ulink url="http://oreka.sourceforge.net/download">OrkWeb/OrkTrack download page</ulink>.</para>
     	</section>	
     	<section>
     		<title>Manual Installation</title>
@@ -242,7 +251,7 @@ This program is free software, distributed under the terms of the GNU General Pu
         		<title>Installing Prerequisite Software for OrkTrack and OrkWeb</title>
         		<para>
         <itemizedlist>
-        <listitem>Install MySQL or any <ulink url="http://www.hibernate.org/hib_docs/v3/reference/en/html/session-configuration.html#configuration-optional-dialects">database compatible with hibernate</ulink></listitem>
+        <listitem>Install MySQL or any database compatible with hibernate</listitem>
         </itemizedlist>
         <itemizedlist>
         <listitem>Install Java 5 JDK or later.</listitem>
@@ -367,7 +376,6 @@ This program is free software, distributed under the terms of the GNU General Pu
 			<para>
 				<itemizedlist>
 				<listitem><emphasis>VoIp.dll - libvoip.so</emphasis>: VoIP recording plugin</listitem>
-				<listitem><emphasis>SoundDevice.dll - libsounddevice.so</emphasis>: Sound Card based recording</listitem>
 				<listitem><emphasis>Generator.dll - libgenerator.so</emphasis>: Audio generator for faking audio capture (useful when testing)</listitem>
 				</itemizedlist>
 			</para>				

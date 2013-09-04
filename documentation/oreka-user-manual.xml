@@ -3,15 +3,15 @@
 "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
 <book>
 
-  <title>Oreka 1.2 Open Source User Manual</title>
+  <title>Oreka 1.7 Open Source User Manual</title>
 
-  <subtitle>Revision 4</subtitle>
+  <subtitle>Revision 5</subtitle>
 
   <bookinfo>
     <copyright>
       <holder>OrecX LLC</holder>
 
-      <year>2009</year>
+      <year>2013</year>
     </copyright>
   </bookinfo>
 
@@ -20,10 +20,18 @@
 
     <section>
       <title>What is Oreka</title>
-
-      <para>Oreka is an open source cross-platform system for recording and retrieval of
-      audio streams. The project currently supports VoIP and sound device
-      based capture. The user interface is web based.</para>
+			<para>
+			Oreka is an enterprise telephony recording and retrieval system with web based user interface. The project currently supports recording voice from VoIP SIP, Cisco Skinny (aka SCCP), raw RTP and runs on multiple operating systems and database systems.
+			</para>
+			<para>
+			It can record audio from most PBX and telephony systems such as BroadWorks, Metaswitch, Asterisk, FreeSwitch, OpenSIPS, Avaya, Nortel, Mitel, Siemens, Cisco Call Manager, Cosmocom, NEC, etc...
+			</para>
+			<para>
+			It is amongst others being used in Call Centers and Contact Centers for Quality monitoring (QM) purposes.
+			</para>
+			<para>
+			Oreka is sponsored by OrecX LLC. Professional open source support as well as commercial versions are available <ulink url="http://www.orecx.com">here</ulink>			
+			</para>
     </section>
     
     <section>
@@ -39,22 +47,17 @@
       <para>The Oreka system consists of a combination of the following three
       services</para>
 
-      <itemizedlist>
-        <listitem>
-          <para>OrkAudio: This is the audio capture background service. It
-          supports VoIP and Sound Device based recording</para>
-        </listitem>
-
-        <listitem>
-          <para>OrkTrack: This service filters out unwanted recordings and
-          logs records to any popular SQL database</para>
-        </listitem>
-
-        <listitem>
-          <para>OrkWeb: This service is the the web interface accessible via
-          any standard compliant web browser</para>
-        </listitem>
-      </itemizedlist>
+				<itemizedlist>
+					<listitem>
+<emphasis>OrkAudio</emphasis>: the audio capture and storage daemon with pluggable capture modules. This service is written in C++.
+					</listitem>
+					<listitem>
+<emphasis>OrkTrack</emphasis>: logs all activity from one or more orkaudio services to any mainstream database. This service is implemented as a J2EE servlet based application.
+					</listitem>
+					<listitem>
+<emphasis>OrkWeb</emphasis>: Web based user interface for retrieval. This service is implemented as a J2EE servlet based application using the Tapestry web development framework.
+					</listitem>
+			</itemizedlist>. 
 
       <para>The system supports multiple instances of OrkAudio reporting to
       OrkTrack so that multiple recording servers can be seen as one recording
@@ -65,8 +68,8 @@
     <section>
       <title>Compatibility</title>
 
-      <para>The Oreka system runs on Linux, BSD and all versions of Microsoft Windows starting from Win2k. Oreka supports most major database
-      systems including IBM DB2, Oracle, MySQL and PostgreSQL. MySQL is the default database.</para>
+      <para>The Oreka system runs on Linux, BSD and all versions of Microsoft Windows starting from Windows XP/Server 2003. Oreka supports most major database
+      systems including MySQL, PostgreSQL, Oracle and MS-SQL. MySQL is the default database.</para>
     </section>
     
     <section id="gettingvoiptraffic">
@@ -85,7 +88,7 @@
       </itemizedlist>
 
       <para>This is to ensure that both the media traffic (RTP) <emphasis role="bold">and</emphasis> 
-      signalling (SIP, Skinny, H.323, UNISTIM, ...) are intercepted by the recorder.</para>
+      signalling (SIP or Skinny) are intercepted by the recorder.</para>
 
       <para>Once the VoIP traffic appears on the server, you are ready to start 
       using the Oreka software.</para>
@@ -119,114 +122,11 @@
     <title>OrkAudio</title>
 
     <section>
-      <title>Installing under Windows</title>
+      <title>Installing OrkAudio under Windows and Linux CentOS/RHEL</title>
 
-      <para>OrkAudio comes as an automated installer for Windows.  Get it at
-      <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkaudio/orkaudio-1.2-673-os-win32-installer.zip/download">orkaudio-1.2-673-os-win32-installer.zip</ulink>. 
-      Copy this file in a temporary folder on the target machine and run 
-      the installer by double clicking this file.</para>
-    </section>
-    
-    <section>
-        <title>Installing under Linux CentOS 5, 32-bit</title>
-          <para>An OrkAudio installer for CentOS 5, 32-bit is available at 
-            <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkaudio/orkaudio-1.2-671-os-i386.centos5-installer.sh.tar/download">orkaudio-1.2-671-os-i386.centos5-installer.sh.tar</ulink>.
-            After you download it, untar it (e.g. tar -xvf) and run it accepting all default options.</para>
-    </section>
-    
-    <section>
-      <title>Installing under Linux Redhat/CentOS/Fedora using RPM files</title>
-
-      <para>OrkAudio also comes as a set of RPM packages. Copy those files in a
-      temporary folder on the target machine and install them using the
-      following commands:<itemizedlist>
-          <listitem>
-            <para>yum install boost-devel</para>
-          </listitem>
-
-          <listitem>
-            <para>yum install libpcap</para>
-          </listitem>
-
-          <listitem>
-            <para>rpm -i xercesc-2.7.0-1.i386.rpm</para>
-          </listitem>
-
-          <listitem>
-            <para>rpm -i ACE-5.4.8-1.i386.rpm</para>
-          </listitem>
-
-          <listitem>
-            <para>rpm -i log4cxx-0.9.7-1.i386.rpm</para>
-          </listitem>
-
-          <listitem>
-            <para>rpm -i libsndfile-1.0.13-1.i386.rpm</para>
-          </listitem>
-
-          <listitem>
-            <para>rpm -i orkbasecxx-0.5-1.i386.rpm</para>
-          </listitem>
-
-          <listitem>
-            <para>rpm -i orkaudio-0.5-1.i386.rpm</para>
-          </listitem>
-        </itemizedlist></para>
-
-      <para></para>
-    </section>
-
-    <section>
-      <title>Installing under Debian/Ubuntu Linux</title>
-
-      <para>OrkAudio needs a set of external libraries that can be installed using the debian packaging system
-      Make sure that <emphasis>contrib</emphasis> is listed as a source in <emphasis>/etc/apt/sources.list</emphasis> and install them using the
-      following commands:<itemizedlist>
-      
-          <listitem>
-            <para>apt-get install libace-dev</para>
-          </listitem>
-
-          <listitem>
-            <para>apt-get install libboost-dev</para>
-          </listitem>
-	  
-          <listitem>
-            <para>apt-get install liblog4cpp-dev</para>
-          </listitem>
-
-          <listitem>
-            <para>apt-get install libpcap0.7-dev</para>
-          </listitem>
-	  
-          <listitem>
-            <para>apt-get install libxerces26-dev</para>
-          </listitem>
-
-          <listitem>
-            <para>apt-get install libsndfile1-dev</para>
-          </listitem>
-	  
-	</itemizedlist></para>
-	  
-      <para>OrkAudio comes as an archive of dpkg packages such as <emphasis>orkaudio-0.X-X-ubuntu-5.04-i386-binary-DEBs.tar</emphasis>. 
-      untar this file in a temporary folder on the target machine and install the packages using the
-      following commands:<itemizedlist>	
-
-	<listitem>
-            <para>dpkg -i log4cxx-0.9.7_0.9.7-1_i386.deb</para>
-          </listitem>
-
-          <listitem>
-            <para>dpkg -i orkbasecxx_X.X-1_i386.deb</para>
-          </listitem>
-
-          <listitem>
-            <para>dpkg -i orkaudio_X.X-1_i386.deb</para>
-          </listitem>
-
-	</itemizedlist></para>
-	
+      <para>OrkAudio comes as an automated installer for Windows and Linux CentOS/RHEL which you can download from
+      <ulink url="http://sourceforge.net/projects/oreka/files/">The Oreka sourceforge project page</ulink>.
+      </para>
     </section>
 
     <section>
@@ -245,7 +145,7 @@
         <para>Audio file themselves are named after the following
         scheme:</para>
 
-        <para><emphasis>yyyyMMdd_hhmmss_capturePort.extension</emphasis></para>
+        <para><emphasis>yyyyMMdd_hhmmss_trackingID.extension</emphasis></para>
       </section>
 
       <section>
@@ -305,11 +205,6 @@
             </listitem>
 
             <listitem>
-              <para><emphasis>SoundDevice.dll - libsounddevice.so</emphasis> :
-              Sound Card based recording</para>
-            </listitem>
-
-            <listitem>
               <para><emphasis>Generator.dll - libgenerator.so</emphasis> :
               Audio generator for faking audio capture (useful when
               testing)</para>
@@ -339,9 +234,8 @@
 
           <listitem>
             <para><emphasis>CapturePlugin </emphasis>this parameter controls
-            which audio capture plugin should be used. Valid values are
-            VoIP.dll and SoundDevice.dll (or libvoip.so and libsounddevice.so
-            under Linux)</para>
+            which audio capture plugin should be used. Use VoIP.dll under Windows or libvoip.so under Linux
+            </para>
           </listitem>
 	  
           <listitem>
@@ -349,8 +243,8 @@
           </listitem>
 	  
           <listitem>
-            <para><emphasis>TapeFileNaming </emphasis>this parameter controls the final transcoded file naming scheme. It is a csv list of elements. If an element matches a keyword, it will be replaced by the corresponding value. If an element does not match any keyword, it will be used verbatim in the file name. Example: <programlisting><![CDATA[<TapeFileNaming>myrecordings-, nativecallid</TapeFileNaming>]]></programlisting>
-with a native call ID of FDBCE@69.13.45.6 will result in the following file name: myrecordings-FDBCE@69.13.45.6.wav. If this parameter is missing, the default naming scheme applies which is a timestamp plus the internal tracking ID. The list of possible keywords for now is limited to nativecallid and trackingid. When this parameter is set, the audio file output directory structure becomes flat, i.e. all files will be stored directly in the directory set by the AudioOutputPath configuration parameter instead of being distributed to the default year/month/day/hour folder tree structure described in <xref linkend="folderscheme" />. See <xref linkend="filenaming"/> for more details.</para>
+            <para><emphasis>TapeFileNaming </emphasis> see <xref linkend="filenaming" /> 			
+            </para>
           </listitem>
 	  
         </itemizedlist></para>
@@ -359,38 +253,28 @@ with a native call ID of FDBCE@69.13.45.6 will result in the following file name
         <title>Configuring the VoIP plugin</title>
 
         <para>VoIP plugin specific configuration is found in the config.xml
-        file under the <emphasis>VoIpPlugin</emphasis> tag. It is possible to
-        configure the network device to monitor (i.e. when you have one device
-        dedicated to sniffing). Also for OrkAudio to get voice session
-        direction, remote and local party right, it is necessary to instruct
-        the VoIP plugin how to identify which IP addresses are local
-        telephones (hardphones or softphones) and which are not. To do this,
-        it is possible to give a csv list of IP addresses that are reserved as
-        <emphasis>Media Gateways</emphasis>, i.e. IP addresses that host such
-        services as PBX, PSTN gateway, conferencing or such. Further, it is
-        possible to specify a csv list of local LAN masks (only necessary when
-        LAN masks are not the standard 192.168.x.x or 10.x.x.x or 172.31.x.x).
-        The way the VoIP plugin decides wether an IP address is a local
-        telelephone is as follows: 1. IP Address needs to be on LAN and 2. IP
-        Address cannot be a <emphasis>Media Gateway</emphasis>.</para>
-      </section>
-
-      <section>
-        <title>Configuring the SoundDevice plugin</title>
-
-        <para>SoundDevice specific configuration is found in the config.xml
-        file under the <emphasis>SoundDevice</emphasis> tag. The
-        <emphasis>SampleRate</emphasis> tag controls how many samples per
-        second will be recorded. For telephony grade recording, use 8000. For
-        FM radio equivalent recording quality, 16000 can be used. For CD
-        quality, 44100 can be used. Recorded file size will be directly
-        proportional to this number.</para>
-      </section>
-      <section>
-        <title>Logging recordings to the database</title>
+        file under the <emphasis>VoIpPlugin</emphasis> tag.
+        </para>
   
-        <para>Refer to section below in OrkWeb - OrkTrack for more details.</para>
+          <section id="orkpickdevice">
+          <title>Selecting Network Device(s) to intercept traffic from</title>
+                
+            <para>It is possible to configure the network device to monitor for VoIP 
+            traffic  using the <![CDATA[<Devices>]]> directive.  While OrkAudio attempts to automatically 
+            select the server interface on which it detects VoIP traffic, you may need 
+            to configure the interface manually if orkaudio.log shows no sign of traffic.  E.g.</para>
+
+            <para>In Windows:</para>
+            <programlisting><![CDATA[<Devices>\Device\NPF_{E0E496FA-DABF-47C1-97C2-DD914DFD3354}</Devices>]]></programlisting>              
+
+            <para>In Linux:</para>            
+            <programlisting><![CDATA[<Devices>eth2</Devices>]]></programlisting>    
+                
+            <para>Several comma-separated interfaces may be configured in the examples above</para>  
+        </section> 
+  
       </section>
+
   	  <section id="filenaming">
 		<title>Configure audio files path and file names</title>
 		<para>
@@ -435,8 +319,8 @@ with a native call ID of FDBCE@69.13.45.6 will result in the following file name
       <para>Under Windows, start the OrkAudio service in the NT services
       control panel (start/run/services.msc).</para>
 
-      <para>Under Linux, start the OrkAudio service by typing
-      <emphasis>orkaudio</emphasis> on the command line.</para>
+      <para>Under Linux, start the OrkAudio service by typing:
+      <programlisting>service orkaudio start</programlisting></para>
     </section>
 
     <section>
@@ -453,7 +337,7 @@ with a native call ID of FDBCE@69.13.45.6 will result in the following file name
 
         <para><itemizedlist>
             <listitem>
-              <para>Windows users only: Make sure winpcap3.1 is properly installed (start/programs
+              <para>Windows users only: Make sure winpcap is properly installed (start/programs
               should contain a Winpcap entry</para>
             </listitem>
 
@@ -468,32 +352,16 @@ with a native call ID of FDBCE@69.13.45.6 will result in the following file name
             <listitem>
               <para>Make sure that RTP traffic is actually present on the
               specified network interface(s). A packet sniffer such as
-              Ethereal can be useful for that.</para>
+              Wireshark can be useful for that.</para>
             </listitem>
           </itemizedlist></para>
-      </section>
-
-      <section>
-        <title id="notpossiblereplay">Not possible to replay recorded
-        files</title>
-
-        <para>Recoded wav files should all be replayable by a media player
-        such as Windows Media Player. Here is the checklist</para>
-
-        <itemizedlist>
-          <listitem>
-            <para>Make sure the file is not being processed by OrkAudio. Try
-            again later.</para>
-          </listitem>
-
-        </itemizedlist>
       </section>
 
       <section>
         <title>Only one side of the conversation is recorded</title>
 
         <para>Make sure that RTP traffic for both sides is actually seen on
-        the considered network interface. A packet sniffer such as Ethereal
+        the considered network interface. A packet sniffer such as Wireshark
         can be used for that.</para>
       </section>
 
@@ -520,66 +388,8 @@ with a native call ID of FDBCE@69.13.45.6 will result in the following file name
 
     <section>
       <title id="orkwebinstalling">Installing</title>
-
-      <section>
-        <title id="orkwebprerequisites">Pre-requisites</title>
-
-        <para>OrkWeb/OrkTrack need the following prerequiste
-        software:<emphasis></emphasis></para>
-  
-        <para>
-        <itemizedlist>
-            <listitem> The Java Runtime Environment JRE 5.0 from <ulink url="http://java.sun.com">http://java.sun.com</ulink></listitem>
-            <listitem> The Apache Tomcat servlet container version 5.X from <ulink url="http://tomcat.apache.org">http://tomcat.apache.org</ulink></listitem>
-            <listitem> The MySQL server version 4.X from <ulink url="http://www.mysql.com">http://www.mysql.com</ulink></listitem>
-        </itemizedlist>
-        </para>
-      </section>
-      
-    	<section>
-    		<title id="orkwebinstallers">Using Installers</title>    		
-            <para>Start by installing MySQL or any <ulink url="http://www.hibernate.org/hib_docs/v3/reference/en/html/session-configuration.html#configuration-optional-dialects">database compatible with hibernate</ulink>.</para>
-    		<para>Then use the OrkWeb Windows installer <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/orkweb-1.2-669-os-win32-installer.zip/download">orkweb-1.2-669-os-win32-installer.zip</ulink>
-    		 or Linux installer <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/orkweb-1.2-669-os-linux-installer.sh.tar/download">orkweb-1.2-669-os-linux-installer.sh.tar</ulink>.  
-             The Linux installer works on RHEL, CentOS, Fedora and Linux SuSE.</para>
-    	</section>	
-
-      <section>      
-        <title id="orkwebmanualinstall">Manual Installation</title>
-      
-        <para>Install the prerequisite software above, accepting all defaults, and
-        make note of the Tomcat admin password as well as the MySQL root password.
-        </para>
-        
-        <para>OrkWeb/OrkTrack comes in the form of a zip file such as
-        <ulink url="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.2/orkweb/oreka-1.2-669-orktrack-orkweb.zip/download">oreka-1.2-669-orktrack-orkweb.zip</ulink>. Unzip this file
-        into a temporary directory and execute the following steps:</para>
-
-        <para><itemizedlist>
-          <listitem>Copy lib.zip to {TOMCAT_HOME}/shared/lib and "unzip here".
-            You should now have an additional collection of jar files directly
-            under this shared/lib directory.</listitem>
-          <listitem>Copy ConfigFiles.zip to c:\ and "unzip to here" so as to get
-            a c:\oreka folder with orkaudio and orkweb subdirectories. Under
-            Linux, you can unzip to a folder such as /etc/oreka/</listitem>
-          <listitem>Edit /etc/orkweb/database.hbm.xml file (c:\oreka\database.hbm.xml 
-            on Windows) in order to supply the right DB username, DB password 
-            and JDBC URL.</listitem>
-          <listitem>Copy orkweb.war and orktrack.war to the 
-          {TOMCAT_HOME}/webapps folder</listitem>
-          <listitem>Start MySQL (or whatever database engine you are using)</listitem>
-          <listitem>Start Tomcat</listitem>
-          <listitem>Tomcat should automatically deploy orktrack and orkweb to
-            {TOMCAT_HOME}/webapps/orktrack and {TOMCAT_HOME}/webapps/orkweb
-            folders</listitem>
-          <listitem>Edit {TOMCAT_HOME}/webapps/orktrack/WEB-INF/web.xml and
-            {TOMCAT_HOME}/webapps/orkweb/WEB-INF/web.xml and ensure that the 
-            paths to the config files (logging.properties, database.hbm.xml and
-            orktrack.config.xml) are correct, e.g. /etc/orkweb/ for Linux
-          </listitem>
-          <listitem>Restart Tomcat</listitem>
-        </itemizedlist></para>
-      </section>  
+            <para>Start by installing MySQL or any database compatible with hibernate</para>
+            <para>You can then use the OrkWeb Windows or Linux (RHEL/CentOS) installers that are published on the sourceforge <ulink url="http://oreka.sourceforge.net/download">OrkWeb/OrkTrack download page</ulink>.</para>
     </section>
 
     <section>
@@ -598,16 +408,14 @@ with a native call ID of FDBCE@69.13.45.6 will result in the following file name
     <section>
       <title>Logging recordings to the database</title>
 
-      <para>In order to get OrkAudio to report recording activity to OrkTrack,
-      do the followig changes to OrkAudio's config.xml:</para>
+      <para>If OrkWeb is up and running, any new recording done by OrkAudio should show up in OrkWeb (just do a page refresh)
+      </para>
 
-      <para><itemizedlist>
-          <listitem>Set <emphasis>EnableReporting</emphasis> to true.</listitem>
-          <listitem>If OrkTrack is deployed on a different server than OrkAudio,
-            set <emphasis>TrackerHostname</emphasis> OrkTrack's hostname.</listitem>
-        </itemizedlist></para>
+      <para>If OrkTrack is deployed on a different server than OrkAudio,
+            set <emphasis>TrackerHostname</emphasis> to OrkTrack's hostname.
+      </para>
 
-      <para>Make sure /etc/orkweb/ (Linux) or c:\oreka\database.hbm.xml (Windows)     
+      <para>Make sure /etc/orkweb/database.hbm.xml (Linux) or c:\oreka\database.hbm.xml (Windows)     
       contains the right database access URL and credentials. If OrkTrack
       is up and running under Tomcat and the OrkAudio service is recording
       traffic, database entries should start appearing. Use OrkWeb to browse
@@ -638,31 +446,8 @@ with a native call ID of FDBCE@69.13.45.6 will result in the following file name
         <title id="replayingrecordings">Replaying recordings</title>
 
         <para>Replaying recordings via OrkWeb is currently only possible
-        using Internet Explorer. Audio Files need to be accessible via http.
-        Here is what needs to be done for that (repeat for each instance of
-        OrkAudio):</para>
-
-        <para><itemizedlist>
-            <listitem>
-              <para>Setup OrkAudio to output files in the Tomcat webapps/ROOT
-              directory: edit OrkAudio's config.xml file. Set the
-              <emphasis>AudioOutputPath</emphasis> parameter to the Tomcat
-              webapps/ROOT directory. By default, this is c:\Program
-              Files\Apache Software Foundation\Tomcat 5.5\webapps\ROOT under
-              windows.</para>
-            </listitem>
-
-            <listitem>
-              <para>Restart OrkAudio and watch new audio files being written
-              to the Tomcat webapps/ROOT directory.</para>
-            </listitem>
-
-            <listitem>
-              <para>It should now be possible to replay those new recordings
-              using OrkWeb, simply by clicking on the recording's play
-              button.</para>
-            </listitem>
-          </itemizedlist></para>
+        using Internet Explorer. If Windows Media Player is installed and working, 
+        a simple click on a recording's play button should initiate replay.</para>
       </section>
     </section>
 
@@ -686,29 +471,35 @@ with a native call ID of FDBCE@69.13.45.6 will result in the following file name
         <para>If you fail to replay recordings through OrkWeb, here is the
         checklist:</para>
 
-        <para><itemizedlist>
-            <listitem>
-              <para>Make sure you are using Microsoft Internet Explorer</para>
-            </listitem>
-
-            <listitem>
-              <para>Make sure you have followed the procedure described in
-              <xref linkend="replayingrecordings" /> for getting audio files
-              accessible via http</para>
-            </listitem>
-
-            <listitem>
-              <para>Make sure the file you are looking for is actually present
-              in the Tomcat webapps ROOT folder</para>
-            </listitem>
-
-            <listitem>
-              <para>If the file is present, try to replay it locally with a
-              media player such as Windows Media Player. If it does not
-              replay, please refer to <xref
-              linkend="notpossiblereplay" /></para>
-            </listitem>
-          </itemizedlist></para>
+        <para>
+			<itemizedlist>
+				<listitem>Make sure your copy of Windows Media Player works well by opening it from the start menu and trying 
+				  to replay a sample audio file.</listitem>            
+				<listitem>Verify that the file you are attempting to replay is actually present
+				  in the OrkAudio storage folder as configured in the recorder's <filename>config.xml</filename> file.
+				  <programlisting>
+					<![CDATA[<AudioOutputPath>c:/oreka/audio/</AudioOutputPath>]]> 
+				  </programlisting>              
+				</listitem>
+				<listitem>Make sure that a correct context path is configured in Tomcat's server.xml
+				for the storage location of the media files. Make this context path matches the OrkAudio AudioOutputPath. 
+				Following the example above, ensure that Tomcat's 
+				<filename>$tomcat/conf/server.xml</filename> contains an entry such as:
+				  <programlisting>
+					<![CDATA[<Context path="/audio" docBase="c:/oreka/audio/" ></Context>]]> 
+				  </programlisting>
+				If this parameter does not exist already, just add it under the <![CDATA[<Host>]]> section. 
+				Make sure Tomcat is restarted after such a change.
+				</listitem>
+				<listitem>If the file is present, try to replay it locally with a media player such 
+				  as Windows Media Player.
+				</listitem>
+				<listitem>Make sure URLs are valid: retrieve the full URL to an audio file by doing a "view source"
+				on the browse page and search for ".wav". Copy the complete URL and paste is directly into a browser's
+				address bar to check if the file can be downloaded manually.
+				</listitem>
+			</itemizedlist>
+		</para>
       </section>
 
       <section>
