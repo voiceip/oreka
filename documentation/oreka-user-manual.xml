@@ -121,13 +121,36 @@
   <chapter>
     <title>OrkAudio</title>
 
-    <section>
-      <title>Installing OrkAudio under Windows and Linux CentOS/RHEL</title>
+    <section id="orkaudioinstallcentos">
+      <title>Installing OrkAudio under Linux CentOS/RHEL</title>
 
-      <para>OrkAudio comes as an automated installer for Windows and Linux CentOS/RHEL which you can download from
+      <para>OrkAudio comes as an automated installer for Linux CentOS/RHEL which you can download from
       <ulink url="http://sourceforge.net/projects/oreka/files/">The Oreka sourceforge project page</ulink>.
       </para>
+
+	  <para>
+	    Installation steps:
+	    
+		<itemizedlist>
+		  <listitem>Make sure you have installed the right OS, e.g. CentOS or RHEL 6 in the example below as well as the right platform. 
+		  If the installer says x86_64 you must use 64 bit OS. If the installer says i386, you must use a 32 bit OS</listitem>
+		  <listitem>Untar the installer, e.g.: <programlisting>tar -xvf orkaudio-1.7-844-os-x86_64.centos6-installer.sh.tar</programlisting></listitem>  
+		  <listitem>Run the installer:  <programlisting>./orkaudio-1.7-844-os-x86_64.centos6-installer.sh</programlisting></listitem>
+		  <listitem>In order to increase your chances of Oreka working out of the box, accept all defaults.</listitem>  
+		</itemizedlist>
+      </para>
     </section>
+    
+    <section id="orkaudioinstallwindows">
+      <title>Installing OrkAudio under Windows</title>          
+
+      <para>OrkAudio comes as an automated installer for Windows XP or Windows Server 2003 or newer) which you can download from
+      <ulink url="http://sourceforge.net/projects/oreka/files/">The Oreka sourceforge project page</ulink>. Simply run the installer.
+      In order to increase your chances of Oreka working out of the box, accept all defaults.
+      </para>
+
+    </section>
+
 
     <section>
       <title>File locations</title>
