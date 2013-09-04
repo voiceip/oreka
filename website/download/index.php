@@ -14,10 +14,9 @@
 
 <p><?=_("The following packages are available for download:")?></p>
 <ul>
-	<li>OrkAudio audio capture server as a Windows precompiled binary</li>
-	<li>OrkAudio audio capture server as a Debian/Ubuntu binary package</li>
-	<li>OrkWeb and OrkTrack user interface and database logging servers as precompiled Windows or Linux (CentOS 5) installers, or as Java5 war files</li>
-	<li>Entire Oreka codebase (Cross platform C++ and Java)</li>
+	<li>OrkAudio audio capture server as a Windows installer</li>
+	<li>OrkAudio audio capture server as a RHEL/CentOS installer</li>
+	<li>OrkWeb and OrkTrack user interface and database logging servers as precompiled Windows or Linux CentOS/RHEL installers, or as Java5 war files</li>
 </ul>
 
 <p><?=_('You may modify and distribute Oreka under the <a href="../about/license">GNU GPL</a>.')?></p>

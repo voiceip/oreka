@@ -13,7 +13,7 @@
 
 <h2><?=$pageTitle?></h2>
 
-<p>2013-07-24 Oreka 1.7</p>
+<p>2013-09-04 Oreka 1.7</p>
 
 <ul>
 <li><b>IMPORTANT:</b> upgraded Hibernate and Tapestry libraries. Development environment and run-time Tomcat shared/lib libraries must be updated.</li>
@@ -24,6 +24,13 @@
 <li>Installers now deploy Tomcat 7 and Java 7.</li>
 <li>Created new installer for CentOS 6-64bit.</li>          
 <li>Added version.txt files to orkweb and orktrack WEB-INF/ folders, for better version tracking</li>  
+<li>Added support for G721 codec</li>
+<li>Added support for speex codec</li>
+<li>Now possible to tune the pcap kernel buffer size under the Windows OS too (PcapSocketBufferSize configuration parameter)</li>
+<li>Good performance improvement for recording high numbers of concurrent calls. Significantly less CPU is used now at comparable loads.</li>
+<li>localparty/remoteparty now can be filtered and replaced by using configurable parameters PartyFilterChars and PartyFilterCharsReplaceWith</li>
+<li>Improved detection for post CUCM7 Skinny messages SkStartMediaTransmission and SkOpenReceiveChannelAck messages. If you run CUCM7 or above, the upgrade is recommended</li>
+<li>Improved robustness for recording SIP behind NAT extensions</li>
 </ul>
 
 <p>2009-12-31 Oreka 1.2</p>

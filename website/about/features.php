@@ -22,7 +22,7 @@ echo "<p>"._('Oreka currently has the following features:')."</p>";
 <li>Capture from multiple Network devices in parallel</li>
 <li>Capture from pcap trace files</li>
 <li>Voice activity detection</li>
-<li>G.711 (A-Law, U-Law), G.722, GSM6.10 and iLBC RTP encodings supported</li>
+<li>G.711 (A-Law, U-Law), G.721, G.722, GSM6.10, speex and iLBC RTP encodings supported</li>
 <li>G.711 (A-Law, U-Law) and GSM6.1 encoded wav files supported as storage formats</li>
 <li>Automatic transcoding from wire format to storage format</li>
 <li>Recording metadata logged to file and/or any mainstream database system</li>
@@ -41,13 +41,18 @@ echo "<p>"._('Oreka currently has the following features:')."</p>";
 <h3>Compatibility</h3>
 <p>Oreka has been reported to work on the following platforms and should actually work on many more.</p>
 <ul>
-<li>Cisco CallManager and CallManager Express v. 3.x, 4.x, 5.x, 6.x and 7.x</li>
+<li>Cisco CallManager and CallManager Express v. 3.x, 4.x, 5.x, 6.x, 7.x and 8.x</li>
 <li>SIP</li>
 <li>Lucent APX8000</li>
-<li>Avaya S8500</li>
-<li>Siemens HiPath</li>
-<li>VocalData</li>
+<li>Genband M6</li>
 <li>Sylantro</li>
+<li>Avaya PBXes (Raw RTP only, for metadata extraction and TSAPI support, get in touch with support@orecx.com)</li>
+<li>Siemens HiPath (Raw RTP only, for metadata extraction, get in touch with support@orecx.com)</li>
+<li>Nortel (Raw RTP only, for UNISTIM support, get in touch with support@orecx.com)</li>
+<li>Alcatel (Raw RTP only, for UA/NOE signalling support, get in touch with support@orecx.com)</li>
+<li>Mitel (Raw RTP only, for metadata extraction and MiTAI support, get in touch with support@orecx.com)</li>
+<li>Shoretel (Raw RTP only, for metadata extraction, get in touch with support@orecx.com)</li>
+<li>Panasonic (Raw RTP only, for metadata extraction, get in touch with support@orecx.com)</li>
 </ul>
 <?
   include "../include/footer.inc.php";

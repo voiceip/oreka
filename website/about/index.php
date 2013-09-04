@@ -10,11 +10,15 @@
   include "../include/header.inc.php";
 
   echo "<h2>$pageTitle</h2>";
+?>
 
-  echo _('<p>Oreka is a modular and cross-platform system for recording and retrieval of audio streams. The project currently supports VoIP and sound device based capture. Recordings metadata can be stored in any mainstream database. Retrieval of captured sessions is web based. For more details, please refer to the <a href="features">features</a> page</p>
+  <p><?=_('Oreka is an enterprise telephony recording and retrieval system with web based user interface. The project currently supports recording voice from VoIP SIP, Cisco Skinny (aka SCCP), raw RTP and audio sound device and runs on multiple operating systems and database systems.')?></p>
+  <p><?=_('It can record audio from most PBX and telephony systems such as BroadWorks, Metaswitch, Asterisk, FreeSwitch, OpenSIPS, Avaya, Nortel, Mitel, Siemens, Cisco Call Manager, Cosmocom, NEC, etc...')?></p>
+  <p><?=_('It is amongst others being used in Call Centers and Contact Centers for Quality monitoring (QM) purposes.')?></p>
 
-');
+  <p><?=_('Oreka is sponsored by OrecX LLC. Professional open source support as well as commercial versions are available <a href="http://www.orecx.com">here</a>')?></p>
 
+<?php
   // i18n-hint: You may change the link addresses below, if there is a
   // version of the page in your language at a different location.
   //

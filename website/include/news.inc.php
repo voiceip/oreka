@@ -36,6 +36,15 @@ function most_recent_news_item() {
 }
 
 add_news_item(
+  "Sept 4, 2013",
+        "oreka-1.7-release",
+  _("Oreka 1.7 is out!"),
+  _('<p>We are proud to announce the release of Oreka version 1.7. With this new version we now provide an installer for CentOS/RHEL 6 - 64 bit 
+  as well as Windows.
+  This release includes numerous improvements, see the full list in the <a href="http://oreka.sourceforge.net/download/release-notes">release notes</a>.</p>')
+);
+
+add_news_item(
   "July 3, 2013",
         "g721-support",
   _("Oreka can now record G.721 encoded RTP streams"),
@@ -179,7 +188,7 @@ add_news_item(
   "July 27, 2006",
 	"oreka-0.5-313-release",
   _("Oreka 0.5-313 released"),
-  _('<p>We are proud to annouce the latest version of Oreka. This release adds support for the new Cisco CallManager 5, big robustness improvements and better Skinny and SIP support. For more info, please refer to the <a href="download/release-notes">release notes</a>.</p>')
+  _('<p>We are proud to annouce the latest version of Oreka. This release adds support for the new Cisco CallManager 5, big robustness improvements and better Skinny and SIP support. For more info, please refer to the <a href="http://oreka.sourceforge.net/download/release-notes">release notes</a>.</p>')
 );
 
 
