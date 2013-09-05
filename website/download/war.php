@@ -24,7 +24,7 @@ wrn {color: red;}
 <p>
     <ul>
       <li>Windows installer: <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.7/orkweb/orkweb-1.7-838-os-win32-installer.zip/download">orkweb-1.7-838-os-win32-installer.zip</a></li>
-      <li>Linux 64-bit installer (CentOS, RHEL, SuSE, ...): <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.7/orkweb/orkweb-1.7-838-x64-os-linux-installer.sh.tar/download">orkweb-1.7-838-x64-os-linux-installer.sh.tar</a></li>
+      <li>Linux 64-bit installer (CentOS and RHEL): <a href="http://sourceforge.net/projects/oreka/files/oreka/oreka-1.7/orkweb/orkweb-1.7-838-x64-os-linux-installer.sh.tar/download">orkweb-1.7-838-x64-os-linux-installer.sh.tar</a></li>
     </ul>
 </p>
 
