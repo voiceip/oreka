@@ -74,6 +74,7 @@ CStdString DLL_IMPORT_EXPORT_ORKBASE GetHostFromAddressPair(CStdString& hostname
 int DLL_IMPORT_EXPORT_ORKBASE GetPortFromAddressPair(CStdString& hostname);
 CStdString DLL_IMPORT_EXPORT_ORKBASE FormatDataSize(unsigned long int size);
 CStdString DLL_IMPORT_EXPORT_ORKBASE HexToString(const CStdString& hexInput);		//Only return digits
+CStdString DLL_IMPORT_EXPORT_ORKBASE IntUnixTsToString(int ts);
 
 //========================================================
 // file related stuff
