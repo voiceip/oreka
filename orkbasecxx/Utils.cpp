@@ -2,6 +2,7 @@
 #include "ace/OS_NS_stdio.h"
 #include "ace/OS_NS_arpa_inet.h"
 #include "ace/OS_NS_sys_stat.h"
+#include "time.h"
 
 #ifndef WIN32
 #include <pwd.h>
@@ -146,6 +147,19 @@ CStdString HexToString(const CStdString& hexInput)
     }
     return output;
 
+}
+
+CStdString IntUnixTsToString(int ts)
+{
+	CStdString dateFormat;
+	struct tm structTm;
+	char calendarDate[80];
+	time_t date;
+	date = (time_t)ts;
+	structTm = *localtime(&date);
+	strftime(calendarDate, sizeof(calendarDate), "%a %Y-%m-%d %H:%M:%S %Z", &structTm);
+	dateFormat.Format("%s", calendarDate);
+	return dateFormat;
 }
 //========================================================
 // file related stuff
