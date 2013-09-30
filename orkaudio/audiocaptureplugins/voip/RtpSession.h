@@ -415,6 +415,7 @@ public:
 	void StopCaptureOrkuid(CStdString& orkuid, CStdString& qos);
 	CStdString StopCaptureNativeCallId(CStdString& nativecallid, CStdString& qos);
 	void SaveLocalPartyMap(CStdString& oldparty, CStdString& newparty);
+	void SaveSkinnyGlobalNumbersList(CStdString& number);
 	CStdString GetLocalPartyMap(CStdString& oldlocalparty);
 	typedef enum {UrlStartState, UrlKeyState, UrlValueState, UrlErrorState} UrlState;
 	void UnEscapeUrl(CStdString& in, CStdString& out);
@@ -445,6 +446,7 @@ private:
 	std::map<CStdString, RtpSessionRef> m_byCallId;
 	std::map<unsigned long long, EndpointInfoRef> m_endpoints;
 	std::map<CStdString, CStdString> m_localPartyMap;
+	std::map<CStdString, int> m_skinnyGlobalNumbersList;
 	SipSubscribeMap m_sipSubscribeMap;
 	LoggerPtr m_log;
 	AlphaCounter m_alphaCounter;
