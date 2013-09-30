@@ -83,6 +83,8 @@ VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define PROMISCUOUS 1
 #define LOCAL_PARTY_MAP_FILE	"localpartymap.csv"
 #define ETC_LOCAL_PARTY_MAP_FILE	"/etc/orkaudio/localpartymap.csv"
+#define SKINNY_GLOBAL_NUMBERS_FILE	"skinnyglobalnumbers.csv"
+#define ETC_SKINNY_GLOBAL_NUMBERS_FILE	"/etc/orkaudio/skinnyglobalnumbers.csv"
 
 //========================================================
 class VoIp
@@ -104,6 +106,8 @@ public:
 	CStdString GetPcapDeviceName(pcap_t* pcapHandle);
 	void ProcessLocalPartyMap(char *line, int ln);
 	void LoadPartyMaps();
+	void ProcessSkinnyGlobalNumbers(char *line, int ln);
+	void LoadSkinnyGlobalNumbers();
 	void GetConnectionStatus(CStdString& msg);
 
 private:
@@ -4110,6 +4114,71 @@ void VoIp::LoadPartyMaps()
 	return;
 }
 
+void VoIp::ProcessSkinnyGlobalNumbers(char *line, int ln)
+{
+	char *number = NULL;
+	CStdString logMsg;
+
+	number = line;
+
+	if(!number)
+	{
+		logMsg.Format("ProcessSkinnyGlobalNumbers: invalid format of line:%d in the skinny global numbers file", ln);
+		LOG4CXX_WARN(s_packetLog, logMsg);
+		return;
+	}
+
+	CStdString num;
+	num = number;
+	num.Trim();
+	RtpSessionsSingleton::instance()->SaveSkinnyGlobalNumbersList(num);
+}
+
+void VoIp::LoadSkinnyGlobalNumbers()
+{
+	FILE *maps = NULL;
+	char buf[128];
+	int ln = 0;
+	CStdString logMsg;
+
+	memset(buf, 0, sizeof(buf));
+	maps = fopen(SKINNY_GLOBAL_NUMBERS_FILE, "r");
+	if(!maps)
+	{
+		logMsg.Format("LoadSkinnyGlobalNumbersList: Could not open file:%s -- trying:%s now", SKINNY_GLOBAL_NUMBERS_FILE, ETC_SKINNY_GLOBAL_NUMBERS_FILE);
+		LOG4CXX_INFO(s_packetLog, logMsg);
+
+		maps = fopen(ETC_SKINNY_GLOBAL_NUMBERS_FILE, "r");
+		if(!maps)
+		{
+			logMsg.Format("LoadPartyMaps: Could not open file:%s either -- giving up", ETC_SKINNY_GLOBAL_NUMBERS_FILE);
+			LOG4CXX_INFO(s_packetLog, logMsg);
+
+			return;
+		}
+	}
+
+	while(fgets(buf, sizeof(buf), maps))
+	{
+		ln += 1;
+
+		// Minimum line of x,y\n
+		if(strlen(buf) > 4)
+		{
+			if(buf[strlen(buf)-1] == '\n')
+			{
+				buf[strlen(buf)-1] = '\0';
+			}
+
+			ProcessSkinnyGlobalNumbers(buf, ln);
+		}
+	}
+
+	fclose(maps);
+
+	return;
+}
+
 void VoIp::Initialize()
 {
 	m_pcapHandles.clear();
@@ -4156,6 +4225,7 @@ void VoIp::Initialize()
 
 	InitializeWin1251Table(utf);
 	LoadPartyMaps();
+	LoadSkinnyGlobalNumbers();
 }
 
 void VoIp::ReportPcapStats()

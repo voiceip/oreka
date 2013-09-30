@@ -2227,7 +2227,10 @@ void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessi
 		lp = callInfo->calledParty;
 		lpn = callInfo->calledPartyName;
 		rp = callInfo->callingParty;
-		session->m_localParty = GetLocalPartyMap(lp);
+		if(m_skinnyGlobalNumbersList.find(lp) == m_skinnyGlobalNumbersList.end())
+		{
+			session->m_localParty = GetLocalPartyMap(lp);
+		}
 		session->m_localPartyName = GetLocalPartyMap(lpn);
 		session->m_remoteParty = GetLocalPartyMap(rp);
 		session->m_direction = CaptureEvent::DirIn;
@@ -2238,7 +2241,10 @@ void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessi
 		rp = callInfo->callingParty;
 		if(endpoint.get() && ((endpoint->m_extension).size() > 0))
 		{
-			session->m_localParty = GetLocalPartyMap(endpoint->m_extension);
+			if(m_skinnyGlobalNumbersList.find(lp) == m_skinnyGlobalNumbersList.end())
+			{
+				session->m_localParty = GetLocalPartyMap(endpoint->m_extension);
+			}
 			session->m_localEntryPoint = lp;
 			logMsg.Format("[%s] callType is FORWARD: set localparty:%s (obtained from endpoint:%s)", session->m_trackingId, session->m_localParty, szEndPointIp);
 			LOG4CXX_DEBUG(m_log, logMsg);
@@ -2251,7 +2257,10 @@ void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessi
 		lp = callInfo->callingParty;
 		lpn = callInfo->callingPartyName;
 		rp = callInfo->calledParty;
-		session->m_localParty = GetLocalPartyMap(lp);
+		if(m_skinnyGlobalNumbersList.find(lp) == m_skinnyGlobalNumbersList.end())
+		{
+			session->m_localParty = GetLocalPartyMap(lp);
+		}
 		session->m_localPartyName = GetLocalPartyMap(lpn);
 		session->m_remoteParty = GetLocalPartyMap(rp);
 		session->m_direction = CaptureEvent::DirOut;
@@ -2260,7 +2269,10 @@ void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessi
 		lp = callInfo->calledParty;
 		lpn = callInfo->calledPartyName;
 		rp = callInfo->callingParty;
-		session->m_localParty = GetLocalPartyMap(lp);
+		if(m_skinnyGlobalNumbersList.find(lp) == m_skinnyGlobalNumbersList.end())
+		{
+			session->m_localParty = GetLocalPartyMap(lp);
+		}
 		session->m_localPartyName = GetLocalPartyMap(lpn);
 		session->m_remoteParty = GetLocalPartyMap(rp);
 	}
@@ -4326,6 +4338,11 @@ CStdString RtpSessions::GetLocalPartyMap(CStdString& oldlocalparty)
 	return newlocalparty;
 }
 
+void RtpSessions::SaveSkinnyGlobalNumbersList(CStdString& number)
+{
+	m_skinnyGlobalNumbersList.insert(std::make_pair(number, 0));
+	LOG4CXX_DEBUG(m_log, "Saved skinny global number:" + number);
+}
 //============================================================
 UrlExtractionValue::UrlExtractionValue()
 {
