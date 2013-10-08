@@ -239,6 +239,12 @@ void RtpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpI
 		// to reflect the RTCP CNAME information, we need to report.
 		if(m_localPartyReported)
 		{
+			if(DLLCONFIG.m_localPartyAddLocalIp == true)
+			{
+				char szLocalIp[16];
+				ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+				m_localParty.Format("%s@%s", m_localParty, szLocalIp);
+			}
 			CaptureEventRef event(new CaptureEvent());
 			event->m_type = CaptureEvent::EtLocalParty;
 			event->m_value = m_localParty;
@@ -536,10 +542,22 @@ void RtpSession::UpdateMetadataSkinny()
 	event->m_type = CaptureEvent::EtLocalParty;
 	if(DLLCONFIG.m_skinnyNameAsLocalParty == true && m_localPartyName.size())
 	{
+		if(DLLCONFIG.m_localPartyAddLocalIp == true)
+		{
+			char szLocalIp[16];
+			ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+			m_localPartyName.Format("%s@%s", m_localPartyName, szLocalIp);
+		}
 		event->m_value = m_localPartyName;
 	}
 	else
 	{
+		if(DLLCONFIG.m_localPartyAddLocalIp == true)
+		{
+			char szLocalIp[16];
+			ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+			m_localParty.Format("%s@%s", m_localParty, szLocalIp);
+		}
 		event->m_value = m_localParty;
 	}
 	g_captureEventCallBack(event, m_capturePort);
@@ -626,6 +644,13 @@ void RtpSession::UpdateMetadataSipOnRtpChange(RtpPacketInfoRef& rtpPacket, bool 
 		CStdString logMsg;
 		logMsg.Format("[%s] metadata update: local:%s remote:%s RTP:%s INVITE:%s", m_trackingId, m_localParty, m_remoteParty, rtpString, inviteString);
 		LOG4CXX_INFO(m_log,  logMsg);
+
+		if(DLLCONFIG.m_localPartyAddLocalIp == true)
+		{
+			char szLocalIp[16];
+			ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+			m_localParty.Format("%s@%s", m_localParty, szLocalIp);
+		}
 
 		// Report Local party
 		CaptureEventRef event(new CaptureEvent());
@@ -864,10 +889,22 @@ void RtpSession::ReportMetadata()
 	if( ( m_protocol == ProtSkinny && DLLCONFIG.m_skinnyNameAsLocalParty == true && m_localPartyName.size() )   || 
 		( (DLLCONFIG.m_partiesUseName || DLLCONFIG.m_localPartyUseName) == true && m_localPartyName.size() )		 )
 	{
+		if(DLLCONFIG.m_localPartyAddLocalIp == true)
+		{
+			char szLocalIp[16];
+			ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+			m_localPartyName.Format("%s@%s", m_localPartyName, szLocalIp);
+		}
 		event->m_value = m_localPartyName;
 	}
 	else
 	{
+		if(DLLCONFIG.m_localPartyAddLocalIp == true)
+		{
+			char szLocalIp[16];
+			ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+			m_localParty.Format("%s@%s", m_localParty, szLocalIp);
+		}
 		event->m_value = m_localParty;
 	}
 	g_captureEventCallBack(event, m_capturePort);

@@ -112,6 +112,7 @@ VoIpConfig::VoIpConfig()
 	m_rtpMinAmountOfPacketsBeforeStart = 50;
 	m_rtpBreakupOnStreamPause = false;
 	m_rtpS1S2MappingDeterministic = false;
+	m_localPartyAddLocalIp = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -227,6 +228,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("RtpMinAmountOfPacketsBeforeStart", m_rtpMinAmountOfPacketsBeforeStart);
 	s->BoolValue("RtpBreakupOnStreamPause", m_rtpBreakupOnStreamPause);
 	s->BoolValue("RtpS1S2MappingDeterministic", m_rtpS1S2MappingDeterministic);
+	s->BoolValue("LocalPartyAddLocalIp", m_localPartyAddLocalIp);
 }
 
 void VoIpConfig::Validate()

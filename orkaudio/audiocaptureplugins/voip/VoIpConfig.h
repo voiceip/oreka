@@ -160,6 +160,7 @@ public:
 	int m_rtpMinAmountOfPacketsBeforeStart;
 	bool m_rtpBreakupOnStreamPause;
 	bool m_rtpS1S2MappingDeterministic;
+	bool m_localPartyAddLocalIp;
 };
 
 //========================================
