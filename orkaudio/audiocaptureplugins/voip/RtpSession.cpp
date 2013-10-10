@@ -2227,20 +2227,29 @@ void RtpSessions::UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeade
 	{
 	case SKINNY_CALL_TYPE_INBOUND:
 	{
-		extension = callInfo->calledParty;
-		SetEndpointExtension(extension, &ipHeader->ip_dest, callId, ntohs(tcpHeader->dest));
+		if(m_skinnyGlobalNumbersList.find(callInfo->calledParty) == m_skinnyGlobalNumbersList.end())
+		{
+			extension = callInfo->calledParty;
+			SetEndpointExtension(extension, &ipHeader->ip_dest, callId, ntohs(tcpHeader->dest));
+		}
 		break;
 	}
 	case SKINNY_CALL_TYPE_OUTBOUND:
 	{
-		extension = callInfo->callingParty;
-		SetEndpointExtension(extension, &ipHeader->ip_dest, callId, ntohs(tcpHeader->dest));
+		if(m_skinnyGlobalNumbersList.find(callInfo->callingParty) == m_skinnyGlobalNumbersList.end())
+                {
+			extension = callInfo->callingParty;
+			SetEndpointExtension(extension, &ipHeader->ip_dest, callId, ntohs(tcpHeader->dest));
+		}
 		break;
 	}
 	case SKINNY_CALL_TYPE_FORWARD:
 	{
-		extension = callInfo->calledParty;
-		SetEndpointExtension(extension, &ipHeader->ip_dest, callId, ntohs(tcpHeader->dest));
+		if(m_skinnyGlobalNumbersList.find(callInfo->calledParty) == m_skinnyGlobalNumbersList.end())
+                {
+			extension = callInfo->calledParty;
+			SetEndpointExtension(extension, &ipHeader->ip_dest, callId, ntohs(tcpHeader->dest));
+		}
 		break;
 	}
 	}
