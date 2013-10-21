@@ -234,6 +234,7 @@ public:
 	std::map<char, char> m_partyFilterMap;
 	bool m_directionLookBack;
 	std::list<CStdString> m_speexPayloadTypes;
+	int m_remotePartyMaxDigits;
 
 private:
 	log4cxx::LoggerPtr m_log;
