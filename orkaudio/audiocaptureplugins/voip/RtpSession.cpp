@@ -1358,9 +1358,12 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 				else
 				{
 					// this packet does not match either s1 or s2 (on the basis of SSRC)
-					if(m_ssrcCandidateS1 == 0)
+					if(m_ssrcCandidateS1 == 0 && rtpPacket->m_ssrc != m_ssrcCandidateS2)
 					{
 						m_ssrcCandidateS1 = rtpPacket->m_ssrc;
+						rtpPacket->ToString(logMsg);
+						logMsg.Format("[%s] s1 candidate: %s", m_trackingId, logMsg);
+						LOG4CXX_INFO(m_log, logMsg);
 					}
 					else if(rtpPacket->m_ssrc == m_ssrcCandidateS1)
 					{
@@ -1369,10 +1372,21 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 					else if(m_ssrcCandidateS2 == 0)
 					{
 						m_ssrcCandidateS2 = rtpPacket->m_ssrc;
+						rtpPacket->ToString(logMsg);
+						logMsg.Format("[%s] s2 candidate: %s", m_trackingId, logMsg);
+						LOG4CXX_INFO(m_log, logMsg);
 					}
 					else if(rtpPacket->m_ssrc == m_ssrcCandidateS2)
 					{
 						m_numAlienRtpPacketsS2++;
+					}
+					else
+					{
+						// Packet is neither an established stream, nor a candidate, we ignore it.
+						// Current weakness of this system: could stay stuck with a candidate
+						// if the candidate stream never manages to get to established status
+						// before stopping, so it could prevent a subsequent stream from getting
+						// to candidate status.
 					}
 
 					bool remapped = false;
