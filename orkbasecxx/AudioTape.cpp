@@ -402,6 +402,11 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		logMsg.Format("pushcount:%d popcount:%d highmark:%d", m_pushCount, m_popCount, m_highMark);
 		LOG4CXX_DEBUG(LOG.tapeLog, logMsg);
 		m_duration = eventRef->m_timestamp - m_beginDate;
+		if((CONFIG.m_remotePartyMaxDigits > 0) && (m_remoteParty.length() > CONFIG.m_remotePartyMaxDigits) && (m_remoteParty.CompareNoCase(m_remoteIp) != 0))
+		{
+			int posCutOffDigits = m_remoteParty.length() - CONFIG.m_remotePartyMaxDigits;
+			m_remoteParty = m_remoteParty.substr(posCutOffDigits);
+		}
 
 		{
 			// Log the call details

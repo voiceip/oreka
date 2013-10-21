@@ -88,6 +88,7 @@ Config::Config()
 	m_directionForceOutgoingForRemotePartyMinLength = DIRECTION_FORCE_OUTGOING_FOR_REMOTE_PARTY_MIN_LENGTH_DEFAULT;
 	m_pauseRecordingOnRejectedStart = PAUSE_RECORDING_ON_REJECTED_START_DEFAULT; 
 	m_directionLookBack = DIRECTION_LOOKBACK_DEFAULT;
+	m_remotePartyMaxDigits = 0;
 }
 
 void Config::Define(Serializer* s)
@@ -187,6 +188,7 @@ void Config::Define(Serializer* s)
 	s->StringValue("PartyFilterCharsReplaceWith", m_partyFilterCharsReplaceWith);
 	s->BoolValue(DIRECTION_LOOKBACK_PARAM,m_directionLookBack);
 	s->CsvValue(SPEEX_PAYLOAD_TYPES,m_speexPayloadTypes);
+	s->IntValue("RemotePartyMaxDigits", m_remotePartyMaxDigits);
 	//Construct the partyFilterMap
 	if(m_partyFilterCharsReplaceWith.size() != 0)
 	{
