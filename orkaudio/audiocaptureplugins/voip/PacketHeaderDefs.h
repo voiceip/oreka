@@ -114,6 +114,15 @@ typedef struct {
 	unsigned char data[0];
 } RtcpSdesCsrcItem;
 
+typedef struct {
+	unsigned short flagVersion;
+	unsigned short protocolType;
+	unsigned int seq;
+} GreHeaderStruct;
+
+typedef struct {
+	unsigned char data [8];
+} ErspanHeaderStruct;
 //===================================================================
 // Cisco Callmanager -> endpoint messages
 typedef struct

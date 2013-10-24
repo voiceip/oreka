@@ -85,7 +85,7 @@ VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define ETC_LOCAL_PARTY_MAP_FILE	"/etc/orkaudio/localpartymap.csv"
 #define SKINNY_GLOBAL_NUMBERS_FILE	"skinnyglobalnumbers.csv"
 #define ETC_SKINNY_GLOBAL_NUMBERS_FILE	"/etc/orkaudio/skinnyglobalnumbers.csv"
-
+#define PROT_ERSPAN 0x88be
 //========================================================
 class VoIp
 {
@@ -3291,6 +3291,198 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 	}
 }
 
+void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd)
+{
+	UdpHeaderStruct* udpHeader = (UdpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
+	if(ntohs(udpHeader->source) >= 1024 && ntohs(udpHeader->dest) >= 1024)
+	{
+		bool detectedUsefulPacket = false;
+		u_char* udpPayload = (u_char *)udpHeader + sizeof(UdpHeaderStruct);
+
+		MutexSentinel mutexSentinel(s_mutex); // serialize access for competing pcap threads
+
+		detectedUsefulPacket = TryRtp(ethernetHeader, ipHeader, udpHeader, udpPayload);
+
+		if(!detectedUsefulPacket) {
+			detectedUsefulPacket= TrySipInvite(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+		}
+
+		if(!detectedUsefulPacket) {
+			detectedUsefulPacket= TrySip200Ok(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+		}
+
+
+		if(DLLCONFIG.m_sipNotifySupport == true){
+			if(!detectedUsefulPacket) {
+				detectedUsefulPacket= TrySipNotify(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+			}
+		}
+		if(!detectedUsefulPacket) {
+			if(DLLCONFIG.m_sipDetectSessionProgress == true)
+			{
+				detectedUsefulPacket = TrySipSessionProgress(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+			}
+		}
+
+		if(!detectedUsefulPacket) {
+			if(DLLCONFIG.m_sip302MovedTemporarilySupport == true)
+			{
+				detectedUsefulPacket = TrySip302MovedTemporarily(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+			}
+		}
+
+		if(!detectedUsefulPacket) {
+			detectedUsefulPacket = TrySipBye(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+		}
+
+		if(!detectedUsefulPacket) {
+			detectedUsefulPacket = TryLogFailedSip(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+		}
+
+		if(!detectedUsefulPacket) {
+			if(DLLCONFIG.m_sipCallPickUpSupport == true)
+			{
+				detectedUsefulPacket= TrySipSubscribe(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+			}
+		}
+
+		if(!detectedUsefulPacket) {
+			if(DLLCONFIG.m_rtcpDetect == true)
+			{
+				detectedUsefulPacket = TryRtcp(ethernetHeader, ipHeader, udpHeader, udpPayload);
+			}
+		}
+
+		if(DLLCONFIG.m_iax2Support == false)
+		{
+			detectedUsefulPacket = true;	// Stop trying to detect if this UDP packet could be of interest
+		}
+
+		if(!detectedUsefulPacket) {
+			 detectedUsefulPacket = TryIax2New(ethernetHeader, ipHeader, udpHeader, udpPayload);
+		}
+
+		if(!detectedUsefulPacket) {
+			detectedUsefulPacket = TryIax2Accept(ethernetHeader, ipHeader, udpHeader, udpPayload);
+		}
+
+		if(!detectedUsefulPacket) {
+			detectedUsefulPacket = TryIax2Authreq(ethernetHeader, ipHeader, udpHeader, udpPayload);
+		}
+
+		if(!detectedUsefulPacket) {
+			detectedUsefulPacket = TryIax2Hangup(ethernetHeader, ipHeader, udpHeader, udpPayload);
+		}
+
+		if(!detectedUsefulPacket) {
+			detectedUsefulPacket = TryIax2ControlHangup(ethernetHeader, ipHeader, udpHeader, udpPayload);
+		}
+
+		if(!detectedUsefulPacket) {
+			detectedUsefulPacket = TryIax2Reject(ethernetHeader, ipHeader, udpHeader, udpPayload);
+		}
+
+		if(!detectedUsefulPacket) {
+			detectedUsefulPacket = TryIax2FullVoiceFrame(ethernetHeader, ipHeader, udpHeader, udpPayload);
+		}
+
+		if(!detectedUsefulPacket) {
+			detectedUsefulPacket = TryIax2MetaTrunkFrame(ethernetHeader, ipHeader, udpHeader, udpPayload);
+		}
+
+		if(!detectedUsefulPacket) {
+			detectedUsefulPacket = TryIax2MiniVoiceFrame(ethernetHeader, ipHeader, udpHeader, udpPayload);
+		}
+	}
+}
+
+void DetectUsefulTcpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd)
+{
+	TcpHeaderStruct* tcpHeader = (TcpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
+	if(ntohs(tcpHeader->source) == DLLCONFIG.m_skinnyTcpPort || ntohs(tcpHeader->dest) == DLLCONFIG.m_skinnyTcpPort)
+	{
+		u_char* startTcpPayload = (u_char*)tcpHeader + (tcpHeader->off * 4);
+		SkinnyHeaderStruct* skinnyHeader = (SkinnyHeaderStruct*)(startTcpPayload);
+
+		// Scan all skinny messages in this TCP packet
+		while(	ipPacketEnd > (u_char*)skinnyHeader &&
+				(u_char*)skinnyHeader>=startTcpPayload &&
+				(ipPacketEnd - (u_char*)skinnyHeader) > SKINNY_MIN_MESSAGE_SIZE	&&
+				skinnyHeader->len > 1 && skinnyHeader->len < 2048 &&
+				skinnyHeader->messageType >= 0x0 && skinnyHeader->messageType <= 0x200 )	// Last known skinny message by ethereal is 0x13F, but seen higher message ids in the field.
+		{
+			if(s_skinnyPacketLog->isDebugEnabled())
+			{
+				CStdString dbg;
+				unsigned int offset = (u_char*)skinnyHeader - startTcpPayload;
+				dbg.Format("Offset:%x Len:%u Type:%x %s", offset, skinnyHeader->len, skinnyHeader->messageType, SkinnyMessageToString(skinnyHeader->messageType));
+				LOG4CXX_DEBUG(s_skinnyPacketLog, dbg);
+			}
+			MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
+
+			HandleSkinnyMessage(skinnyHeader, ipHeader, ipPacketEnd, tcpHeader);
+
+			// Point to next skinny message within this TCP packet
+			skinnyHeader = (SkinnyHeaderStruct*)((u_char*)skinnyHeader + SKINNY_HEADER_LENGTH + skinnyHeader->len);
+		}
+	}
+	else if(DLLCONFIG.m_sipOverTcpSupport)
+	{
+		//CStdString tcpSeq;
+		//memToHex((unsigned char *)&tcpHeader->seq, 4, tcpSeq);
+		TrySipTcp(ethernetHeader, ipHeader, tcpHeader);
+	}
+	if(DLLCONFIG.m_urlExtractorEnable == true && ntohs(tcpHeader->dest) == DLLCONFIG.m_urlExtractorPort)
+	{
+		char* startTcpPayload = (char*)tcpHeader + (tcpHeader->off * 4);
+		int payloadLength = ntohs(ipHeader->ip_len) - (ipHeader->ip_hl*4) - TCP_HEADER_LENGTH;
+		CStdString urlString;
+		for(int i=0; i<payloadLength; i++)
+		{
+			urlString += *startTcpPayload;
+			startTcpPayload++;
+		}
+		if(DLLCONFIG.m_urlExtractorEndpointIsSender == true)
+		{
+			RtpSessionsSingleton::instance()->UrlExtraction(urlString, &ipHeader->ip_src);
+		}
+		else
+		{
+			RtpSessionsSingleton::instance()->UrlExtraction(urlString, &ipHeader->ip_dest);
+		}
+	}
+}
+
+bool TryIpPacketV4(IpHeaderStruct* ipHeader)
+{
+	if(ipHeader->ip_v != 4)	// sanity check, is it an IP packet v4
+	{
+		// If not, the IP packet might have been captured from multiple interfaces using the tcpdump -i switch
+		ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+2);
+		if(ipHeader->ip_v != 4)
+		{
+			// If not, the IP packet might be wrapped into a 802.1Q VLAN or MPLS header (add 4 bytes, ie 2 bytes on top of previous 2)
+			ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+2);
+			if(ipHeader->ip_v != 4)
+			{
+				// If not, the IP packet might be tcpdump -i as well as VLAN, add another 2 bytes
+				ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+2);
+				if(ipHeader->ip_v != 4)
+				{
+					// If not, the IP packet might be on 802.11
+					ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+12);
+					if(ipHeader->ip_v != 4)
+					{
+						// Still not an IP packet V4, drop it
+						return false;
+					}
+				}
+			}
+		}
+	}
+	return true;
+}
+
 void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data)
 {
 	time_t now = time(NULL);
@@ -3345,30 +3537,9 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 		ipHeader = (IpHeaderStruct*)((char*)ethernetHeader + sizeof(EthernetHeaderStruct));
 	}
 
-	if(ipHeader->ip_v != 4)	// sanity check, is it an IP packet v4
+	if(TryIpPacketV4(ipHeader) != true)
 	{
-		// If not, the IP packet might have been captured from multiple interfaces using the tcpdump -i switch
-		ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+2);
-		if(ipHeader->ip_v != 4)
-		{
-			// If not, the IP packet might be wrapped into a 802.1Q VLAN or MPLS header (add 4 bytes, ie 2 bytes on top of previous 2)
-			ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+2);
-			if(ipHeader->ip_v != 4)
-			{
-				// If not, the IP packet might be tcpdump -i as well as VLAN, add another 2 bytes
-				ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+2);
-				if(ipHeader->ip_v != 4)
-				{
-					// If not, the IP packet might be on 802.11
-					ipHeader = (IpHeaderStruct*)((u_char*)ipHeader+12);
-					if(ipHeader->ip_v != 4)
-					{
-						// Still not an IP packet V4, drop it
-						return;
-					}
-				}
-			}
-		}
+		return;
 	}
 	int ipHeaderLength = ipHeader->ip_hl*4;
 	u_char* ipPacketEnd = (u_char*)ipHeader + ntohs(ipHeader->ip_len);
@@ -3431,164 +3602,50 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 
 	if(ipHeader->ip_p == IPPROTO_UDP)
 	{
-		UdpHeaderStruct* udpHeader = (UdpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
-
-		if(ntohs(udpHeader->source) >= 1024 && ntohs(udpHeader->dest) >= 1024) {
-			bool detectedUsefulPacket = false;
-			u_char* udpPayload = (u_char *)udpHeader + sizeof(UdpHeaderStruct);
-
-			MutexSentinel mutexSentinel(s_mutex); // serialize access for competing pcap threads
-
-			detectedUsefulPacket = TryRtp(ethernetHeader, ipHeader, udpHeader, udpPayload);
-
-			if(!detectedUsefulPacket) {
-				detectedUsefulPacket= TrySipInvite(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
-			}
-
-			if(!detectedUsefulPacket) {
-				detectedUsefulPacket= TrySip200Ok(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
-			}
-			
-
-			if(DLLCONFIG.m_sipNotifySupport == true){
-				if(!detectedUsefulPacket) {
-					detectedUsefulPacket= TrySipNotify(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
-				}
-			}
-			if(!detectedUsefulPacket) {
-				if(DLLCONFIG.m_sipDetectSessionProgress == true)
-				{
-					detectedUsefulPacket = TrySipSessionProgress(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
-				}
-			}
-
-			if(!detectedUsefulPacket) {
-				if(DLLCONFIG.m_sip302MovedTemporarilySupport == true)
-				{
-					detectedUsefulPacket = TrySip302MovedTemporarily(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
-				}
-			}
-
-			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TrySipBye(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
-			}
-
-			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryLogFailedSip(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
-			}
-
-			if(!detectedUsefulPacket) {
-				if(DLLCONFIG.m_sipCallPickUpSupport == true)
-				{
-					detectedUsefulPacket= TrySipSubscribe(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
-				}
-			}
-
-			if(!detectedUsefulPacket) {
-				if(DLLCONFIG.m_rtcpDetect == true)
-				{
-					detectedUsefulPacket = TryRtcp(ethernetHeader, ipHeader, udpHeader, udpPayload);
-				}
-			}
-
-			if(DLLCONFIG.m_iax2Support == false)
-			{
-				detectedUsefulPacket = true;	// Stop trying to detect if this UDP packet could be of interest
-			}
-
-			if(!detectedUsefulPacket) {
-				 detectedUsefulPacket = TryIax2New(ethernetHeader, ipHeader, udpHeader, udpPayload);
-			}
-
-			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryIax2Accept(ethernetHeader, ipHeader, udpHeader, udpPayload);
-			}
-
-			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryIax2Authreq(ethernetHeader, ipHeader, udpHeader, udpPayload);
-			}
-
-			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryIax2Hangup(ethernetHeader, ipHeader, udpHeader, udpPayload);
-			}
-
-			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryIax2ControlHangup(ethernetHeader, ipHeader, udpHeader, udpPayload);
-			}
-
-			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryIax2Reject(ethernetHeader, ipHeader, udpHeader, udpPayload);
-			}
-
-			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryIax2FullVoiceFrame(ethernetHeader, ipHeader, udpHeader, udpPayload);
-			}
-
-			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryIax2MetaTrunkFrame(ethernetHeader, ipHeader, udpHeader, udpPayload);
-			}
-
-			if(!detectedUsefulPacket) {
-				detectedUsefulPacket = TryIax2MiniVoiceFrame(ethernetHeader, ipHeader, udpHeader, udpPayload);
-			}
-		}
+		DetectUsefulUdpPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd);
 	}
 	else if(ipHeader->ip_p == IPPROTO_TCP)
 	{
-		TcpHeaderStruct* tcpHeader = (TcpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
-
-		if(ntohs(tcpHeader->source) == DLLCONFIG.m_skinnyTcpPort || ntohs(tcpHeader->dest) == DLLCONFIG.m_skinnyTcpPort)
+		DetectUsefulTcpPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd);
+	}
+	else if(ipHeader->ip_p == IPPROTO_GRE)
+	{
+		//Check if its ESPAN
+		GreHeaderStruct *greHeader = (GreHeaderStruct*)((char *)ipHeader + ipHeaderLength);
+		if(ntohs(greHeader->flagVersion) == 0x1000 && ntohs(greHeader->protocolType) == PROT_ERSPAN)
 		{
-			u_char* startTcpPayload = (u_char*)tcpHeader + (tcpHeader->off * 4);
-			SkinnyHeaderStruct* skinnyHeader = (SkinnyHeaderStruct*)(startTcpPayload);
+			//temporary ignore Erspan payload, flag ...
+			//Follow is the real headers got encapsulated
+			EthernetHeaderStruct* encapsulatedEthernetHeader = (EthernetHeaderStruct *)((char *)ipHeader + ipHeaderLength +  sizeof(GreHeaderStruct) + sizeof(ErspanHeaderStruct));
+			IpHeaderStruct* encapsulatedIpHeader = NULL;
 
-			// Scan all skinny messages in this TCP packet
-			while(	ipPacketEnd > (u_char*)skinnyHeader && 
-					(u_char*)skinnyHeader>=startTcpPayload &&
-					(ipPacketEnd - (u_char*)skinnyHeader) > SKINNY_MIN_MESSAGE_SIZE	&&
-					skinnyHeader->len > 1 && skinnyHeader->len < 2048 &&
-					skinnyHeader->messageType >= 0x0 && skinnyHeader->messageType <= 0x200 )	// Last known skinny message by ethereal is 0x13F, but seen higher message ids in the field.
+			if(ntohs(encapsulatedEthernetHeader->type) == 0x8100)
 			{
-				if(s_skinnyPacketLog->isDebugEnabled())
-				{
-					CStdString dbg;
-					unsigned int offset = (u_char*)skinnyHeader - startTcpPayload;
-					dbg.Format("Offset:%x Len:%u Type:%x %s", offset, skinnyHeader->len, skinnyHeader->messageType, SkinnyMessageToString(skinnyHeader->messageType));
-					LOG4CXX_DEBUG(s_skinnyPacketLog, dbg);
-				}
-				MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
-
-				HandleSkinnyMessage(skinnyHeader, ipHeader, ipPacketEnd, tcpHeader);
-
-				// Point to next skinny message within this TCP packet
-				skinnyHeader = (SkinnyHeaderStruct*)((u_char*)skinnyHeader + SKINNY_HEADER_LENGTH + skinnyHeader->len);
-			}
-		}
-		else if(DLLCONFIG.m_sipOverTcpSupport) 
-		{
-			//CStdString tcpSeq;
-			//memToHex((unsigned char *)&tcpHeader->seq, 4, tcpSeq);
-			TrySipTcp(ethernetHeader, ipHeader, tcpHeader);
-		}
-		if(DLLCONFIG.m_urlExtractorEnable == true && ntohs(tcpHeader->dest) == DLLCONFIG.m_urlExtractorPort)
-		{
-			char* startTcpPayload = (char*)tcpHeader + (tcpHeader->off * 4);
-			int payloadLength = ntohs(ipHeader->ip_len) - (ipHeader->ip_hl*4) - TCP_HEADER_LENGTH;
-			CStdString urlString;
-			for(int i=0; i<payloadLength; i++)
-			{
-				urlString += *startTcpPayload;
-				startTcpPayload++;
-			}
-			if(DLLCONFIG.m_urlExtractorEndpointIsSender == true)
-			{
-				RtpSessionsSingleton::instance()->UrlExtraction(urlString, &ipHeader->ip_src);
+				encapsulatedIpHeader = (IpHeaderStruct*)((char*)encapsulatedEthernetHeader + sizeof(EthernetHeaderStruct) + 4);
 			}
 			else
 			{
-				RtpSessionsSingleton::instance()->UrlExtraction(urlString, &ipHeader->ip_dest);
+				encapsulatedIpHeader = (IpHeaderStruct*)((char*)encapsulatedEthernetHeader + sizeof(EthernetHeaderStruct));
+			}
+
+			if(TryIpPacketV4(encapsulatedIpHeader) != true)
+			{
+				return;
+			}
+
+			int encapsulatedIpHeaderLength = ipHeader->ip_hl*4;
+			u_char* encapsulatedIpPacketEnd = (u_char*)encapsulatedIpHeader + ntohs(encapsulatedIpHeader->ip_len);
+
+			if(encapsulatedIpHeader->ip_p == IPPROTO_UDP)
+			{
+				DetectUsefulUdpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd);
+			}
+			else if(encapsulatedIpHeader->ip_p == IPPROTO_TCP)
+			{
+				DetectUsefulTcpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd);
 			}
 		}
+
 	}
 
 	if((now - s_lastHooveringTime) > 5)
