@@ -1283,7 +1283,6 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 			m_lastRtpPacketSide1 = rtpPacket;
 			channel = 1;
 			m_numAlienRtpPacketsS1 = 0;
-			m_ssrcCandidateS1 = 0;
 		}
 		else
 		{
@@ -1353,7 +1352,6 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 					m_lastRtpPacketSide2 = rtpPacket;
 					channel = 2;
 					m_numAlienRtpPacketsS2 = 0;
-					m_ssrcCandidateS2 = 0;
 				}
 				else
 				{
