@@ -86,6 +86,7 @@ VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define SKINNY_GLOBAL_NUMBERS_FILE	"skinnyglobalnumbers.csv"
 #define ETC_SKINNY_GLOBAL_NUMBERS_FILE	"/etc/orkaudio/skinnyglobalnumbers.csv"
 #define PROT_ERSPAN 0x88be
+#define IPPROTO_GRE 47
 //========================================================
 class VoIp
 {
