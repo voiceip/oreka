@@ -3790,8 +3790,9 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 		CStdString numSessions = IntToString(m_byIpAndPort.size());
 		LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
-
-		LOG4CXX_INFO(m_log, "[" + trackingId + "] created by RTP packet");
+		CStdString rtpString;
+		rtpPacket->ToString(rtpString);
+		LOG4CXX_INFO(m_log, "[" + trackingId + "] created by RTP packet " + rtpString);
 
 		if(endpoint.get())
 		{
