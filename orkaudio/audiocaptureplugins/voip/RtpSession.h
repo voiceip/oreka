@@ -317,8 +317,7 @@ public:
 	bool m_isCallPickUp;
 	unsigned int m_numAlienRtpPacketsS1;
 	unsigned int m_numAlienRtpPacketsS2;
-	unsigned int m_ssrcCandidateS1;
-	unsigned int m_ssrcCandidateS2;
+	unsigned int m_ssrcCandidate;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
@@ -370,8 +369,7 @@ private:
 	unsigned int m_currentSeqNo;
 	unsigned int m_lastEventEndSeqNo;
 	bool m_mappedS1S2;
-	unsigned int m_ssrcCandidateS1Timestamp;
-	unsigned int m_ssrcCandidateS2Timestamp;
+	unsigned int m_ssrcCandidateTimestamp;
 	std::map<unsigned int, int> m_loggedSsrcMap;
 };
 typedef boost::shared_ptr<RtpSession> RtpSessionRef;
