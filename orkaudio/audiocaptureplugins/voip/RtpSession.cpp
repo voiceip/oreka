@@ -1123,6 +1123,15 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	CStdString logMsg;
 	unsigned char channel = 0;
 
+	if(DLLCONFIG.m_rtpLogAllSsrc == true)
+	{
+		std::map<unsigned int, int>::iterator it;
+		it = m_loggedSsrcMap.find(rtpPacket->m_ssrc);
+		if(it == m_loggedSsrcMap.end())
+		{
+			m_loggedSsrcMap.insert(std::make_pair(rtpPacket->m_ssrc, 1));
+		}
+	}
 	
 	if( m_metadataProcessed == false )
 	{
@@ -1359,32 +1368,54 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 					if(m_ssrcCandidateS1 == 0 && rtpPacket->m_ssrc != m_ssrcCandidateS2)
 					{
 						m_ssrcCandidateS1 = rtpPacket->m_ssrc;
+						m_ssrcCandidateS1Timestamp = (unsigned int)rtpPacket->m_arrivalTimestamp;
 						rtpPacket->ToString(logMsg);
 						logMsg.Format("[%s] s1 candidate: %s", m_trackingId, logMsg);
 						LOG4CXX_INFO(m_log, logMsg);
 					}
-					else if(rtpPacket->m_ssrc == m_ssrcCandidateS1)
+					else if(rtpPacket->m_ssrc == m_ssrcCandidateS1 && rtpPacket->m_ssrc != 0)
 					{
 						m_numAlienRtpPacketsS1++;
 					}
 					else if(m_ssrcCandidateS2 == 0)
 					{
 						m_ssrcCandidateS2 = rtpPacket->m_ssrc;
+						m_ssrcCandidateS2Timestamp = (unsigned int)rtpPacket->m_arrivalTimestamp;
 						rtpPacket->ToString(logMsg);
 						logMsg.Format("[%s] s2 candidate: %s", m_trackingId, logMsg);
 						LOG4CXX_INFO(m_log, logMsg);
 					}
-					else if(rtpPacket->m_ssrc == m_ssrcCandidateS2)
+					else if(rtpPacket->m_ssrc == m_ssrcCandidateS2 && rtpPacket->m_ssrc != 0)
 					{
 						m_numAlienRtpPacketsS2++;
 					}
 					else
 					{
-						// Packet is neither an established stream, nor a candidate, we ignore it.
-						// Current weakness of this system: could stay stuck with a candidate
-						// if the candidate stream never manages to get to established status
-						// before stopping, so it could prevent a subsequent stream from getting
-						// to candidate status.
+						if((time(NULL) - m_ssrcCandidateS1Timestamp) > 2)
+						{
+							m_ssrcCandidateS1 = 0;
+							m_numAlienRtpPacketsS1 = 0;
+							logMsg.Format("[%s] s1 candidate stopped", m_trackingId);
+							LOG4CXX_INFO(m_log, logMsg);
+						}
+						if((time(NULL) - m_ssrcCandidateS2Timestamp) > 2)
+						{
+							m_ssrcCandidateS2 = 0;
+							m_numAlienRtpPacketsS2 = 0;
+							logMsg.Format("[%s] s2 candidate stopped", m_trackingId);
+							LOG4CXX_INFO(m_log, logMsg);
+						}
+						if(DLLCONFIG.m_rtpLogAllSsrc ==  true)
+						{
+							std::map<unsigned int, int>::iterator it;
+							it = m_loggedSsrcMap.find(rtpPacket->m_ssrc);
+							if(it == m_loggedSsrcMap.end())
+							{
+								m_loggedSsrcMap.insert(std::make_pair(rtpPacket->m_ssrc, 1));
+								logMsg.Format("[%s] detects unestablished ssrc:0x%x", m_trackingId, rtpPacket->m_ssrc);
+								LOG4CXX_INFO(m_log, logMsg);
+							}
+						}
 					}
 
 					bool remapped = false;
