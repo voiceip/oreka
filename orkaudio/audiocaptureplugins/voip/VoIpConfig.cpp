@@ -113,6 +113,7 @@ VoIpConfig::VoIpConfig()
 	m_rtpBreakupOnStreamPause = false;
 	m_rtpS1S2MappingDeterministic = false;
 	m_localPartyAddLocalIp = false;
+	m_rtpLogAllSsrc = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -229,6 +230,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("RtpBreakupOnStreamPause", m_rtpBreakupOnStreamPause);
 	s->BoolValue("RtpS1S2MappingDeterministic", m_rtpS1S2MappingDeterministic);
 	s->BoolValue("LocalPartyAddLocalIp", m_localPartyAddLocalIp);
+	s->BoolValue("RtpLogAllSsrc", m_rtpLogAllSsrc);
 }
 
 void VoIpConfig::Validate()

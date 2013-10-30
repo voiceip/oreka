@@ -370,6 +370,9 @@ private:
 	unsigned int m_currentSeqNo;
 	unsigned int m_lastEventEndSeqNo;
 	bool m_mappedS1S2;
+	unsigned int m_ssrcCandidateS1Timestamp;
+	unsigned int m_ssrcCandidateS2Timestamp;
+	std::map<unsigned int, int> m_loggedSsrcMap;
 };
 typedef boost::shared_ptr<RtpSession> RtpSessionRef;
 
