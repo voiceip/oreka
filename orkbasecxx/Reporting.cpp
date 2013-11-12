@@ -76,7 +76,6 @@ void Reporting::ReportingThreadEntryPoint(void *args)
 	snprintf(rtInfoRef->m_serverHostname, sizeof(rtInfoRef->m_serverHostname), "%s", rtInfo->m_serverHostname);
 	rtInfoRef->m_serverPort = rtInfo->m_serverPort;
 	rtInfoRef->m_numTapesToSkip = 0;
-	rtInfoRef->m_queueFullError = false;
 	snprintf(rtInfoRef->m_threadId, sizeof(rtInfoRef->m_threadId), "%s,%d", rtInfoRef->m_serverHostname, rtInfoRef->m_serverPort);
 	myRunInfo.m_myInfo = rtInfoRef;
 
@@ -179,20 +178,16 @@ bool Reporting::AddTapeMessage(MessageRef& messageRef)
 
 		if(reportingThread->m_messageQueue.push(reportingMsgRef))
 		{
-			reportingThread->m_queueFullError = false;
 			logMsg.Format("[%s] enqueued: %s", reportingThread->m_threadId, msgAsSingleLineString);
 			LOG4CXX_INFO(LOG.reportingLog, logMsg);
 			ret = true;
 		}
 		else
 		{
-			if(reportingThread->m_queueFullError == false)
-			{
+
 				logMsg.Format("[%s] queue full, rejected: %s", reportingThread->m_threadId, msgAsSingleLineString);
 				LOG4CXX_WARN(LOG.reportingLog, logMsg);
-				reportingThread->m_queueFullError = true;
 				ret = false;
-			}
 		}
 	}
 
