@@ -24,7 +24,6 @@ struct ReportingThreadInfo
 	char m_serverHostname[256];
 	int m_serverPort;
 	int m_numTapesToSkip;
-	bool m_queueFullError;
 	char m_threadId[256];
 	//ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
 	ThreadSafeQueue<MessageRef> m_messageQueue;
