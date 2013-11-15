@@ -2581,6 +2581,12 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			sipRemoteParty = memFindAfter(DLLCONFIG.m_sipRemotePartyFieldName + ":", (char*)udpPayload,sipEnd);
 		}
 
+		char* contactField = memFindAfter("Contact:", (char*)udpPayload, sipEnd);
+		if(!contactField)
+		{
+			contactField = memFindAfter("\nc:", (char*)udpPayload, sipEnd);
+		}
+
 		char* localExtensionField = memFindAfter("x-Local-Extension:", (char*)udpPayload, sipEnd);
 		char* audioField = NULL;
 		char* connectionAddressField = NULL;
@@ -2807,6 +2813,40 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 						}
 					}
 				}
+			}
+		}
+		if(contactField && sipMethod == SIP_METHOD_INVITE)
+		{
+			CStdString contact;
+			char* contactFieldEnd = GrabLine(contactField, sipEnd, contact);
+			LOG4CXX_DEBUG(s_sipExtractionLog, "contact: " + contact);
+
+			GrabSipName(contactField, contactFieldEnd, info->m_contactName);
+
+			char* sipUser = memFindAfter("sip:", contactField, contactFieldEnd);
+			if(sipUser)
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sipUser, contactFieldEnd, info->m_contact);
+				}
+				else
+				{
+					GrabSipUriUser(sipUser, contactFieldEnd, info->m_contact);
+				}
+				GrabSipUriDomain(sipUser, contactFieldEnd, info->m_contactDomain);
+			}
+			else
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(contactField, contactFieldEnd, info->m_contact);
+				}
+				else
+				{
+					GrabSipUriUser(contactField, contactFieldEnd, info->m_contact);
+				}
+				GrabSipUriDomain(contactField, contactFieldEnd, info->m_contactDomain);
 			}
 		}
 		// SIP fields extraction

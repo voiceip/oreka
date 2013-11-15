@@ -1670,6 +1670,22 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 		logMsg.Format("[%s] associating INVITE:%s", m_trackingId, inviteString);
 		LOG4CXX_INFO(m_log, logMsg);
 	}
+	if(invite->m_from.CompareNoCase(invite->m_to) == 0 && invite->m_contact.length() > 0)
+	{
+		m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_contact);
+		m_direction = CaptureEvent::DirOut;
+
+		CaptureEventRef event(new CaptureEvent());
+		event->m_type = CaptureEvent::EtRemoteParty;
+		event->m_value = m_remoteParty;
+		g_captureEventCallBack(event, m_capturePort);
+		
+
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtDirection;
+		event->m_value = CaptureEvent::DirectionToString(m_direction);
+		g_captureEventCallBack(event, m_capturePort);
+	}
 	m_invites.push_front(invite);
 	if(invite->m_telephoneEventPtDefined)
 	{
