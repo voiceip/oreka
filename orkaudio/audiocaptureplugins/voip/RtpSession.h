@@ -80,6 +80,9 @@ public:
 	CStdString m_userAgent;
 	CStdString m_sipDialedNumber;
 	CStdString m_sipRemoteParty;
+	CStdString m_contact;
+	CStdString m_contactName;
+	CStdString m_contactDomain;
 	bool m_SipGroupPickUpPatternDetected;
 
 	time_t m_recvTime;
