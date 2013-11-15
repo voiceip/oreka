@@ -341,11 +341,79 @@ int EventStreamingServer::svc(void)
 				if(message.get())
 				{
 					CStdString msgAsSingleLineString;
-					//Its not clear how this can happen, but sometime it can cause crash because of null localparty
+					//Its not clear how this can happen, but sometime it can cause crash because of null in any tapemsg members
 					TapeMsg* tapeMsg = (TapeMsg*)message.get();
 					if(tapeMsg->m_localParty == NULL) 
 					{	
 						tapeMsg->m_localParty = "";
+					}
+					if(tapeMsg->m_recId == NULL) 
+					{	
+						tapeMsg->m_recId = "";
+					}
+					if(tapeMsg->m_stage == NULL) 
+					{	
+						tapeMsg->m_stage = "";
+					}
+					if(tapeMsg->m_timestamp == NULL) 
+					{	
+						tapeMsg->m_timestamp = time(NULL);
+					}
+					if(tapeMsg->m_fileName == NULL) 
+					{	
+						tapeMsg->m_fileName = "";
+					}
+					if(tapeMsg->m_capturePort == NULL) 
+					{	
+						tapeMsg->m_capturePort = "";
+					}
+					if(tapeMsg->m_localEntryPoint == NULL) 
+					{	
+						tapeMsg->m_localEntryPoint = "";
+					}
+					if(tapeMsg->m_remoteParty == NULL) 
+					{	
+						tapeMsg->m_remoteParty = "";
+					}
+					if(tapeMsg->m_direction == NULL) 
+					{	
+						tapeMsg->m_direction = "unknown";
+					}
+					if(tapeMsg->m_audioKeepDirection == NULL) 
+					{	
+						tapeMsg->m_audioKeepDirection = "both";
+					}
+					if(tapeMsg->m_duration == NULL) 
+					{	
+						tapeMsg->m_duration = 0;
+					}
+					if(tapeMsg->m_serviceName == NULL) 
+					{	
+						tapeMsg->m_serviceName = "";
+					}
+					if(tapeMsg->m_localIp == NULL) 
+					{	
+						tapeMsg->m_localIp = "";
+					}
+					if(tapeMsg->m_localMac == NULL) 
+					{	
+						tapeMsg->m_localMac = "";
+					}
+					if(tapeMsg->m_remoteIp == NULL) 
+					{	
+						tapeMsg->m_remoteIp = "";
+					}
+					if(tapeMsg->m_remoteMac == NULL) 
+					{	
+						tapeMsg->m_remoteMac = "";
+					}
+					if(tapeMsg->m_nativeCallId == NULL) 
+					{	
+						tapeMsg->m_nativeCallId = "";
+					}
+					if(tapeMsg->m_onDemand == NULL) 
+					{	
+						tapeMsg->m_onDemand = false;
 					}
 
 					msgAsSingleLineString.Format("%s\r\n", message->SerializeSingleLine());
