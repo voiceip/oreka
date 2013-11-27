@@ -162,6 +162,8 @@ public:
 	bool m_rtpS1S2MappingDeterministic;
 	bool m_localPartyAddLocalIp;
 	bool m_rtpLogAllSsrc;
+	int m_udpStreamPort;
+	bool m_udpListenerMode;
 };
 
 //========================================

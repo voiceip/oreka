@@ -34,6 +34,8 @@
 #include "ace/Thread_Manager.h"
 #include "ace/Thread_Mutex.h"
 #include "ace/Thread_Semaphore.h"
+#include "ace/SOCK_Dgram.h"
+#include "ace/INET_Addr.h"
 #include "AudioCapturePlugin.h"
 #include "AudioCapturePluginCommon.h"
 #include "Utils.h"
@@ -3584,11 +3586,14 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	}
 	int ipHeaderLength = ipHeader->ip_hl*4;
 	u_char* ipPacketEnd = (u_char*)ipHeader + ntohs(ipHeader->ip_len);
-	u_char* captureEnd = (u_char*)pkt_data + header->caplen; 
-	if( captureEnd < (u_char*)ipPacketEnd  || (u_char*)ipPacketEnd <= ((u_char*)ipHeader + ipHeaderLength + TCP_HEADER_LENGTH))
+	if(DLLCONFIG.m_udpListenerMode == false)
 	{
-		// The packet has been snipped or has not enough payload, drop it,
-		return;
+		u_char* captureEnd = (u_char*)pkt_data + header->caplen;
+		if( captureEnd < (u_char*)ipPacketEnd  || (u_char*)ipPacketEnd <= ((u_char*)ipHeader + ipHeaderLength + TCP_HEADER_LENGTH))
+		{
+			// The packet has been snipped or has not enough payload, drop it,
+			return;
+		}
 	}
 
 //#ifdef WIN32
@@ -3794,6 +3799,37 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 	}
 }
 
+
+void UdpListenerThread()
+{
+	CStdString listenedPort;
+	listenedPort.Format("127.0.0.1:%d", DLLCONFIG.m_udpStreamPort);
+	ACE_INET_Addr updPort(listenedPort);
+	ACE_SOCK_Dgram updDgram;
+	ACE_INET_Addr remote;
+	ACE_Time_Value timeout;
+	timeout.set(0,1052);
+	unsigned char frameBuffer[3000];
+
+	if (updDgram.open(updPort) == -1)
+	{
+		return;
+	}
+
+	struct pcap_pkthdr* pcap_headerPtr ;
+	u_char* param;
+	size_t rev = 0;
+	bool stop = false;
+	while(stop != true)
+	{
+		memset(frameBuffer, 0, 3000);
+		if(rev = updDgram.recv(frameBuffer,2048,remote,0,&timeout) != -1 )
+		{
+			HandlePacket(param, pcap_headerPtr, frameBuffer);
+		}
+
+	}
+}
 
 //=======================================================
 VoIp::VoIp()
@@ -4346,11 +4382,21 @@ void VoIp::Run()
 {
 	s_replayThreadCounter = m_pcapHandles.size();
 
-	for(std::list<pcap_t*>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
+	if(DLLCONFIG.m_udpListenerMode == true)
 	{
-		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(SingleDeviceCaptureThreadHandler), *it, THR_DETACHED))
+		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(UdpListenerThread), NULL, THR_DETACHED))
 		{
-			LOG4CXX_INFO(s_packetLog, CStdString("Failed to create pcap capture thread"));
+					LOG4CXX_INFO(s_packetLog, CStdString("Failed to start udp listener thread"));
+		}
+	}
+	else
+	{
+		for(std::list<pcap_t*>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
+		{
+			if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(SingleDeviceCaptureThreadHandler), *it, THR_DETACHED))
+			{
+				LOG4CXX_INFO(s_packetLog, CStdString("Failed to create pcap capture thread"));
+			}
 		}
 	}
 }
