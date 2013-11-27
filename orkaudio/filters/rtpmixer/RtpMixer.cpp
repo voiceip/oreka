@@ -648,7 +648,19 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk, unsigned int correctedT
 	// 1. Silence from write pointer until end of RTP packet
 	// Doing this also will help us determine the offset at the channel's circular
 	// buffer at which we should write - for stereo recording
-	unsigned int endRtpTimestamp = correctedTimestamp + audioChunk->GetNumSamples();
+	unsigned int endRtpTimestamp;	
+	unsigned long long endRtpTimestamp64 = correctedTimestamp + audioChunk->GetNumSamples();
+	if(endRtpTimestamp64 >= 2^32)
+	{
+		debug.Format("[%s] dismissed chunk with RTP timestamp that wraps, s%d seq:%u ts:%u corr-ts:%u",m_trackingId, details->m_channel, details->m_sequenceNumber, details->m_timestamp, correctedTimestamp);
+		LOG4CXX_DEBUG(m_log, debug);
+		return;
+	}
+	else
+	{
+		endRtpTimestamp = (unsigned int)endRtpTimestamp64;
+	}	
+
 	if (endRtpTimestamp > m_writeTimestamp)
 	{
 		for(unsigned int i=0; i<(endRtpTimestamp - m_writeTimestamp); i++)
