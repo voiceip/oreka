@@ -1493,6 +1493,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 
 	m_numRtpPackets++;
+	m_lastUpdated = rtpPacket->m_arrivalTimestamp;
 
 	bool hasSourceAddress = m_rtpAddressList.HasAddressOrAdd(rtpPacket->m_sourceIp, rtpPacket->m_sourcePort);
 	bool hasDestAddress = m_rtpAddressList.HasAddressOrAdd(rtpPacket->m_destIp, rtpPacket->m_destPort);
@@ -1561,7 +1562,6 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		chunk->SetBuffer(rtpPacket->m_payload, details);
 		g_audioChunkCallBack(chunk, m_capturePort);
 
-		m_lastUpdated = rtpPacket->m_arrivalTimestamp;
 	}
 	return true;
 }
