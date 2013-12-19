@@ -40,10 +40,6 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_skinnyLastCallInfoTime = m_creationDate;
 	m_sipLastInvite = m_creationDate;
 	m_log = Logger::getLogger("rtpsession");
-	m_invitorIp.s_addr = 0;
-	m_invitorTcpPort = 0;
-	m_inviteeIp.s_addr = 0;
-	m_inviteeTcpPort = 0;
 	m_direction = CaptureEvent::DirUnkn;
 	m_localSide = CaptureEvent::LocalSideUnkn;
 	m_protocol = ProtUnkn;
@@ -492,11 +488,11 @@ void RtpSession::ProcessMetadataSipIncoming()
 		m_localPartyName = m_localParty;
 	}
 
+	m_localIp = m_invite->m_receiverIp;
+	m_remoteIp = m_invite->m_senderIp;
 	m_capturePort = m_trackingId;
-	m_localIp = m_inviteeIp;
-	m_remoteIp = m_invitorIp;
-	memcpy(m_localMac, m_inviteeMac, sizeof(m_localMac));
-	memcpy(m_remoteMac, m_invitorMac, sizeof(m_remoteMac));
+	memcpy(m_localMac, m_invite->m_receiverMac, sizeof(m_localMac));
+	memcpy(m_remoteMac, m_invite->m_senderMac, sizeof(m_remoteMac));
 }
 
 void RtpSession::ProcessMetadataSipOutgoing()
@@ -527,11 +523,11 @@ void RtpSession::ProcessMetadataSipOutgoing()
 		m_localPartyName = m_localParty;
 	}
 
+	m_localIp = m_invite->m_senderIp;
+	m_remoteIp = m_invite->m_receiverIp;
 	m_capturePort = m_trackingId;
-	m_localIp = m_invitorIp;
-	m_remoteIp = m_inviteeIp;
-	memcpy(m_localMac, m_invitorMac, sizeof(m_localMac));
-	memcpy(m_remoteMac, m_inviteeMac, sizeof(m_remoteMac));
+	memcpy(m_localMac, m_invite->m_senderMac, sizeof(m_localMac));
+	memcpy(m_remoteMac, m_invite->m_receiverMac, sizeof(m_remoteMac));
 }
 
 void RtpSession::UpdateMetadataSkinny()
@@ -706,30 +702,6 @@ bool RtpSession::MatchesReferenceAddresses(struct in_addr inAddr)
 
 void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 {
-	// work out invitee media IP address
-	if((unsigned int)rtpPacket->m_sourceIp.s_addr == (unsigned int)m_invitorIp.s_addr)
-	{
-		m_inviteeIp = rtpPacket->m_destIp;
-		m_inviteeTcpPort = rtpPacket->m_destPort;
-		m_invitorTcpPort = rtpPacket->m_sourcePort;
-		memcpy(m_inviteeMac, rtpPacket->m_destMac, sizeof(m_inviteeMac));
-	}
-	else if((unsigned int)rtpPacket->m_destIp.s_addr == (unsigned int)m_invitorIp.s_addr)
-	{
-		m_inviteeIp = rtpPacket->m_sourceIp;
-		m_inviteeTcpPort = rtpPacket->m_sourcePort;
-		m_invitorTcpPort = rtpPacket->m_destPort;
-		memcpy(m_inviteeMac, rtpPacket->m_sourceMac, sizeof(m_inviteeMac));
-	}
-	else
-	{
-		m_inviteeIp = rtpPacket->m_sourceIp;
-		m_inviteeTcpPort = rtpPacket->m_sourcePort;
-		m_invitorTcpPort = rtpPacket->m_destPort;
-		memcpy(m_inviteeMac, rtpPacket->m_sourceMac, sizeof(m_inviteeMac));
-		LOG4CXX_WARN(m_log,  "[" + m_trackingId + "] " + m_ipAndPort + " alien RTP packet");
-	}
-
 	if(m_sipDialedNumber.length() != 0)
 	{
 		ProcessMetadataSipOutgoing();
@@ -1658,8 +1630,6 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	if(m_invite.get() == NULL)
 	{
 		m_invite = invite;
-		m_invitorIp = invite->m_fromRtpIp;
-		memcpy(m_invitorMac, invite->m_senderMac, sizeof(m_invitorMac));
 	}
 	else
 	{
@@ -2781,7 +2751,7 @@ RtpSessionRef RtpSessions::SipfindNewestBySenderIp(struct in_addr receiverIpAddr
 	{
 		RtpSessionRef tmpSession = pair->second;
 
-		if((unsigned int)tmpSession->m_invitorIp.s_addr == (unsigned int)receiverIpAddr.s_addr)
+		if((unsigned int)tmpSession->m_invite->m_senderIp.s_addr == (unsigned int)receiverIpAddr.s_addr)
 		{
 			if(session.get())
 			{
