@@ -300,7 +300,6 @@ public:
 	unsigned int m_rtpNumMissingPkts;
 	unsigned int m_rtpNumSeqGaps;
 
-	struct in_addr m_invitorIp;
 	struct in_addr m_endPointIp;		// only used for Skinny
 	unsigned short m_endPointSignallingPort;	// so far only used for Skinny
 	int m_skinnyPassThruPartyId;
@@ -341,11 +340,6 @@ private:
 	RtpPacketInfoRef m_lastRtpPacketSide1;
 	RtpPacketInfoRef m_lastRtpPacketSide2;
 	//RtpRingBuffer m_rtpRingBuffer;
-	int m_invitorTcpPort;
-	struct in_addr m_inviteeIp;
-	int m_inviteeTcpPort;
-	char m_invitorMac[6];
-	char m_inviteeMac[6];
 	struct in_addr m_localIp;
 	struct in_addr m_remoteIp;
 	char m_localMac[6];

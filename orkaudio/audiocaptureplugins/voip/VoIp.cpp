@@ -2926,8 +2926,16 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 				info->m_fromRtpIp = ipHeader->ip_src;
 			}
 		}
-		info->m_senderIp = ipHeader->ip_src;
-		info->m_receiverIp = ipHeader->ip_dest;
+		if(sipMethod == SIP_METHOD_200_OK)
+		{
+			info->m_senderIp = ipHeader->ip_dest;
+			info->m_receiverIp = ipHeader->ip_src;
+		}
+		else
+		{
+			info->m_senderIp = ipHeader->ip_src;
+			info->m_receiverIp = ipHeader->ip_dest;
+		}
 		info->m_recvTime = time(NULL);
 		memcpy(info->m_senderMac, ethernetHeader->sourceMac, sizeof(info->m_senderMac));
 		memcpy(info->m_receiverMac, ethernetHeader->destinationMac, sizeof(info->m_receiverMac));
