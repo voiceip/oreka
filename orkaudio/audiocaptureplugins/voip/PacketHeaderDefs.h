@@ -471,6 +471,16 @@ struct Iax2MetaTrunkEntryTs {
 #define SIP_RESPONSE_SESSION_PROGRESS "SIP/2.0 183 Session Progress"
 #define SIP_RESPONSE_302_MOVED_TEMPORARILY "SIP/2.0 302 Moved Temporarily"
 
+//==============================================
+#pragma pack(push,1)	// avoid padded bytes at the end of the struct
+typedef struct {
+	unsigned short protocol;	//htons(0xbeef);
+	unsigned char version;		//htons(0x01);
+	unsigned int seq;
+	unsigned short totalPacketLength;
+} OrkEncapsulationStruct;
+#pragma pack(pop)
+
 #endif
 
 

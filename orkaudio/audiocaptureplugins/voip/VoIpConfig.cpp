@@ -114,7 +114,8 @@ VoIpConfig::VoIpConfig()
 	m_rtpS1S2MappingDeterministic = false;
 	m_localPartyAddLocalIp = false;
 	m_rtpLogAllSsrc = false;
-	m_udpListenerMode = false;
+	m_orekaEncapsulationMode = false;
+	m_orekaEncapsulationPort = 10002;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -232,8 +233,9 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("RtpS1S2MappingDeterministic", m_rtpS1S2MappingDeterministic);
 	s->BoolValue("LocalPartyAddLocalIp", m_localPartyAddLocalIp);
 	s->BoolValue("RtpLogAllSsrc", m_rtpLogAllSsrc);
-	s->IntValue("UdpStreamPort", m_udpStreamPort);
-	s->BoolValue("UdpListenerMode", m_udpListenerMode);
+	s->IntValue("OrekaEncapsulationPort", m_orekaEncapsulationPort);
+	s->StringValue("OrekaEncapsulationHost", m_orekaEncapsulationHost);
+	s->BoolValue("OrekaEncapsulationMode", m_orekaEncapsulationMode);
 }
 
 void VoIpConfig::Validate()

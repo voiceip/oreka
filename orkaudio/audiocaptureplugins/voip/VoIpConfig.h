@@ -162,8 +162,9 @@ public:
 	bool m_rtpS1S2MappingDeterministic;
 	bool m_localPartyAddLocalIp;
 	bool m_rtpLogAllSsrc;
-	int m_udpStreamPort;
-	bool m_udpListenerMode;
+	bool m_orekaEncapsulationMode;
+	int m_orekaEncapsulationPort;
+	CStdString m_orekaEncapsulationHost;
 };
 
 //========================================

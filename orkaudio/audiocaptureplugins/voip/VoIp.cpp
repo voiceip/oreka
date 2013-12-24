@@ -36,6 +36,8 @@
 #include "ace/Thread_Semaphore.h"
 #include "ace/SOCK_Dgram.h"
 #include "ace/INET_Addr.h"
+#include "ace/Acceptor.h"
+#include "ace/SOCK_Acceptor.h"
 #include "AudioCapturePlugin.h"
 #include "AudioCapturePluginCommon.h"
 #include "Utils.h"
@@ -78,6 +80,10 @@ static unsigned int s_minPacketsPerSecond;
 static unsigned int s_maxPacketsPerSecond;
 static std::list<SipTcpStreamRef> s_SipTcpStreams;
 static unsigned short utf[256];		//UTF-8 encoding table (partial)
+static unsigned int s_udpCounter;
+static unsigned int s_numLostUdpPacketsInUdpMode;
+static unsigned int s_tcpCounter;
+static unsigned int s_numLostTcpPacketsInUdpMode;
 
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
@@ -128,7 +134,19 @@ private:
 };
 
 typedef ACE_Singleton<VoIp, ACE_Thread_Mutex> VoIpSingleton;
+//=========================================================
+class VoipTcpStream : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>
+{
+public:
+	virtual int open (void *);
+	/** daemon thread */
+	static void run(void *args);
+	/** service routine */
+	virtual int svc (void);
+private:
 
+};
+typedef ACE_Acceptor<VoipTcpStream, ACE_SOCK_ACCEPTOR> VoipTcpStreamListener;
 //=========================================================
 // Convert a piece of memory to hex string
 void memToHex(unsigned char* input, size_t len, CStdString&output)
@@ -3567,6 +3585,13 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 		CStdString logMsg;
 		logMsg.Format("numPackets:%u maxPPS:%u minPPS:%u", s_numPackets, s_maxPacketsPerSecond, s_minPacketsPerSecond);
 		LOG4CXX_INFO(s_packetStatsLog, logMsg);
+		if(DLLCONFIG.m_orekaEncapsulationMode == true)
+		{
+			logMsg.Format("udplistener-dropped:%d tcplistener-dropped:%d", s_numLostUdpPacketsInUdpMode, s_numLostTcpPacketsInUdpMode);
+			LOG4CXX_INFO(s_packetStatsLog, logMsg);
+			s_numLostUdpPacketsInUdpMode = 0;
+//			s_numLostTcpPacketsInUdpMode = 0;
+		}
 		s_numPackets = 0;
 		s_maxPacketsPerSecond = 0;
 		s_minPacketsPerSecond = 0;
@@ -3594,7 +3619,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	}
 	int ipHeaderLength = ipHeader->ip_hl*4;
 	u_char* ipPacketEnd = (u_char*)ipHeader + ntohs(ipHeader->ip_len);
-	if(DLLCONFIG.m_udpListenerMode == false)
+	if(DLLCONFIG.m_orekaEncapsulationMode == false)
 	{
 		u_char* captureEnd = (u_char*)pkt_data + header->caplen;
 		if( captureEnd < (u_char*)ipPacketEnd  || (u_char*)ipPacketEnd <= ((u_char*)ipHeader + ipHeaderLength + TCP_HEADER_LENGTH))
@@ -3810,14 +3835,22 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 
 void UdpListenerThread()
 {
-	CStdString listenedPort;
-	listenedPort.Format("127.0.0.1:%d", DLLCONFIG.m_udpStreamPort);
-	ACE_INET_Addr updPort(listenedPort);
+	CStdString logMsg;
+	ACE_INET_Addr updPort;
+	if(DLLCONFIG.m_orekaEncapsulationHost.length() > 0)
+	{
+		updPort.set(DLLCONFIG.m_orekaEncapsulationPort, DLLCONFIG.m_orekaEncapsulationHost);
+	}
+	else
+	{
+		updPort.set(DLLCONFIG.m_orekaEncapsulationPort);
+	}
+
 	ACE_SOCK_Dgram updDgram;
 	ACE_INET_Addr remote;
 	ACE_Time_Value timeout;
 	timeout.set(0,1052);
-	unsigned char frameBuffer[3000];
+	unsigned char frameBuffer[2048];
 
 	if (updDgram.open(updPort) == -1)
 	{
@@ -3830,10 +3863,25 @@ void UdpListenerThread()
 	bool stop = false;
 	while(stop != true)
 	{
-		memset(frameBuffer, 0, 3000);
+		memset(frameBuffer, 0, 2048);
 		if(rev = updDgram.recv(frameBuffer,2048,remote,0,&timeout) != -1 )
 		{
-			HandlePacket(param, pcap_headerPtr, frameBuffer);
+			OrkEncapsulationStruct* orkEncapsulationStruct = (OrkEncapsulationStruct*)frameBuffer;
+			if(ntohs(orkEncapsulationStruct->protocol) == 0xbeef && orkEncapsulationStruct->version == 0x01)
+			{
+				unsigned int counter = ntohl(orkEncapsulationStruct->seq);
+				if(counter > s_udpCounter)
+				{
+					s_numLostUdpPacketsInUdpMode += counter - s_udpCounter - 1;
+				}
+				s_udpCounter = counter;
+				HandlePacket(param, pcap_headerPtr, frameBuffer + sizeof(OrkEncapsulationStruct));		
+			}
+			else
+			{
+				LOG4CXX_ERROR(s_packetLog, "udplistener got alien packet");
+			}
+			
 		}
 
 	}
@@ -4390,11 +4438,15 @@ void VoIp::Run()
 {
 	s_replayThreadCounter = m_pcapHandles.size();
 
-	if(DLLCONFIG.m_udpListenerMode == true)
+	if(DLLCONFIG.m_orekaEncapsulationMode == true)
 	{
 		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(UdpListenerThread), NULL, THR_DETACHED))
 		{
-					LOG4CXX_INFO(s_packetLog, CStdString("Failed to start udp listener thread"));
+					LOG4CXX_INFO(s_packetLog, CStdString("Failed to start udplistener thread"));
+		}
+		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(VoipTcpStream::run), NULL, THR_DETACHED))
+		{
+					LOG4CXX_INFO(s_packetLog, CStdString("Failed to start tcplistener thread"));
 		}
 	}
 	else
@@ -4503,7 +4555,142 @@ void VoIp::GetConnectionStatus(CStdString& msg)
 {
 	msg = "unknown";
 }
+//================================================================================
+// This is run at the start of each connection
+int VoipTcpStream::open (void *void_acceptor)
+{
+	return this->activate (THR_DETACHED);
+}
 
+// This is run at program initialization
+void VoipTcpStream::run(void* args)
+{
+	VoipTcpStreamListener peer_acceptor;
+	ACE_INET_Addr addr;
+	if(DLLCONFIG.m_orekaEncapsulationHost.length() > 0)
+	{
+		addr.set((DLLCONFIG.m_orekaEncapsulationPort - 1), DLLCONFIG.m_orekaEncapsulationHost);
+	}
+	else
+	{
+		addr.set(DLLCONFIG.m_orekaEncapsulationPort - 1);
+	}
+
+	ACE_Reactor reactor;
+	CStdString tcpPortString = IntToString(DLLCONFIG.m_orekaEncapsulationPort - 1);
+
+	if (peer_acceptor.open (addr, &reactor) == -1)
+	{
+		LOG4CXX_ERROR(s_voipPluginLog, CStdString("Failed to open tcplistener on port:") + tcpPortString + CStdString(" do you have another instance of orkaudio running?"));
+	}
+	else
+	{
+		LOG4CXX_INFO(s_voipPluginLog, CStdString("Opened tcplistener on port:")+tcpPortString);
+		for(;;)
+		{
+			reactor.handle_events();
+		}
+	}
+}
+int VoipTcpStream::svc(void)
+{
+	CStdString logMsg;
+	unsigned char buf[4096];
+	buf[4096] = '\0';	// security
+	ACE_Time_Value timeout;
+	timeout.sec(10800);
+	bool stop =false;
+	unsigned char prot[2] = {0xbe, 0xef};
+	unsigned char orkEncapsulationHeader [sizeof(OrkEncapsulationStruct)];
+
+	while(stop == false)
+	{
+		memset(buf, 0, 4096);
+		//first try to see if this packet has our own OrkEncapsulation header
+		//Reading first 2 bytes
+		memset(orkEncapsulationHeader, 0, sizeof(OrkEncapsulationStruct));
+		ssize_t size = peer().recv(buf, 1, &timeout);
+		if(size == 1)
+		{
+			if(buf[0] == prot[0])
+			{
+				orkEncapsulationHeader[0] = buf[0];
+				size = peer().recv(&buf[1], 1, &timeout);
+				if(size == 1)
+				{
+					if(buf[1] == prot[1])		//we are sure its our packet now
+					{
+						orkEncapsulationHeader[1] = buf[1];
+						size = peer().recv(&buf[2], sizeof(OrkEncapsulationStruct) - 2, &timeout);
+						if(size == (sizeof(OrkEncapsulationStruct) - 2))
+						{
+							memcpy(&orkEncapsulationHeader[2], &buf[2], sizeof(OrkEncapsulationStruct) - 2);
+							OrkEncapsulationStruct* orkEncapsulationStruct = (OrkEncapsulationStruct*)orkEncapsulationHeader;
+							unsigned int counter = ntohl(orkEncapsulationStruct->seq);
+							if(counter > s_tcpCounter)
+							{
+								s_numLostTcpPacketsInUdpMode += counter - s_tcpCounter - 1;
+							}
+							s_tcpCounter = counter;
+							//now read the actual packetpayload
+							if(ntohs(orkEncapsulationStruct->totalPacketLength) > (4096 -sizeof(OrkEncapsulationStruct)))
+							{
+								logMsg.Format("tcplistener skips overlimit payload length:%d", ntohs(orkEncapsulationStruct->totalPacketLength));
+								LOG4CXX_ERROR(s_packetLog, logMsg);
+								continue;
+							}
+							size = peer().recv(&buf[sizeof(OrkEncapsulationStruct)], ntohs(orkEncapsulationStruct->totalPacketLength), &timeout);
+							if(size == ntohs(orkEncapsulationStruct->totalPacketLength))
+							{
+								struct pcap_pkthdr* pcap_headerPtr ;
+								u_char* param;
+								HandlePacket(param, pcap_headerPtr, &buf[sizeof(OrkEncapsulationStruct)]);
+							}
+							else if(size == 0)
+							{
+					
+							}
+							else
+							{
+								logMsg.Format("tcplistener returned error:%d", size);
+								LOG4CXX_ERROR(s_packetLog, logMsg);
+							}
+						}
+						else if(size == 0)
+						{
+					
+						}
+						else
+						{
+							logMsg.Format("tcplistener returned error:%d", size);
+							LOG4CXX_ERROR(s_packetLog, logMsg);
+						}
+					}
+				}
+				else if(size == 0)
+				{
+
+				}
+				else
+				{
+//					logMsg.Format("tcplistener returned error:%d", size);
+//					LOG4CXX_ERROR(s_packetLog, logMsg);
+				}
+			}
+		}
+		else if(size == 0)
+		{
+//			stop = true;
+		}
+		else
+		{
+//			logMsg.Format("tcplistener returned error:%d", size);
+//			LOG4CXX_ERROR(s_packetLog, logMsg);
+		}
+	}
+	return 0;
+}
+//================================================================================
 void __CDECL__ Initialize()
 {
 	VoIpSingleton::instance()->Initialize();
