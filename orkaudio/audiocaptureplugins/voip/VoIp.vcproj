@@ -378,6 +378,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SipUdp.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SipUdp.h"
+				>
+			</File>
+			<File
 				RelativePath="VoIp.cpp"
 				>
 				<FileConfiguration
