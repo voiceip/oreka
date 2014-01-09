@@ -116,6 +116,7 @@ VoIpConfig::VoIpConfig()
 	m_rtpLogAllSsrc = false;
 	m_orekaEncapsulationMode = false;
 	m_orekaEncapsulationPort = 10002;
+	m_sipUdpReassembleFragments = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -236,6 +237,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("OrekaEncapsulationPort", m_orekaEncapsulationPort);
 	s->StringValue("OrekaEncapsulationHost", m_orekaEncapsulationHost);
 	s->BoolValue("OrekaEncapsulationMode", m_orekaEncapsulationMode);
+	s->BoolValue("SipUdpReassembleFragments", m_sipUdpReassembleFragments);
 }
 
 void VoIpConfig::Validate()
