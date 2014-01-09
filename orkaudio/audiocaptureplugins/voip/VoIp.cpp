@@ -2538,7 +2538,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 
 	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
 	char* sipEnd = (char*)udpPayload + sipLength;
-	if(sipLength < 3 || sipEnd > (char*)packetEnd && (IsFragmentedUdpPacket(ipHeader) == false))
+	if(sipLength < 3 || sipEnd > (char*)packetEnd)
 	{
 		drop = true;	// packet too short
 	}
@@ -3016,7 +3016,7 @@ void ProcessFragmentedUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderSt
 	if(udpStream->m_isFragmentsWillFollow == true)
 	{
 		logMsg.Format("Packet which has ip's id:%d is fragmented", ntohs(ipHeader->ip_id));
-		LOG4CXX_DEBUG(s_packetLog, logMsg);
+		LOG4CXX_INFO(s_packetLog, logMsg);
 
 		int ipHeaderLength = ipHeader->ip_hl*4;
 		UdpHeaderStruct* udpHeader = (UdpHeaderStruct*)((unsigned char *)ipHeader + ipHeaderLength);
@@ -3777,10 +3777,13 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	if(ipHeader->ip_p == IPPROTO_UDP)
 	{
 		//Verify if this udp packet is fragmented
-		if(IsFragmentedUdpPacket(ipHeader))
+		if(DLLCONFIG.m_sipUdpReassembleFragments == true)
 		{
-			ProcessFragmentedUdpPacket(ethernetHeader, ipHeader);		//if this packet is fragmented, ProcessFragmentedUdpPacket() will do the job, no need to go further
-			return;
+			if(IsFragmentedUdpPacket(ipHeader))
+			{
+				ProcessFragmentedUdpPacket(ethernetHeader, ipHeader);		//if this packet is fragmented, ProcessFragmentedUdpPacket() will do the job, no need to go further
+				return;
+			}
 		}
 		DetectUsefulUdpPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd);
 	}

@@ -165,6 +165,7 @@ public:
 	bool m_orekaEncapsulationMode;
 	int m_orekaEncapsulationPort;
 	CStdString m_orekaEncapsulationHost;
+	bool m_sipUdpReassembleFragments;
 };
 
 //========================================
