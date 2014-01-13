@@ -993,6 +993,13 @@ void RtpSession::RecordRtpEvent(int channel)
 	g_captureEventCallBack(event, m_capturePort);
 
 	LOG4CXX_INFO(m_log, "[" + m_trackingId + "] RTP DTMF event [ " + dtmfEventString + " ]");
+	CStdString dtmfReportingString;
+	dtmfReportingString.Format("%d&offsetmsec=%d", m_currentRtpEvent, msDiff);
+	event.reset(new CaptureEvent());
+	event->m_type = CaptureEvent::EtKeyValue;
+	event->m_key = "dtmfdigit";
+	event->m_value = dtmfReportingString;
+	g_captureEventCallBack(event, m_capturePort);
 }
 
 void RtpSession::GoOnHold(time_t onHoldTime)
