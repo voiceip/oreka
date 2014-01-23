@@ -75,7 +75,7 @@ int CommandLineServer::svc(void)
 
 		// Display prompt
 		char prompt[] = "\r\n>";
-		peer().send(prompt, 3);
+		peer().send(prompt, 3, MSG_NOSIGNAL);
 
 		// Get one command line
 		bool foundCRLF = false;
@@ -105,17 +105,17 @@ int CommandLineServer::svc(void)
 								objRef->DeSerializeSingleLine(command);
 								ObjectRef response = objRef->Process();
 								CStdString responseString = response->SerializeSingleLine();
-								peer().send((PCSTR)responseString, responseString.GetLength());
+								peer().send((PCSTR)responseString, responseString.GetLength(), MSG_NOSIGNAL);
 							}
 							else
 							{
 								CStdString error = "Unrecognized command";
-								peer().send(error, error.GetLength());							;
+								peer().send(error, error.GetLength(), MSG_NOSIGNAL);							;
 							}
 						}
 						catch (CStdString& e)
 						{
-							peer().send(e, e.GetLength());							;
+							peer().send(e, e.GetLength(), MSG_NOSIGNAL);							;
 						}
 					}
 				}
@@ -217,8 +217,8 @@ int HttpServer::svc(void)
 					CStdString pingResponse = DomSerializer::DomNodeToString(myDoc);
 
 					CStdString httpOk("HTTP/1.0 200 OK\r\nContent-type: text/xml\r\n\r\n");
-					peer().send(httpOk, httpOk.GetLength());
-					peer().send(pingResponse, pingResponse.GetLength());
+					peer().send(httpOk, httpOk.GetLength(), MSG_NOSIGNAL);
+					peer().send(pingResponse, pingResponse.GetLength(), MSG_NOSIGNAL);
 
 					myDoc->release();
 				}
@@ -233,18 +233,18 @@ int HttpServer::svc(void)
 		{
 			CStdString error("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nError\r\n");
 			error = error + e + "\r\n";
-			peer().send(error, error.GetLength());
+			peer().send(error, error.GetLength(), MSG_NOSIGNAL);
 		}
 		catch(const XMLException& e)
 		{
 			CStdString error("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nXML Error\r\n");
-			peer().send(error, error.GetLength());
+			peer().send(error, error.GetLength(), MSG_NOSIGNAL);
 		}
 	}
 	else
 	{
 		CStdString notFound("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nNot found\r\n");
-		peer().send(notFound, notFound.GetLength());
+		peer().send(notFound, notFound.GetLength(), MSG_NOSIGNAL);
 	}
 	return 0;
 }
@@ -295,7 +295,7 @@ int EventStreamingServer::svc(void)
 	if(size <= 5)
 	{
 		CStdString notFound("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nNot found\r\n");
-		peer().send(notFound, notFound.GetLength());
+		peer().send(notFound, notFound.GetLength(), MSG_NOSIGNAL);
 		return 0;
 	}
 
@@ -317,7 +317,7 @@ int EventStreamingServer::svc(void)
 		ACE_OS::gmtime_r(&now, &date);
 		rfc822Date.Format("Tue, %.2d Nov %.4d %.2d:%.2d:%.2d GMT", date.tm_mday, (date.tm_year+1900), date.tm_hour, date.tm_min, date.tm_sec);
 		header.Format("HTTP/1.1 200 OK\r\nLast-Modified:%s\r\nContent-Type:text/plain\r\n\r\n", rfc822Date);
-		peer().send(header, header.GetLength());
+		peer().send(header, header.GetLength(), MSG_NOSIGNAL);
 
 		time_t startTime = time(NULL);
 
@@ -341,83 +341,40 @@ int EventStreamingServer::svc(void)
 				if(message.get())
 				{
 					CStdString msgAsSingleLineString;
-					//Its not clear how this can happen, but sometime it can cause crash because of null in any tapemsg members
 					TapeMsg* tapeMsg = (TapeMsg*)message.get();
-					if(tapeMsg->m_localParty == NULL) 
-					{	
-						tapeMsg->m_localParty = "";
-					}
-					if(tapeMsg->m_recId == NULL) 
-					{	
-						tapeMsg->m_recId = "";
-					}
-					if(tapeMsg->m_stage == NULL) 
-					{	
-						tapeMsg->m_stage = "";
-					}
-					if(tapeMsg->m_timestamp == NULL) 
-					{	
-						tapeMsg->m_timestamp = time(NULL);
-					}
-					if(tapeMsg->m_fileName == NULL) 
-					{	
-						tapeMsg->m_fileName = "";
-					}
-					if(tapeMsg->m_capturePort == NULL) 
-					{	
-						tapeMsg->m_capturePort = "";
-					}
-					if(tapeMsg->m_localEntryPoint == NULL) 
-					{	
-						tapeMsg->m_localEntryPoint = "";
-					}
-					if(tapeMsg->m_remoteParty == NULL) 
-					{	
-						tapeMsg->m_remoteParty = "";
-					}
-					if(tapeMsg->m_direction == NULL) 
-					{	
-						tapeMsg->m_direction = "unknown";
-					}
-					if(tapeMsg->m_audioKeepDirection == NULL) 
-					{	
-						tapeMsg->m_audioKeepDirection = "both";
-					}
-					if(tapeMsg->m_duration == NULL) 
-					{	
-						tapeMsg->m_duration = 0;
-					}
-					if(tapeMsg->m_serviceName == NULL) 
-					{	
-						tapeMsg->m_serviceName = "";
-					}
-					if(tapeMsg->m_localIp == NULL) 
-					{	
-						tapeMsg->m_localIp = "";
-					}
-					if(tapeMsg->m_localMac == NULL) 
-					{	
-						tapeMsg->m_localMac = "";
-					}
-					if(tapeMsg->m_remoteIp == NULL) 
-					{	
-						tapeMsg->m_remoteIp = "";
-					}
-					if(tapeMsg->m_remoteMac == NULL) 
-					{	
-						tapeMsg->m_remoteMac = "";
-					}
-					if(tapeMsg->m_nativeCallId == NULL) 
-					{	
-						tapeMsg->m_nativeCallId = "";
-					}
-					if(tapeMsg->m_onDemand == NULL) 
-					{	
-						tapeMsg->m_onDemand = false;
-					}
+					//For unknown reason, singlelineserialization the message can cause crash since the pointer somehow got modified somewhere else
+					//This would lead to some pointed memory address become inaccessible
+					//To avoid this, we create a cloned local pointer
 
-					msgAsSingleLineString.Format("%s\r\n", message->SerializeSingleLine());
-					sendRes = peer().send(msgAsSingleLineString, msgAsSingleLineString.GetLength());
+//					msgAsSingleLineString.Format("%s\r\n", message->SerializeUrl());
+
+					TapeMsgRef cloneTape (new TapeMsg());
+					cloneTape->m_recId = tapeMsg->m_recId;
+					cloneTape->m_stage = tapeMsg->m_stage;
+					cloneTape->m_timestamp = tapeMsg->m_timestamp;
+					cloneTape->m_fileName = tapeMsg->m_fileName;
+					cloneTape->m_capturePort = tapeMsg->m_capturePort;
+					cloneTape->m_localParty = tapeMsg->m_localParty;
+					cloneTape->m_localEntryPoint = tapeMsg->m_localEntryPoint;
+					cloneTape->m_remoteParty = tapeMsg->m_remoteParty;
+					cloneTape->m_direction = tapeMsg->m_direction;
+					cloneTape->m_audioKeepDirection = tapeMsg->m_audioKeepDirection;
+					cloneTape->m_serviceName = tapeMsg->m_serviceName;
+					cloneTape->m_localIp = tapeMsg->m_localIp;
+					cloneTape->m_remoteIp = tapeMsg->m_remoteIp;
+					cloneTape->m_localMac = tapeMsg->m_localMac;
+					cloneTape->m_remoteMac = tapeMsg->m_remoteMac;
+					cloneTape->m_nativeCallId = tapeMsg->m_nativeCallId;
+					cloneTape->m_duration = tapeMsg->m_duration;
+					cloneTape->m_onDemand = tapeMsg->m_onDemand;
+					std::map<CStdString, CStdString>::iterator it;
+					for(it = tapeMsg->m_tags.begin(); it != tapeMsg->m_tags.end(); it++)
+					{
+						cloneTape->m_tags.insert(std::make_pair(it->first, it->second));
+					}
+					msgAsSingleLineString.Format("%s\r\n", cloneTape->SerializeSingleLine());
+
+					sendRes = peer().send(msgAsSingleLineString, msgAsSingleLineString.GetLength(), MSG_NOSIGNAL);
 					if(sendRes >= 0)
 					{
 						messagesSent += 1;
@@ -435,7 +392,7 @@ int EventStreamingServer::svc(void)
 		CStdString error("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nError\r\n");
 		error = error + e + "\r\n";
 		LOG4CXX_ERROR(s_log, e);
-		peer().send(error, error.GetLength());
+		peer().send(error, error.GetLength(), MSG_NOSIGNAL);
 	}
 
 	return 0;
