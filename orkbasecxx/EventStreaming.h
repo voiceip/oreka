@@ -25,6 +25,7 @@
 #include "CapturePluginProxy.h"
 #include "AudioTape.h"
 #include "dll.h"
+#include "messages/AddTagMsg.h"
 
 //==========================================================
 
@@ -34,6 +35,7 @@ public:
 	EventStreamingSession();
 
 	void AddTapeMessage(MessageRef& message);
+	void AddAddTagMessage(MessageRef& message);
 	void GetTapeMessage(MessageRef& message);
 	int GetNumMessages();
 	void WaitForMessages();
@@ -57,6 +59,7 @@ public:
 	int GetNumSessions();
 	CStdString GetNewSessionId();
 	void AddTapeMessage(MessageRef& message);
+	void AddAddTagMessage(MessageRef& message);
 
 private:
 	AlphaCounter m_alphaCounter;
