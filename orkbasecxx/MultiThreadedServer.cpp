@@ -341,38 +341,7 @@ int EventStreamingServer::svc(void)
 				if(message.get())
 				{
 					CStdString msgAsSingleLineString;
-					TapeMsg* tapeMsg = (TapeMsg*)message.get();
-					//For unknown reason, singlelineserialization the message can cause crash since the pointer somehow got modified somewhere else
-					//This would lead to some pointed memory address become inaccessible
-					//To avoid this, we create a cloned local pointer
-
-//					msgAsSingleLineString.Format("%s\r\n", message->SerializeUrl());
-
-					TapeMsgRef cloneTape (new TapeMsg());
-					cloneTape->m_recId = tapeMsg->m_recId;
-					cloneTape->m_stage = tapeMsg->m_stage;
-					cloneTape->m_timestamp = tapeMsg->m_timestamp;
-					cloneTape->m_fileName = tapeMsg->m_fileName;
-					cloneTape->m_capturePort = tapeMsg->m_capturePort;
-					cloneTape->m_localParty = tapeMsg->m_localParty;
-					cloneTape->m_localEntryPoint = tapeMsg->m_localEntryPoint;
-					cloneTape->m_remoteParty = tapeMsg->m_remoteParty;
-					cloneTape->m_direction = tapeMsg->m_direction;
-					cloneTape->m_audioKeepDirection = tapeMsg->m_audioKeepDirection;
-					cloneTape->m_serviceName = tapeMsg->m_serviceName;
-					cloneTape->m_localIp = tapeMsg->m_localIp;
-					cloneTape->m_remoteIp = tapeMsg->m_remoteIp;
-					cloneTape->m_localMac = tapeMsg->m_localMac;
-					cloneTape->m_remoteMac = tapeMsg->m_remoteMac;
-					cloneTape->m_nativeCallId = tapeMsg->m_nativeCallId;
-					cloneTape->m_duration = tapeMsg->m_duration;
-					cloneTape->m_onDemand = tapeMsg->m_onDemand;
-					std::map<CStdString, CStdString>::iterator it;
-					for(it = tapeMsg->m_tags.begin(); it != tapeMsg->m_tags.end(); it++)
-					{
-						cloneTape->m_tags.insert(std::make_pair(it->first, it->second));
-					}
-					msgAsSingleLineString.Format("%s\r\n", cloneTape->SerializeSingleLine());
+					msgAsSingleLineString.Format("%s\r\n", message->SerializeUrl());
 
 					sendRes = peer().send(msgAsSingleLineString, msgAsSingleLineString.GetLength(), MSG_NOSIGNAL);
 					if(sendRes >= 0)
