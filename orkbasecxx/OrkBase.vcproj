@@ -1047,6 +1047,14 @@
 				Name="Messages"
 				>
 				<File
+					RelativePath=".\messages\AddTagMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\messages\AddTagMsg.h"
+					>
+				</File>
+				<File
 					RelativePath="Messages\AsyncMessage.cpp"
 					>
 					<FileConfiguration
