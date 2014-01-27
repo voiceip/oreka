@@ -23,10 +23,12 @@
 #include "serializers/DomSerializer.h"
 #include "serializers/UrlSerializer.h"
 #include "Utils.h"
-
 #include "MultiThreadedServer.h"
-
 #include "EventStreaming.h"
+
+#if !defined(MSG_NOSIGNAL)
+#define MSG_NOSIGNAL 0
+#endif
 
 log4cxx::LoggerPtr CommandLineServer::s_log;
 
