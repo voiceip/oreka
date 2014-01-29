@@ -343,7 +343,7 @@ int EventStreamingServer::svc(void)
 				if(message.get())
 				{
 					CStdString msgAsSingleLineString;
-					msgAsSingleLineString.Format("%s\r\n", message->SerializeUrl());
+					msgAsSingleLineString = message->SerializeUrl() + "\r\n";
 
 					sendRes = peer().send(msgAsSingleLineString, msgAsSingleLineString.GetLength(), MSG_NOSIGNAL);
 					if(sendRes >= 0)
