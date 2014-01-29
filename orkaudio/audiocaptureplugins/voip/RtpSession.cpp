@@ -985,8 +985,8 @@ void RtpSession::RecordRtpEvent(int channel)
 	timeDiff = timeNow - beginTime;
 	msDiff = (timeDiff.sec() * 1000) + (timeDiff.usec() / 1000);
 
-	dtmfEventString.Format("event:%d timestamp:%d duration:%d volume:%d seqno:%d offsetms:%d channel:%d", m_currentRtpEvent, m_currentRtpEventTs, m_currentDtmfDuration, m_currentDtmfVolume, m_currentSeqNo, msDiff, channel);
-	dtmfEventKey.Format("RtpDtmfEvent_%d", m_currentRtpEventTs);
+	dtmfEventString.Format("event:%d timestamp:%u duration:%d volume:%d seqno:%d offsetms:%d channel:%d", m_currentRtpEvent, m_currentRtpEventTs, m_currentDtmfDuration, m_currentDtmfVolume, m_currentSeqNo, msDiff, channel);
+	dtmfEventKey.Format("RtpDtmfEvent_%u", m_currentRtpEventTs);
 	event->m_type = CaptureEvent::EtKeyValue;
 	event->m_key = dtmfEventKey;
 	event->m_value = dtmfEventString;
@@ -1052,45 +1052,53 @@ void RtpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket, int channel)
 		LOG4CXX_DEBUG(m_log, logMsg);
 	}
 
-	if((m_currentRtpEvent != 65535) && (m_currentRtpEvent != rtpEventInfo->m_event))
-	{
-		RecordRtpEvent(channel);
-	}
-	else if(rtpEventInfo->m_end)
-	{
-		if((m_currentRtpEvent != 65535))
-		{
-			m_currentDtmfDuration = rtpEventInfo->m_duration;
-			m_currentDtmfVolume = rtpEventInfo->m_volume;
-			m_currentRtpEventTs = rtpEventInfo->m_startTimestamp;
-			m_currentSeqNo = rtpPacket->m_seqNum;
-
-			if(m_lastEventEndSeqNo != rtpPacket->m_seqNum)
-			{
-				RecordRtpEvent(channel);
-				m_lastEventEndSeqNo = rtpPacket->m_seqNum;
-			}
-
-			m_currentRtpEvent = 65535;
-		}
-
-		rtpEventInfo->m_event = 65535;
-		rtpEventInfo->m_duration = 0;
-	}
-	else if((m_currentRtpEvent != 65535) && m_currentDtmfDuration && (rtpEventInfo->m_duration < m_currentDtmfDuration))
-	{
-		RecordRtpEvent(channel);
-	}
-
-	if(!rtpEventInfo->m_end)
+	if(m_currentRtpEventTs != rtpEventInfo->m_startTimestamp)
 	{
 		m_currentRtpEvent = rtpEventInfo->m_event;
+		m_currentDtmfDuration = rtpEventInfo->m_duration;
+		m_currentDtmfVolume = rtpEventInfo->m_volume;
+		m_currentRtpEventTs = rtpEventInfo->m_startTimestamp;
+		m_currentSeqNo = rtpPacket->m_seqNum;
+		RecordRtpEvent(channel);
 	}
 
-	m_currentDtmfDuration = rtpEventInfo->m_duration;
-	m_currentDtmfVolume = rtpEventInfo->m_volume;
-	m_currentRtpEventTs = rtpEventInfo->m_startTimestamp;
-	m_currentSeqNo = rtpPacket->m_seqNum;
+
+//	if(m_currentRtpEvent != rtpEventInfo->m_event)
+//	{
+//		m_currentRtpEvent = rtpEventInfo->m_event;
+//		RecordRtpEvent(channel);
+//	}
+//	else if(rtpEventInfo->m_end)
+//	{
+//		if((m_currentRtpEvent != 65535))
+//		{
+//			m_currentDtmfDuration = rtpEventInfo->m_duration;
+//			m_currentDtmfVolume = rtpEventInfo->m_volume;
+//			m_currentRtpEventTs = rtpEventInfo->m_startTimestamp;
+//			m_currentSeqNo = rtpPacket->m_seqNum;
+//
+//			if(m_lastEventEndSeqNo != rtpPacket->m_seqNum)
+//			{
+//				RecordRtpEvent(channel);
+//				m_lastEventEndSeqNo = rtpPacket->m_seqNum;
+//			}
+//
+//			m_currentRtpEvent = 65535;
+//		}
+//
+//		rtpEventInfo->m_event = 65535;
+//		rtpEventInfo->m_duration = 0;
+//	}
+//	else if((m_currentRtpEvent != 65535) && m_currentDtmfDuration && (rtpEventInfo->m_duration < m_currentDtmfDuration))
+//	{
+//		RecordRtpEvent(channel);
+//	}
+//
+//	if(!rtpEventInfo->m_end)
+//	{
+//		m_currentRtpEvent = rtpEventInfo->m_event;
+//	}
+
 
 	return;
 }
