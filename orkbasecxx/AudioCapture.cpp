@@ -287,6 +287,7 @@ CaptureEvent::CaptureEvent()
 {
 	m_timestamp = 0;
 	m_type = EtUnknown;
+	m_offsetMs = 0;
 }
 
 CStdString CaptureEvent::DirectionToShortString(int direction)

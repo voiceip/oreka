@@ -558,6 +558,10 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		// Store or update the tags
 		if(eventRef->m_type == CaptureEvent::EtKeyValue && eventRef->m_value.size() > 0 && eventRef->m_key.size() > 0)
 		{
+			if(CONFIG.m_dtmfReportingDetailed == false && eventRef->m_key.CompareNoCase("dtmfdigit") == 0)
+			{
+				return;
+			}
 			std::map<CStdString,CStdString>::iterator i = m_tags.find(eventRef->m_key);
 
 			if(i == m_tags.end())

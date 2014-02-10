@@ -985,20 +985,23 @@ void RtpSession::RecordRtpEvent(int channel)
 	timeDiff = timeNow - beginTime;
 	msDiff = (timeDiff.sec() * 1000) + (timeDiff.usec() / 1000);
 
-	dtmfEventString.Format("event:%d timestamp:%u duration:%d volume:%d seqno:%d offsetms:%d channel:%d", m_currentRtpEvent, m_currentRtpEventTs, m_currentDtmfDuration, m_currentDtmfVolume, m_currentSeqNo, msDiff, channel);
-	dtmfEventKey.Format("RtpDtmfEvent_%u", m_currentRtpEventTs);
-	event->m_type = CaptureEvent::EtKeyValue;
-	event->m_key = dtmfEventKey;
-	event->m_value = dtmfEventString;
-	g_captureEventCallBack(event, m_capturePort);
-
-	LOG4CXX_INFO(m_log, "[" + m_trackingId + "] RTP DTMF event [ " + dtmfEventString + " ]");
-	CStdString dtmfReportingString;
-	dtmfReportingString.Format("%d&offsetmsec=%d", m_currentRtpEvent, msDiff);
+	if(CONFIG.m_dtmfReportingDetailed == true)
+	{
+		dtmfEventString.Format("event:%d timestamp:%u duration:%d volume:%d seqno:%d offsetms:%d channel:%d", m_currentRtpEvent, m_currentRtpEventTs, m_currentDtmfDuration, m_currentDtmfVolume, m_currentSeqNo, msDiff, channel);
+		dtmfEventKey.Format("RtpDtmfEvent_%u", m_currentRtpEventTs);
+		event->m_type = CaptureEvent::EtKeyValue;
+		event->m_key = dtmfEventKey;
+		event->m_value = dtmfEventString;
+		g_captureEventCallBack(event, m_capturePort);
+		LOG4CXX_INFO(m_log, "[" + m_trackingId + "] RTP DTMF event [ " + dtmfEventString + " ]");
+	}
+	CStdString dtmfEvent;
+	dtmfEvent.Format("%d", m_currentRtpEvent);
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtKeyValue;
 	event->m_key = "dtmfdigit";
-	event->m_value = dtmfReportingString;
+	event->m_value = dtmfEvent;
+	event->m_offsetMs = msDiff;
 	g_captureEventCallBack(event, m_capturePort);
 }
 

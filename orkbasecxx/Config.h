@@ -147,6 +147,7 @@
 #define DIRECTION_LOOKBACK_PARAM "DirectionLookBack"
 #define DIRECTION_LOOKBACK_DEFAULT true
 #define SPEEX_PAYLOAD_TYPES "SpeexPayloadTypes"
+#define DTMF_REPORTING_DETAILED false;
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -235,6 +236,7 @@ public:
 	bool m_directionLookBack;
 	std::list<CStdString> m_speexPayloadTypes;
 	int m_remotePartyMaxDigits;
+	bool m_dtmfReportingDetailed;
 
 private:
 	log4cxx::LoggerPtr m_log;
