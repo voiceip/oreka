@@ -216,6 +216,7 @@ public:
 	static int EventTypeToEnum(CStdString&);
 	
 	time_t m_timestamp;
+	int m_offsetMs;
 	EventTypeEnum m_type;
 	CStdString m_key;
 	CStdString m_value;
