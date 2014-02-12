@@ -955,6 +955,16 @@ void RtpSession::ReportMetadata()
 	event->m_value = m_callId;
 	g_captureEventCallBack(event, m_capturePort);
 
+	if(m_onDemand == true)
+	{
+		// Report ondemand status
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtKeyValue;
+		event->m_key  = CStdString("ondemand");
+		event->m_value = CStdString("true");
+		g_captureEventCallBack(event, m_capturePort);
+	}
+
 	// Report extracted fields
 	for(std::map<CStdString, CStdString>::iterator pair = m_tags.begin(); pair != m_tags.end(); pair++)
 	{
@@ -1862,6 +1872,7 @@ CStdString RtpSession::GetOrkUid()
 void RtpSession::MarkAsOnDemand(CStdString& side)
 {
 	// Report direction
+	m_onDemand = true;
 	if(m_started == true)
 	{
 		CaptureEventRef event(new CaptureEvent());
