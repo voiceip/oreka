@@ -1943,7 +1943,14 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 		return;
 	}
 
-	int rtpPortAsInt = StringToInt(invite->m_fromRtpPort);
+	char* errorLocation = NULL;
+	PCSTR szRtpPort = (PCSTR)(invite->m_fromRtpPort);
+	int rtpPortAsInt = strtol(szRtpPort, &errorLocation, 10);
+	if(*errorLocation != '\0')
+	{
+		rtpPortAsInt = 0;
+	}
+
 	unsigned short rtpPort = 0;
 	if(rtpPortAsInt>0 && rtpPortAsInt<65535)
 	{
