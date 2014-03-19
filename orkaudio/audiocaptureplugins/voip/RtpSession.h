@@ -266,6 +266,7 @@ public:
 	bool Stopped();
 	RtpPacketInfoRef GetLastRtpPacket();
 	void SkinnyTrackConferencesTransfers(CStdString callId, CStdString capturePort);
+	bool IsMatchedLocalOrRemoteIp(struct in_addr ip);
 
 	CStdString m_capturePort;
 	CStdString m_trackingId;
@@ -418,6 +419,7 @@ public:
 	typedef enum {UrlStartState, UrlKeyState, UrlValueState, UrlErrorState} UrlState;
 	void UnEscapeUrl(CStdString& in, CStdString& out);
 	void UrlExtraction(CStdString& input, struct in_addr* endpointIp);
+	void ReportOnDemandMarkerByIp(struct in_addr endpointIp);
 
 private:
 	void CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort);

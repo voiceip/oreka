@@ -1924,6 +1924,16 @@ void RtpSession::SkinnyTrackConferencesTransfers(CStdString callId, CStdString c
 
 }
 
+bool RtpSession::IsMatchedLocalOrRemoteIp(struct in_addr ip)
+{
+	if(ip.s_addr == m_localIp.s_addr || ip.s_addr == m_remoteIp.s_addr)
+	{
+		return true;
+	}
+	else
+		return false;
+}
+
 //=====================================================================
 RtpSessions::RtpSessions()
 {
@@ -3988,6 +3998,46 @@ void RtpSessions::UrlExtraction(CStdString& input, struct in_addr* endpointIp)
 				value.Empty();
 			}
 		}
+	}
+
+}
+
+void RtpSessions::ReportOnDemandMarkerByIp(struct in_addr endpointIp)
+{
+	RtpSessionRef session, chosenSession;
+	std::list<RtpSessionRef> sessionsOnIp;
+	std::map<unsigned long long, RtpSessionRef>::iterator it;
+	for(it = m_byIpAndPort.begin(); it != m_byIpAndPort.end(); it++)
+	{
+		session = it->second;
+		if(session.get() != NULL)
+		{
+			if(session->IsMatchedLocalOrRemoteIp(endpointIp) == true && session->m_numRtpPackets > 0)
+			{
+				sessionsOnIp.push_back(session);
+			}
+		}
+	}
+
+	std::list<RtpSessionRef>::iterator it2;
+	time_t latestRtp = 0;
+	for(it2 = sessionsOnIp.begin(); it2 != sessionsOnIp.end(); it2++)
+	{
+		session = (*it2);
+		if(session.get() != NULL)
+		{
+			if(session->m_lastUpdated > latestRtp)
+			{
+				latestRtp = session->m_lastUpdated;
+				chosenSession = session;
+			}
+		}
+	}
+	if(chosenSession.get() != NULL)
+	{
+		chosenSession->m_keepRtp = true;
+		CStdString side = "both";
+		chosenSession->MarkAsOnDemand(side);
 	}
 
 }

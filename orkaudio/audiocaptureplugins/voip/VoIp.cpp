@@ -3562,9 +3562,11 @@ void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 
 void DetectUsefulTcpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd)
 {
+	bool detectedUsefulPacket = false;
 	TcpHeaderStruct* tcpHeader = (TcpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
 	if(ntohs(tcpHeader->source) == DLLCONFIG.m_skinnyTcpPort || ntohs(tcpHeader->dest) == DLLCONFIG.m_skinnyTcpPort)
 	{
+		detectedUsefulPacket = true;
 		u_char* startTcpPayload = (u_char*)tcpHeader + (tcpHeader->off * 4);
 		SkinnyHeaderStruct* skinnyHeader = (SkinnyHeaderStruct*)(startTcpPayload);
 
@@ -3594,9 +3596,9 @@ void DetectUsefulTcpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 	{
 		//CStdString tcpSeq;
 		//memToHex((unsigned char *)&tcpHeader->seq, 4, tcpSeq);
-		TrySipTcp(ethernetHeader, ipHeader, tcpHeader);
+		detectedUsefulPacket = TrySipTcp(ethernetHeader, ipHeader, tcpHeader);
 	}
-	if(DLLCONFIG.m_urlExtractorEnable == true && ntohs(tcpHeader->dest) == DLLCONFIG.m_urlExtractorPort)
+	if(!detectedUsefulPacket && DLLCONFIG.m_urlExtractorEnable == true && ntohs(tcpHeader->dest) == DLLCONFIG.m_urlExtractorPort)
 	{
 		char* startTcpPayload = (char*)tcpHeader + (tcpHeader->off * 4);
 		int payloadLength = ntohs(ipHeader->ip_len) - (ipHeader->ip_hl*4) - TCP_HEADER_LENGTH;
@@ -3613,6 +3615,27 @@ void DetectUsefulTcpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 		else
 		{
 			RtpSessionsSingleton::instance()->UrlExtraction(urlString, &ipHeader->ip_dest);
+		}
+	}
+
+	if(!detectedUsefulPacket && DLLCONFIG.m_onDemandTcpMarkerKey.length() > 0)
+	{
+		char* startTcpPayload = (char*)tcpHeader + (tcpHeader->off * 4);
+		char* patternKey = memFindAfter(DLLCONFIG.m_onDemandTcpMarkerKey, startTcpPayload, (char*)ipPacketEnd);
+		if(patternKey != NULL)
+		{
+			if(DLLCONFIG.m_onDemandTcpMarkerValue.length() > 0)
+			{
+				char *patternValue = memFindAfter(DLLCONFIG.m_onDemandTcpMarkerValue, patternKey, (char*)ipPacketEnd);
+				if(patternValue != NULL)
+				{
+					RtpSessionsSingleton::instance()->ReportOnDemandMarkerByIp(ipHeader->ip_src);
+				}
+			}
+			else
+			{
+				RtpSessionsSingleton::instance()->ReportOnDemandMarkerByIp(ipHeader->ip_src);
+			}
 		}
 	}
 }

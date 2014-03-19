@@ -166,6 +166,8 @@ public:
 	int m_orekaEncapsulationPort;
 	CStdString m_orekaEncapsulationHost;
 	bool m_sipUdpReassembleFragments;
+	CStdString m_onDemandTcpMarkerKey;
+	CStdString m_onDemandTcpMarkerValue;
 };
 
 //========================================
