@@ -238,6 +238,8 @@ void VoIpConfig::Define(Serializer* s)
 	s->StringValue("OrekaEncapsulationHost", m_orekaEncapsulationHost);
 	s->BoolValue("OrekaEncapsulationMode", m_orekaEncapsulationMode);
 	s->BoolValue("SipUdpReassembleFragments", m_sipUdpReassembleFragments);
+	s->StringValue("OnDemandTcpMarkerKey", m_onDemandTcpMarkerKey);
+	s->StringValue("OnDemandTcpMarkerValue", m_onDemandTcpMarkerValue);
 }
 
 void VoIpConfig::Validate()
