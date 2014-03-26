@@ -4274,7 +4274,7 @@ void VoIp::OpenDevices()
 				{
 					defaultDevice =  device;
 				}
-				if((*DLLCONFIG.m_devices.begin()).CompareNoCase("all") == 0 || DLLCONFIG.IsDeviceWanted(device->name))
+				if((DLLCONFIG.m_devices.size() > 0 && (*DLLCONFIG.m_devices.begin()).CompareNoCase("all") == 0) || DLLCONFIG.IsDeviceWanted(device->name))
 				{
 					// Open device
 					m_pcapHandle = pcap_open_live(device->name, 1500, PROMISCUOUS, 500, errorBuf);
