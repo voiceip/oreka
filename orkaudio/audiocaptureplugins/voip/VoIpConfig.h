@@ -168,7 +168,6 @@ public:
 	bool m_sipUdpReassembleFragments;
 	CStdString m_onDemandTcpMarkerKey;
 	CStdString m_onDemandTcpMarkerValue;
-	CStdString m_onDemandMctDtmfMarkerKey;
 };
 
 //========================================

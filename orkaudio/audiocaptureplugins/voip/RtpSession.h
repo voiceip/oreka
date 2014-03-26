@@ -321,7 +321,6 @@ public:
 	unsigned int m_numAlienRtpPacketsS1;
 	unsigned int m_numAlienRtpPacketsS2;
 	unsigned int m_ssrcCandidate;
-	CStdString m_mctDtmfSeq;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
@@ -421,7 +420,6 @@ public:
 	void UnEscapeUrl(CStdString& in, CStdString& out);
 	void UrlExtraction(CStdString& input, struct in_addr* endpointIp);
 	void ReportOnDemandMarkerByIp(struct in_addr endpointIp);
-	void ReportOnDemandByMctDtmfSeq(CStdString digit, struct in_addr endpointIp);
 
 private:
 	void CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort);

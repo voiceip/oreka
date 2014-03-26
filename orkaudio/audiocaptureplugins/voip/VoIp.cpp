@@ -1709,40 +1709,6 @@ bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 	}
 	return result;
 }
-
-bool TrySipInfo(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
-{
-	bool result = false;
-
-	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
-	char* sipEnd = (char*)udpPayload + sipLength;
-	if(sipLength < (int)sizeof(SIP_METHOD_BYE) || sipEnd > (char*)packetEnd)
-	{
-		return false;
-	}
-
-	if (memcmp(SIP_INFO, (void*)udpPayload, SIP_INFO_SIZE) == 0)
-	{
-		result = true;
-		int sipLength = ntohs(udpHeader->len);
-		char* sipEnd = (char*)udpPayload + sipLength;
-
-		if(DLLCONFIG.m_onDemandMctDtmfMarkerKey.length() > 0)
-		{
-			CStdString signalStr, dtmfKey;
-			char* signal = memFindAfter("Signal=", (char*)udpPayload, (char*)sipEnd);
-			if(signal)
-			{
-				GrabTokenSkipLeadingWhitespaces(signal, sipEnd, signalStr);
-				RtpSessionsSingleton::instance()->ReportOnDemandByMctDtmfSeq(signalStr, ipHeader->ip_src);
-			}
-		}
-
-	}
-	return result;
-
-}
-
 bool IsFragmentedUdpPacket(IpHeaderStruct* ipHeader);
 void ProcessFragmentedUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader);
 bool TrySipSubscribe(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd);
@@ -3534,10 +3500,6 @@ void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 		}
 
 		if(!detectedUsefulPacket) {
-			detectedUsefulPacket = TrySipInfo(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
-		}
-
-		if(!detectedUsefulPacket) {
 			detectedUsefulPacket = TryLogFailedSip(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
 		}
 
@@ -4312,7 +4274,7 @@ void VoIp::OpenDevices()
 				{
 					defaultDevice =  device;
 				}
-				if((DLLCONFIG.m_devices.size() > 0 && (*DLLCONFIG.m_devices.begin()).CompareNoCase("all") == 0) || DLLCONFIG.IsDeviceWanted(device->name))
+				if((*DLLCONFIG.m_devices.begin()).CompareNoCase("all") == 0 || DLLCONFIG.IsDeviceWanted(device->name))
 				{
 					// Open device
 					m_pcapHandle = pcap_open_live(device->name, 1500, PROMISCUOUS, 500, errorBuf);

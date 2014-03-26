@@ -240,7 +240,6 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SipUdpReassembleFragments", m_sipUdpReassembleFragments);
 	s->StringValue("OnDemandTcpMarkerKey", m_onDemandTcpMarkerKey);
 	s->StringValue("OnDemandTcpMarkerValue", m_onDemandTcpMarkerValue);
-	s->StringValue("OnDemandMctDtmfMarkerKey", m_onDemandMctDtmfMarkerKey);
 }
 
 void VoIpConfig::Validate()
