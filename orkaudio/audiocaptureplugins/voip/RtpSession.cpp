@@ -4042,6 +4042,51 @@ void RtpSessions::ReportOnDemandMarkerByIp(struct in_addr endpointIp)
 
 }
 
+void RtpSessions::ReportOnDemandByMctDtmfSeq(CStdString digit, struct in_addr endpointIp)
+{
+	RtpSessionRef session, chosenSession;
+	std::list<RtpSessionRef> sessionsOnIp;
+	std::map<unsigned long long, RtpSessionRef>::iterator it;
+	for(it = m_byIpAndPort.begin(); it != m_byIpAndPort.end(); it++)
+	{
+		session = it->second;
+		if(session.get() != NULL)
+		{
+			if(session->IsMatchedLocalOrRemoteIp(endpointIp) == true && session->m_numRtpPackets > 0)
+			{
+				sessionsOnIp.push_back(session);
+			}
+		}
+	}
+
+	std::list<RtpSessionRef>::iterator it2;
+	time_t latestRtp = 0;
+	for(it2 = sessionsOnIp.begin(); it2 != sessionsOnIp.end(); it2++)
+	{
+		session = (*it2);
+		if(session.get() != NULL)
+		{
+			if(session->m_lastUpdated > latestRtp)
+			{
+				latestRtp = session->m_lastUpdated;
+				chosenSession = session;
+			}
+		}
+	}
+	if(chosenSession.get() != NULL)
+	{
+		chosenSession->m_mctDtmfSeq += digit;
+		if(chosenSession->m_mctDtmfSeq.find(DLLCONFIG.m_onDemandMctDtmfMarkerKey) != std::string::npos)
+		{
+			chosenSession->m_keepRtp = true;
+			CStdString side = "both";
+			chosenSession->MarkAsOnDemand(side);
+		}
+
+	}
+
+}
+
 void RtpSessions::StopAll()
 {
 	time_t forceExpiryTime = time(NULL) + 2*DLLCONFIG.m_rtpSessionOnHoldTimeOutSec;
