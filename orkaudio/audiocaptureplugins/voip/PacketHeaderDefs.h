@@ -460,6 +460,7 @@ struct Iax2MetaTrunkEntryTs {
 #define SIP_RESPONSE_200_OK_SIZE 11
 #define SIP_RESPONSE_SESSION_PROGRESS_SIZE 28
 #define SIP_RESPONSE_302_MOVED_TEMPORARILY_SIZE 29
+#define SIP_INFO_SIZE 4
 #define SIP_FIELD_LINE3 "Ind-DispLineN=3:Dsp:"
 #define SIP_METHOD_NOTIFY "NOTIFY"
 #define SIP_METHOD_SUBSCRIBE "SUBSCRIBE"
@@ -470,6 +471,7 @@ struct Iax2MetaTrunkEntryTs {
 #define SIP_RESPONSE_200_OK "SIP/2.0 200"
 #define SIP_RESPONSE_SESSION_PROGRESS "SIP/2.0 183 Session Progress"
 #define SIP_RESPONSE_302_MOVED_TEMPORARILY "SIP/2.0 302 Moved Temporarily"
+#define SIP_INFO "INFO"
 
 //==============================================
 #pragma pack(push,1)	// avoid padded bytes at the end of the struct
