@@ -1547,8 +1547,6 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 	if (memcmp(SIP_METHOD_BYE, (void*)udpPayload, SIP_METHOD_BYE_SIZE) == 0)
 	{
 		result = true;
-		int sipLength = ntohs(udpHeader->len);
-		char* sipEnd = (char*)udpPayload + sipLength;
 		SipByeInfoRef info(new SipByeInfo());
 
 		char* fromField = memFindAfter("From:", (char*)udpPayload, sipEnd);
@@ -1674,8 +1672,6 @@ bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 	if (memcmp(SIP_METHOD_NOTIFY, (void*)udpPayload, SIP_METHOD_NOTIFY_SIZE) == 0)
 	{
 		result = true;
-		int sipLength = ntohs(udpHeader->len);
-		char* sipEnd = (char*)udpPayload + sipLength;
 		SipNotifyInfoRef info(new SipNotifyInfo());
 		info->m_senderIp = ipHeader->ip_src;
 		info->m_receiverIp = ipHeader->ip_dest;
