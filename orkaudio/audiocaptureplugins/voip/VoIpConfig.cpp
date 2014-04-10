@@ -117,6 +117,7 @@ VoIpConfig::VoIpConfig()
 	m_orekaEncapsulationMode = false;
 	m_orekaEncapsulationPort = 10002;
 	m_sipUdpReassembleFragments = false;
+	m_sipInfoDtmfRfc2976Detect = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -240,6 +241,8 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SipUdpReassembleFragments", m_sipUdpReassembleFragments);
 	s->StringValue("OnDemandTcpMarkerKey", m_onDemandTcpMarkerKey);
 	s->StringValue("OnDemandTcpMarkerValue", m_onDemandTcpMarkerValue);
+	s->StringValue("OnDemandViaDtmfDigitsString", m_onDemandViaDtmfDigitsString);
+	s->BoolValue("SipInfoDtmfRfc2976Detect", m_sipInfoDtmfRfc2976Detect);
 }
 
 void VoIpConfig::Validate()

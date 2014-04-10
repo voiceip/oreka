@@ -63,11 +63,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_skinnyPassThruPartyId = 0;
 	memset(m_localMac, 0, sizeof(m_localMac));
 	memset(m_remoteMac, 0, sizeof(m_remoteMac));
-	m_currentRtpEvent = 65535;
-	m_lastEventEndSeqNo = 0;
-	m_currentDtmfDuration = 0;
 	m_currentRtpEventTs = 0;
-	m_currentDtmfVolume = 0;
 	m_rtcpLocalParty = false;
 	m_rtcpRemoteParty = false;
 	m_remotePartyReported = false;
@@ -981,8 +977,25 @@ void RtpSession::ReportMetadata()
 	g_captureEventCallBack(event, m_capturePort);
 }
 
-void RtpSession::RecordRtpEvent(int channel)
+void RtpSession::ReportDtmfDigit(int channel, CStdString digitValue,  unsigned int digitDuration, unsigned int digitVolume, unsigned int rtpEventTs, unsigned int rtpEventSeqNo)
 {
+	if(m_dtmfDigitString.length() > 100)
+	{
+		m_dtmfDigitString.clear();
+	}
+	m_dtmfDigitString += digitValue;
+	LOG4CXX_INFO(m_log, "[" + m_trackingId + "] DTMF event [ " + digitValue + " ]");
+	if(DLLCONFIG.m_onDemandViaDtmfDigitsString.length() > 0)
+	{
+		if(m_dtmfDigitString.find(DLLCONFIG.m_onDemandViaDtmfDigitsString) != std::string::npos)
+		{
+			m_keepRtp = true;
+			CStdString side = "both";
+			MarkAsOnDemand(side);
+		}
+	}
+
+	int rtpEvent = DtmfDigitToEnum(digitValue);
 	CaptureEventRef event(new CaptureEvent());
 	CStdString dtmfEventString, dtmfEventKey;
 	ACE_Time_Value timeNow;
@@ -997,20 +1010,19 @@ void RtpSession::RecordRtpEvent(int channel)
 
 	if(CONFIG.m_dtmfReportingDetailed == true)
 	{
-		dtmfEventString.Format("event:%d timestamp:%u duration:%d volume:%d seqno:%d offsetms:%d channel:%d", m_currentRtpEvent, m_currentRtpEventTs, m_currentDtmfDuration, m_currentDtmfVolume, m_currentSeqNo, msDiff, channel);
-		dtmfEventKey.Format("RtpDtmfEvent_%u", m_currentRtpEventTs);
+		dtmfEventString.Format("event:%d timestamp:%u duration:%d volume:%d seqno:%d offsetms:%d channel:%d", rtpEvent, rtpEventTs, digitDuration, digitVolume, rtpEventSeqNo, msDiff, channel);
+		dtmfEventKey.Format("RtpDtmfEvent_%u", rtpEventTs);
 		event->m_type = CaptureEvent::EtKeyValue;
 		event->m_key = dtmfEventKey;
 		event->m_value = dtmfEventString;
 		g_captureEventCallBack(event, m_capturePort);
 		LOG4CXX_INFO(m_log, "[" + m_trackingId + "] RTP DTMF event [ " + dtmfEventString + " ]");
 	}
-	CStdString dtmfEvent;
-	dtmfEvent.Format("%d", m_currentRtpEvent);
+
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtKeyValue;
 	event->m_key = "dtmfdigit";
-	event->m_value = dtmfEvent;
+	event->m_value = digitValue;
 	event->m_offsetMs = msDiff;
 	g_captureEventCallBack(event, m_capturePort);
 }
@@ -1067,51 +1079,8 @@ void RtpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket, int channel)
 
 	if(m_currentRtpEventTs != rtpEventInfo->m_startTimestamp)
 	{
-		m_currentRtpEvent = rtpEventInfo->m_event;
-		m_currentDtmfDuration = rtpEventInfo->m_duration;
-		m_currentDtmfVolume = rtpEventInfo->m_volume;
-		m_currentRtpEventTs = rtpEventInfo->m_startTimestamp;
-		m_currentSeqNo = rtpPacket->m_seqNum;
-		RecordRtpEvent(channel);
+		ReportDtmfDigit(channel, DtmfDigitToString(rtpEventInfo->m_event), rtpEventInfo->m_duration, rtpEventInfo->m_volume, rtpEventInfo->m_startTimestamp, rtpPacket->m_seqNum);
 	}
-
-
-//	if(m_currentRtpEvent != rtpEventInfo->m_event)
-//	{
-//		m_currentRtpEvent = rtpEventInfo->m_event;
-//		RecordRtpEvent(channel);
-//	}
-//	else if(rtpEventInfo->m_end)
-//	{
-//		if((m_currentRtpEvent != 65535))
-//		{
-//			m_currentDtmfDuration = rtpEventInfo->m_duration;
-//			m_currentDtmfVolume = rtpEventInfo->m_volume;
-//			m_currentRtpEventTs = rtpEventInfo->m_startTimestamp;
-//			m_currentSeqNo = rtpPacket->m_seqNum;
-//
-//			if(m_lastEventEndSeqNo != rtpPacket->m_seqNum)
-//			{
-//				RecordRtpEvent(channel);
-//				m_lastEventEndSeqNo = rtpPacket->m_seqNum;
-//			}
-//
-//			m_currentRtpEvent = 65535;
-//		}
-//
-//		rtpEventInfo->m_event = 65535;
-//		rtpEventInfo->m_duration = 0;
-//	}
-//	else if((m_currentRtpEvent != 65535) && m_currentDtmfDuration && (rtpEventInfo->m_duration < m_currentDtmfDuration))
-//	{
-//		RecordRtpEvent(channel);
-//	}
-//
-//	if(!rtpEventInfo->m_end)
-//	{
-//		m_currentRtpEvent = rtpEventInfo->m_event;
-//	}
-
 
 	return;
 }
@@ -1735,6 +1704,14 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	}
 }
 
+void RtpSession::ReportSipInfo(SipInfoRef& info)
+{
+	if(info->m_dtmfDigit.length() > 0 && DLLCONFIG.m_sipInfoDtmfRfc2976Detect == true)
+	{
+		ReportDtmfDigit(0, info->m_dtmfDigit, 0, 0, 0, 0);
+	}
+}
+
 void RtpSession::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
 {
 	CaptureEventRef event(new CaptureEvent());
@@ -2273,6 +2250,23 @@ void RtpSessions::ReportSipNotify(SipNotifyInfoRef& notify)
 	if(session.get())
 	{
 		session->ReportSipNotify(notify);
+	}
+}
+
+void RtpSessions::ReportSipInfo(SipInfoRef& info)
+{
+	RtpSessionRef session;
+	std::map<CStdString, RtpSessionRef>::iterator it;
+	for(it = m_byCallId.begin(); it != m_byCallId.end(); it++)
+	{
+		if((it->second->m_callId).CompareNoCase(info->m_callId) == 0)
+		{
+			session = it->second;
+		}
+	}
+	if(session.get() != NULL)
+	{
+		session->ReportSipInfo(info);
 	}
 }
 
@@ -4660,6 +4654,11 @@ SipNotifyInfo::SipNotifyInfo()
 {
 	m_senderIp.s_addr = 0;
 	m_receiverIp.s_addr = 0;
+}
+//================================================
+SipInfo::SipInfo()
+{
+
 }
 //================================================
 

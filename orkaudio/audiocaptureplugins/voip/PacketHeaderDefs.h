@@ -460,6 +460,7 @@ struct Iax2MetaTrunkEntryTs {
 #define SIP_RESPONSE_200_OK_SIZE 11
 #define SIP_RESPONSE_SESSION_PROGRESS_SIZE 28
 #define SIP_RESPONSE_302_MOVED_TEMPORARILY_SIZE 29
+#define SIP_INFO_SIZE 4
 #define SIP_FIELD_LINE3 "Ind-DispLineN=3:Dsp:"
 #define SIP_METHOD_NOTIFY "NOTIFY"
 #define SIP_METHOD_SUBSCRIBE "SUBSCRIBE"
@@ -470,7 +471,40 @@ struct Iax2MetaTrunkEntryTs {
 #define SIP_RESPONSE_200_OK "SIP/2.0 200"
 #define SIP_RESPONSE_SESSION_PROGRESS "SIP/2.0 183 Session Progress"
 #define SIP_RESPONSE_302_MOVED_TEMPORARILY "SIP/2.0 302 Moved Temporarily"
+#define SIP_METHOD_INFO "INFO"
+#define SIP_MEDTHOD_INFO_SIZE 4
 
+#define DTMF_DIGIT_ZERO "0"
+#define DTMF_DIGIT_ONE "1"
+#define DTMF_DIGIT_TWO "2"
+#define DTMF_DIGIT_THREE "3"
+#define DTMF_DIGIT_FOUR "4"
+#define DTMF_DIGIT_FIVE "5"
+#define DTMF_DIGIT_SIX "6"
+#define DTMF_DIGIT_SEVEN "7"
+#define DTMF_DIGIT_EIGHT "8"
+#define DTMF_DIGIT_NINE "9"
+#define DTMF_DIGIT_START "*"
+#define DTMF_DIGIT_SHARP "#"
+#define DTMF_DIGIT_UNKN "unknown"
+typedef enum{
+	DtmfDigitZero = 0,
+	DtmfDigitOne = 1,
+	DtmfDigitTwo = 2,
+	DtmfDigitThree = 3,
+	DtmfDigitFour = 4,
+	DtmfDigitFive = 5,
+	DtmfDigitSix = 6,
+	DtmfDigitSeven = 7,
+	DtmfDigitEight = 8,
+	DtmfDigitNine = 9,
+	DtmfDigitStart = 10,
+	DtmfDigitSharp = 11,
+	DtmfDigitUnknown = 12
+}DtmfDigitEnum;
+
+int DtmfDigitToEnum(CStdString& msg);
+CStdString DtmfDigitToString(int msgEnum);
 //==============================================
 #pragma pack(push,1)	// avoid padded bytes at the end of the struct
 typedef struct {

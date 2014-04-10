@@ -168,6 +168,8 @@ public:
 	bool m_sipUdpReassembleFragments;
 	CStdString m_onDemandTcpMarkerKey;
 	CStdString m_onDemandTcpMarkerValue;
+	bool m_sipInfoDtmfRfc2976Detect;
+	CStdString m_onDemandViaDtmfDigitsString;
 };
 
 //========================================
