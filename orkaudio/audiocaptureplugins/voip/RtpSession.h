@@ -184,6 +184,15 @@ public:
 };
 typedef boost::shared_ptr<SipSessionProgressInfo> SipSessionProgressInfoRef;
 
+class SipInfo
+{
+public:
+	SipInfo();
+	CStdString m_callId;
+	CStdString m_dtmfDigit;
+};
+typedef boost::shared_ptr<SipInfo> SipInfoRef;
+
 //===========================================================
 class UrlExtractionValue
 {
@@ -252,6 +261,7 @@ public:
 	void ReportSipBye(SipByeInfoRef& bye);
 	void ReportSipInvite(SipInviteInfoRef& invite);
 	void ReportSipErrorPacket(SipFailureMessageInfoRef& info);
+	void ReportSipInfo(SipInfoRef& info);
 	void ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo);
 	bool OrkUidMatches(CStdString &oUid);
 	bool PartyMatches(CStdString &party);
@@ -321,6 +331,7 @@ public:
 	unsigned int m_numAlienRtpPacketsS1;
 	unsigned int m_numAlienRtpPacketsS2;
 	unsigned int m_ssrcCandidate;
+	CStdString m_dtmfDigitString;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
@@ -332,7 +343,7 @@ private:
 	void ReportMetadata();
 	void GenerateOrkUid();
 	void HandleRtpEvent(RtpPacketInfoRef& rtpPacket, int channel);
-	void RecordRtpEvent(int channel);
+	void ReportDtmfDigit(int channel, CStdString digitValue,  unsigned int digitDuration, unsigned int digitVolume, unsigned int rtpEventTs, unsigned int rtpEventSeqNo);
 	bool MatchesSipDomain(CStdString& domain);
 	bool MatchesReferenceAddresses(struct in_addr inAddr);
 	bool IsInSkinnyReportingList(CStdString item);
@@ -360,12 +371,7 @@ private:
 	bool m_sessionTelephoneEventPtDefined;
 	CStdString m_telephoneEventPayloadType;
 
-	unsigned short m_currentRtpEvent;
 	unsigned int m_currentRtpEventTs;
-	unsigned int m_currentDtmfDuration;
-	unsigned int m_currentDtmfVolume;
-	unsigned int m_currentSeqNo;
-	unsigned int m_lastEventEndSeqNo;
 	bool m_mappedS1S2;
 	unsigned int m_ssrcCandidateTimestamp;
 	std::map<unsigned int, int> m_loggedSsrcMap;
@@ -401,6 +407,7 @@ public:
 	void ReportSip200Ok(Sip200OkInfoRef info);
 	void ReportSipSessionProgress(SipSessionProgressInfoRef& info);
 	void ReportSip302MovedTemporarily(Sip302MovedTemporarilyInfoRef& info);
+	void ReportSipInfo(SipInfoRef& info);
 	void Hoover(time_t now);
 	EndpointInfoRef GetEndpointInfoByIp(struct in_addr *ip);
 	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp, unsigned short skinnyPort);

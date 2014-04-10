@@ -1705,6 +1705,49 @@ bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 	}
 	return result;
 }
+
+bool TrySipInfo(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
+{
+	bool result = false;
+
+	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
+	char* sipEnd = (char*)udpPayload + sipLength;
+	if(sipLength < (int)sizeof(SIP_METHOD_INFO) || sipEnd > (char*)packetEnd)
+	{
+		return false;
+	}
+
+	if (memcmp(SIP_METHOD_INFO, (void*)udpPayload, SIP_INFO_SIZE) == 0)
+	{
+		result = true;
+
+		SipInfoRef info(new SipInfo());
+		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
+		if(!callIdField)
+		{
+			callIdField = memFindAfter("\ni:", (char*)udpPayload, sipEnd);
+		}
+		if(callIdField)
+		{
+			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
+		}
+		if(info->m_callId.length() < 1)
+		{
+			return true;
+		}
+		char* signalField = memFindAfter("Signal=", (char*)udpPayload, (char*)sipEnd);
+		if(signalField)
+		{
+			CStdString dtmfDigitStr;
+			GrabTokenSkipLeadingWhitespaces(signalField, sipEnd, info->m_dtmfDigit);
+		}
+
+		RtpSessionsSingleton::instance()->ReportSipInfo(info);
+	}
+	return result;
+
+}
+
 bool IsFragmentedUdpPacket(IpHeaderStruct* ipHeader);
 void ProcessFragmentedUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader);
 bool TrySipSubscribe(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd);
@@ -3493,6 +3536,10 @@ void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 
 		if(!detectedUsefulPacket) {
 			detectedUsefulPacket = TrySipBye(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+		}
+
+		if(!detectedUsefulPacket) {
+			detectedUsefulPacket = TrySipInfo(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
 		}
 
 		if(!detectedUsefulPacket) {
