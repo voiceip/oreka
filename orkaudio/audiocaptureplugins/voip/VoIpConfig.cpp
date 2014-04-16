@@ -76,7 +76,7 @@ VoIpConfig::VoIpConfig()
 	m_localPartyUseName = false;
 	m_partiesUseName = false;
 
-	m_skinnyIgnoreStopMediaTransmission = false;
+	m_skinnyIgnoreStopMediaTransmission = true;
 	m_skinnyIgnoreOpenReceiveChannelAck = false;
 	m_skinnyDynamicMediaAddress = true;
 	m_skinnyAllowCallInfoUpdate = true;
