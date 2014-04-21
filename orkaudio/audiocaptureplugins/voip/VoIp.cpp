@@ -1735,6 +1735,13 @@ bool TrySipInfo(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, 
 		{
 			return true;
 		}
+
+		char* cSeqField = memFindAfter("CSeq:", (char*)udpPayload, sipEnd);
+		if(cSeqField)
+		{
+			GrabTokenSkipLeadingWhitespaces(cSeqField, sipEnd, info->m_cSeq);
+		}
+
 		char* signalField = memFindAfter("Signal=", (char*)udpPayload, (char*)sipEnd);
 		if(signalField)
 		{
