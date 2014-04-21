@@ -190,6 +190,7 @@ public:
 	SipInfo();
 	CStdString m_callId;
 	CStdString m_dtmfDigit;
+	CStdString m_cSeq;
 };
 typedef boost::shared_ptr<SipInfo> SipInfoRef;
 
@@ -375,6 +376,7 @@ private:
 	bool m_mappedS1S2;
 	unsigned int m_ssrcCandidateTimestamp;
 	std::map<unsigned int, int> m_loggedSsrcMap;
+	SipInfoRef m_lastSipInfo;
 };
 typedef boost::shared_ptr<RtpSession> RtpSessionRef;
 

@@ -1706,6 +1706,12 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 
 void RtpSession::ReportSipInfo(SipInfoRef& info)
 {
+	if(m_lastSipInfo.get() != NULL && m_lastSipInfo->m_cSeq.CompareNoCase(info->m_cSeq) == 0)
+	{
+		return;
+	}
+
+	m_lastSipInfo = info;
 	if(info->m_dtmfDigit.length() > 0 && DLLCONFIG.m_sipInfoDtmfRfc2976Detect == true)
 	{
 		ReportDtmfDigit(0, info->m_dtmfDigit, 0, 0, 0, 0);
