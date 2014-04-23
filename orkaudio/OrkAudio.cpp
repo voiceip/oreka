@@ -201,6 +201,8 @@ void Transcode(CStdString &file)
 
 void MainThread()
 {
+	// Avoid program exit on broken pipe
+	ACE_OS::signal (SIGPIPE, (ACE_SignalHandler) SIG_IGN);
 	OrkLogManager::Instance()->Initialize();
 	LOG4CXX_INFO(LOG.rootLog, CStdString("\n\nOrkAudio service starting\n"));
 
