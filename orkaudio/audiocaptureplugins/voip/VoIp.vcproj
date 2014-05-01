@@ -248,6 +248,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Iax2Parsers.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Iax2Parsers.h"
+				>
+			</File>
+			<File
 				RelativePath="Iax2Session.cpp"
 				>
 				<FileConfiguration
@@ -297,6 +305,14 @@
 			</File>
 			<File
 				RelativePath="PacketHeaderDefs.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ParsingUtils.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ParsingUtils.h"
 				>
 			</File>
 			<File
@@ -352,6 +368,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SipHeaders.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SipHeaders.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SipParsers.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SipParsers.h"
+				>
+			</File>
+			<File
 				RelativePath="SipTcp.cpp"
 				>
 				<FileConfiguration
@@ -383,6 +415,14 @@
 			</File>
 			<File
 				RelativePath=".\SipUdp.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SkinnyParsers.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SkinnyParsers.h"
 				>
 			</File>
 			<File

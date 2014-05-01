@@ -19,7 +19,8 @@
 #include <map>
 #include "ace/Singleton.h"
 #include "PacketHeaderDefs.h"
-
+#include "AudioCapturePlugin.h"
+#include "AudioCapturePluginCommon.h"
 using namespace log4cxx;
 
 /* The frame types we're interested in */

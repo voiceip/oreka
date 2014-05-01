@@ -32,7 +32,7 @@ extern VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 
 #define CONFRC_TAG_KEY "orig-orkuid"
 
-RtpSession::RtpSession(CStdString& trackingId)
+VoIpSession::VoIpSession(CStdString& trackingId)
 {
 	m_trackingId = trackingId;
 	m_lastUpdated = time(NULL);
@@ -85,7 +85,7 @@ RtpSession::RtpSession(CStdString& trackingId)
 	m_mappedS1S2 =  false;
 }
 
-void RtpSession::Stop()
+void VoIpSession::Stop()
 {
 	CStdString logMsg;
 	logMsg.Format("[%s] %s Session stop, numRtpPkts:%d dupl:%d seqDelta:%d rtpNumMissingPkts:%d rtpNumSeqGaps:%d lastUpdated:%u", m_trackingId, m_capturePort, m_numRtpPackets, m_hasDuplicateRtp, m_highestRtpSeqNumDelta, m_rtpNumMissingPkts, m_rtpNumSeqGaps, m_lastUpdated);
@@ -104,7 +104,7 @@ void RtpSession::Stop()
 			{
 				EndpointInfoRef endpoint;
 
-				endpoint = RtpSessionsSingleton::instance()->GetEndpointInfoByIp(&m_lastRtpPacketSide1->m_sourceIp);
+				endpoint = VoIpSessionsSingleton::instance()->GetEndpointInfoByIp(&m_lastRtpPacketSide1->m_sourceIp);
 				if(endpoint.get())
 				{
 					m_localSide = CaptureEvent::LocalSideSide1;
@@ -129,7 +129,7 @@ void RtpSession::Stop()
 			{
 				EndpointInfoRef endpoint;
 
-				endpoint = RtpSessionsSingleton::instance()->GetEndpointInfoByIp(&m_lastRtpPacketSide2->m_sourceIp);
+				endpoint = VoIpSessionsSingleton::instance()->GetEndpointInfoByIp(&m_lastRtpPacketSide2->m_sourceIp);
 				if(endpoint.get())
 				{
 					if(m_localSide == CaptureEvent::LocalSideSide1)
@@ -147,10 +147,10 @@ void RtpSession::Stop()
 		if(DLLCONFIG.m_urlExtractorEnable == true)
 		{
 			EndpointInfoRef endpoint;
-			endpoint = RtpSessionsSingleton::instance()->GetEndpointInfo(m_localIp, 0);
+			endpoint = VoIpSessionsSingleton::instance()->GetEndpointInfo(m_localIp, 0);
 			if(!endpoint.get())
 			{
-				endpoint = RtpSessionsSingleton::instance()->GetEndpointInfo(m_remoteIp, 0);
+				endpoint = VoIpSessionsSingleton::instance()->GetEndpointInfo(m_remoteIp, 0);
 			}
 
 			if(endpoint.get())
@@ -185,17 +185,17 @@ void RtpSession::Stop()
 	}
 }
 
-bool RtpSession::Stopped()
+bool VoIpSession::Stopped()
 {
 	return m_stopped;
 }
 
-RtpPacketInfoRef RtpSession::GetLastRtpPacket()
+RtpPacketInfoRef VoIpSession::GetLastRtpPacket()
 {
 	return m_lastRtpPacket;
 }
 
-void RtpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo)
+void VoIpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo)
 {
 	if(!m_rtcpLocalParty)
 	{
@@ -216,11 +216,11 @@ void RtpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpI
 			m_localParty.Format("%s@%s", rtcpInfo->m_cnameUsername, realm);
 			CStdString lp;
 			lp = m_localParty;
-			m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(lp);
+			m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(lp);
 		}
 		else
 		{
-			m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(rtcpInfo->m_cnameUsername);
+			m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(rtcpInfo->m_cnameUsername);
 		}
 			
 		LOG4CXX_INFO(m_log, "[" + m_trackingId + "] Set local party to RTCP CNAME:" + m_localParty);
@@ -271,12 +271,12 @@ void RtpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpI
 
 			if(DLLCONFIG.m_inInMode == true)
 			{
-				m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(testParty);
+				m_remoteParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(testParty);
 			}
 			else
 			{
 				CStdString rp = rtcpInfo->m_cnameUsername;
-				m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(rp);
+				m_remoteParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(rp);
 			}
 
 			LOG4CXX_INFO(m_log, "[" + m_trackingId + "] Set remote party to RTCP CNAME:" + m_remoteParty);
@@ -292,7 +292,7 @@ void RtpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpI
 	}
 }
 
-void RtpSession::Start()
+void VoIpSession::Start()
 {
 	m_beginDate = time(NULL);
 	if(m_started == false)
@@ -314,7 +314,7 @@ void RtpSession::Start()
 	}
 }
 
-void RtpSession::GenerateOrkUid()
+void VoIpSession::GenerateOrkUid()
 {
 	struct tm date = {0};
 	ACE_OS::localtime_r(&m_beginDate, &date);
@@ -324,7 +324,7 @@ void RtpSession::GenerateOrkUid()
 }
 
 
-void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
+void VoIpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 {
 	bool sourceIsLocal = true;
 
@@ -384,13 +384,13 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 	                else
         	        {
 				CStdString lp(szSourceIp);
-                	        m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(lp);
+                	        m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(lp);
 	                }
 		}
 		if(!m_rtcpRemoteParty)
 		{
 			CStdString rp(szDestIp);
-			m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(rp);
+			m_remoteParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(rp);
 		}
 
 		m_localIp = rtpPacket->m_sourceIp;
@@ -411,13 +411,13 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 			else
 			{
 				CStdString lp(szDestIp);
-				m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(lp);
+				m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(lp);
 			}
 		}
 		if(!m_rtcpRemoteParty)
 		{
 			CStdString rp(szSourceIp);
-			m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(rp);
+			m_remoteParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(rp);
 		}
 
 		m_localIp = rtpPacket->m_destIp;
@@ -427,7 +427,7 @@ void RtpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 	}
 }
 
-bool RtpSession::MatchesSipDomain(CStdString& domain)
+bool VoIpSession::MatchesSipDomain(CStdString& domain)
 {
 	for(std::list<CStdString>::iterator it = DLLCONFIG.m_sipDomains.begin(); it != DLLCONFIG.m_sipDomains.end(); it++)
 	{
@@ -441,7 +441,7 @@ bool RtpSession::MatchesSipDomain(CStdString& domain)
 	return false;
 }
 
-bool RtpSession::IsInSkinnyReportingList(CStdString item)
+bool VoIpSession::IsInSkinnyReportingList(CStdString item)
 {
 	for(std::list<CStdString>::iterator it = DLLCONFIG.m_skinnyReportTags.begin(); it != DLLCONFIG.m_skinnyReportTags.end(); it++)
 	{
@@ -456,19 +456,19 @@ bool RtpSession::IsInSkinnyReportingList(CStdString item)
 	return false;
 }
 
-void RtpSession::ProcessMetadataSipIncoming()
+void VoIpSession::ProcessMetadataSipIncoming()
 {
 	if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0) && (m_invite->m_requestUri.length() != 0))
 	{
-		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_requestUri);
-		m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
+		m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_requestUri);
+		m_remoteParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
 		m_direction = CaptureEvent::DirIn;
 		m_localEntryPoint = m_invite->m_to;
 	}
 	else
 	{
-		m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
-		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_to);
+		m_remoteParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
+		m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_to);
 		m_direction = CaptureEvent::DirIn;
 	}
 
@@ -491,19 +491,19 @@ void RtpSession::ProcessMetadataSipIncoming()
 	memcpy(m_remoteMac, m_invite->m_senderMac, sizeof(m_remoteMac));
 }
 
-void RtpSession::ProcessMetadataSipOutgoing()
+void VoIpSession::ProcessMetadataSipOutgoing()
 {
 	if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0) && (m_invite->m_requestUri.length() != 0))
 	{
-		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_requestUri);
-		m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
+		m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_requestUri);
+		m_remoteParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
 		m_direction = CaptureEvent::DirIn;
 		m_localEntryPoint = m_invite->m_to;
 	}
 	else
 	{
-		m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_to);
-		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
+		m_remoteParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_to);
+		m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
 		m_direction = CaptureEvent::DirOut;
 	}
 
@@ -526,7 +526,7 @@ void RtpSession::ProcessMetadataSipOutgoing()
 	memcpy(m_remoteMac, m_invite->m_receiverMac, sizeof(m_remoteMac));
 }
 
-void RtpSession::UpdateMetadataSkinny()
+void VoIpSession::UpdateMetadataSkinny()
 {
 	// Report Local party
 	CaptureEventRef event(new CaptureEvent());
@@ -565,7 +565,7 @@ void RtpSession::UpdateMetadataSkinny()
 	g_captureEventCallBack(event, m_capturePort);
 }
 
-void RtpSession::UpdateMetadataSipOnRtpChange(RtpPacketInfoRef& rtpPacket, bool sourceRtpAddressIsNew)
+void VoIpSession::UpdateMetadataSipOnRtpChange(RtpPacketInfoRef& rtpPacket, bool sourceRtpAddressIsNew)
 {
 	// Find out if the new RTP packet could match one of the SIP invites associated with the session
 	SipInviteInfoRef invite;
@@ -601,15 +601,15 @@ void RtpSession::UpdateMetadataSipOnRtpChange(RtpPacketInfoRef& rtpPacket, bool 
 		// Update session metadata with INVITE info
 		if((DLLCONFIG.m_sipRequestUriAsLocalParty == true) && (m_invite->m_requestUri.CompareNoCase(m_invite->m_to) != 0))
 		{
-			m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_requestUri);
-			m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
+			m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_requestUri);
+			m_remoteParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(m_invite->m_from);
 			m_direction = CaptureEvent::DirIn;
 			m_localEntryPoint = m_invite->m_to;
 		}
 		else
 		{
-			m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_from);
-			m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_to);
+			m_remoteParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_from);
+			m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_to);
 		}
 
 		m_remotePartyName = m_invite->m_fromName;
@@ -691,12 +691,12 @@ void RtpSession::UpdateMetadataSipOnRtpChange(RtpPacketInfoRef& rtpPacket, bool 
 	}
 }
 
-bool RtpSession::MatchesReferenceAddresses(struct in_addr inAddr)
+bool VoIpSession::MatchesReferenceAddresses(struct in_addr inAddr)
 {
 	return DLLCONFIG.m_sipDirectionReferenceIpAddresses.Matches(inAddr);
 }
 
-void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
+void VoIpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 {
 	if(m_sipDialedNumber.length() != 0)
 	{
@@ -761,7 +761,7 @@ void RtpSession::ProcessMetadataSip(RtpPacketInfoRef& rtpPacket)
 
 }
 
-void RtpSession::ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket)
+void VoIpSession::ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket)
 {
 	//  In Skinny we always want the endpoint (phone) to be used as a local IP address
 	char szEndpointIp[16];
@@ -789,7 +789,7 @@ void RtpSession::ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket)
 }
 
 
-void RtpSession::ReportMetadata()
+void VoIpSession::ReportMetadata()
 {
 	char szLocalIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
@@ -799,17 +799,17 @@ void RtpSession::ReportMetadata()
 	if(DLLCONFIG.m_localPartyForceLocalIp)
 	{
 		CStdString lp(szLocalIp);
-		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(lp);
+		m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(lp);
 	}
 	// Check if we don't have the local party based on the endpoint IP address
 	else if(m_localParty.IsEmpty())
 	{
 		if(m_protocol == ProtSkinny)
 		{
-			EndpointInfoRef endpointInfo = RtpSessionsSingleton::instance()->GetEndpointInfo(m_endPointIp, m_endPointSignallingPort);
+			EndpointInfoRef endpointInfo = VoIpSessionsSingleton::instance()->GetEndpointInfo(m_endPointIp, m_endPointSignallingPort);
 			if(endpointInfo.get())
 			{
-				m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(endpointInfo->m_extension);
+				m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(endpointInfo->m_extension);
 			}
 		}
 	}
@@ -824,7 +824,7 @@ void RtpSession::ReportMetadata()
 		else
 		{
 			CStdString lp(szLocalIp);
-			m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(lp);
+			m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(lp);
 		}
 	}
 
@@ -832,7 +832,7 @@ void RtpSession::ReportMetadata()
 	{
 		m_localParty = "";
 		MemMacToHumanReadable((unsigned char*)m_localMac, m_localParty);
-		m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(m_localParty);
+		m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(m_localParty);
 	}
 
 	//If this session is Call Pick Up, then we revert the direction
@@ -977,7 +977,7 @@ void RtpSession::ReportMetadata()
 	g_captureEventCallBack(event, m_capturePort);
 }
 
-void RtpSession::ReportDtmfDigit(int channel, CStdString digitValue,  unsigned int digitDuration, unsigned int digitVolume, unsigned int rtpEventTs, unsigned int rtpEventSeqNo)
+void VoIpSession::ReportDtmfDigit(int channel, CStdString digitValue,  unsigned int digitDuration, unsigned int digitVolume, unsigned int rtpEventTs, unsigned int rtpEventSeqNo)
 {
 	if(m_dtmfDigitString.length() > 100)
 	{
@@ -1027,13 +1027,13 @@ void RtpSession::ReportDtmfDigit(int channel, CStdString digitValue,  unsigned i
 	g_captureEventCallBack(event, m_capturePort);
 }
 
-void RtpSession::GoOnHold(time_t onHoldTime)
+void VoIpSession::GoOnHold(time_t onHoldTime)
 {
 	m_onHold = true;
 	m_holdBegin = onHoldTime;
 }
 
-void RtpSession::GoOffHold(time_t offHoldTime)
+void VoIpSession::GoOffHold(time_t offHoldTime)
 {
 	m_onHold = false;
 	m_holdDuration += offHoldTime - m_holdBegin;
@@ -1049,7 +1049,7 @@ void RtpSession::GoOffHold(time_t offHoldTime)
 	}
 }
 
-void RtpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket, int channel)
+void VoIpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket, int channel)
 {
 	CStdString logMsg;
 
@@ -1086,7 +1086,7 @@ void RtpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket, int channel)
 }
 
 // Returns false if the packet does not belong to the session (RTP timestamp discontinuity)
-bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
+bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 {
 	CStdString logMsg;
 	unsigned char channel = 0;
@@ -1535,7 +1535,7 @@ bool RtpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	return true;
 }
 
-void RtpSession::ReportSipBye(SipByeInfoRef& bye)
+void VoIpSession::ReportSipBye(SipByeInfoRef& bye)
 {
 	CStdString byeString;
 	CStdString logMsg;
@@ -1552,13 +1552,13 @@ void RtpSession::ReportSipBye(SipByeInfoRef& bye)
 			if(m_remoteParty.CompareNoCase(bye->m_to) != 0)
 			{
 				// remoteparty is set to m_from
-				m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_to);
+				m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_to);
 				logMsg.Format("[%s] dahdiIntercept: reset localparty:%s from BYE:%s", m_trackingId, m_localParty, byeString);
 			}
 			else
 			{
 				// remoteparty is set to m_to
-				m_localParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_from);
+				m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_from);
 				logMsg.Format("[%s] dahdiIntercept: reset localparty:%s from BYE:%s", m_trackingId, m_localParty, byeString);
 			}
 
@@ -1572,19 +1572,19 @@ void RtpSession::ReportSipBye(SipByeInfoRef& bye)
 		{
 			CStdString translatedTo, translatedFrom;
 
-			translatedTo = RtpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_to);
-			translatedFrom = RtpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_from);
+			translatedTo = VoIpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_to);
+			translatedFrom = VoIpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_from);
 
 			if(m_localParty.CompareNoCase(translatedTo) != 0)
 			{
 				// localparty is set to m_from
-				m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_to);
+				m_remoteParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_to);
 				logMsg.Format("[%s] dahdiIntercept: reset remoteparty:%s from BYE:%s", m_trackingId, m_remoteParty, byeString);
 			}
 			else
 			{
 				// localparty is set to m_to
-				m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_from);
+				m_remoteParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(bye->m_from);
 				logMsg.Format("[%s] dahdiIntercept: reset remoteparty:%s from BYE:%s", m_trackingId, m_remoteParty, byeString);
 			}
 
@@ -1603,7 +1603,7 @@ void RtpSession::ReportSipBye(SipByeInfoRef& bye)
 	}
 }
 
-void RtpSession::ReportSipNotify(SipNotifyInfoRef& notify)
+void VoIpSession::ReportSipNotify(SipNotifyInfoRef& notify)
 {
 
 	if( notify->m_dsp != "")
@@ -1622,7 +1622,7 @@ void RtpSession::ReportSipNotify(SipNotifyInfoRef& notify)
 	}
 }
 
-void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
+void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 {
 	if(m_invite.get() == NULL)
 	{
@@ -1639,7 +1639,7 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	}
 	if(invite->m_from.CompareNoCase(invite->m_to) == 0 && invite->m_contact.length() > 0)
 	{
-		m_remoteParty = RtpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_contact);
+		m_remoteParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_contact);
 		m_direction = CaptureEvent::DirOut;
 
 		CaptureEventRef event(new CaptureEvent());
@@ -1704,7 +1704,7 @@ void RtpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	}
 }
 
-void RtpSession::ReportSipInfo(SipInfoRef& info)
+void VoIpSession::ReportSipInfo(SipInfoRef& info)
 {
 	if(m_lastSipInfo.get() != NULL && m_lastSipInfo->m_cSeq.CompareNoCase(info->m_cSeq) == 0)
 	{
@@ -1718,7 +1718,7 @@ void RtpSession::ReportSipInfo(SipInfoRef& info)
 	}
 }
 
-void RtpSession::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
+void VoIpSession::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
 {
 	CaptureEventRef event(new CaptureEvent());
 	event->m_type = CaptureEvent::EtKeyValue;
@@ -1727,7 +1727,7 @@ void RtpSession::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
 	g_captureEventCallBack(event, m_capturePort);
 }
 
-int RtpSession::ProtocolToEnum(CStdString& protocol)
+int VoIpSession::ProtocolToEnum(CStdString& protocol)
 {
 	int protocolEnum = ProtUnkn;
 	if(protocol.CompareNoCase(PROT_RAW_RTP) == 0)
@@ -1745,7 +1745,7 @@ int RtpSession::ProtocolToEnum(CStdString& protocol)
 	return protocolEnum;
 }
 
-CStdString RtpSession::ProtocolToString(int protocolEnum)
+CStdString VoIpSession::ProtocolToString(int protocolEnum)
 {
 	CStdString protocolString;
 	switch (protocolEnum)
@@ -1765,7 +1765,7 @@ CStdString RtpSession::ProtocolToString(int protocolEnum)
 	return protocolString;
 }
 
-bool RtpSession::OrkUidMatches(CStdString &oUid)
+bool VoIpSession::OrkUidMatches(CStdString &oUid)
 {
 	if(m_orkUid.CompareNoCase(oUid) == 0)
 	{
@@ -1775,7 +1775,7 @@ bool RtpSession::OrkUidMatches(CStdString &oUid)
 	return false;
 }
 
-bool RtpSession::PartyMatches(CStdString &party)
+bool VoIpSession::PartyMatches(CStdString &party)
 {
 	if(party.size() > 0)
 	{
@@ -1787,7 +1787,7 @@ bool RtpSession::PartyMatches(CStdString &party)
 	return false;
 }
 
-bool RtpSession::NativeCallIdMatches(CStdString& callid)
+bool VoIpSession::NativeCallIdMatches(CStdString& callid)
 {
 	if(callid.size() > 0)
 	{
@@ -1799,7 +1799,7 @@ bool RtpSession::NativeCallIdMatches(CStdString& callid)
 	return false;
 }
 
-void RtpSession::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader)
+void VoIpSession::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader)
 {
 	std::map<CStdString, CStdString>::iterator pair;
 
@@ -1834,7 +1834,7 @@ void RtpSession::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct
 	}
 }
 
-void RtpSession::ReportSkinnyCallStateMessage(SkCallStateMessageStruct* callStateMessage, IpHeaderStruct* ipHeader)
+void VoIpSession::ReportSkinnyCallStateMessage(SkCallStateMessageStruct* callStateMessage, IpHeaderStruct* ipHeader)
 {
 	if(callStateMessage->callState == 8)	//on hold
 	{
@@ -1847,12 +1847,12 @@ void RtpSession::ReportSkinnyCallStateMessage(SkCallStateMessageStruct* callStat
 	}
 }
 
-CStdString RtpSession::GetOrkUid()
+CStdString VoIpSession::GetOrkUid()
 {
 	return m_orkUid;
 }
 
-void RtpSession::MarkAsOnDemand(CStdString& side)
+void VoIpSession::MarkAsOnDemand(CStdString& side)
 {
 	// Report direction
 	m_onDemand = true;
@@ -1878,14 +1878,14 @@ void RtpSession::MarkAsOnDemand(CStdString& side)
 }
 
 
-void RtpSession::SkinnyTrackConferencesTransfers(CStdString callId, CStdString capturePort)
+void VoIpSession::SkinnyTrackConferencesTransfers(CStdString callId, CStdString capturePort)
 {
 	CStdString logMsg;
 	EndpointInfoRef endpoint;
 	time_t time_now = time(NULL);
 	std::map<CStdString, EndpointInfoRef>::iterator it;
 
-	endpoint = RtpSessionsSingleton::instance()->GetEndpointInfo(m_endPointIp, m_endPointSignallingPort);
+	endpoint = VoIpSessionsSingleton::instance()->GetEndpointInfo(m_endPointIp, m_endPointSignallingPort);
 
 	if((time_now - endpoint->m_lastConferencePressed) > 3 && (time_now - endpoint->m_lastConnectedWithConference) > 3)
 	{
@@ -1907,7 +1907,7 @@ void RtpSession::SkinnyTrackConferencesTransfers(CStdString callId, CStdString c
 
 }
 
-bool RtpSession::IsMatchedLocalOrRemoteIp(struct in_addr ip)
+bool VoIpSession::IsMatchedLocalOrRemoteIp(struct in_addr ip)
 {
 	if(ip.s_addr == m_localIp.s_addr || ip.s_addr == m_remoteIp.s_addr)
 	{
@@ -1918,7 +1918,7 @@ bool RtpSession::IsMatchedLocalOrRemoteIp(struct in_addr ip)
 }
 
 //=====================================================================
-RtpSessions::RtpSessions()
+VoIpSessions::VoIpSessions()
 {
 	m_log = Logger::getLogger("rtpsessions");
 	if(CONFIG.m_debug)
@@ -1928,7 +1928,7 @@ RtpSessions::RtpSessions()
 }
 
 
-void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
+void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 {
 	if(DLLCONFIG.m_sipIgnoredMediaAddresses.Matches(invite->m_fromRtpIp))
 	{
@@ -1952,22 +1952,22 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	unsigned long long ipAndPort;
 
 	Craft64bitMediaAddress(ipAndPort, invite->m_fromRtpIp, rtpPortAsInt);
-	RtpSessionRef session = findByMediaAddress(invite->m_fromRtpIp, rtpPortAsInt);
+	VoIpSessionRef session = findByMediaAddress(invite->m_fromRtpIp, rtpPortAsInt);
 
 	if(session.get() == NULL && DLLCONFIG.m_sipTrackMediaAddressOnSender)
 	{
 		Craft64bitMediaAddress(ipAndPort, invite->m_senderIp, rtpPortAsInt);
-		RtpSessionRef session = findByMediaAddress(invite->m_senderIp, rtpPortAsInt);
+		VoIpSessionRef session = findByMediaAddress(invite->m_senderIp, rtpPortAsInt);
 	}
 	if(session.get())
 	{
 		// A session already exists on this media address
-		if(session->m_protocol == RtpSession::ProtRawRtp)
+		if(session->m_protocol == VoIpSession::ProtRawRtp)
 		{
 			// Do nothing here so that we end up stopping this Raw RTP session 
 			// and creating new session below
 		}
-	    if(session->m_protocol == RtpSession::ProtSip && DLLCONFIG.m_rtpAllowMultipleMappings == true)
+	    if(session->m_protocol == VoIpSession::ProtSip && DLLCONFIG.m_rtpAllowMultipleMappings == true)
 	    {
 	    	// Do nothing here so that this new session ends up receiving
 			// all future RTP packets to this media address
@@ -1978,7 +1978,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] Detecting new SIP callId:" +  invite->m_callId + " stopping...");
 			// Forcing previous session type to Raw RTP so that SetMediaAddress() successfully
 			// replaces it by a new session below.
-			session->m_protocol = RtpSession::ProtRawRtp;
+			session->m_protocol = VoIpSession::ProtRawRtp;
 		}
 		else
 		{
@@ -2008,12 +2008,12 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			return;
 		}
 	}
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<CStdString, VoIpSessionRef>::iterator pair;
 	pair = m_byCallId.find(invite->m_callId);
 	if (pair != m_byCallId.end())
 	{
 		// The session already exists
-		RtpSessionRef session = pair->second;
+		VoIpSessionRef session = pair->second;
 
 		/*
 		 * If the sendonly attribute is present then our call is
@@ -2056,13 +2056,13 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 
 	// create new session and insert into both maps
 	CStdString trackingId = m_alphaCounter.GetNext();
-	RtpSessionRef newSession(new RtpSession(trackingId));
+	VoIpSessionRef newSession(new VoIpSession(trackingId));
 	if(DLLCONFIG.m_sipCallPickUpSupport)
 	{
 		TrySessionCallPickUp(invite->m_replacesId, newSession->m_isCallPickUp);
 	}
 	newSession->m_callId = invite->m_callId;
-	newSession->m_protocol = RtpSession::ProtSip;
+	newSession->m_protocol = VoIpSession::ProtSip;
 	newSession->m_sipDialedNumber = invite->m_sipDialedNumber;
 	newSession->ReportSipInvite(invite);
 	newSession->m_sipLastInvite = ACE_OS::gettimeofday();
@@ -2081,7 +2081,7 @@ void RtpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	LOG4CXX_INFO(m_log, "[" + trackingId + "] created by INVITE:" + inviteString);
 }
 
-void RtpSessions::ReportSipSubscribe(SipSubscribeInfoRef& subscribe)
+void VoIpSessions::ReportSipSubscribe(SipSubscribeInfoRef& subscribe)
 {
 	int sipSubscripeMapSize = m_sipSubscribeMap.size();
 
@@ -2102,14 +2102,14 @@ void RtpSessions::ReportSipSubscribe(SipSubscribeInfoRef& subscribe)
 
 }
 
-void RtpSessions::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
+void VoIpSessions::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
 {
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<CStdString, VoIpSessionRef>::iterator pair;
 
 	pair = m_byCallId.find(info->m_callId);
 	if (pair != m_byCallId.end())
 	{
-		RtpSessionRef session = pair->second;
+		VoIpSessionRef session = pair->second;
 
 		if(info->m_errorCode == "407")
 		{
@@ -2137,14 +2137,14 @@ void RtpSessions::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
 	return;
 }
 
-void RtpSessions::ReportSipSessionProgress(SipSessionProgressInfoRef& info)
+void VoIpSessions::ReportSipSessionProgress(SipSessionProgressInfoRef& info)
 {
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<CStdString, VoIpSessionRef>::iterator pair;
 
 	pair = m_byCallId.find(info->m_callId);
 	if (pair != m_byCallId.end())
 	{
-		RtpSessionRef session = pair->second;
+		VoIpSessionRef session = pair->second;
 		unsigned short mediaPort = ACE_OS::atoi(info->m_mediaPort);
 
 		SetMediaAddress(session, info->m_mediaIp, mediaPort);
@@ -2155,7 +2155,7 @@ void RtpSessions::ReportSipSessionProgress(SipSessionProgressInfoRef& info)
 	}
 }
 
-void RtpSessions::ReportSip302MovedTemporarily(Sip302MovedTemporarilyInfoRef& info)
+void VoIpSessions::ReportSip302MovedTemporarily(Sip302MovedTemporarilyInfoRef& info)
 {
 	CStdString m_trackingId;
 
@@ -2163,12 +2163,12 @@ void RtpSessions::ReportSip302MovedTemporarily(Sip302MovedTemporarilyInfoRef& in
 	SaveLocalPartyMap(info->m_contact, info->m_to);
 
 	// If there is already a session, log that information
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<CStdString, VoIpSessionRef>::iterator pair;
 
 	pair = m_byCallId.find(info->m_callId);
 	if (pair != m_byCallId.end())
 	{
-		RtpSessionRef session = pair->second;
+		VoIpSessionRef session = pair->second;
 
 		m_trackingId = session->m_trackingId;
 	}
@@ -2183,14 +2183,14 @@ void RtpSessions::ReportSip302MovedTemporarily(Sip302MovedTemporarilyInfoRef& in
 	}
 }
 
-void RtpSessions::ReportSip200Ok(Sip200OkInfoRef info)
+void VoIpSessions::ReportSip200Ok(Sip200OkInfoRef info)
 {
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<CStdString, VoIpSessionRef>::iterator pair;
 
 	pair = m_byCallId.find(info->m_callId);
 	if (pair != m_byCallId.end())
 	{
-		RtpSessionRef session = pair->second;
+		VoIpSessionRef session = pair->second;
 		unsigned short mediaPort = ACE_OS::atoi(info->m_mediaPort);
 
 		if(info->m_hasSdp && DLLCONFIG.m_sipUse200OkMediaAddress && DLLCONFIG.m_sipDynamicMediaAddress)
@@ -2235,34 +2235,34 @@ void RtpSessions::ReportSip200Ok(Sip200OkInfoRef info)
 	//}
 }
 
-void RtpSessions::ReportSipBye(SipByeInfoRef& bye)
+void VoIpSessions::ReportSipBye(SipByeInfoRef& bye)
 {
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<CStdString, VoIpSessionRef>::iterator pair;
 	pair = m_byCallId.find(bye->m_callId);
 
 	if (pair != m_byCallId.end())
 	{
 		// Session found: stop it
-		RtpSessionRef session = pair->second;
+		VoIpSessionRef session = pair->second;
 
 		session->ReportSipBye(bye);
 		Stop(session);
 	}
 }
 
-void RtpSessions::ReportSipNotify(SipNotifyInfoRef& notify)
+void VoIpSessions::ReportSipNotify(SipNotifyInfoRef& notify)
 {
-	RtpSessionRef session = SipfindNewestBySenderIp(notify->m_receiverIp);
+	VoIpSessionRef session = SipfindNewestBySenderIp(notify->m_receiverIp);
 	if(session.get())
 	{
 		session->ReportSipNotify(notify);
 	}
 }
 
-void RtpSessions::ReportSipInfo(SipInfoRef& info)
+void VoIpSessions::ReportSipInfo(SipInfoRef& info)
 {
-	RtpSessionRef session;
-	std::map<CStdString, RtpSessionRef>::iterator it;
+	VoIpSessionRef session;
+	std::map<CStdString, VoIpSessionRef>::iterator it;
 	for(it = m_byCallId.begin(); it != m_byCallId.end(); it++)
 	{
 		if((it->second->m_callId).CompareNoCase(info->m_callId) == 0)
@@ -2276,7 +2276,7 @@ void RtpSessions::ReportSipInfo(SipInfoRef& info)
 	}
 }
 
-void RtpSessions::UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
+void VoIpSessions::UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	CStdString extension;
 	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, ntohs(tcpHeader->dest), callInfo->callId);
@@ -2313,7 +2313,7 @@ void RtpSessions::UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeade
 	}
 }
 
-void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessionRef& session)
+void VoIpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, VoIpSessionRef& session)
 {
 	session->m_skinnyLineInstance = callInfo->lineInstance;
 	CStdString lp;
@@ -2382,7 +2382,7 @@ void RtpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, RtpSessi
 	}
 }
 
-EndpointInfoRef RtpSessions::GetEndpointInfoByIp(struct in_addr *ip)
+EndpointInfoRef VoIpSessions::GetEndpointInfoByIp(struct in_addr *ip)
 {
 	std::map<unsigned long long, EndpointInfoRef>::iterator pair;
 	EndpointInfoRef endpoint;
@@ -2401,10 +2401,10 @@ EndpointInfoRef RtpSessions::GetEndpointInfoByIp(struct in_addr *ip)
 	return endpoint;
 }
 
-bool RtpSessions::SkinnyFindMostLikelySessionForRtp(RtpPacketInfoRef& rtpPacket, EndpointInfoRef& endpoint)
+bool VoIpSessions::SkinnyFindMostLikelySessionForRtp(RtpPacketInfoRef& rtpPacket, EndpointInfoRef& endpoint)
 {
-	std::map<CStdString, RtpSessionRef>::iterator sessionpair;
-	RtpSessionRef session;
+	std::map<CStdString, VoIpSessionRef>::iterator sessionpair;
+	VoIpSessionRef session;
 	bool srcmatch = false;
 	CStdString logMsg;
 
@@ -2464,10 +2464,10 @@ bool RtpSessions::SkinnyFindMostLikelySessionForRtp(RtpPacketInfoRef& rtpPacket,
 	return true;
 }
 
-bool RtpSessions::SkinnyFindMostLikelySessionForRtpBehindNat(RtpPacketInfoRef& rtpPacket)
+bool VoIpSessions::SkinnyFindMostLikelySessionForRtpBehindNat(RtpPacketInfoRef& rtpPacket)
 {
-	std::map<CStdString, RtpSessionRef>::iterator it;
-	RtpSessionRef session, tmpSession, mostRecentSession;
+	std::map<CStdString, VoIpSessionRef>::iterator it;
+	VoIpSessionRef session, tmpSession, mostRecentSession;
 	CStdString logMsg;
 
 	ACE_Time_Value latestSkinnyTimestamp, rtpArrivalTimestamp;
@@ -2524,21 +2524,21 @@ bool RtpSessions::SkinnyFindMostLikelySessionForRtpBehindNat(RtpPacketInfoRef& r
 	return true;
 }
 
-void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
+void VoIpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, ntohs(tcpHeader->dest), callInfo->callId);
 	CStdString logMsg;
 
 	UpdateEndpointWithCallInfo(callInfo, ipHeader, tcpHeader);
 
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<CStdString, VoIpSessionRef>::iterator pair;
 	pair = m_byCallId.find(callId);
 
 	if (pair != m_byCallId.end())
 	{
 		// CM can resend the same message more than once in a session, 
 		// just update timestamp
-		RtpSessionRef existingSession = pair->second;
+		VoIpSessionRef existingSession = pair->second;
 		existingSession->m_skinnyLastCallInfoTime = ACE_OS::gettimeofday();
 
 		if(DLLCONFIG.m_skinnyAllowCallInfoUpdate)
@@ -2553,7 +2553,7 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 
 	if(DLLCONFIG.m_skinnyAllowLateCallInfo == true)
 	{
-		RtpSessionRef ipPortSession = findByEndpointIpUsingIpAndPort(ipHeader->ip_dest);
+		VoIpSessionRef ipPortSession = findByEndpointIpUsingIpAndPort(ipHeader->ip_dest);
 
 		if(ipPortSession.get() && ipPortSession->m_callId.IsEmpty())
 		{
@@ -2584,11 +2584,11 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 
 	// create new session and insert into the callid map
 	CStdString trackingId = m_alphaCounter.GetNext();
-	RtpSessionRef session(new RtpSession(trackingId));
+	VoIpSessionRef session(new VoIpSession(trackingId));
 	session->m_callId = callId;
 	session->m_endPointIp = ipHeader->ip_dest;	// CallInfo message always goes from CM to endpoint
 	session->m_endPointSignallingPort = ntohs(tcpHeader->dest);
-	session->m_protocol = RtpSession::ProtSkinny;
+	session->m_protocol = VoIpSession::ProtSkinny;
 	session->m_skinnyLastCallInfoTime = ACE_OS::gettimeofday();
 	UpdateSessionWithCallInfo(callInfo, session);
 	session->ReportSkinnyCallInfo(callInfo, ipHeader);
@@ -2609,7 +2609,7 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 
 	if(DLLCONFIG.m_skinnyCallInfoStopsPrevious == true)
 	{
-		RtpSessionRef previousSession = findNewestRtpByEndpointIp(ipHeader->ip_dest);
+		VoIpSessionRef previousSession = findNewestRtpByEndpointIp(ipHeader->ip_dest);
 		if(previousSession.get())
 		{
 			if(DLLCONFIG.m_skinnyCallInfoStopsPreviousToleranceSec == 0)
@@ -2645,13 +2645,13 @@ void RtpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 
 }
 
-void RtpSessions::ReportSkinnyCallStateMessage(SkCallStateMessageStruct* callStateMessage, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
+void VoIpSessions::ReportSkinnyCallStateMessage(SkCallStateMessageStruct* callStateMessage, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	CStdString logMsg;
 	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, ntohs(tcpHeader->dest), callStateMessage->callId);
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<CStdString, VoIpSessionRef>::iterator pair;
 	pair = m_byCallId.find(callId);
-	RtpSessionRef session;
+	VoIpSessionRef session;
 	if (pair != m_byCallId.end())
 	{
 		session = pair->second;
@@ -2667,13 +2667,13 @@ void RtpSessions::ReportSkinnyCallStateMessage(SkCallStateMessageStruct* callSta
 	}
 }
 
-RtpSessionRef RtpSessions::findByMediaAddress(struct in_addr ipAddress, unsigned short udpPort)
+VoIpSessionRef VoIpSessions::findByMediaAddress(struct in_addr ipAddress, unsigned short udpPort)
 {
 	unsigned long long mediaAddress;
 	Craft64bitMediaAddress(mediaAddress, ipAddress, udpPort);
 
-	RtpSessionRef session;
-	std::map<unsigned long long, RtpSessionRef>::iterator pair;
+	VoIpSessionRef session;
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
 	pair = m_byIpAndPort.find(mediaAddress);
 	if (pair != m_byIpAndPort.end())
 	{
@@ -2683,17 +2683,17 @@ RtpSessionRef RtpSessions::findByMediaAddress(struct in_addr ipAddress, unsigned
 }
 
 
-RtpSessionRef RtpSessions::findByEndpointIpUsingIpAndPort(struct in_addr endpointIpAddr)
+VoIpSessionRef VoIpSessions::findByEndpointIpUsingIpAndPort(struct in_addr endpointIpAddr)
 {
-	RtpSessionRef session;
-	std::map<unsigned long long, RtpSessionRef>::iterator pair;
+	VoIpSessionRef session;
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
 
 	// Scan all sessions and try to find a session on the same IP endpoint
 	// This function uses the m_byIpAndPort mapping unlike findByEndpointIp()
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end(); pair++)
 	{
-		RtpSessionRef tmpSession = pair->second;
+		VoIpSessionRef tmpSession = pair->second;
 
 		if((unsigned int)tmpSession->m_endPointIp.s_addr == (unsigned int)endpointIpAddr.s_addr)
 		{
@@ -2707,15 +2707,15 @@ RtpSessionRef RtpSessions::findByEndpointIpUsingIpAndPort(struct in_addr endpoin
 
 // Find a session by Skinny endpoint IP address. 
 // If a passThruPartyId is supplied, only returns session matching both criteria
-RtpSessionRef RtpSessions::findByEndpointIp(struct in_addr endpointIpAddr, int passThruPartyId)
+VoIpSessionRef VoIpSessions::findByEndpointIp(struct in_addr endpointIpAddr, int passThruPartyId)
 {
-	RtpSessionRef session;
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	VoIpSessionRef session;
+	std::map<CStdString, VoIpSessionRef>::iterator pair;
 
 	// Scan all sessions and try to find a session on the same IP endpoint
 	for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
 	{
-		RtpSessionRef tmpSession = pair->second;
+		VoIpSessionRef tmpSession = pair->second;
 
 		if((unsigned int)tmpSession->m_endPointIp.s_addr == (unsigned int)endpointIpAddr.s_addr)
 		{
@@ -2731,16 +2731,16 @@ RtpSessionRef RtpSessions::findByEndpointIp(struct in_addr endpointIpAddr, int p
 }
 
 // Find session with newest RTP
-RtpSessionRef RtpSessions::findNewestRtpByEndpointIp(struct in_addr endpointIpAddr)
+VoIpSessionRef VoIpSessions::findNewestRtpByEndpointIp(struct in_addr endpointIpAddr)
 {
-	std::map<unsigned long long, RtpSessionRef>::iterator pair;
-	RtpSessionRef session;
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
+	VoIpSessionRef session;
 	RtpPacketInfoRef lastPacket;
 	int latest = 0;
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end(); pair++)
 	{
-		RtpSessionRef tmpSession = pair->second;
+		VoIpSessionRef tmpSession = pair->second;
 
 		if((unsigned int)tmpSession->m_endPointIp.s_addr == (unsigned int)endpointIpAddr.s_addr)
 		{
@@ -2764,15 +2764,15 @@ RtpSessionRef RtpSessions::findNewestRtpByEndpointIp(struct in_addr endpointIpAd
 }
 
 // Find a session by Skinny endpoint IP address and by Skinny Line ID
-RtpSessionRef RtpSessions::findByEndpointIpAndLineInstance(struct in_addr endpointIpAddr, int lineInstance)
+VoIpSessionRef VoIpSessions::findByEndpointIpAndLineInstance(struct in_addr endpointIpAddr, int lineInstance)
 {
-	RtpSessionRef session;
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	VoIpSessionRef session;
+	std::map<CStdString, VoIpSessionRef>::iterator pair;
 
 	// Scan all sessions and try to find a session on the same IP endpoint
 	for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
 	{
-		RtpSessionRef tmpSession = pair->second;
+		VoIpSessionRef tmpSession = pair->second;
 
 		if((unsigned int)tmpSession->m_endPointIp.s_addr == (unsigned int)endpointIpAddr.s_addr)
 		{
@@ -2786,16 +2786,16 @@ RtpSessionRef RtpSessions::findByEndpointIpAndLineInstance(struct in_addr endpoi
 	return session;
 }
 
-RtpSessionRef RtpSessions::SipfindNewestBySenderIp(struct in_addr receiverIpAddr)
+VoIpSessionRef VoIpSessions::SipfindNewestBySenderIp(struct in_addr receiverIpAddr)
 {
-	RtpSessionRef session;
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	VoIpSessionRef session;
+	std::map<CStdString, VoIpSessionRef>::iterator pair;
 
 	// Scan all sessions and try to find the most recently signalled session on the IP endpoint
 	// This always scans the entire session list, might be good to index sessions by endpoint at some point
 	for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
 	{
-		RtpSessionRef tmpSession = pair->second;
+		VoIpSessionRef tmpSession = pair->second;
 
 		if((unsigned int)tmpSession->m_invite->m_senderIp.s_addr == (unsigned int)receiverIpAddr.s_addr)
 		{
@@ -2816,17 +2816,17 @@ RtpSessionRef RtpSessions::SipfindNewestBySenderIp(struct in_addr receiverIpAddr
 	return session;
 }
 
-RtpSessionRef RtpSessions::findNewestByEndpoint(struct in_addr endpointIpAddr, unsigned short endpointSignallingPort)
+VoIpSessionRef VoIpSessions::findNewestByEndpoint(struct in_addr endpointIpAddr, unsigned short endpointSignallingPort)
 {
-	RtpSessionRef session;
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	VoIpSessionRef session;
+	std::map<CStdString, VoIpSessionRef>::iterator pair;
 	unsigned short sessionSignallingPort = 0;
 
 	// Scan all sessions and try to find the most recently signalled session on the IP endpoint
 	// This always scans the entire session list, might be good to index sessions by endpoint at some point
 	for(pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++)
 	{
-		RtpSessionRef tmpSession = pair->second;
+		VoIpSessionRef tmpSession = pair->second;
 
 		if(DLLCONFIG.m_skinnyBehindNat)
 		{
@@ -2859,14 +2859,14 @@ RtpSessionRef RtpSessions::findNewestByEndpoint(struct in_addr endpointIpAddr, u
 	return session;
 }
 
-//bool RtpSessions::ChangeCallId(RtpSessionRef& session, unsigned int newId)
+//bool VoIpSessions::ChangeCallId(VoIpSessionRef& session, unsigned int newId)
 //{
 //	bool result = false;
 //	if(newId)
 //	{
 //		CStdString newCallId = GenerateSkinnyCallId(session->m_endPointIp, newId);
 //
-//		std::map<CStdString, RtpSessionRef>::iterator pair = m_byCallId.find(newCallId);
+//		std::map<CStdString, VoIpSessionRef>::iterator pair = m_byCallId.find(newCallId);
 //		if (pair == m_byCallId.end())
 //		{
 //			// Ok, no session exists with the new Call ID, go ahead
@@ -2894,7 +2894,7 @@ RtpSessionRef RtpSessions::findNewestByEndpoint(struct in_addr endpointIpAddr, u
 /*
  * Deprecated, use Craft64bitMediaAddress instead
  * */
-void RtpSessions::CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort)
+void VoIpSessions::CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort)
 {
 	char szIpAddress[16];
 
@@ -2909,7 +2909,7 @@ void RtpSessions::CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipA
 	}
 }
 
-void RtpSessions::Craft64bitMediaAddress(unsigned long long& mediaAddress, struct in_addr ipAddress, unsigned short udpPort)
+void VoIpSessions::Craft64bitMediaAddress(unsigned long long& mediaAddress, struct in_addr ipAddress, unsigned short udpPort)
 {
 	if(DLLCONFIG.m_rtpTrackByUdpPortOnly == false)
 	{
@@ -2921,7 +2921,7 @@ void RtpSessions::Craft64bitMediaAddress(unsigned long long& mediaAddress, struc
 	}
 }
 
-CStdString RtpSessions::MediaAddressToString(unsigned long long ipAndPort)
+CStdString VoIpSessions::MediaAddressToString(unsigned long long ipAndPort)
 {
 	CStdString strMediaAddress;
 
@@ -2944,7 +2944,7 @@ CStdString RtpSessions::MediaAddressToString(unsigned long long ipAndPort)
 
 }
 
-void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort)
+void VoIpSessions::SetMediaAddress(VoIpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort)
 {
 	if(mediaPort == 0)
 	{
@@ -2983,7 +2983,7 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 
 	bool doChangeMediaAddress = true;
 
-	RtpSessionRef oldSession = findByMediaAddress(mediaIp, mediaPort);
+	VoIpSessionRef oldSession = findByMediaAddress(mediaIp, mediaPort);
 	if(oldSession.get())
 	{
 		// A session exists on the same IP+port
@@ -2993,13 +2993,13 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 			// Old and new are the same session, do nothing
 			doChangeMediaAddress = false;
 		}
-		else if(oldSession->m_protocol == RtpSession::ProtRawRtp || oldSession->m_numRtpPackets == 0 ||
-			(session->m_protocol == RtpSession::ProtSkinny && DLLCONFIG.m_skinnyAllowMediaAddressTransfer)   )
+		else if(oldSession->m_protocol == VoIpSession::ProtRawRtp || oldSession->m_numRtpPackets == 0 ||
+			(session->m_protocol == VoIpSession::ProtSkinny && DLLCONFIG.m_skinnyAllowMediaAddressTransfer)   )
 		{
 			logMsg.Format("[%s] on %s replaces [%s]",
 							session->m_trackingId, MediaAddressToString(mediaAddress), oldSession->m_trackingId);
 			LOG4CXX_INFO(m_log, logMsg);
-			if(oldSession->m_protocol == RtpSession::ProtRawRtp)
+			if(oldSession->m_protocol == VoIpSession::ProtRawRtp)
 			{
 				// Pure RTP session: stop it now or it will never be hoovered.
 				// (Do not stop signalled sessions, better let them timeout and be hoovered. Useful for skinny internal calls where media address back and forth must not kill sessions with the best metadata.)
@@ -3025,7 +3025,7 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 		{
 			char szEndPointIp[16];
 			ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
-			logMsg.Format("[%s] media address:%s %s callId:%s endpoint:%s", session->m_trackingId, MediaAddressToString(mediaAddress), RtpSession::ProtocolToString(session->m_protocol),session->m_callId, szEndPointIp);
+			logMsg.Format("[%s] media address:%s %s callId:%s endpoint:%s", session->m_trackingId, MediaAddressToString(mediaAddress), VoIpSession::ProtocolToString(session->m_protocol),session->m_callId, szEndPointIp);
 			LOG4CXX_INFO(m_log, logMsg);
 		}
 
@@ -3045,7 +3045,7 @@ void RtpSessions::SetMediaAddress(RtpSessionRef& session, struct in_addr mediaIp
 	}
 }
 
-void RtpSessions::RemoveFromMediaAddressMap(RtpSessionRef& session, unsigned long long& mediaAddress)
+void VoIpSessions::RemoveFromMediaAddressMap(VoIpSessionRef& session, unsigned long long& mediaAddress)
 {
 	if(mediaAddress == 0)
 	{
@@ -3053,11 +3053,11 @@ void RtpSessions::RemoveFromMediaAddressMap(RtpSessionRef& session, unsigned lon
 	}
 
 	// Defensively check if the session referenced in the media address map actually is the same session
-	std::map<unsigned long long, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
 	pair = m_byIpAndPort.find(mediaAddress);
 	if (pair != m_byIpAndPort.end())
 	{
-		RtpSessionRef sessionOnMap = pair->second;
+		VoIpSessionRef sessionOnMap = pair->second;
 		if(sessionOnMap.get() == session.get())
 		{
 			// They are the same session, all good
@@ -3084,7 +3084,7 @@ void RtpSessions::RemoveFromMediaAddressMap(RtpSessionRef& session, unsigned lon
 }
 
 
-CStdString RtpSessions::GenerateSkinnyCallId(struct in_addr endpointIp, unsigned short endpointSkinnyPort, unsigned int callId)
+CStdString VoIpSessions::GenerateSkinnyCallId(struct in_addr endpointIp, unsigned short endpointSkinnyPort, unsigned int callId)
 {
 	char szEndPointIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndPointIp, sizeof(szEndPointIp));
@@ -3100,13 +3100,13 @@ CStdString RtpSessions::GenerateSkinnyCallId(struct in_addr endpointIp, unsigned
 	return skinnyCallId;
 }
 
-void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct* openReceive, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
+void VoIpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruct* openReceive, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	if(DLLCONFIG.m_skinnyIgnoreOpenReceiveChannelAck)
 	{
 		return;
 	}
-	RtpSessionRef session = findNewestByEndpoint(openReceive->endpointIpAddr, ntohs(tcpHeader->source));
+	VoIpSessionRef session = findNewestByEndpoint(openReceive->endpointIpAddr, ntohs(tcpHeader->source));
 	if(session.get())
 	{
 		if(session->m_ipAndPort == 0 || DLLCONFIG.m_skinnyDynamicMediaAddress)
@@ -3123,7 +3123,7 @@ void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruc
 	{
 		if(DLLCONFIG.m_skinnyAllowLateCallInfo == true)
 		{
-			RtpSessionRef sessionExisting;
+			VoIpSessionRef sessionExisting;
 
 			sessionExisting = findByEndpointIp(openReceive->endpointIpAddr, 0);
 			if(!sessionExisting.get())
@@ -3134,10 +3134,10 @@ void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruc
 
 				// create new session and insert into the ipAndPort
 				CStdString trackingId = m_alphaCounter.GetNext();
-				RtpSessionRef session(new RtpSession(trackingId));
+				VoIpSessionRef session(new VoIpSession(trackingId));
 				session->m_endPointIp = openReceive->endpointIpAddr;
 				session->m_endPointSignallingPort = ntohs(tcpHeader->source);
-				session->m_protocol = RtpSession::ProtSkinny;
+				session->m_protocol = VoIpSession::ProtSkinny;
 				session->m_skinnyPassThruPartyId = openReceive->passThruPartyId;
 
 				if(endpoint.get())
@@ -3161,9 +3161,9 @@ void RtpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStruc
 }
 
 
-void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct* startMedia, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
+void VoIpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStruct* startMedia, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
-	RtpSessionRef session = findNewestByEndpoint(ipHeader->ip_dest, ntohs(tcpHeader->dest));
+	VoIpSessionRef session = findNewestByEndpoint(ipHeader->ip_dest, ntohs(tcpHeader->dest));
 
 	if(session.get())
 	{
@@ -3181,7 +3181,7 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 	{
 		if(DLLCONFIG.m_skinnyAllowLateCallInfo == true)
 		{
-			RtpSessionRef sessionExisting;
+			VoIpSessionRef sessionExisting;
 
 			sessionExisting = findByEndpointIp(ipHeader->ip_dest, 0);
 			if(!sessionExisting.get())
@@ -3192,9 +3192,9 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 
 				// create new session and insert into the ipAndPort
 				CStdString trackingId = m_alphaCounter.GetNext();
-				RtpSessionRef session(new RtpSession(trackingId));
+				VoIpSessionRef session(new VoIpSession(trackingId));
 				session->m_endPointIp = ipHeader->ip_dest;	// CallInfo StartMediaTransmission always goes from CM to endpoint 
-				session->m_protocol = RtpSession::ProtSkinny;
+				session->m_protocol = VoIpSession::ProtSkinny;
 				session->m_endPointSignallingPort = ntohs(tcpHeader->dest);
 				session->m_skinnyPassThruPartyId = startMedia->passThruPartyId;
 
@@ -3218,7 +3218,7 @@ void RtpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionStr
 	}
 }
 
-void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct* stopMedia, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
+void VoIpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruct* stopMedia, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	if(DLLCONFIG.m_skinnyIgnoreStopMediaTransmission)
 	{
@@ -3227,8 +3227,8 @@ void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruc
 	CStdString conferenceId;
 	CStdString passThruPartyId;
 	CStdString skinnyCallId;
-	std::map<CStdString, RtpSessionRef>::iterator pair = m_byCallId.end();
-	RtpSessionRef session;
+	std::map<CStdString, VoIpSessionRef>::iterator pair = m_byCallId.end();
+	VoIpSessionRef session;
 
 	// Try to locate the session using 1. conferenceId or 2. endpoint/passThruPartyId
 	if(stopMedia->conferenceId != 0)
@@ -3274,7 +3274,7 @@ void RtpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStruc
 	}
 }
 
-void RtpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* endpointIp, CStdString& callId, unsigned short skinnyPort)
+void VoIpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* endpointIp, CStdString& callId, unsigned short skinnyPort)
 {
 	std::map<unsigned long long, EndpointInfoRef>::iterator pair;
 	EndpointInfoRef endpoint;
@@ -3322,7 +3322,7 @@ void RtpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* en
 	}
 }
 
-void RtpSessions::ReportSkinnyLineStat(SkLineStatStruct* lineStat, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
+void VoIpSessions::ReportSkinnyLineStat(SkLineStatStruct* lineStat, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	CStdString callId = "";
 
@@ -3335,12 +3335,12 @@ void RtpSessions::ReportSkinnyLineStat(SkLineStatStruct* lineStat, IpHeaderStruc
 	}
 }
 
-void RtpSessions::ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
+void VoIpSessions::ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
-	RtpSessionRef session;
+	VoIpSessionRef session;
 	CStdString logMsg;
 
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<CStdString, VoIpSessionRef>::iterator pair;
 	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_src, ntohs(tcpHeader->source), skEvent->callIdentifier);
 	pair = m_byCallId.find(callId);
 	if (pair != m_byCallId.end())
@@ -3365,12 +3365,12 @@ void RtpSessions::ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, 
 	}
 }
 
-void RtpSessions::ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
+void VoIpSessions::ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
-	RtpSessionRef session;
+	VoIpSessionRef session;
 	CStdString logMsg;
 
-	std::map<CStdString, RtpSessionRef>::iterator pair;
+	std::map<CStdString, VoIpSessionRef>::iterator pair;
 	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_src, ntohs(tcpHeader->source), skEvent->callIdentifier);
 	pair = m_byCallId.find(callId);
 	if (pair != m_byCallId.end())
@@ -3395,7 +3395,7 @@ void RtpSessions::ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEvent
         LOG4CXX_WARN(m_log, logMsg);
     }
 }
-void RtpSessions::ReportSkinnySoftKeyConfPressed(struct in_addr endpointIp, TcpHeaderStruct* tcpHeader)
+void VoIpSessions::ReportSkinnySoftKeyConfPressed(struct in_addr endpointIp, TcpHeaderStruct* tcpHeader)
 {
 	CStdString logMsg;
 	time_t time_now = time(NULL);
@@ -3413,8 +3413,8 @@ void RtpSessions::ReportSkinnySoftKeyConfPressed(struct in_addr endpointIp, TcpH
 		return;
 	}
 
-	std::map<CStdString, RtpSessionRef> ::iterator rtpSessionPair;
-	RtpSessionRef rtpSession;
+	std::map<CStdString, VoIpSessionRef> ::iterator rtpSessionPair;
+	VoIpSessionRef rtpSession;
 	rtpSessionPair = m_byCallId.find(endpoint->m_latestCallId);
 	if(rtpSessionPair == m_byCallId.end())
 	{
@@ -3444,7 +3444,7 @@ void RtpSessions::ReportSkinnySoftKeyConfPressed(struct in_addr endpointIp, TcpH
 	}
 	endpoint->m_lastConferencePressed = time(NULL);
 }
-void RtpSessions::ReportSkinnySoftKeySetConfConnected(struct in_addr endpointIp, TcpHeaderStruct* tcpHeader)
+void VoIpSessions::ReportSkinnySoftKeySetConfConnected(struct in_addr endpointIp, TcpHeaderStruct* tcpHeader)
 {
 	CStdString logMsg;
 	unsigned short skinnyPort;
@@ -3462,12 +3462,12 @@ void RtpSessions::ReportSkinnySoftKeySetConfConnected(struct in_addr endpointIp,
 	endpoint->m_lastConnectedWithConference = time(NULL);
 }
 
-void RtpSessions::ReportSkinnySoftKeySetTransfConnected(SkSoftKeySetDescriptionStruct* skEvent, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
+void VoIpSessions::ReportSkinnySoftKeySetTransfConnected(SkSoftKeySetDescriptionStruct* skEvent, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	CStdString logMsg, skinnyCallId;
 	skinnyCallId = GenerateSkinnyCallId(ipHeader->ip_dest, ntohs(tcpHeader->dest), skEvent->callIdentifier);
-	std::map<CStdString, RtpSessionRef>::iterator it = m_byCallId.end();
-	RtpSessionRef session;
+	std::map<CStdString, VoIpSessionRef>::iterator it = m_byCallId.end();
+	VoIpSessionRef session;
 
 	it = m_byCallId.find(skinnyCallId);
 	if (it != m_byCallId.end())
@@ -3483,7 +3483,7 @@ void RtpSessions::ReportSkinnySoftKeySetTransfConnected(SkSoftKeySetDescriptionS
 	}
 }
 
-EndpointInfoRef RtpSessions::GetEndpointInfo(struct in_addr endpointIp, unsigned short skinnyPort)
+EndpointInfoRef VoIpSessions::GetEndpointInfo(struct in_addr endpointIp, unsigned short skinnyPort)
 {
 	char szEndpointIp[16];
 	unsigned long long ipAndPort;
@@ -3502,7 +3502,7 @@ EndpointInfoRef RtpSessions::GetEndpointInfo(struct in_addr endpointIp, unsigned
 }
 
 
-void RtpSessions::Stop(RtpSessionRef& session)
+void VoIpSessions::Stop(VoIpSessionRef& session)
 {
 	session->Stop();
 
@@ -3520,9 +3520,9 @@ void RtpSessions::Stop(RtpSessionRef& session)
 	session->m_mediaAddresses.clear();
 }
 
-bool RtpSessions::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo)
+bool VoIpSessions::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo)
 {
-	RtpSessionRef session;
+	VoIpSessionRef session;
 
 	session = findByMediaAddress(rtcpInfo->m_sourceIp, rtcpInfo->m_sourcePort - 1);
 	if(session.get() != NULL)
@@ -3542,12 +3542,12 @@ bool RtpSessions::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcp
 }
 
 
-void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
+void VoIpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 {
 	int numSessionsFound = 0;
-	RtpSessionRef session1;
-	RtpSessionRef session2;
-	RtpSessionRef session;
+	VoIpSessionRef session1;
+	VoIpSessionRef session2;
+	VoIpSessionRef session;
 	CStdString logMsg;
 
 	int sourcePort = rtpPacket->m_sourcePort;
@@ -3625,15 +3625,15 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 		// Need to "merge" the two sessions (ie discard one of them)
 		// Can happen when RTP stream detected before skinny StartMediaTransmission
 		// Can also happens on CallManager with internal calls, so we keep the one that's outgoing
-		RtpSessionRef mergerSession;
-		RtpSessionRef mergeeSession;
+		VoIpSessionRef mergerSession;
+		VoIpSessionRef mergeeSession;
 
-		if(session1->m_protocol == RtpSession::ProtRawRtp)
+		if(session1->m_protocol == VoIpSession::ProtRawRtp)
 		{
 			mergerSession = session2;
 			mergeeSession = session1;
 		}
-		else if(session2->m_protocol == RtpSession::ProtRawRtp)
+		else if(session2->m_protocol == VoIpSession::ProtRawRtp)
 		{
 			mergerSession = session1;
 			mergeeSession = session2;
@@ -3644,7 +3644,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 			// Instead we keep both sessions and redirect the media to correct session.
 			// In multiple mapping mode, each session can have several entries in the byIpAndPort map whereas m_ipAndPort only contains the latest media address.
 			// So removing the session from the map with the m_ipAndPort key can be wrong
-			if(DLLCONFIG.m_rtpAllowMultipleMappings == true && session1->m_protocol == RtpSession::ProtSip && session2->m_protocol == RtpSession::ProtSip)
+			if(DLLCONFIG.m_rtpAllowMultipleMappings == true && session1->m_protocol == VoIpSession::ProtSip && session2->m_protocol == VoIpSession::ProtSip)
 			{
 				if(session1->m_sipLastInvite > session2->m_sipLastInvite)
 				{
@@ -3654,7 +3654,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 						Craft64bitMediaAddress(ipAndPort, rtpPacket->m_destIp, destPort);
 						logMsg.Format("session[%s] takes over media address:%s from [%s]", session1->m_trackingId, MediaAddressToString(ipAndPort), session2->m_trackingId);
 						LOG4CXX_INFO(m_log, logMsg);
-						std::map<unsigned long long, RtpSessionRef>::iterator it;
+						std::map<unsigned long long, VoIpSessionRef>::iterator it;
 						it = m_byIpAndPort.find(ipAndPort);
 						if(it != m_byIpAndPort.end())
 						{
@@ -3670,7 +3670,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 						Craft64bitMediaAddress(ipAndPort, rtpPacket->m_sourceIp, sourcePort);
 						logMsg.Format("session[%s] takes over media address:%s from [%s]", session2->m_trackingId, MediaAddressToString(ipAndPort), session1->m_trackingId);
 						LOG4CXX_INFO(m_log, logMsg);
-						std::map<unsigned long long, RtpSessionRef>::iterator it;
+						std::map<unsigned long long, VoIpSessionRef>::iterator it;
 						it = m_byIpAndPort.find(ipAndPort);
 						if(it != m_byIpAndPort.end())
 						{
@@ -3726,7 +3726,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 	else if(numSessionsFound == 1 )
 	{
-		if (session->m_numRtpPackets == 1 && session->m_protocol == RtpSession::ProtSip)
+		if (session->m_numRtpPackets == 1 && session->m_protocol == VoIpSession::ProtSip)
 		{
 			// This was the first packet of the session, check whether it is tracked on the right IP address
 			in_addr trackingIp;
@@ -3772,8 +3772,8 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 		// create new Raw RTP session and insert into IP+Port map
 		CStdString trackingId = m_alphaCounter.GetNext();
-		RtpSessionRef session(new RtpSession(trackingId));
-		session->m_protocol = RtpSession::ProtRawRtp;
+		VoIpSessionRef session(new VoIpSession(trackingId));
+		session->m_protocol = VoIpSession::ProtRawRtp;
 
 		// Make sure the session is tracked by the right IP address
 		struct in_addr rtpIp;
@@ -3840,7 +3840,7 @@ void RtpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 }
 
-void RtpSessions::TrySessionCallPickUp(CStdString replacesCallId, bool& result)
+void VoIpSessions::TrySessionCallPickUp(CStdString replacesCallId, bool& result)
 {
 	CStdString logMsg;
 
@@ -3856,7 +3856,7 @@ void RtpSessions::TrySessionCallPickUp(CStdString replacesCallId, bool& result)
 }
 
 
-void RtpSessions::UnEscapeUrl(CStdString& in, CStdString& out)
+void VoIpSessions::UnEscapeUrl(CStdString& in, CStdString& out)
 {
 	// Translates all %xx escaped sequences to corresponding ascii characters
 	out = "";
@@ -3885,63 +3885,63 @@ void RtpSessions::UnEscapeUrl(CStdString& in, CStdString& out)
 	}
 }
 
-void RtpSessions::UrlExtraction(CStdString& input, struct in_addr* endpointIp)
+void VoIpSessions::UrlExtraction(CStdString& input, struct in_addr* endpointIp)
 {
 	// read string and extract values into map
-	UrlState state = RtpSessions::UrlStartState;
+	UrlState state = VoIpSessions::UrlStartState;
 	CStdString key;
 	CStdString value;
 	CStdString errorDescription;
 
 	input.Trim();
 
-	for(unsigned int i=0; i<input.length() && state!= RtpSessions::UrlErrorState; i++)
+	for(unsigned int i=0; i<input.length() && state!= VoIpSessions::UrlErrorState; i++)
 	{
 		TCHAR character = input[i];
 
 		switch(state)
 		{
-		case RtpSessions::UrlStartState:
+		case VoIpSessions::UrlStartState:
 			if(character == '&')
 			{
 				;	// ignore ampersands
 			}
 			else if ( ACE_OS::ace_isalnum(character) )
 			{
-				state = RtpSessions::UrlKeyState;
+				state = VoIpSessions::UrlKeyState;
 				key = character;
 			}
 			else
 			{
-				state = RtpSessions::UrlErrorState;
+				state = VoIpSessions::UrlErrorState;
 				errorDescription = "Cannot find key start, keys must be alphanum";
 			}
 			break;
-		case RtpSessions::UrlKeyState:
+		case VoIpSessions::UrlKeyState:
 			if( ACE_OS::ace_isalnum(character) )
 			{
 				key += character;
 			}
 			else if (character == '=')
 			{
-				state = RtpSessions::UrlValueState;
+				state = VoIpSessions::UrlValueState;
 				value.Empty();
 			}
 			else
 			{
-				state = RtpSessions::UrlErrorState;
+				state = VoIpSessions::UrlErrorState;
 				errorDescription = "Invalid key character, keys must be alphanum";
 			}
 			break;
-		case RtpSessions::UrlValueState:
+		case VoIpSessions::UrlValueState:
 			if( character == '=')
 			{
-				state = RtpSessions::UrlErrorState;
+				state = VoIpSessions::UrlErrorState;
 				errorDescription = "Value followed by = sign, value should always be followed by space sign";
 			}
 			else if (character == '&')
 			{
-				state = RtpSessions::UrlStartState;
+				state = VoIpSessions::UrlStartState;
 			}
 			else
 			{
@@ -3949,11 +3949,11 @@ void RtpSessions::UrlExtraction(CStdString& input, struct in_addr* endpointIp)
 			}
 			break;
 		default:
-			state = RtpSessions::UrlErrorState;
+			state = VoIpSessions::UrlErrorState;
 			errorDescription = "Non-existing state";
 		}	// switch(state)
 
-		if ( (state == RtpSessions::UrlStartState) || (i == (input.length()-1)) )
+		if ( (state == VoIpSessions::UrlStartState) || (i == (input.length()-1)) )
 		{
 			if (!key.IsEmpty())
 			{
@@ -4002,11 +4002,11 @@ void RtpSessions::UrlExtraction(CStdString& input, struct in_addr* endpointIp)
 
 }
 
-void RtpSessions::ReportOnDemandMarkerByIp(struct in_addr endpointIp)
+void VoIpSessions::ReportOnDemandMarkerByIp(struct in_addr endpointIp)
 {
-	RtpSessionRef session, chosenSession;
-	std::list<RtpSessionRef> sessionsOnIp;
-	std::map<unsigned long long, RtpSessionRef>::iterator it;
+	VoIpSessionRef session, chosenSession;
+	std::list<VoIpSessionRef> sessionsOnIp;
+	std::map<unsigned long long, VoIpSessionRef>::iterator it;
 	for(it = m_byIpAndPort.begin(); it != m_byIpAndPort.end(); it++)
 	{
 		session = it->second;
@@ -4019,7 +4019,7 @@ void RtpSessions::ReportOnDemandMarkerByIp(struct in_addr endpointIp)
 		}
 	}
 
-	std::list<RtpSessionRef>::iterator it2;
+	std::list<VoIpSessionRef>::iterator it2;
 	time_t latestRtp = 0;
 	for(it2 = sessionsOnIp.begin(); it2 != sessionsOnIp.end(); it2++)
 	{
@@ -4042,27 +4042,27 @@ void RtpSessions::ReportOnDemandMarkerByIp(struct in_addr endpointIp)
 
 }
 
-void RtpSessions::StopAll()
+void VoIpSessions::StopAll()
 {
 	time_t forceExpiryTime = time(NULL) + 2*DLLCONFIG.m_rtpSessionOnHoldTimeOutSec;
 	Hoover(forceExpiryTime);
 }
 
-void RtpSessions::Hoover(time_t now)
+void VoIpSessions::Hoover(time_t now)
 {
 	CStdString numSessions = IntToString(m_byIpAndPort.size());
 	LOG4CXX_DEBUG(m_log, "Hoover - check " + numSessions + " sessions time:" + IntToString(now));
 
 	// Go round the ipAndPort session index and find inactive sessions
-	std::map<unsigned long long, RtpSessionRef>::iterator pair;
-	std::map<CStdString, RtpSessionRef>::iterator pair2;
-	std::list<RtpSessionRef> toDismiss;
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
+	std::map<CStdString, VoIpSessionRef>::iterator pair2;
+	std::list<VoIpSessionRef> toDismiss;
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end(); pair++)
 	{
-		RtpSessionRef session = pair->second;
+		VoIpSessionRef session = pair->second;
 		int timeoutSeconds = 0;
-		if(session->m_protocol == RtpSession::ProtRawRtp)
+		if(session->m_protocol == VoIpSession::ProtRawRtp)
 		{
 			timeoutSeconds = DLLCONFIG.m_rtpSessionTimeoutSec;
 		}
@@ -4091,9 +4091,9 @@ void RtpSessions::Hoover(time_t now)
 	}
 
 	// discard inactive sessions
-	for (std::list<RtpSessionRef>::iterator it = toDismiss.begin(); it != toDismiss.end() ; it++)
+	for (std::list<VoIpSessionRef>::iterator it = toDismiss.begin(); it != toDismiss.end() ; it++)
 	{
-		RtpSessionRef session = *it;
+		VoIpSessionRef session = *it;
 		CStdString logMsg;
 		logMsg.Format("[%s] %s Expired (RTP) ts:%u", session->m_trackingId, MediaAddressToString(session->m_ipAndPort), session->m_lastUpdated);
 		LOG4CXX_INFO(m_log, logMsg);
@@ -4104,7 +4104,7 @@ void RtpSessions::Hoover(time_t now)
 	toDismiss.clear();
 	for(pair2 = m_byCallId.begin(); pair2 != m_byCallId.end(); pair2++)
 	{
-		RtpSessionRef session = pair2->second;
+		VoIpSessionRef session = pair2->second;
 
 		if(session->m_onHold)
 		{
@@ -4133,21 +4133,21 @@ void RtpSessions::Hoover(time_t now)
 	}
 
 	// discard inactive sessions
-	for (std::list<RtpSessionRef>::iterator it2 = toDismiss.begin(); it2 != toDismiss.end() ; it2++)
+	for (std::list<VoIpSessionRef>::iterator it2 = toDismiss.begin(); it2 != toDismiss.end() ; it2++)
 	{
-		RtpSessionRef session = *it2;
+		VoIpSessionRef session = *it2;
 		CStdString logMsg;
 		logMsg.Format("[%s] %s Expired (CallID) ts:%u", session->m_trackingId, MediaAddressToString(session->m_ipAndPort), session->m_lastUpdated);
 		Stop(session);
 	}
 }
 
-void RtpSessions::StartCaptureOrkuid(CStdString& orkuid, CStdString& side)
+void VoIpSessions::StartCaptureOrkuid(CStdString& orkuid, CStdString& side)
 {
-	std::map<unsigned long long, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
-	RtpSessionRef session;
+	VoIpSessionRef session;
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
 	{
@@ -4179,12 +4179,12 @@ void RtpSessions::StartCaptureOrkuid(CStdString& orkuid, CStdString& side)
 	LOG4CXX_INFO(m_log, logMsg);
 }
 
-CStdString RtpSessions::StartCaptureNativeCallId(CStdString& nativecallid, CStdString& side)
+CStdString VoIpSessions::StartCaptureNativeCallId(CStdString& nativecallid, CStdString& side)
 {
-	std::map<unsigned long long, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
-	RtpSessionRef session;
+	VoIpSessionRef session;
 	CStdString orkUid = CStdString("");
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
@@ -4220,12 +4220,12 @@ CStdString RtpSessions::StartCaptureNativeCallId(CStdString& nativecallid, CStdS
 	return orkUid;
 }
 
-CStdString RtpSessions::StartCapture(CStdString& party, CStdString& side)
+CStdString VoIpSessions::StartCapture(CStdString& party, CStdString& side)
 {
-	std::map<unsigned long long, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
-	RtpSessionRef session;
+	VoIpSessionRef session;
 	CStdString orkUid = CStdString("");
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
@@ -4261,12 +4261,12 @@ CStdString RtpSessions::StartCapture(CStdString& party, CStdString& side)
 	return orkUid;
 }
 
-CStdString RtpSessions::PauseCapture(CStdString& party)
+CStdString VoIpSessions::PauseCapture(CStdString& party)
 {
-	std::map<unsigned long long, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
-	RtpSessionRef session;
+	VoIpSessionRef session;
 	CStdString orkUid = CStdString("");
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
@@ -4295,12 +4295,12 @@ CStdString RtpSessions::PauseCapture(CStdString& party)
 	return orkUid;
 }
 
-void RtpSessions::PauseCaptureOrkuid(CStdString& orkuid)
+void VoIpSessions::PauseCaptureOrkuid(CStdString& orkuid)
 {
-	std::map<unsigned long long, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
-	RtpSessionRef session;
+	VoIpSessionRef session;
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
 	{
@@ -4325,12 +4325,12 @@ void RtpSessions::PauseCaptureOrkuid(CStdString& orkuid)
 	LOG4CXX_INFO(m_log, logMsg);
 }
 
-CStdString RtpSessions::PauseCaptureNativeCallId(CStdString& nativecallid)
+CStdString VoIpSessions::PauseCaptureNativeCallId(CStdString& nativecallid)
 {
-	std::map<unsigned long long, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
-	RtpSessionRef session;
+	VoIpSessionRef session;
 	CStdString orkUid = CStdString("");
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
@@ -4359,12 +4359,12 @@ CStdString RtpSessions::PauseCaptureNativeCallId(CStdString& nativecallid)
 	return orkUid;
 }
 
-CStdString RtpSessions::StopCapture(CStdString& party, CStdString& qos)
+CStdString VoIpSessions::StopCapture(CStdString& party, CStdString& qos)
 {
-	std::map<unsigned long long, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
-	RtpSessionRef session;
+	VoIpSessionRef session;
 	CStdString orkUid = CStdString("");
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
@@ -4394,12 +4394,12 @@ CStdString RtpSessions::StopCapture(CStdString& party, CStdString& qos)
 	return orkUid;
 }
 
-void RtpSessions::StopCaptureOrkuid(CStdString& orkuid, CStdString& qos)
+void VoIpSessions::StopCaptureOrkuid(CStdString& orkuid, CStdString& qos)
 {
-	std::map<unsigned long long, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
-	RtpSessionRef session;
+	VoIpSessionRef session;
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
 	{
@@ -4425,12 +4425,12 @@ void RtpSessions::StopCaptureOrkuid(CStdString& orkuid, CStdString& qos)
 	}
 }
 
-CStdString RtpSessions::StopCaptureNativeCallId(CStdString& nativecallid, CStdString& qos)
+CStdString VoIpSessions::StopCaptureNativeCallId(CStdString& nativecallid, CStdString& qos)
 {
-	std::map<unsigned long long, RtpSessionRef>::iterator pair;
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
-	RtpSessionRef session;
+	VoIpSessionRef session;
 	CStdString orkUid = CStdString("");
 
 	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
@@ -4460,13 +4460,13 @@ CStdString RtpSessions::StopCaptureNativeCallId(CStdString& nativecallid, CStdSt
 	return orkUid;
 }
 
-void RtpSessions::SaveLocalPartyMap(CStdString& oldparty, CStdString& newparty)
+void VoIpSessions::SaveLocalPartyMap(CStdString& oldparty, CStdString& newparty)
 {
 	m_localPartyMap.insert(std::make_pair(oldparty, newparty));
 	LOG4CXX_DEBUG(m_log, "Saved map oldparty:" + oldparty + " newparty:" + newparty);
 }
 
-CStdString RtpSessions::GetLocalPartyMap(CStdString& oldlocalparty)
+CStdString VoIpSessions::GetLocalPartyMap(CStdString& oldlocalparty)
 {
 	CStdString newlocalparty;
 	std::map<CStdString, CStdString>::iterator pair;
@@ -4483,7 +4483,7 @@ CStdString RtpSessions::GetLocalPartyMap(CStdString& oldlocalparty)
 	return newlocalparty;
 }
 
-void RtpSessions::SaveSkinnyGlobalNumbersList(CStdString& number)
+void VoIpSessions::SaveSkinnyGlobalNumbersList(CStdString& number)
 {
 	m_skinnyGlobalNumbersList.insert(std::make_pair(number, 0));
 	LOG4CXX_DEBUG(m_log, "Saved skinny global number:" + number);
@@ -4499,173 +4499,7 @@ UrlExtractionValue::UrlExtractionValue(CStdString value)
 	m_value = value;
 	m_timestamp = time(NULL);
 }
-//=============================================================
-SipSubscribeInfo::SipSubscribeInfo()
-{
 
-}
-//==========================================================
-SipInviteInfo::SipInviteInfo()
-{
-	m_fromRtpIp.s_addr = 0;
-	m_validated = false;
-	m_attrSendonly = false;
-	m_telephoneEventPtDefined = false;
-	m_SipGroupPickUpPatternDetected = false;
-}
-
-void SipInviteInfo::ToString(CStdString& string)
-{
-	char fromRtpIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_fromRtpIp, fromRtpIp, sizeof(fromRtpIp));
-
-	char senderIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-
-	char receiverIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
-
-	CStdString senderMac, receiverMac;
-
-	MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
-	MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
-
-	string.Format("sender:%s from:%s@%s RTP:%s,%s to:%s@%s rcvr:%s callid:%s smac:%s rmac:%s fromname:%s toname:%s ua:%s requesturi:%s a:sendonly:%s telephone-event-payload-type:%s", senderIp, m_from, m_fromDomain, fromRtpIp, m_fromRtpPort, m_to, m_toDomain, receiverIp, m_callId, senderMac, receiverMac, m_fromName, m_toName, m_userAgent, m_requestUri, ((m_attrSendonly == true) ? "present" : "not-present"), m_telephoneEventPayloadType);
-}
-
-//==========================================================
-Sip302MovedTemporarilyInfo::Sip302MovedTemporarilyInfo()
-{
-	m_senderIp.s_addr = 0;
-	m_receiverIp.s_addr = 0;
-}
-
-void Sip302MovedTemporarilyInfo::ToString(CStdString& string)
-{
-	char senderIp[16];
-	char receiverIp[16];
-
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
-
-	string.Format("sender:%s rcvr:%s from:%s@%s to:%s@%s contact:%s@%s fromname:%s toname:%s contactname:%s callid:%s", senderIp, receiverIp, m_from, m_fromDomain, m_to, m_toDomain, m_contact, m_contactDomain, m_fromName, m_toName, m_contactName, m_callId);
-}
-
-//==========================================================
-SipFailureMessageInfo::SipFailureMessageInfo()
-{
-	m_senderIp.s_addr = 0;
-	m_receiverIp.s_addr = 0;
-	memset(m_senderMac, 0, sizeof(m_senderMac));
-	memset(m_receiverMac, 0, sizeof(m_receiverMac));
-}
-
-void SipFailureMessageInfo::ToString(CStdString& string)
-{
-	char senderIp[16], receiverIp[16];
-	CStdString senderMac, receiverMac;
-
-	MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
-	MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
-
-	string.Format("sender:%s rcvr:%s smac:%s rmac:%s callid:%s errorcode:%s reason:\"%s\"", senderIp, receiverIp, senderMac, receiverMac, m_callId, m_errorCode, m_errorString);
-}
-
-void SipFailureMessageInfo::ToString(CStdString& string, SipInviteInfoRef inviteInfo)
-{
-	char senderIp[16], receiverIp[16];
-	CStdString senderMac, receiverMac;
-
-	//MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
-	//MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
-
-	string.Format("sender:%s from:%s to:%s rcvr:%s callid:%s errorcode:%s reason:\"%s\"", senderIp, inviteInfo->m_from, inviteInfo->m_to, receiverIp, inviteInfo->m_callId, m_errorCode, m_errorString);
-}
-
-//============================
-Sip200OkInfo::Sip200OkInfo()
-{
-	m_mediaIp.s_addr = 0;
-	m_hasSdp = false;
-}
-
-void Sip200OkInfo::ToString(CStdString& string)
-{
-	char mediaIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_mediaIp, mediaIp, sizeof(mediaIp));
-
-	char senderIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-
-	char receiverIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
-
-	if(m_mediaPort.size())
-	{
-		string.Format("sender:%s from:%s RTP:%s,%s to:%s rcvr:%s callid:%s", senderIp, m_from, mediaIp, m_mediaPort, m_to, receiverIp, m_callId);
-	}
-	else
-	{
-		string.Format("sender:%s from:%s to:%s rcvr:%s callid:%s", senderIp, m_from, m_to, receiverIp, m_callId);
-	}
-}
-
-
-//================================================
-SipSessionProgressInfo::SipSessionProgressInfo()
-{
-	m_mediaIp.s_addr = 0;
-	m_senderIp.s_addr = 0;
-	m_receiverIp.s_addr = 0;
-}
-
-void SipSessionProgressInfo::ToString(CStdString& string)
-{
-	char mediaIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_mediaIp, mediaIp, sizeof(mediaIp));
-
-	char senderIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-
-	char receiverIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
-
-	string.Format("sender:%s from:%s RTP:%s,%s to:%s rcvr:%s callid:%s", senderIp, m_from, mediaIp, m_mediaPort, m_to, receiverIp, m_callId);
-}
-
-//================================================
-SipByeInfo::SipByeInfo()
-{
-	m_senderIp.s_addr = 0;
-	m_receiverIp.s_addr = 0;
-}
-
-void SipByeInfo::ToString(CStdString& string)
-{
-	char senderIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-
-	char receiverIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
-
-	string.Format("sender:%s rcvr:%s callid:%s from:%s to:%s fromDomain:%s toDomain:%s fromName:%s toName:%s", senderIp, receiverIp, m_callId, m_from, m_to, m_fromDomain, m_toDomain, m_fromName, m_toName);
-}
-
-//================================================
-SipNotifyInfo::SipNotifyInfo()
-{
-	m_senderIp.s_addr = 0;
-	m_receiverIp.s_addr = 0;
-}
-//================================================
-SipInfo::SipInfo()
-{
-
-}
 //================================================
 
 EndpointInfo::EndpointInfo()
