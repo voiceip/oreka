@@ -21,7 +21,7 @@
 #include "ace/OS_NS_ctype.h"
 #include "PacketHeaderDefs.h"
 #include "Rtp.h"
-#include "RtpSession.h"
+#include "VoIpSession.h"
 
 void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHeader, u_char* packetEnd, TcpHeaderStruct* tcpHeader);
 void ScanAllSkinnyMessages(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader, u_char* ipPacketEnd);

@@ -21,7 +21,7 @@
 #include "ace/OS_NS_ctype.h"
 #include "PacketHeaderDefs.h"
 #include "Rtp.h"
-#include "RtpSession.h"
+#include "VoIpSession.h"
 #include "SipTcp.h"
 #include "Win1251.h"
 #include "SipUdp.h"

@@ -15,7 +15,7 @@
 
 #include "Utils.h"
 #include "AudioCapture.h"
-#include "RtpSession.h"
+#include "VoIpSession.h"
 #include "AudioCapturePlugin.h"
 #include "AudioCapturePluginCommon.h"
 #include <list>
