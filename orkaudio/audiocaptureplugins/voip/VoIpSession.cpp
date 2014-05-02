@@ -102,9 +102,9 @@ void VoIpSession::Stop()
 			}
 			else
 			{
-				EndpointInfoRef endpoint;
+				VoIpEndpointInfoRef endpoint;
 
-				endpoint = VoIpSessionsSingleton::instance()->GetEndpointInfoByIp(&m_lastRtpPacketSide1->m_sourceIp);
+				endpoint = VoIpSessionsSingleton::instance()->GetVoIpEndpointInfoByIp(&m_lastRtpPacketSide1->m_sourceIp);
 				if(endpoint.get())
 				{
 					m_localSide = CaptureEvent::LocalSideSide1;
@@ -127,9 +127,9 @@ void VoIpSession::Stop()
 			}
 			else
 			{
-				EndpointInfoRef endpoint;
+				VoIpEndpointInfoRef endpoint;
 
-				endpoint = VoIpSessionsSingleton::instance()->GetEndpointInfoByIp(&m_lastRtpPacketSide2->m_sourceIp);
+				endpoint = VoIpSessionsSingleton::instance()->GetVoIpEndpointInfoByIp(&m_lastRtpPacketSide2->m_sourceIp);
 				if(endpoint.get())
 				{
 					if(m_localSide == CaptureEvent::LocalSideSide1)
@@ -146,11 +146,11 @@ void VoIpSession::Stop()
 
 		if(DLLCONFIG.m_urlExtractorEnable == true)
 		{
-			EndpointInfoRef endpoint;
-			endpoint = VoIpSessionsSingleton::instance()->GetEndpointInfo(m_localIp, 0);
+			VoIpEndpointInfoRef endpoint;
+			endpoint = VoIpSessionsSingleton::instance()->GetVoIpEndpointInfo(m_localIp, 0);
 			if(!endpoint.get())
 			{
-				endpoint = VoIpSessionsSingleton::instance()->GetEndpointInfo(m_remoteIp, 0);
+				endpoint = VoIpSessionsSingleton::instance()->GetVoIpEndpointInfo(m_remoteIp, 0);
 			}
 
 			if(endpoint.get())
@@ -806,7 +806,7 @@ void VoIpSession::ReportMetadata()
 	{
 		if(m_protocol == ProtSkinny)
 		{
-			EndpointInfoRef endpointInfo = VoIpSessionsSingleton::instance()->GetEndpointInfo(m_endPointIp, m_endPointSignallingPort);
+			VoIpEndpointInfoRef endpointInfo = VoIpSessionsSingleton::instance()->GetVoIpEndpointInfo(m_endPointIp, m_endPointSignallingPort);
 			if(endpointInfo.get())
 			{
 				m_localParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(endpointInfo->m_extension);
@@ -1881,11 +1881,11 @@ void VoIpSession::MarkAsOnDemand(CStdString& side)
 void VoIpSession::SkinnyTrackConferencesTransfers(CStdString callId, CStdString capturePort)
 {
 	CStdString logMsg;
-	EndpointInfoRef endpoint;
+	VoIpEndpointInfoRef endpoint;
 	time_t time_now = time(NULL);
-	std::map<CStdString, EndpointInfoRef>::iterator it;
+	std::map<CStdString, VoIpEndpointInfoRef>::iterator it;
 
-	endpoint = VoIpSessionsSingleton::instance()->GetEndpointInfo(m_endPointIp, m_endPointSignallingPort);
+	endpoint = VoIpSessionsSingleton::instance()->GetVoIpEndpointInfo(m_endPointIp, m_endPointSignallingPort);
 
 	if((time_now - endpoint->m_lastConferencePressed) > 3 && (time_now - endpoint->m_lastConnectedWithConference) > 3)
 	{
@@ -2322,7 +2322,7 @@ void VoIpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, VoIpSes
 	CStdString logMsg;
 	char szEndPointIp[16];
 
-	EndpointInfoRef endpoint = GetEndpointInfo(session->m_endPointIp, session->m_endPointSignallingPort);
+	VoIpEndpointInfoRef endpoint = GetVoIpEndpointInfo(session->m_endPointIp, session->m_endPointSignallingPort);
 	ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
 
 	switch(callInfo->callType)
@@ -2382,14 +2382,14 @@ void VoIpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, VoIpSes
 	}
 }
 
-EndpointInfoRef VoIpSessions::GetEndpointInfoByIp(struct in_addr *ip)
+VoIpEndpointInfoRef VoIpSessions::GetVoIpEndpointInfoByIp(struct in_addr *ip)
 {
-	std::map<unsigned long long, EndpointInfoRef>::iterator pair;
-	EndpointInfoRef endpoint;
+	std::map<unsigned long long, VoIpEndpointInfoRef>::iterator pair;
+	VoIpEndpointInfoRef endpoint;
 
 	for(pair = m_endpoints.begin(); pair != m_endpoints.end(); pair++)
 	{
-		EndpointInfoRef ep = pair->second;
+		VoIpEndpointInfoRef ep = pair->second;
 
 		if(ep.get() && (ep->m_ip.s_addr == ip->s_addr))
 		{
@@ -2401,21 +2401,21 @@ EndpointInfoRef VoIpSessions::GetEndpointInfoByIp(struct in_addr *ip)
 	return endpoint;
 }
 
-bool VoIpSessions::SkinnyFindMostLikelySessionForRtp(RtpPacketInfoRef& rtpPacket, EndpointInfoRef& endpoint)
+bool VoIpSessions::SkinnyFindMostLikelySessionForRtp(RtpPacketInfoRef& rtpPacket, VoIpEndpointInfoRef& endpoint)
 {
 	std::map<CStdString, VoIpSessionRef>::iterator sessionpair;
 	VoIpSessionRef session;
 	bool srcmatch = false;
 	CStdString logMsg;
 
-	endpoint = GetEndpointInfoByIp(&rtpPacket->m_sourceIp);
+	endpoint = GetVoIpEndpointInfoByIp(&rtpPacket->m_sourceIp);
 	if(endpoint.get())
 	{
 		srcmatch = true;
 	}
 	else
 	{
-		endpoint = GetEndpointInfoByIp(&rtpPacket->m_destIp);
+		endpoint = GetVoIpEndpointInfoByIp(&rtpPacket->m_destIp);
 		if(!endpoint.get())
 		{
 			return false;
@@ -3128,7 +3128,7 @@ void VoIpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStru
 			sessionExisting = findByEndpointIp(openReceive->endpointIpAddr, 0);
 			if(!sessionExisting.get())
 			{
-				EndpointInfoRef endpoint = GetEndpointInfo(openReceive->endpointIpAddr, ntohs(tcpHeader->source));
+				VoIpEndpointInfoRef endpoint = GetVoIpEndpointInfo(openReceive->endpointIpAddr, ntohs(tcpHeader->source));
 				char szEndpointIp[16];
 				ACE_OS::inet_ntop(AF_INET, (void*)&openReceive->endpointIpAddr, szEndpointIp, sizeof(szEndpointIp));
 
@@ -3186,7 +3186,7 @@ void VoIpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionSt
 			sessionExisting = findByEndpointIp(ipHeader->ip_dest, 0);
 			if(!sessionExisting.get())
 			{
-				EndpointInfoRef endpoint = GetEndpointInfo(ipHeader->ip_dest, ntohs(tcpHeader->source));
+				VoIpEndpointInfoRef endpoint = GetVoIpEndpointInfo(ipHeader->ip_dest, ntohs(tcpHeader->source));
 				char szEndpointIp[16];
 				ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_dest, szEndpointIp, sizeof(szEndpointIp));
 
@@ -3276,8 +3276,8 @@ void VoIpSessions::ReportSkinnyStopMediaTransmission(SkStopMediaTransmissionStru
 
 void VoIpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* endpointIp, CStdString& callId, unsigned short skinnyPort)
 {
-	std::map<unsigned long long, EndpointInfoRef>::iterator pair;
-	EndpointInfoRef endpoint;
+	std::map<unsigned long long, VoIpEndpointInfoRef>::iterator pair;
+	VoIpEndpointInfoRef endpoint;
 	char szEndpointIp[16];
 	unsigned long long ipAndPort;
 
@@ -3300,7 +3300,7 @@ void VoIpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* e
 		// Create endpoint info for the new endpoint
 		CStdString logMsg;
 
-		endpoint.reset(new EndpointInfo());
+		endpoint.reset(new VoIpEndpointInfo());
 		endpoint->m_extension = extension;
 		endpoint->m_skinnyPort = skinnyPort;
 
@@ -3401,11 +3401,11 @@ void VoIpSessions::ReportSkinnySoftKeyConfPressed(struct in_addr endpointIp, Tcp
 	time_t time_now = time(NULL);
 	unsigned short skinnyPort;
 	skinnyPort = ntohs(tcpHeader->source);
-	EndpointInfoRef endpoint;
+	VoIpEndpointInfoRef endpoint;
 	char szEndpointIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
 
-	endpoint = GetEndpointInfo(endpointIp, skinnyPort);
+	endpoint = GetVoIpEndpointInfo(endpointIp, skinnyPort);
 	if(endpoint == NULL)
 	{
 		logMsg.Format("ReportSkinnySoftKeyConfPressed: unable to find endpoint:%s,%d", szEndpointIp, skinnyPort);
@@ -3451,8 +3451,8 @@ void VoIpSessions::ReportSkinnySoftKeySetConfConnected(struct in_addr endpointIp
 	skinnyPort = ntohs(tcpHeader->dest);
 	char szEndpointIp[16];
 	ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
-	EndpointInfoRef endpoint;
-	endpoint = GetEndpointInfo(endpointIp, skinnyPort);
+	VoIpEndpointInfoRef endpoint;
+	endpoint = GetVoIpEndpointInfo(endpointIp, skinnyPort);
 	if(endpoint == NULL)
 	{
 		logMsg.Format("ReportSkinnySoftKeyConfConnected unable to find endpoint:%s,%d", szEndpointIp, skinnyPort);
@@ -3483,11 +3483,11 @@ void VoIpSessions::ReportSkinnySoftKeySetTransfConnected(SkSoftKeySetDescription
 	}
 }
 
-EndpointInfoRef VoIpSessions::GetEndpointInfo(struct in_addr endpointIp, unsigned short skinnyPort)
+VoIpEndpointInfoRef VoIpSessions::GetVoIpEndpointInfo(struct in_addr endpointIp, unsigned short skinnyPort)
 {
 	char szEndpointIp[16];
 	unsigned long long ipAndPort;
-	std::map<unsigned long long, EndpointInfoRef>::iterator pair;
+	std::map<unsigned long long, VoIpEndpointInfoRef>::iterator pair;
 
 	ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
 	Craft64bitMediaAddress(ipAndPort, endpointIp, skinnyPort);
@@ -3498,7 +3498,7 @@ EndpointInfoRef VoIpSessions::GetEndpointInfo(struct in_addr endpointIp, unsigne
 		return pair->second;
 	}
 
-	return EndpointInfoRef();
+	return VoIpEndpointInfoRef();
 }
 
 
@@ -3749,7 +3749,7 @@ void VoIpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 	else if((numSessionsFound == 0) && ((CONFIG.m_lookBackRecording == true) || DLLCONFIG.m_trackRawRtpSessionInNonLookBackMode == true))
 	{
-		EndpointInfoRef endpoint;
+		VoIpEndpointInfoRef endpoint;
 
 		// Check if a Skinny session can be found on the endpoint
 		if(DLLCONFIG.m_skinnyRtpSearchesForCallInfo)
@@ -3961,8 +3961,8 @@ void VoIpSessions::UrlExtraction(CStdString& input, struct in_addr* endpointIp)
 				CStdString unescapedValue;
 				UnEscapeUrl(value, unescapedValue);
 
-				std::map<unsigned long long, EndpointInfoRef>::iterator pair;
-				EndpointInfoRef endpoint;
+				std::map<unsigned long long, VoIpEndpointInfoRef>::iterator pair;
+				VoIpEndpointInfoRef endpoint;
 				unsigned long long ipAndPort;
 
 				Craft64bitMediaAddress(ipAndPort, *endpointIp, 0);
@@ -3987,7 +3987,7 @@ void VoIpSessions::UrlExtraction(CStdString& input, struct in_addr* endpointIp)
 				else
 				{
 					UrlExtractionValueRef urlExtractionValue(new UrlExtractionValue(unescapedValue));
-					endpoint.reset(new EndpointInfo);
+					endpoint.reset(new VoIpEndpointInfo);
 					memcpy(&endpoint->m_ip, endpointIp, sizeof(endpoint->m_ip));
 					endpoint->m_urlExtractionMap.insert(std::make_pair(key, urlExtractionValue));
 					m_endpoints.insert(std::make_pair(ipAndPort, endpoint));
@@ -4502,7 +4502,7 @@ UrlExtractionValue::UrlExtractionValue(CStdString value)
 
 //================================================
 
-EndpointInfo::EndpointInfo()
+VoIpEndpointInfo::VoIpEndpointInfo()
 {
 	m_lastConferencePressed = 0;
 	m_lastConnectedWithConference = 0;

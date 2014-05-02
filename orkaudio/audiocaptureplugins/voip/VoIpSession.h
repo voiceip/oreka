@@ -44,10 +44,10 @@ typedef boost::shared_ptr<UrlExtractionValue> UrlExtractionValueRef;
 
 //=============================================================
 
-class EndpointInfo
+class VoIpEndpointInfo
 {
 public:
-	EndpointInfo();
+	VoIpEndpointInfo();
 	CStdString m_extension;
 	CStdString m_latestCallId;
 	struct in_addr m_ip;
@@ -57,27 +57,8 @@ public:
 	CStdString m_origOrkUid;
 	std::map<CStdString, UrlExtractionValueRef> m_urlExtractionMap;		//map<urlParam, urlValue>
 };
-typedef boost::shared_ptr<EndpointInfo> EndpointInfoRef;
+typedef boost::shared_ptr<VoIpEndpointInfo> VoIpEndpointInfoRef;
 
-//============================================================
-typedef boost::multi_index_container
-		<
-			SipSubscribeInfoRef,
-			boost::multi_index::indexed_by
-			<
-				boost::multi_index::sequenced<>,
-				boost::multi_index::ordered_unique<boost::multi_index::member<SipSubscribeInfo, CStdString,&SipSubscribeInfo::m_callId> >
-			>
-		> SipSubscribeMap;
-
-enum IndexType
-{
-     IndexSequential, // = zero (the first index is the sequenced index)
-     IndexSearchable // = one (the second index is the ordered index on the first member of the pair)
-     //would be able to add more type of index indices
-};
-typedef SipSubscribeMap::nth_index<IndexSequential>::type SipSubscribeSeqIndex;
-typedef SipSubscribeMap::nth_index<IndexSearchable>::type SipSubscribeSearchIndex;
 // ============================================================
 
 class VoIpSession
@@ -248,8 +229,8 @@ public:
 	void ReportSip302MovedTemporarily(Sip302MovedTemporarilyInfoRef& info);
 	void ReportSipInfo(SipInfoRef& info);
 	void Hoover(time_t now);
-	EndpointInfoRef GetEndpointInfoByIp(struct in_addr *ip);
-	EndpointInfoRef GetEndpointInfo(struct in_addr endpointIp, unsigned short skinnyPort);
+	VoIpEndpointInfoRef GetVoIpEndpointInfoByIp(struct in_addr *ip);
+	VoIpEndpointInfoRef GetVoIpEndpointInfo(struct in_addr endpointIp, unsigned short skinnyPort);
 	CStdString StartCapture(CStdString& party, CStdString& side);
 	void StartCaptureOrkuid(CStdString& orkuid, CStdString& side);
 	CStdString StartCaptureNativeCallId(CStdString& nativecallid, CStdString& side);
@@ -284,13 +265,13 @@ private:
 	CStdString GenerateSkinnyCallId(struct in_addr endpointIp, unsigned short endpointSkinnyPort, unsigned int callId);
 	void UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
 	void UpdateSessionWithCallInfo(SkCallInfoStruct*, VoIpSessionRef&);
-	bool SkinnyFindMostLikelySessionForRtp(RtpPacketInfoRef& rtpPacket, EndpointInfoRef&);
+	bool SkinnyFindMostLikelySessionForRtp(RtpPacketInfoRef& rtpPacket, VoIpEndpointInfoRef&);
 	bool SkinnyFindMostLikelySessionForRtpBehindNat(RtpPacketInfoRef& rtpPacket);
 	void TrySessionCallPickUp(CStdString replacesCallId, bool& result);
 
 	std::map<unsigned long long, VoIpSessionRef> m_byIpAndPort;
 	std::map<CStdString, VoIpSessionRef> m_byCallId;
-	std::map<unsigned long long, EndpointInfoRef> m_endpoints;
+	std::map<unsigned long long, VoIpEndpointInfoRef> m_endpoints;
 	std::map<CStdString, CStdString> m_localPartyMap;
 	std::map<CStdString, int> m_skinnyGlobalNumbersList;
 	SipSubscribeMap m_sipSubscribeMap;
