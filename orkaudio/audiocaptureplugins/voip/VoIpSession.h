@@ -15,7 +15,6 @@
 #define __VOIPSESSION_H__
 
 #include <log4cxx/logger.h>
-#include "RtpSession.h"
 #include "Rtp.h"
 #include <map>
 #include "ace/OS_NS_sys_time.h"
