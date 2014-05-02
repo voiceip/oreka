@@ -342,32 +342,6 @@
 				>
 			</File>
 			<File
-				RelativePath="RtpSession.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="RtpSession.h"
-				>
-			</File>
-			<File
 				RelativePath=".\SipHeaders.cpp"
 				>
 			</File>
@@ -471,6 +445,14 @@
 			</File>
 			<File
 				RelativePath="VoIpConfig.h"
+				>
+			</File>
+			<File
+				RelativePath=".\VoIpSession.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\VoIpSession.h"
 				>
 			</File>
 			<File
