@@ -3552,6 +3552,7 @@ void VoIpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	int sourcePort = rtpPacket->m_sourcePort;
 	int destPort = rtpPacket->m_destPort;
+	bool sourceAddressIsTracked = false;
 
 	if(DLLCONFIG.m_sangomaEnable && sourcePort == destPort)
 	{
@@ -3592,6 +3593,7 @@ void VoIpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	{
 		// Found a session give it the RTP packet info
 		session = session1;
+		sourceAddressIsTracked = true;
 		if(session1->AddRtpPacket(rtpPacket))
 		{
 			numSessionsFound++;
@@ -3726,6 +3728,23 @@ void VoIpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 	else if(numSessionsFound == 1 )
 	{
+		if(DLLCONFIG.m_mediaAddressUseSecondRtpAddress == true)	//either source or dest media address is not already in tracking map
+		{
+			unsigned short trackingPort = 0;
+			in_addr trackingIp;
+			if(sourceAddressIsTracked == true)	//we need to add dest port into tracking map
+			{
+				trackingPort = rtpPacket->m_destPort;
+				trackingIp = rtpPacket->m_destIp;
+				SetMediaAddress(session, trackingIp, trackingPort);
+			}
+			else
+			{
+				trackingPort = rtpPacket->m_sourcePort;
+				trackingIp = rtpPacket->m_sourceIp;
+				SetMediaAddress(session, trackingIp, trackingPort);
+			}
+		}
 		if (session->m_numRtpPackets == 1 && session->m_protocol == VoIpSession::ProtSip)
 		{
 			// This was the first packet of the session, check whether it is tracked on the right IP address
