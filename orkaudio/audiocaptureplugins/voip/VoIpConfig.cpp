@@ -118,6 +118,7 @@ VoIpConfig::VoIpConfig()
 	m_orekaEncapsulationPort = 10002;
 	m_sipUdpReassembleFragments = false;
 	m_sipInfoDtmfRfc2976Detect = false;
+	m_mediaAddressUseSecondRtpAddress = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -243,6 +244,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->StringValue("OnDemandTcpMarkerValue", m_onDemandTcpMarkerValue);
 	s->StringValue("OnDemandViaDtmfDigitsString", m_onDemandViaDtmfDigitsString);
 	s->BoolValue("SipInfoDtmfRfc2976Detect", m_sipInfoDtmfRfc2976Detect);
+	s->BoolValue("MediaAddressUseSecondRtpAddress", m_mediaAddressUseSecondRtpAddress);
 }
 
 void VoIpConfig::Validate()
