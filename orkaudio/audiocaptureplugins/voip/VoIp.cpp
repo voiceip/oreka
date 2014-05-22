@@ -1779,15 +1779,15 @@ void VoipTcpStream::run(void* args)
 	ACE_INET_Addr addr;
 	if(DLLCONFIG.m_orekaEncapsulationHost.length() > 0)
 	{
-		addr.set((DLLCONFIG.m_orekaEncapsulationPort - 1), DLLCONFIG.m_orekaEncapsulationHost);
+		addr.set((DLLCONFIG.m_orekaEncapsulationPort + 1), DLLCONFIG.m_orekaEncapsulationHost);
 	}
 	else
 	{
-		addr.set(DLLCONFIG.m_orekaEncapsulationPort - 1);
+		addr.set(DLLCONFIG.m_orekaEncapsulationPort + 1);
 	}
 
 	ACE_Reactor reactor;
-	CStdString tcpPortString = IntToString(DLLCONFIG.m_orekaEncapsulationPort - 1);
+	CStdString tcpPortString = IntToString(DLLCONFIG.m_orekaEncapsulationPort + 1);
 
 	if (peer_acceptor.open (addr, &reactor) == -1)
 	{
