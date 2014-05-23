@@ -473,6 +473,8 @@ struct Iax2MetaTrunkEntryTs {
 #define SIP_RESPONSE_302_MOVED_TEMPORARILY "SIP/2.0 302 Moved Temporarily"
 #define SIP_METHOD_INFO "INFO"
 #define SIP_MEDTHOD_INFO_SIZE 4
+#define SIP_METHOD_REFER "REFER"
+#define SIP_METHOD_REFER_SIZE 5
 
 #define DTMF_DIGIT_ZERO "0"
 #define DTMF_DIGIT_ONE "1"

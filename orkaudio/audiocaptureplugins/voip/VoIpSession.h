@@ -81,6 +81,7 @@ public:
 	void ReportSipInvite(SipInviteInfoRef& invite);
 	void ReportSipErrorPacket(SipFailureMessageInfoRef& info);
 	void ReportSipInfo(SipInfoRef& info);
+	void ReportSipRefer(SipReferRef& info);
 	void ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo);
 	bool OrkUidMatches(CStdString &oUid);
 	bool PartyMatches(CStdString &party);
@@ -228,6 +229,7 @@ public:
 	void ReportSipSessionProgress(SipSessionProgressInfoRef& info);
 	void ReportSip302MovedTemporarily(Sip302MovedTemporarilyInfoRef& info);
 	void ReportSipInfo(SipInfoRef& info);
+	void ReportSipRefer(SipReferRef& info);
 	void Hoover(time_t now);
 	VoIpEndpointInfoRef GetVoIpEndpointInfoByIp(struct in_addr *ip);
 	VoIpEndpointInfoRef GetVoIpEndpointInfo(struct in_addr endpointIp, unsigned short skinnyPort);
@@ -247,6 +249,7 @@ public:
 	void UnEscapeUrl(CStdString& in, CStdString& out);
 	void UrlExtraction(CStdString& input, struct in_addr* endpointIp);
 	void ReportOnDemandMarkerByIp(struct in_addr endpointIp);
+	void TaggingSipTransferCalls(VoIpSessionRef& session);
 
 private:
 	void CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort);
@@ -275,6 +278,7 @@ private:
 	std::map<CStdString, CStdString> m_localPartyMap;
 	std::map<CStdString, int> m_skinnyGlobalNumbersList;
 	SipSubscribeMap m_sipSubscribeMap;
+	std::list<SipReferRef> m_sipReferList;
 	LoggerPtr m_log;
 	AlphaCounter m_alphaCounter;
 };

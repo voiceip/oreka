@@ -119,6 +119,7 @@ VoIpConfig::VoIpConfig()
 	m_sipUdpReassembleFragments = false;
 	m_sipInfoDtmfRfc2976Detect = false;
 	m_mediaAddressUseSecondRtpAddress = false;
+	m_transferTimeOutInSec = 7200;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -245,6 +246,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->StringValue("OnDemandViaDtmfDigitsString", m_onDemandViaDtmfDigitsString);
 	s->BoolValue("SipInfoDtmfRfc2976Detect", m_sipInfoDtmfRfc2976Detect);
 	s->BoolValue("MediaAddressUseSecondRtpAddress", m_mediaAddressUseSecondRtpAddress);
+	s->IntValue("TransferTimeOutInSec", m_transferTimeOutInSec);
 }
 
 void VoIpConfig::Validate()

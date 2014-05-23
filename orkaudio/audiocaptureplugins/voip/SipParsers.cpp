@@ -1511,3 +1511,119 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 	return result;
 }
 
+bool TrySipRefer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
+{
+	bool result = false;
+
+	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
+	char* sipEnd = (char*)udpPayload + sipLength;
+	if(sipLength < SIP_METHOD_REFER_SIZE || sipEnd > (char*)packetEnd)
+	{
+		;	// packet too short
+	}
+	else if(memcmp(SIP_METHOD_REFER, (void*)udpPayload, SIP_METHOD_REFER_SIZE) == 0)
+	{
+		result = true;
+
+		SipReferRef info(new SipRefer());
+		info->m_timestamp = time(NULL);
+		char* referToField = memFindAfter("Refer-To:", (char*)udpPayload, sipEnd);
+		char* referredByField = memFindAfter("Referred-By:", (char*)udpPayload, sipEnd);
+		char* callIdField = memFindAfter("Call-ID:", (char*)udpPayload, sipEnd);
+		if(!callIdField)
+		{
+			callIdField = memFindAfter("\ni:", (char*)udpPayload, sipEnd);
+		}
+		char* fromField = memFindAfter("From:", (char*)udpPayload, sipEnd);
+		if(!fromField)
+		{
+			fromField = memFindAfter("\nf:", (char*)udpPayload, sipEnd);
+		}
+		char* toField = memFindAfter("To:", (char*)udpPayload, sipEnd);
+		if(!toField)
+		{
+			toField = memFindAfter("\nt:", (char*)udpPayload, sipEnd);
+		}
+
+		if(callIdField)
+		{
+			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
+		}
+
+		if(fromField)
+		{
+			if(s_sipExtractionLog->isDebugEnabled())
+			{
+				CStdString from;
+				GrabLine(fromField, sipEnd, from);
+				LOG4CXX_DEBUG(s_sipExtractionLog, "from: " + from);
+			}
+			char* fromFieldEnd = memFindEOL(fromField, sipEnd);
+			GrabSipName(fromField, fromFieldEnd, info->m_fromName);
+			char* sipUser = memFindAfter("sip:", fromField, fromFieldEnd);
+			if(sipUser)
+			{
+				GrabSipUriUser(sipUser, fromFieldEnd, info->m_from);
+				GrabSipUriDomain(sipUser, fromFieldEnd, info->m_fromDomain);
+			}
+			else
+			{
+				GrabSipUriUser(fromField, fromFieldEnd, info->m_from);
+				GrabSipUriDomain(fromField, fromFieldEnd, info->m_fromDomain);
+			}
+		}
+		if(toField)
+		{
+			CStdString to;
+			char* toFieldEnd = GrabLine(toField, sipEnd, to);
+			LOG4CXX_DEBUG(s_sipExtractionLog, "to: " + to);
+			GrabSipName(toField, toFieldEnd, info->m_toName);
+			char* sipUser = memFindAfter("sip:", toField, toFieldEnd);
+			if(sipUser)
+			{
+				GrabSipUriUser(sipUser, toFieldEnd, info->m_to);
+				GrabSipUriDomain(sipUser, toFieldEnd, info->m_toDomain);
+			}
+			else
+			{
+				GrabSipUriUser(toField, toFieldEnd, info->m_to);
+				GrabSipUriDomain(toField, toFieldEnd, info->m_toDomain);
+			}
+		}
+
+		if(referToField)
+		{
+			char* referToFieldEnd = memFindEOL(referToField, sipEnd);
+			char* sipUser = memFindAfter("sip:", referToField, referToFieldEnd);
+			if(sipUser)
+			{
+				GrabSipUriUser(sipUser, referToFieldEnd, info->m_referTo);
+
+			}
+		}
+		if(referredByField)
+		{
+			char* referredByFieldEnd = memFindEOL(referredByField, sipEnd);
+			char* sipUser = memFindAfter("sip:", referredByField, referredByFieldEnd);
+			if(sipUser)
+			{
+				GrabSipUriUser(sipUser, referredByFieldEnd, info->m_referredBy);
+
+			}
+		}
+		info->m_senderIp = ipHeader->ip_src;
+		info->m_receiverIp = ipHeader->ip_dest;
+
+		CStdString logMsg;
+
+		info->ToString(logMsg);
+		logMsg = "REFER: " + logMsg;
+		LOG4CXX_INFO(s_sipPacketLog, logMsg);
+
+		VoIpSessionsSingleton::instance()->ReportSipRefer(info);
+	}
+	return result;
+}
+
+
+

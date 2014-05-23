@@ -30,7 +30,7 @@ extern CaptureEventCallBackFunction g_captureEventCallBack;
 extern VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
 
-#define CONFRC_TAG_KEY "orig-orkuid"
+#define CONFERENCE_TRANSFER_TRACKING_TAG_KEY "orig-orkuid"
 
 VoIpSession::VoIpSession(CStdString& trackingId)
 {
@@ -1718,6 +1718,16 @@ void VoIpSession::ReportSipInfo(SipInfoRef& info)
 	}
 }
 
+void VoIpSession::ReportSipRefer(SipReferRef& info)
+{
+	info->m_origOrkUid = m_orkUid;
+	CaptureEventRef event (new CaptureEvent());
+	event->m_type = CaptureEvent::EtKeyValue;
+	event->m_key = CONFERENCE_TRANSFER_TRACKING_TAG_KEY;
+	event->m_value = info->m_origOrkUid;
+	g_captureEventCallBack(event, m_capturePort);
+}
+
 void VoIpSession::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
 {
 	CaptureEventRef event(new CaptureEvent());
@@ -1897,7 +1907,7 @@ void VoIpSession::SkinnyTrackConferencesTransfers(CStdString callId, CStdString 
 		{
 			CaptureEventRef event (new CaptureEvent());
 			event->m_type = CaptureEvent::EtKeyValue;
-			event->m_key = CONFRC_TAG_KEY;
+			event->m_key = CONFERENCE_TRANSFER_TRACKING_TAG_KEY;
 			event->m_value = endpoint->m_origOrkUid;
 			g_captureEventCallBack(event, capturePort);
 			logMsg.Format("SkinnyTrackConferencesTransfers:[%s] new leg, tagging with orig-orkuid:%s",m_trackingId, endpoint->m_origOrkUid);
@@ -2261,18 +2271,24 @@ void VoIpSessions::ReportSipNotify(SipNotifyInfoRef& notify)
 
 void VoIpSessions::ReportSipInfo(SipInfoRef& info)
 {
-	VoIpSessionRef session;
 	std::map<CStdString, VoIpSessionRef>::iterator it;
-	for(it = m_byCallId.begin(); it != m_byCallId.end(); it++)
+	it = m_byCallId.find(info->m_callId);
+	if(it != m_byCallId.end())
 	{
-		if((it->second->m_callId).CompareNoCase(info->m_callId) == 0)
-		{
-			session = it->second;
-		}
+		it->second->ReportSipInfo(info);
 	}
-	if(session.get() != NULL)
+}
+
+void VoIpSessions::ReportSipRefer(SipReferRef& info)
+{
+	std::map<CStdString, VoIpSessionRef>::iterator it;
+	it = m_byCallId.find(info->m_callId);
+	if(it != m_byCallId.end())
 	{
-		session->ReportSipInfo(info);
+		info->m_referTo = GetLocalPartyMap(info->m_referTo);
+		info->m_referredBy = GetLocalPartyMap(info->m_referredBy);
+		it->second->ReportSipRefer(info);
+		m_sipReferList.push_back(info);
 	}
 }
 
@@ -3428,7 +3444,7 @@ void VoIpSessions::ReportSkinnySoftKeyConfPressed(struct in_addr endpointIp, Tcp
 	{
 		CaptureEventRef event (new CaptureEvent());
 		event->m_type = CaptureEvent::EtKeyValue;
-		event->m_key = CONFRC_TAG_KEY;
+		event->m_key = CONFERENCE_TRANSFER_TRACKING_TAG_KEY;
 		event->m_value = rtpSession->GetOrkUid();
 		endpoint->m_origOrkUid = rtpSession->GetOrkUid();
 		g_captureEventCallBack(event, rtpSession->m_capturePort);
@@ -3504,6 +3520,7 @@ VoIpEndpointInfoRef VoIpSessions::GetVoIpEndpointInfo(struct in_addr endpointIp,
 
 void VoIpSessions::Stop(VoIpSessionRef& session)
 {
+	TaggingSipTransferCalls(session);
 	session->Stop();
 
 	if(session->m_callId.size() > 0)
@@ -4060,6 +4077,43 @@ void VoIpSessions::ReportOnDemandMarkerByIp(struct in_addr endpointIp)
 	}
 
 }
+
+void VoIpSessions::TaggingSipTransferCalls(VoIpSessionRef& session)
+{
+	if((session.get() == NULL) || (session->m_protocol != VoIpSession::ProtSip) || (m_sipReferList.size() < 1))
+	{
+		return;
+	}
+	CStdString fromUser, toUser, logMsg;
+	fromUser = VoIpSessionsSingleton::instance()->GetLocalPartyMap(session->m_invite->m_from);
+	toUser = VoIpSessionsSingleton::instance()->GetLocalPartyMap(session->m_invite->m_to);
+	std::list<SipReferRef>::iterator it;
+	it = m_sipReferList.begin();
+	while(it != m_sipReferList.end())
+	{
+		SipReferRef sipRefer = *it;
+		int referLife = (int)(time(NULL) - sipRefer->m_timestamp);
+		if(referLife > DLLCONFIG.m_transferTimeOutInSec )
+		{
+			it = m_sipReferList.erase(it);
+			continue;
+		}
+
+		int timeDifFromCreation = (int)(sipRefer->m_timestamp - session->m_creationDate.sec());
+		if((timeDifFromCreation > 0) && (toUser.CompareNoCase(sipRefer->m_referTo) == 0) && (fromUser.CompareNoCase(sipRefer->m_referredBy) == 0))
+		{
+			CaptureEventRef event (new CaptureEvent());
+			event->m_type = CaptureEvent::EtKeyValue;
+			event->m_key = CONFERENCE_TRANSFER_TRACKING_TAG_KEY;
+			event->m_value = sipRefer->m_origOrkUid;
+			g_captureEventCallBack(event, session->m_capturePort);
+			logMsg.Format("transfer via SIP REFER:[%s] new leg, tagging with orig-orkuid:%s",session->m_trackingId, sipRefer->m_origOrkUid);
+			LOG4CXX_INFO(m_log, logMsg);
+		}
+		it++;
+	}
+}
+
 
 void VoIpSessions::StopAll()
 {

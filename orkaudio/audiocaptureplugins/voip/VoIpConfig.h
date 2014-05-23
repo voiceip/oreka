@@ -171,6 +171,7 @@ public:
 	bool m_sipInfoDtmfRfc2976Detect;
 	CStdString m_onDemandViaDtmfDigitsString;
 	bool m_mediaAddressUseSecondRtpAddress;
+	int m_transferTimeOutInSec;
 };
 
 //========================================
