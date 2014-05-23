@@ -209,4 +209,25 @@ enum IndexType
 typedef SipSubscribeMap::nth_index<IndexSequential>::type SipSubscribeSeqIndex;
 typedef SipSubscribeMap::nth_index<IndexSearchable>::type SipSubscribeSearchIndex;
 
+class SipRefer
+{
+public:
+	SipRefer();
+	void ToString(CStdString& string);
+	time_t m_timestamp;
+	struct in_addr m_senderIp;
+	struct in_addr m_receiverIp;
+	CStdString m_from;
+	CStdString m_to;
+	CStdString m_toDomain;
+	CStdString m_fromDomain;
+	CStdString m_fromName;
+	CStdString m_toName;
+	CStdString m_callId;
+	CStdString m_referTo;
+	CStdString m_referredBy;
+	CStdString m_origOrkUid;
+};
+typedef boost::shared_ptr<SipRefer> SipReferRef;
+
 #endif
