@@ -1892,14 +1892,9 @@ int VoipTcpStream::svc(void)
 				}
 			}
 		}
-		else if(size == 0)
+		else if(size < 1)
 		{
-//			stop = true;
-		}
-		else
-		{
-//			logMsg.Format("tcplistener returned error:%d", size);
-//			LOG4CXX_ERROR(s_packetLog, logMsg);
+			stop = true;
 		}
 	}
 	return 0;
