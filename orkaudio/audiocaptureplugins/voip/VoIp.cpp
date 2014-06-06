@@ -687,6 +687,7 @@ void DetectUsefulTcpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 	{
 		//CStdString tcpSeq;
 		//memToHex((unsigned char *)&tcpHeader->seq, 4, tcpSeq);
+		MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
 		detectedUsefulPacket = TrySipTcp(ethernetHeader, ipHeader, tcpHeader);
 	}
 	if(!detectedUsefulPacket && DLLCONFIG.m_urlExtractorEnable == true && ntohs(tcpHeader->dest) == DLLCONFIG.m_urlExtractorPort)
