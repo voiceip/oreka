@@ -2160,7 +2160,7 @@ void VoIpSessions::ReportSipSessionProgress(SipSessionProgressInfoRef& info)
 		SetMediaAddress(session, info->m_mediaIp, mediaPort);
 		if(DLLCONFIG.m_sipTrackMediaAddressOnSender)
 		{
-			SetMediaAddress(session, info->m_originalSenderIp, mediaPort);
+			SetMediaAddress(session, info->m_senderIp, mediaPort);
 		}
 	}
 }
