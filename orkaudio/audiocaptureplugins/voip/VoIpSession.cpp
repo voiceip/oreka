@@ -1966,8 +1966,8 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 
 	if(session.get() == NULL && DLLCONFIG.m_sipTrackMediaAddressOnSender)
 	{
-		Craft64bitMediaAddress(ipAndPort, invite->m_senderIp, rtpPortAsInt);
-		VoIpSessionRef session = findByMediaAddress(invite->m_senderIp, rtpPortAsInt);
+		Craft64bitMediaAddress(ipAndPort, invite->m_originalSenderIp, rtpPortAsInt);
+		VoIpSessionRef session = findByMediaAddress(invite->m_originalSenderIp, rtpPortAsInt);
 	}
 	if(session.get())
 	{
@@ -2053,7 +2053,7 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			SetMediaAddress(session, invite->m_fromRtpIp, rtpPort);
 			if(DLLCONFIG.m_sipTrackMediaAddressOnSender)
 			{
-				SetMediaAddress(session, invite->m_senderIp, rtpPort);
+				SetMediaAddress(session, invite->m_originalSenderIp, rtpPort);
 			}
 		}
 		if(DLLCONFIG.m_sipCallPickUpSupport)
@@ -2079,7 +2079,7 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	SetMediaAddress(newSession, invite->m_fromRtpIp, rtpPort);
 	if(DLLCONFIG.m_sipTrackMediaAddressOnSender)
 	{
-		SetMediaAddress(newSession, invite->m_senderIp, rtpPort);
+		SetMediaAddress(newSession, invite->m_originalSenderIp, rtpPort);
 	}
 	m_byCallId.insert(std::make_pair(newSession->m_callId, newSession));
 
@@ -2160,7 +2160,7 @@ void VoIpSessions::ReportSipSessionProgress(SipSessionProgressInfoRef& info)
 		SetMediaAddress(session, info->m_mediaIp, mediaPort);
 		if(DLLCONFIG.m_sipTrackMediaAddressOnSender)
 		{
-			SetMediaAddress(session, info->m_senderIp, mediaPort);
+			SetMediaAddress(session, info->m_originalSenderIp, mediaPort);
 		}
 	}
 }

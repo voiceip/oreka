@@ -53,6 +53,7 @@ public:
 	void ToString(CStdString& string);
 
 	struct in_addr m_senderIp;
+	struct in_addr m_originalSenderIp;
 	struct in_addr m_receiverIp;
 	struct in_addr m_fromRtpIp;
 	char m_senderMac[6];
@@ -173,6 +174,7 @@ public:
 	CStdString m_mediaPort;
 
 	struct in_addr m_senderIp;
+	struct in_addr m_originalSenderIp;
 	struct in_addr m_receiverIp;
 	CStdString m_from;
 	CStdString m_to;
