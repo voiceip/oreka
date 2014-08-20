@@ -649,6 +649,7 @@ bool TrySipSessionProgress(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 			}
 		}
 		info->m_senderIp = ipHeader->ip_src;
+		info->m_originalSenderIp = ipHeader->ip_src;
 		info->m_receiverIp = ipHeader->ip_dest;
 
 		CStdString logMsg;
@@ -1485,6 +1486,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			info->m_senderIp = ipHeader->ip_src;
 			info->m_receiverIp = ipHeader->ip_dest;
 		}
+		info->m_originalSenderIp = ipHeader->ip_src;
 		info->m_recvTime = time(NULL);
 		memcpy(info->m_senderMac, ethernetHeader->sourceMac, sizeof(info->m_senderMac));
 		memcpy(info->m_receiverMac, ethernetHeader->destinationMac, sizeof(info->m_receiverMac));
