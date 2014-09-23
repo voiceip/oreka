@@ -92,6 +92,7 @@ Reporting* Reporting::Instance()
 
 Reporting::Reporting()
 {
+	m_readyToReport = false;
 	//m_queueFullError = false;
 	//numTapesToSkip = 0;
 }
@@ -231,6 +232,15 @@ void Reporting::ThreadHandler(void *args)
 	return;
 }
 
+void Reporting::SetReadyToReport(bool status)
+{
+	m_readyToReport = status;
+}
+
+bool Reporting::GetReadyStatus()
+{
+	return m_readyToReport;
+}
 //=======================================================
 #define REPORTING_SKIP_TAPE_CLASS "reportingskiptape"
 
@@ -311,6 +321,11 @@ void ReportingThread::Run()
 
 	for(;stop == false;)
 	{
+		if(Reporting::Instance()->GetReadyStatus() == false)
+		{
+			ACE_OS::sleep(CONFIG.m_clientTimeout + 10);
+			continue;
+		}
 		try
 		{
 			MessageRef msgRef = m_myInfo->m_messageQueue.pop();

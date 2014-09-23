@@ -64,9 +64,12 @@ public:
 	//static Reporting* GetInstance();
 	static void ThreadHandler(void *args);
 	static void ReportingThreadEntryPoint(void *args);
+	void SetReadyToReport(bool status);
+	bool GetReadyStatus();
 
 private:
 	Reporting();
+	bool m_readyToReport;
 	//bool IsSkip();
 
 	//static Reporting m_reportingSingleton;

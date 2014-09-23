@@ -12,6 +12,7 @@
 #include "ace/Thread_Manager.h"
 #include "messages/InitMsg.h"
 #include "ConfigManager.h"
+#include "Reporting.h"
 
 #ifdef WIN32
 #define snprintf _snprintf
@@ -72,6 +73,7 @@ void OrkTrack::Run(void* args)
 			success = true;
 			logMsg.Format("OrkTrack::Run(): [%s,%d] success:%s comment:%s", hostRef->m_serverHostname, hostRef->m_serverPort, (response.m_success == true ? "true" : "false"), response.m_comment);
 			LOG4CXX_INFO(LOG.rootLog, logMsg);
+			Reporting::Instance()->SetReadyToReport(true);
 		}
 		else
 		{
