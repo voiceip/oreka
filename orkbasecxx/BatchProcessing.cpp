@@ -555,6 +555,11 @@ void BatchProcessing::ThreadHandler(void *args)
 				else if(CONFIG.m_deleteFailedCaptureFile)
 				{
 					fileRef->Delete();
+					if(outFileRef.get()) 
+					{
+						outFileRef->Close();
+						outFileRef->Delete();
+					}
 					LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " deleting native that could not be transcoded: " + audioTapeRef->GetIdentifier());
 				}
 
