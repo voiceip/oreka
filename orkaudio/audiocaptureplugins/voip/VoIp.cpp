@@ -519,15 +519,34 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 					rtpInfo->m_destIp =  ipHeader->ip_dest;
 					rtpInfo->m_sourcePort = ntohs(udpHeader->source);
 					rtpInfo->m_destPort = ntohs(udpHeader->dest);
-					rtpInfo->m_payloadSize = payloadLength;
 					rtpInfo->m_payloadType = rtpHeader->pt;
 					rtpInfo->m_seqNum = ntohs(rtpHeader->seq);
 					rtpInfo->m_timestamp = ntohl(rtpHeader->ts);
 					rtpInfo->m_ssrc = ntohl(rtpHeader->ssrc);
-					rtpInfo->m_payload = payload;
 					rtpInfo->m_arrivalTimestamp = time(NULL);
 					memcpy(rtpInfo->m_sourceMac, ethernetHeader->sourceMac, sizeof(rtpInfo->m_sourceMac));
 					memcpy(rtpInfo->m_destMac, ethernetHeader->destinationMac, sizeof(rtpInfo->m_destMac));
+
+					//If RTP packet has extension, we need to skip"
+					//2 bytes:Define by profile field
+					//2 bytes: Extension length field
+					//Extension length x 4 bytes
+					if(rtpHeader->x == 1)
+					{
+						unsigned short profileFieldLen = 2;
+						unsigned short ExtLenFieldLen = 2;
+						unsigned short extLenFieldValue = (payload[2] << 8) | payload[3];
+						int rtpExtLen = extLenFieldValue * 4;//4 bytes for each fied
+						int payloadOffset = profileFieldLen + ExtLenFieldLen + rtpExtLen;
+						rtpInfo->m_payloadSize = payloadLength - payloadOffset;
+						rtpInfo->m_payload = payload + payloadOffset;
+					}
+					else
+					{
+						rtpInfo->m_payloadSize = payloadLength;
+						rtpInfo->m_payload = payload;
+					}
+
 
 					if(s_rtpPacketLog->isDebugEnabled())
 					{
