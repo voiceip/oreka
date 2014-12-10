@@ -430,7 +430,7 @@ void ReportingThread::Run()
 							}
 							else
 							{
-								ACE_OS::sleep(2);	// Make sure orktrack is not flooded in case of a problem
+								ACE_OS::sleep(CONFIG.m_clientRetryPeriodSec);	// Make sure orktrack is not flooded in case of a problem
 							}
 						}
 					}
