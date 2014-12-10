@@ -148,6 +148,8 @@
 #define DIRECTION_LOOKBACK_DEFAULT true
 #define SPEEX_PAYLOAD_TYPES "SpeexPayloadTypes"
 #define DTMF_REPORTING_DETAILED false;
+#define CLIENT_RETRY_PERIOD_SEC "ClientRetryPeriodSec"
+#define CLIENT_RETRY_PERIOD_SEC_DEFAULT 2
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -237,6 +239,7 @@ public:
 	std::list<CStdString> m_speexPayloadTypes;
 	int m_remotePartyMaxDigits;
 	bool m_dtmfReportingDetailed;
+	int m_clientRetryPeriodSec;
 
 private:
 	log4cxx::LoggerPtr m_log;

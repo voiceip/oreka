@@ -90,6 +90,7 @@ Config::Config()
 	m_directionLookBack = DIRECTION_LOOKBACK_DEFAULT;
 	m_remotePartyMaxDigits = 0;
 	m_dtmfReportingDetailed = DTMF_REPORTING_DETAILED;
+	m_clientRetryPeriodSec = CLIENT_RETRY_PERIOD_SEC_DEFAULT;
 }
 
 void Config::Define(Serializer* s)
@@ -214,7 +215,7 @@ void Config::Define(Serializer* s)
 			m_partyFilterMap.insert(std::make_pair(m_partyFilterChars.at(i), '?'));		//use ? as a reserved char which will remove the filtered character altogether
 		}
 	}
-
+	s->IntValue(CLIENT_RETRY_PERIOD_SEC, m_clientRetryPeriodSec);
 }
 
 void Config::Validate()
