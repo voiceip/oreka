@@ -144,6 +144,10 @@ CStdString HexToString(const CStdString& hexInput)
 		{
         	output.push_back(((p - lut) << 4) | (q - lut));
 		}
+		else if(output.length() > 0)
+		{
+			break;
+		}
     }
     return output;
 
