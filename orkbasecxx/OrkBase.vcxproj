@@ -1,0 +1,327 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{9847877A-E977-4B13-9A47-F5190EFE61AC}</ProjectGuid>
+    <RootNamespace>OrkBase</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC60.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC60.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>.\Debug\</OutDir>
+    <IntDir>.\Debug\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>.\ReleaseVC12\</OutDir>
+    <IntDir>.\ReleaseVC12\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\Debug/OrkBase.tlb</TypeLibraryName>
+      <HeaderFileName />
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>C:\DevExtVC12\speex\speex-1.2beta3-win32\include;.;.\filters\gsm;.\filters\gsm\gsm610;.\filters\ilbc;.\filters\ilbc\ilbc;C:\DevExtVC12\libsndfile\include;C:\DevExtVC12\boost\boost_1_32_0;C:\DevExtVC12\ACE_wrappers;C:\DevExtVC12\xerces\src;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\src\main\include;.\filters\g722codec;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_ORKBASE;WIN32;_DEBUG;_WINDOWS;_USRDLL;inline=__inline;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeaderOutputFile>.\Debug/OrkBase.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
+      <ObjectFileName>.\Debug/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0809</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>LIBSNDFILE-1.lib;xerces-c_2D.lib;log4cxx.lib;aced.lib;odbc32.lib;odbccp32.lib;libspeex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>Debug/OrkBaseD.dll</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>C:\DevExtVC12\speex\speex-1.2beta3-debug\win32\VS2008\libspeex\Debug_RTL_dll;C:\DevExtVC12\libsndfile;C:\DevExtVC12\ACE_wrappers\lib;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\projects\Debug;C:\DevExtVC12\xerces\Build\Win32\VC8\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>.\Debug/OrkBaseD.pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapFileName>.\Debug/OrkBaseD.map</MapFileName>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <ImportLibrary>.\Debug/OrkBaseD.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\Debug/OrkBase.bsc</OutputFile>
+    </Bscmake>
+    <PostBuildEvent>
+      <Command>copy Debug\OrkBaseD.dll ..\OrkAudio\OrkBaseD.dll</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\ReleaseVC12\OrkBase.tlb</TypeLibraryName>
+      <HeaderFileName />
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>.;.\filters\gsm;.\filters\gsm\gsm610;.\filters\ilbc;.\filters\ilbc\ilbc;C:\DevExtVC12\libsndfile\include;C:\DevExtVC12\boost\boost_1_32_0;C:\DevExtVC12\ACE_wrappers;C:\DevExtVC12\xerces\src;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\src\main\include;.\filters\g722codec;C:\DevExtVC12\speex\speex-1.2beta3-win32\include;C:\sfTrunk\orkbasecxx\filters\g726codecs\g72x;C:\sfTrunk\orkbasecxx\filters\g726codecs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILD_ORKBASE;WIN32;NDEBUG;_WINDOWS;_USRDLL;inline=__inline;_ALLOW_KEYWORD_MACROS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeaderOutputFile>.\ReleaseVC12\OrkBase.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\ReleaseVC12\</AssemblerListingLocation>
+      <ObjectFileName>.\ReleaseVC12\</ObjectFileName>
+      <ProgramDataBaseFileName>.\ReleaseVC12\</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0809</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>LIBSNDFILE-1.lib;xerces-c_2.lib;log4cxx.lib;ace.lib;odbc32.lib;odbccp32.lib;libspeex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>.\ReleaseVC12\OrkBase.dll</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>C:\DevExtVC12\libsndfile\lib;C:\DevExtVC12\libsndfile;C:\DevExtVC12\ACE_wrappers\lib;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\projects\Release;C:\DevExtVC12\xerces\Build\Win32\VC8\Release;C:\DevExtVC12\speex\speex-1.2beta3-win32\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>.\ReleaseVC12\OrkBase.pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapFileName>.\ReleaseVC12\OrkBase.map</MapFileName>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <ImportLibrary>.\ReleaseVC12\OrkBase.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\ReleaseVC12\OrkBase.bsc</OutputFile>
+    </Bscmake>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="AudioCapture.cpp" />
+    <ClCompile Include="audiofile\AudioFile.cpp" />
+    <ClCompile Include="audiofile\LibSndFileFile.cpp" />
+    <ClCompile Include="audiofile\MediaChunkFile.cpp" />
+    <ClCompile Include="audiofile\PcmFile.cpp" />
+    <ClCompile Include="AudioTape.cpp" />
+    <ClCompile Include="BatchProcessing.cpp" />
+    <ClCompile Include="CapturePluginProxy.cpp" />
+    <ClCompile Include="CapturePort.cpp" />
+    <ClCompile Include="CommandProcessing.cpp" />
+    <ClCompile Include="Config.cpp" />
+    <ClCompile Include="ConfigManager.cpp" />
+    <ClCompile Include="Daemon.cpp" />
+    <ClCompile Include="DirectionSelector.cpp" />
+    <ClCompile Include="EventStreaming.cpp" />
+    <ClCompile Include="Filter.cpp" />
+    <ClCompile Include="filters\audiogain\AudioGain.cpp" />
+    <ClCompile Include="filters\g722codec\G722Codec.cpp" />
+    <ClCompile Include="filters\g726codecs\G721Codec.cpp" />
+    <ClCompile Include="filters\g726codecs\g72x\g721.c" />
+    <ClCompile Include="filters\g726codecs\g72x\g723_24.c" />
+    <ClCompile Include="filters\g726codecs\g72x\g723_40.c" />
+    <ClCompile Include="filters\g726codecs\g72x\g72x.c" />
+    <ClCompile Include="filters\gsm\gsm610\add.c" />
+    <ClCompile Include="filters\gsm\gsm610\code.c" />
+    <ClCompile Include="filters\gsm\gsm610\decode.c" />
+    <ClCompile Include="filters\gsm\gsm610\gsm_create.c" />
+    <ClCompile Include="filters\gsm\gsm610\gsm_decode.c" />
+    <ClCompile Include="filters\gsm\gsm610\gsm_destroy.c" />
+    <ClCompile Include="filters\gsm\gsm610\gsm_encode.c" />
+    <ClCompile Include="filters\gsm\gsm610\gsm_option.c" />
+    <ClCompile Include="filters\gsm\gsm610\long_term.c" />
+    <ClCompile Include="filters\gsm\gsm610\lpc.c" />
+    <ClCompile Include="filters\gsm\gsm610\preprocess.c" />
+    <ClCompile Include="filters\gsm\gsm610\rpe.c" />
+    <ClCompile Include="filters\gsm\gsm610\short_term.c" />
+    <ClCompile Include="filters\gsm\gsm610\table.c" />
+    <ClCompile Include="filters\gsm\GsmFilters.cpp" />
+    <ClCompile Include="filters\ilbc\IlbcFilters.cpp" />
+    <ClCompile Include="filters\ilbc\ilbc\anaFilter.c" />
+    <ClCompile Include="filters\ilbc\ilbc\constants.c" />
+    <ClCompile Include="filters\ilbc\ilbc\createCB.c" />
+    <ClCompile Include="filters\ilbc\ilbc\doCPLC.c" />
+    <ClCompile Include="filters\ilbc\ilbc\enhancer.c" />
+    <ClCompile Include="filters\ilbc\ilbc\FrameClassify.c" />
+    <ClCompile Include="filters\ilbc\ilbc\gainquant.c" />
+    <ClCompile Include="filters\ilbc\ilbc\getCBvec.c" />
+    <ClCompile Include="filters\ilbc\ilbc\helpfun.c" />
+    <ClCompile Include="filters\ilbc\ilbc\hpInput.c" />
+    <ClCompile Include="filters\ilbc\ilbc\hpOutput.c" />
+    <ClCompile Include="filters\ilbc\ilbc\iCBConstruct.c" />
+    <ClCompile Include="filters\ilbc\ilbc\iCBSearch.c" />
+    <ClCompile Include="filters\ilbc\ilbc\iLBC_decode.c" />
+    <ClCompile Include="filters\ilbc\ilbc\iLBC_encode.c" />
+    <ClCompile Include="filters\ilbc\ilbc\iLBC_filter.c" />
+    <ClCompile Include="filters\ilbc\ilbc\LPCdecode.c" />
+    <ClCompile Include="filters\ilbc\ilbc\LPCencode.c" />
+    <ClCompile Include="filters\ilbc\ilbc\lsf.c" />
+    <ClCompile Include="filters\ilbc\ilbc\packing.c" />
+    <ClCompile Include="filters\ilbc\ilbc\StateConstructW.c" />
+    <ClCompile Include="filters\ilbc\ilbc\StateSearchW.c" />
+    <ClCompile Include="filters\ilbc\ilbc\syntFilter.c" />
+    <ClCompile Include="filters\speex\SpeexCodec.cpp" />
+    <ClCompile Include="g711.c" />
+    <ClCompile Include="ImmediateProcessing.cpp" />
+    <ClCompile Include="LogManager.cpp" />
+    <ClCompile Include="MemUtils.cpp" />
+    <ClCompile Include="messages\AddTagMsg.cpp" />
+    <ClCompile Include="Messages\AsyncMessage.cpp" />
+    <ClCompile Include="messages\CaptureMsg.cpp" />
+    <ClCompile Include="messages\DeleteTapeMsg.cpp" />
+    <ClCompile Include="messages\InitMsg.cpp" />
+    <ClCompile Include="Messages\Message.cpp" />
+    <ClCompile Include="messages\PingMsg.cpp" />
+    <ClCompile Include="messages\RecordMsg.cpp" />
+    <ClCompile Include="Messages\SyncMessage.cpp" />
+    <ClCompile Include="messages\TapeMsg.cpp" />
+    <ClCompile Include="messages\TestMsg.cpp" />
+    <ClCompile Include="MultiThreadedServer.cpp" />
+    <ClCompile Include="Object.cpp" />
+    <ClCompile Include="ObjectFactory.cpp" />
+    <ClCompile Include="OrkBase.cpp" />
+    <ClCompile Include="OrkClient.cpp" />
+    <ClCompile Include="OrkTrack.cpp" />
+    <ClCompile Include="PartyFilter.cpp" />
+    <ClCompile Include="Reporting.cpp" />
+    <ClCompile Include="Serializers\DomSerializer.cpp" />
+    <ClCompile Include="Serializers\Serializer.cpp" />
+    <ClCompile Include="Serializers\SingleLineSerializer.cpp" />
+    <ClCompile Include="Serializers\UrlSerializer.cpp" />
+    <ClCompile Include="Serializers\XmlRpcSerializer.cpp" />
+    <ClCompile Include="SocketStreamer.cpp" />
+    <ClCompile Include="TapeFileNaming.cpp" />
+    <ClCompile Include="TapeProcessor.cpp" />
+    <ClCompile Include="Utils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AudioCapture.h" />
+    <ClInclude Include="AudioCapturePlugin.h" />
+    <ClInclude Include="audiofile\AudioFile.h" />
+    <ClInclude Include="audiofile\LibSndFileFile.h" />
+    <ClInclude Include="audiofile\MediaChunkFile.h" />
+    <ClInclude Include="audiofile\PcmFile.h" />
+    <ClInclude Include="AudioTape.h" />
+    <ClInclude Include="BatchProcessing.h" />
+    <ClInclude Include="CapturePluginProxy.h" />
+    <ClInclude Include="CapturePort.h" />
+    <ClInclude Include="CommandProcessing.h" />
+    <ClInclude Include="Config.h" />
+    <ClInclude Include="ConfigManager.h" />
+    <ClInclude Include="Daemon.h" />
+    <ClInclude Include="DirectionSelector.h" />
+    <ClInclude Include="dll.h" />
+    <ClInclude Include="EventStreaming.h" />
+    <ClInclude Include="Filter.h" />
+    <ClInclude Include="filters\audiogain\AudioGain.h" />
+    <ClInclude Include="filters\g722codec\G722.h" />
+    <ClInclude Include="filters\g722codec\G722Codec.h" />
+    <ClInclude Include="filters\g726codecs\G721Codec.h" />
+    <ClInclude Include="filters\g726codecs\g72x\g72x.h" />
+    <ClInclude Include="filters\gsm\gsm610\config.h" />
+    <ClInclude Include="filters\gsm\gsm610\gsm.h" />
+    <ClInclude Include="filters\gsm\gsm610\gsm610_priv.h" />
+    <ClInclude Include="filters\gsm\GsmFilters.h" />
+    <ClInclude Include="filters\ilbc\IlbcFilters.h" />
+    <ClInclude Include="filters\speex\SpeexCodec.h" />
+    <ClInclude Include="g711.h" />
+    <ClInclude Include="ImmediateProcessing.h" />
+    <ClInclude Include="LogManager.h" />
+    <ClInclude Include="MemUtils.h" />
+    <ClInclude Include="messages\AddTagMsg.h" />
+    <ClInclude Include="Messages\AsyncMessage.h" />
+    <ClInclude Include="messages\CaptureMsg.h" />
+    <ClInclude Include="messages\DeleteTapeMsg.h" />
+    <ClInclude Include="messages\InitMsg.h" />
+    <ClInclude Include="Messages\Message.h" />
+    <ClInclude Include="messages\PingMsg.h" />
+    <ClInclude Include="messages\RecordMsg.h" />
+    <ClInclude Include="Messages\SyncMessage.h" />
+    <ClInclude Include="messages\TapeMsg.h" />
+    <ClInclude Include="messages\TestMsg.h" />
+    <ClInclude Include="MultiThreadedServer.h" />
+    <ClInclude Include="Object.h" />
+    <ClInclude Include="ObjectFactory.h" />
+    <ClInclude Include="OrkBase.h" />
+    <ClInclude Include="OrkClient.h" />
+    <ClInclude Include="OrkTrack.h" />
+    <ClInclude Include="PartyFilter.h" />
+    <ClInclude Include="Reporting.h" />
+    <ClInclude Include="Serializers\DomSerializer.h" />
+    <ClInclude Include="Serializers\Serializer.h" />
+    <ClInclude Include="Serializers\SingleLineSerializer.h" />
+    <ClInclude Include="Serializers\UrlSerializer.h" />
+    <ClInclude Include="Serializers\XmlRpcSerializer.h" />
+    <ClInclude Include="SocketStreamer.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="StdString.h" />
+    <ClInclude Include="TapeFileNaming.h" />
+    <ClInclude Include="TapeProcessor.h" />
+    <ClInclude Include="ThreadSafeQueue.h" />
+    <ClInclude Include="Utils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

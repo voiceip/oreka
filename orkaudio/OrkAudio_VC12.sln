@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OrkAudio", "OrkAudio.vcxproj", "{6FFE0991-0A17-4834-AD14-DEB3F8D7A9C9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OrkBase", "..\OrkBaseCxx\OrkBase.vcxproj", "{9847877A-E977-4B13-9A47-F5190EFE61AC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RtpMixer", "filters\rtpmixer\RtpMixer.vcxproj", "{8EAC766A-5302-4132-A85F-F978DF1C900C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VoIp", "audiocaptureplugins\voip\VoIp.vcxproj", "{0DB5E54A-6BCE-41C2-88E8-84BC7EF04B46}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6FFE0991-0A17-4834-AD14-DEB3F8D7A9C9}.Debug|Win32.ActiveCfg = Release|Win32
+		{6FFE0991-0A17-4834-AD14-DEB3F8D7A9C9}.Debug|Win32.Build.0 = Release|Win32
+		{6FFE0991-0A17-4834-AD14-DEB3F8D7A9C9}.Release|Win32.ActiveCfg = Release|Win32
+		{6FFE0991-0A17-4834-AD14-DEB3F8D7A9C9}.Release|Win32.Build.0 = Release|Win32
+		{9847877A-E977-4B13-9A47-F5190EFE61AC}.Debug|Win32.ActiveCfg = Release|Win32
+		{9847877A-E977-4B13-9A47-F5190EFE61AC}.Debug|Win32.Build.0 = Release|Win32
+		{9847877A-E977-4B13-9A47-F5190EFE61AC}.Release|Win32.ActiveCfg = Release|Win32
+		{9847877A-E977-4B13-9A47-F5190EFE61AC}.Release|Win32.Build.0 = Release|Win32
+		{8EAC766A-5302-4132-A85F-F978DF1C900C}.Debug|Win32.ActiveCfg = Release|Win32
+		{8EAC766A-5302-4132-A85F-F978DF1C900C}.Debug|Win32.Build.0 = Release|Win32
+		{8EAC766A-5302-4132-A85F-F978DF1C900C}.Release|Win32.ActiveCfg = Release|Win32
+		{8EAC766A-5302-4132-A85F-F978DF1C900C}.Release|Win32.Build.0 = Release|Win32
+		{0DB5E54A-6BCE-41C2-88E8-84BC7EF04B46}.Debug|Win32.ActiveCfg = Release|Win32
+		{0DB5E54A-6BCE-41C2-88E8-84BC7EF04B46}.Debug|Win32.Build.0 = Release|Win32
+		{0DB5E54A-6BCE-41C2-88E8-84BC7EF04B46}.Release|Win32.ActiveCfg = Release|Win32
+		{0DB5E54A-6BCE-41C2-88E8-84BC7EF04B46}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
