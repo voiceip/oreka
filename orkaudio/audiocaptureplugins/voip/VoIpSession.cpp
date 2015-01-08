@@ -1897,6 +1897,17 @@ void VoIpSession::SkinnyTrackConferencesTransfers(CStdString callId, CStdString 
 
 	endpoint = VoIpSessionsSingleton::instance()->GetVoIpEndpointInfo(m_endPointIp, m_endPointSignallingPort);
 
+	if(endpoint.get() == NULL)
+	{
+		CStdString endpointIp;
+	  	char szIp[16];
+		ACE_OS::inet_ntop(AF_INET, (void*)&m_endPointIp, szIp, sizeof(szIp));
+		endpointIp.Format("%s", szIp);
+	  	logMsg.Format("SkinnyTrackConferencesTransfers:[%s] could not find associated endpoint:%s",m_trackingId, endpointIp);
+		LOG4CXX_INFO(m_log, logMsg);
+		return;
+	}
+	
 	if((time_now - endpoint->m_lastConferencePressed) > 3 && (time_now - endpoint->m_lastConnectedWithConference) > 3)
 	{
 		endpoint->m_origOrkUid = "";
