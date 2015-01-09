@@ -46,6 +46,7 @@ Config::Config()
 
 	m_audioFilePermissions = 0;
 
+	m_reportingQueueSize = REPORTING_QUEUE_SIZE_DEFAULT;
 	m_immediateProcessingQueueSize = IMMEDIATE_PROCESSING_QUEUE_SIZE_DEFAULT;
 	m_batchProcessingQueueSize = BATCH_PROCESSING_QUEUE_SIZE_DEFAULT;
 	m_batchProcessingEnhancePriority = BATCH_PROCESSING_ENHANCE_PRIORITY_DEFAULT;
@@ -147,6 +148,7 @@ void Config::Define(Serializer* s)
 
 	s->StringValue(AUDIO_FILE_OWNER_PARAM, m_audioFileOwner);
 	s->StringValue(AUDIO_FILE_GROUP_PARAM, m_audioFileGroup);
+	s->IntValue(REPORTING_QUEUE_SIZE_PARAM, m_reportingQueueSize);
 	s->IntValue(IMMEDIATE_PROCESSING_QUEUE_SIZE_PARAM, m_immediateProcessingQueueSize);
 	s->IntValue(BATCH_PROCESSING_QUEUE_SIZE_PARAM, m_batchProcessingQueueSize);
 	s->BoolValue(BATCH_PROCESSING_ENHANCE_PRIORITY_PARAM, m_batchProcessingEnhancePriority);

@@ -72,6 +72,8 @@
 #define AUDIO_FILE_OWNER_DEFAULT "root"
 #define AUDIO_FILE_GROUP_PARAM "AudioFileGroup"
 #define AUDIO_FILE_GROUP_DEFAULT "root"
+#define REPORTING_QUEUE_SIZE_PARAM "ReportingQueueSize"
+#define REPORTING_QUEUE_SIZE_DEFAULT 50000
 #define IMMEDIATE_PROCESSING_QUEUE_SIZE_PARAM "ImmediateProcessingQueueSize"
 #define IMMEDIATE_PROCESSING_QUEUE_SIZE_DEFAULT 10000
 #define BATCH_PROCESSING_QUEUE_SIZE_PARAM "BatchProcessingQueueSize"
@@ -190,6 +192,7 @@ public:
 	int m_audioFilePermissions;
 	CStdString m_audioFileOwner;
 	CStdString m_audioFileGroup;
+	int m_reportingQueueSize;
 	int m_immediateProcessingQueueSize;
 	int m_batchProcessingQueueSize;
 	int m_directionSelectorQueueSize;

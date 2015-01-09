@@ -26,7 +26,7 @@
 template <class T> class ThreadSafeQueue
 {
 public:
-	ThreadSafeQueue(int size = 10000)
+	ThreadSafeQueue(int size = 50000)
 	{
 		m_size = size;
 		m_semaphore.acquire(); // reset count to zero
