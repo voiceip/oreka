@@ -77,6 +77,7 @@ void Reporting::ReportingThreadEntryPoint(void *args)
 	rtInfoRef->m_serverPort = rtInfo->m_serverPort;
 	rtInfoRef->m_numTapesToSkip = 0;
 	snprintf(rtInfoRef->m_threadId, sizeof(rtInfoRef->m_threadId), "%s,%d", rtInfoRef->m_serverHostname, rtInfoRef->m_serverPort);
+	rtInfoRef->m_messageQueue.setSize(CONFIG.m_reportingQueueSize);
 	myRunInfo.m_myInfo = rtInfoRef;
 
 	s_reportingThreads.insert(std::make_pair(myRunInfo.m_serverHostname, rtInfoRef));
