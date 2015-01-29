@@ -452,7 +452,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 	if(ntohs(udpHeader->len) < sizeof(RtpHeaderStruct))
 		return false;
 
-	if (rtpHeader->version == 2)
+	if (rtpHeader->version == 2 && rtpHeader->cc == 0 && rtpHeader->p == 0)
 	{
 		if((!(ntohs(udpHeader->source)%2) && !(ntohs(udpHeader->dest)%2)) || DLLCONFIG.m_rtpDetectOnOddPorts)	// udp ports usually even 
 		{
