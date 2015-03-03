@@ -1079,6 +1079,7 @@ void VoIpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket, int channel)
 
 	if(m_currentRtpEventTs != rtpEventInfo->m_startTimestamp)
 	{
+		m_currentRtpEventTs = rtpEventInfo->m_startTimestamp;
 		ReportDtmfDigit(channel, DtmfDigitToString(rtpEventInfo->m_event), rtpEventInfo->m_duration, rtpEventInfo->m_volume, rtpEventInfo->m_startTimestamp, rtpPacket->m_seqNum);
 	}
 
