@@ -1121,7 +1121,15 @@ void UdpListenerThread()
 			}
 			
 		}
-
+		//In case there is no traffic coming into the socket, Hoover is not going to be called, try to avoid it
+		time_t now = time(NULL);
+		if((now - s_lastHooveringTime) > 5)
+		{
+			MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
+			s_lastHooveringTime = now;
+			VoIpSessionsSingleton::instance()->Hoover(now);
+			Iax2SessionsSingleton::instance()->Hoover(now);
+		}
 	}
 }
 
@@ -1840,6 +1848,10 @@ int VoipTcpStream::svc(void)
 
 	while(stop == false)
 	{
+		int wantedLen = 0;
+		int recvLen = 0;
+		bool isFullLen =  true;
+
 		memset(buf, 0, 4096);
 		//first try to see if this packet has our own OrkEncapsulation header
 		//Reading first 2 bytes
@@ -1857,7 +1869,26 @@ int VoipTcpStream::svc(void)
 					{
 						orkEncapsulationHeader[1] = buf[1];
 						size = peer().recv(&buf[2], sizeof(OrkEncapsulationStruct) - 2, &timeout);
-						if(size == (sizeof(OrkEncapsulationStruct) - 2))
+						wantedLen = sizeof(OrkEncapsulationStruct) - 2;
+						int bufferHdrPos = 2;	// first at all, we expect to have bytes filled in &buf[2]
+						isFullLen = true;
+						while(size != wantedLen)
+						{
+							if(size > wantedLen)
+							{
+								isFullLen = false;
+								logMsg.Format("tcplistener skips overlimit orkencapsulation length:%d", wantedLen);
+								LOG4CXX_ERROR(s_packetLog, logMsg);
+								break;
+							}
+							recvLen = size;
+							wantedLen = wantedLen - recvLen;
+
+							size = peer().recv(&buf[bufferHdrPos + recvLen], wantedLen, &timeout);
+							bufferHdrPos = bufferHdrPos + recvLen;
+						}
+
+						if(isFullLen)
 						{
 							memcpy(&orkEncapsulationHeader[2], &buf[2], sizeof(OrkEncapsulationStruct) - 2);
 							OrkEncapsulationStruct* orkEncapsulationStruct = (OrkEncapsulationStruct*)orkEncapsulationHeader;
@@ -1874,31 +1905,37 @@ int VoipTcpStream::svc(void)
 								LOG4CXX_ERROR(s_packetLog, logMsg);
 								continue;
 							}
+							//start to get actual payload
 							size = peer().recv(&buf[sizeof(OrkEncapsulationStruct)], ntohs(orkEncapsulationStruct->totalPacketLength), &timeout);
-							if(size == ntohs(orkEncapsulationStruct->totalPacketLength))
+							wantedLen = ntohs(orkEncapsulationStruct->totalPacketLength);
+							int bufferPos = sizeof(OrkEncapsulationStruct);	// first at all, we expect to have bytes filled in &buf[sizeof(OrkEncapsulationStruct)]
+							isFullLen = true;
+							while(size != wantedLen)
+							{
+								if(size > wantedLen)
+								{
+									isFullLen = false;
+									logMsg.Format("tcplistener skips overlimit payload length:%d", wantedLen);
+									LOG4CXX_ERROR(s_packetLog, logMsg);
+									break;
+								}
+								recvLen = size;
+								wantedLen = wantedLen - recvLen;
+
+								size = peer().recv(&buf[bufferPos + recvLen], wantedLen, &timeout);
+								bufferPos = bufferPos + recvLen;
+							}
+							//Get exactly how many bytes we want
+							if(isFullLen)
 							{
 								struct pcap_pkthdr* pcap_headerPtr ;
 								u_char* param;
 								HandlePacket(param, pcap_headerPtr, &buf[sizeof(OrkEncapsulationStruct)]);
 							}
-							else if(size == 0)
-							{
-					
-							}
-							else
-							{
-								logMsg.Format("tcplistener returned error:%d", size);
-								LOG4CXX_ERROR(s_packetLog, logMsg);
-							}
 						}
-						else if(size == 0)
+						else	//not fullLen
 						{
-					
-						}
-						else
-						{
-							logMsg.Format("tcplistener returned error:%d", size);
-							LOG4CXX_ERROR(s_packetLog, logMsg);
+							//continue next while
 						}
 					}
 				}
@@ -1913,6 +1950,12 @@ int VoipTcpStream::svc(void)
 				}
 			}
 		}
+		else if(size == 0)
+		{
+            ACE_Time_Value sl;
+            sl.set(0,1000);
+            ACE_OS::sleep(sl);
+		}
 		else if(size < 0)
 		{
 			logMsg.Format("tcplistener returned error:%d", size);
@@ -1920,6 +1963,7 @@ int VoipTcpStream::svc(void)
 			stop = true;
 		}
 	}
+
 	return 0;
 }
 //================================================================================
