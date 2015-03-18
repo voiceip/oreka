@@ -244,6 +244,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->StringValue("OnDemandTcpMarkerKey", m_onDemandTcpMarkerKey);
 	s->StringValue("OnDemandTcpMarkerValue", m_onDemandTcpMarkerValue);
 	s->StringValue("OnDemandViaDtmfDigitsString", m_onDemandViaDtmfDigitsString);
+	s->StringValue("OnDemandPauseViaDtmfDigitsString", m_onDemandPauseViaDtmfDigitsString);
 	s->BoolValue("SipInfoDtmfRfc2976Detect", m_sipInfoDtmfRfc2976Detect);
 	s->BoolValue("MediaAddressUseSecondRtpAddress", m_mediaAddressUseSecondRtpAddress);
 	s->IntValue("TransferTimeOutInSec", m_transferTimeOutInSec);

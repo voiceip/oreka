@@ -984,7 +984,7 @@ void VoIpSession::ReportDtmfDigit(int channel, CStdString digitValue,  unsigned 
 		m_dtmfDigitString.clear();
 	}
 	m_dtmfDigitString += digitValue;
-	LOG4CXX_INFO(m_log, "[" + m_trackingId + "] DTMF event [ " + digitValue + " ]");
+	LOG4CXX_INFO(m_log, "[" + m_trackingId + "] DTMF event [ " + digitValue + " ] new string:" + m_dtmfDigitString);
 	if(DLLCONFIG.m_onDemandViaDtmfDigitsString.length() > 0)
 	{
 		if(m_dtmfDigitString.find(DLLCONFIG.m_onDemandViaDtmfDigitsString) != std::string::npos)
@@ -992,6 +992,17 @@ void VoIpSession::ReportDtmfDigit(int channel, CStdString digitValue,  unsigned 
 			m_keepRtp = true;
 			CStdString side = "both";
 			MarkAsOnDemand(side);
+			m_dtmfDigitString.clear();
+			LOG4CXX_INFO(m_log, "[" + m_trackingId + "] recording started or resumed due to DTMF string pressed");
+		}
+	}
+	if(DLLCONFIG.m_onDemandPauseViaDtmfDigitsString.length() > 0)
+	{
+		if(m_dtmfDigitString.find(DLLCONFIG.m_onDemandPauseViaDtmfDigitsString) != std::string::npos)
+		{
+			m_keepRtp = false;
+			m_dtmfDigitString.clear();
+			LOG4CXX_INFO(m_log, "[" + m_trackingId + "] recording paused due to DTMF string pressed");
 		}
 	}
 
@@ -1125,6 +1136,23 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		Start();
 		ReportMetadata();
 		m_nonLookBackSessionStarted = true;
+	}
+
+	if(m_protocol == ProtSip)
+	{
+		if(DLLCONFIG.m_rtpReportDtmf)
+		{
+			//Check if this is a telephone-event
+			if(m_sessionTelephoneEventPtDefined)
+			{
+				if(rtpPacket->m_payloadType == m_telephoneEventPayloadType)
+				{
+					// This is a telephone-event
+					HandleRtpEvent(rtpPacket, channel);
+					return true;
+				}
+			}
+		}
 	}
 
 	if(!m_keepRtp)
@@ -1445,23 +1473,6 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	}
 
-	if(m_protocol == ProtSip)
-	{
-		if(DLLCONFIG.m_rtpReportDtmf)
-		{
-			/* Check if this is a telephone-event */
-			if(m_sessionTelephoneEventPtDefined)
-			{
-				if(rtpPacket->m_payloadType == StringToInt(m_telephoneEventPayloadType))
-				{
-					// This is a telephone-event
-					HandleRtpEvent(rtpPacket, channel);
-					return true;
-				}
-			}
-		}
-	}
-
 	m_numRtpPackets++;
 	m_lastUpdated = rtpPacket->m_arrivalTimestamp;
 
@@ -1657,7 +1668,7 @@ void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	m_invites.push_front(invite);
 	if(invite->m_telephoneEventPtDefined)
 	{
-		m_telephoneEventPayloadType = invite->m_telephoneEventPayloadType;
+		m_telephoneEventPayloadType = StringToInt(invite->m_telephoneEventPayloadType);
 		m_sessionTelephoneEventPtDefined = true;
 	}
 

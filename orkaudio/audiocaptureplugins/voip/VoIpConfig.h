@@ -170,6 +170,7 @@ public:
 	CStdString m_onDemandTcpMarkerValue;
 	bool m_sipInfoDtmfRfc2976Detect;
 	CStdString m_onDemandViaDtmfDigitsString;
+	CStdString m_onDemandPauseViaDtmfDigitsString;
 	bool m_mediaAddressUseSecondRtpAddress;
 	int m_transferTimeOutInSec;
 };
