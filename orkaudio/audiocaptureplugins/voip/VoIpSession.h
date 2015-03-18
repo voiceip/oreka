@@ -189,7 +189,7 @@ private:
 	std::list<SipInviteInfoRef> m_invites;
 	std::map<CStdString, CStdString> m_tags;
 	bool m_sessionTelephoneEventPtDefined;
-	CStdString m_telephoneEventPayloadType;
+	int m_telephoneEventPayloadType;
 
 	unsigned int m_currentRtpEventTs;
 	bool m_mappedS1S2;
