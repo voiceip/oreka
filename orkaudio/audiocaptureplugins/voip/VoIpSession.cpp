@@ -1070,6 +1070,14 @@ void VoIpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket, int channel)
 		return;
 	}
 
+	if(DLLCONFIG.m_rtpDtmfOnlyLocal)
+	{
+		if(rtpPacket->m_sourceIp.s_addr != m_localIp.s_addr)
+		{
+			return;
+		}
+	}
+
 	RtpEventPayloadFormat *payloadFormat = (RtpEventPayloadFormat *)rtpPacket->m_payload;
 	RtpEventInfoRef rtpEventInfo(new RtpEventInfo());
 

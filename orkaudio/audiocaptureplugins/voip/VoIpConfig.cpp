@@ -120,6 +120,7 @@ VoIpConfig::VoIpConfig()
 	m_sipInfoDtmfRfc2976Detect = false;
 	m_mediaAddressUseSecondRtpAddress = false;
 	m_transferTimeOutInSec = 7200;
+	m_rtpDtmfOnlyLocal = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -248,6 +249,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SipInfoDtmfRfc2976Detect", m_sipInfoDtmfRfc2976Detect);
 	s->BoolValue("MediaAddressUseSecondRtpAddress", m_mediaAddressUseSecondRtpAddress);
 	s->IntValue("TransferTimeOutInSec", m_transferTimeOutInSec);
+	s->BoolValue("RtpDtmfOnlyLocal", m_rtpDtmfOnlyLocal);
 }
 
 void VoIpConfig::Validate()

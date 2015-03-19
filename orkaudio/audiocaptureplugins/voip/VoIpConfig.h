@@ -173,6 +173,7 @@ public:
 	CStdString m_onDemandPauseViaDtmfDigitsString;
 	bool m_mediaAddressUseSecondRtpAddress;
 	int m_transferTimeOutInSec;
+	bool m_rtpDtmfOnlyLocal;
 };
 
 //========================================
