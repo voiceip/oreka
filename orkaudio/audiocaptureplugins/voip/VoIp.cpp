@@ -169,6 +169,7 @@ bool IsFragmentedUdpPacket(IpHeaderStruct* ipHeader)
 void ProcessFragmentedUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader)
 {
 	CStdString logMsg;
+	MutexSentinel mutexSentinel(s_mutex);
 	//Make sure to maintain the SipFragmentedUdpMap at reasonable size: we keep 1000 packets???
 	if(s_sipFragmentedUdpMap.size() > 1000)
 	{
