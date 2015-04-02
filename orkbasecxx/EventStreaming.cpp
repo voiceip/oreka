@@ -75,7 +75,7 @@ void EventStreamingSession::AddAddTagMessage(MessageRef& message)
 	cloneTag->m_orkuid = tagMsg->m_orkuid;
 	cloneTag->m_tagType = tagMsg->m_tagType;
 	cloneTag->m_tagText = tagMsg->m_tagText;
-	cloneTag->m_dtmfOffsetMs = tagMsg->m_dtmfOffsetMs;
+	cloneTag->m_dtagOffsetMs = tagMsg->m_dtagOffsetMs;
 	cloneTag->m_success = tagMsg->m_success;
 	m_messages.push_back(cloneTag);
 	m_semaphore.release();

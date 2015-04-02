@@ -562,6 +562,15 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 			{
 				return;
 			}
+
+			// If this is a dynamic tag, exit from here so that the tag is not reported as a static tag
+			std::list<CStdString>::iterator it;
+			for(it = CONFIG.m_dynamicTags.begin(); it != CONFIG.m_dynamicTags.end(); it++) {
+				if (eventRef->m_key.CompareNoCase(*it) == 0) {
+					return;
+				}
+			}
+
 			std::map<CStdString,CStdString>::iterator i = m_tags.find(eventRef->m_key);
 
 			if(i == m_tags.end())

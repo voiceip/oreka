@@ -16,7 +16,7 @@
 #define ADDTAG_CLASS "addtag"
 #define TAG_TYPE_PARAM "tagtype"
 #define TAG_TEXT_PARAM "tagtext"
-#define DTMF_OFFSET_MS_PARAM "offsetmsec"
+#define DTAG_OFFSET_MS_PARAM "offsetmsec"
 AddTagMsg::AddTagMsg()
 {
 	m_success = false;
@@ -30,7 +30,7 @@ void AddTagMsg::Define(Serializer* s)
 	s->StringValue(ORKUID_PARAM, m_orkuid, false);
 	s->StringValue(TAG_TYPE_PARAM, m_tagType, false);
 	s->StringValue(TAG_TEXT_PARAM, m_tagText, false);
-	s->StringValue(DTMF_OFFSET_MS_PARAM, m_dtmfOffsetMs, false);
+	s->StringValue(DTAG_OFFSET_MS_PARAM, m_dtagOffsetMs, false);
 }
 
 void AddTagMsg::Validate()

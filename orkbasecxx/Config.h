@@ -152,6 +152,7 @@
 #define DTMF_REPORTING_DETAILED false;
 #define CLIENT_RETRY_PERIOD_SEC "ClientRetryPeriodSec"
 #define CLIENT_RETRY_PERIOD_SEC_DEFAULT 2
+#define DYNAMIC_TAGS "DynamicTags"
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -243,6 +244,7 @@ public:
 	int m_remotePartyMaxDigits;
 	bool m_dtmfReportingDetailed;
 	int m_clientRetryPeriodSec;
+	std::list<CStdString> m_dynamicTags;
 
 private:
 	log4cxx::LoggerPtr m_log;
