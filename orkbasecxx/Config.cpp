@@ -194,6 +194,7 @@ void Config::Define(Serializer* s)
 	s->CsvValue(SPEEX_PAYLOAD_TYPES,m_speexPayloadTypes);
 	s->IntValue("RemotePartyMaxDigits", m_remotePartyMaxDigits);
 	s->BoolValue("DtmfReportingDetailed" ,m_dtmfReportingDetailed);
+	s->CsvValue(DYNAMIC_TAGS, m_dynamicTags);
 	//Construct the partyFilterMap
 	if(m_partyFilterCharsReplaceWith.size() != 0)
 	{

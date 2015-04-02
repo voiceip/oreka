@@ -32,7 +32,7 @@ public:
 	CStdString m_orkuid;
 	CStdString m_tagType;
 	CStdString m_tagText;
-	CStdString m_dtmfOffsetMs;
+	CStdString m_dtagOffsetMs;
 	bool m_success;
 
 };
