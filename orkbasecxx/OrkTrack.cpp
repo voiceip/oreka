@@ -54,7 +54,7 @@ void OrkTrack::Run(void* args)
 
 	hostRef.reset(pHost);
 	serverHostname = hostRef->m_serverHostname;
-	msgRef->m_name.Format("orkaudio-%s", host);
+	msgRef->m_name = CONFIG.m_serviceName;
 	msgRef->m_hostname = host;
 	msgRef->m_type = "A";
 	msgRef->m_tcpPort = 59140;
