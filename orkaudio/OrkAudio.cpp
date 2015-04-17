@@ -360,19 +360,15 @@ void MainThread()
 
 int main(int argc, char* argv[])
 {
-	// figure out service name
-	CStdString program(argv[0]);
-	CStdString serviceNameWithExtension = FileBaseName(program);
-	CStdString serviceName = FileStripExtension(serviceNameWithExtension);
-	if (serviceName.IsEmpty())
-	{
-		printf("Error: Could not determine service name.\n");
-		return -1;
-	}
-
+	// the "service name" reported on the tape messages uses CONFIG.m_serviceName
+	// which also defaults to orkaudio-[hostname] but can be different depending on the 
+	// value set in config.xml
+	char hostname[40];
+	ACE_OS::hostname(hostname, 40);
+	CStdString serviceName = CStdString("orkaudio-") + hostname;
 	Daemon::Initialize(serviceName, MainThread, StopHandler);
-	CStdString argument = argv[1];
 
+	CStdString argument = argv[1];
 	if (argc>1)
 	{
 		if (argument.CompareNoCase("debug") == 0)
