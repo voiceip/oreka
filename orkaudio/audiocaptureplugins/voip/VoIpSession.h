@@ -250,6 +250,7 @@ public:
 	void UrlExtraction(CStdString& input, struct in_addr* endpointIp);
 	void ReportOnDemandMarkerByIp(struct in_addr endpointIp);
 	void TaggingSipTransferCalls(VoIpSessionRef& session);
+	void CopyMetadataToNewSession(VoIpSessionRef& oldSession, VoIpSessionRef& newSession);
 
 private:
 	void CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort);

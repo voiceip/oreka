@@ -4145,6 +4145,43 @@ void VoIpSessions::TaggingSipTransferCalls(VoIpSessionRef& session)
 	}
 }
 
+void VoIpSessions::CopyMetadataToNewSession(VoIpSessionRef& oldSession, VoIpSessionRef& newSession)
+{
+	if(oldSession.get() == NULL)
+	{
+		return;
+	}
+	newSession->m_ipAndPort = oldSession->m_ipAndPort;
+	newSession->m_rtpIp = oldSession->m_rtpIp;
+	newSession->m_callId = oldSession->m_callId;
+	newSession->m_invite = oldSession->m_invite;
+	newSession->m_protocol = oldSession->m_protocol;
+	newSession->m_remotePartyNecSip = oldSession->m_remotePartyNecSip;
+	newSession->m_localParty = oldSession->m_localParty;
+	newSession->m_remoteParty = oldSession->m_remoteParty;
+	newSession->m_localEntryPoint = oldSession->m_localEntryPoint;
+	newSession->m_localPartyName = oldSession->m_localPartyName;
+	newSession->m_remotePartyName = oldSession->m_remotePartyName;
+	newSession->m_localPartyReported = oldSession->m_localPartyReported;
+	newSession->m_remotePartyReported = oldSession->m_remotePartyReported;
+	newSession->m_rtcpLocalParty = oldSession->m_rtcpLocalParty;
+	newSession->m_rtcpRemoteParty = oldSession->m_rtcpRemoteParty;
+	newSession->m_direction = oldSession->m_direction;
+	newSession->m_localSide = oldSession->m_localSide;
+	newSession->m_endPointIp = oldSession->m_endPointIp;
+	newSession->m_endPointSignallingPort = oldSession->m_endPointSignallingPort;
+	newSession->m_skinnyPassThruPartyId = oldSession->m_skinnyPassThruPartyId;
+	newSession->m_sipLastInvite = oldSession->m_sipLastInvite;
+	newSession->m_skinnyLastCallInfoTime = oldSession->m_skinnyLastCallInfoTime;
+	newSession->m_skinnyLineInstance = oldSession->m_skinnyLineInstance;
+	newSession->m_mediaAddresses = oldSession->m_mediaAddresses;
+	newSession->m_sipDialedNumber = oldSession->m_sipDialedNumber;
+	newSession->m_sipRemoteParty = oldSession->m_sipRemoteParty;
+	newSession->m_isCallPickUp = oldSession->m_isCallPickUp;
+	newSession->m_ssrcCandidate = oldSession->m_ssrcCandidate;
+
+	newSession->m_metadataProcessed = true;
+}
 
 void VoIpSessions::StopAll()
 {
@@ -4486,8 +4523,17 @@ CStdString VoIpSessions::StopCapture(CStdString& party, CStdString& qos)
 	{
 		logMsg.Format("[%s] StopCapture: stopping capture, party:%s", session->m_trackingId, party);
 		LOG4CXX_INFO(m_log, logMsg);
+
+		// This session might be stopped prematurely by this API call, preserve its metadata into a new session which will gather the subsequent RTP packets
+		CStdString nextTrackId = m_alphaCounter.GetNext();
+		VoIpSessionRef newSession(new VoIpSession(nextTrackId));
+		CopyMetadataToNewSession(session, newSession);
+
 		Stop(session);
 		qos.Format("RtpNumPkts:%d RtpNumMissingPkts:%d RtpNumSeqGaps:%d RtpMaxSeqGap:%d", session->m_numRtpPackets, session->m_rtpNumMissingPkts, session->m_rtpNumSeqGaps, session->m_highestRtpSeqNumDelta);
+
+		m_byIpAndPort.insert(std::make_pair(newSession->m_ipAndPort, newSession));
+		m_byCallId.insert(std::make_pair(newSession->m_callId, newSession));
 	}	
 	else
 	{
@@ -4519,8 +4565,17 @@ void VoIpSessions::StopCaptureOrkuid(CStdString& orkuid, CStdString& qos)
 	{
 		logMsg.Format("[%s] StopCaptureOrkuid: stopping capture, orkuid:%s", session->m_trackingId, orkuid);
 		LOG4CXX_INFO(m_log, logMsg);
+
+		// This session might be stopped prematurely by this API call, preserve its metadata into a new session which will gather the subsequent RTP packets
+		CStdString nextTrackId = m_alphaCounter.GetNext();
+		VoIpSessionRef newSession(new VoIpSession(nextTrackId));
+		CopyMetadataToNewSession(session, newSession);
+
 		Stop(session);
 		qos.Format("RtpNumPkts:%d RtpNumMissingPkts:%d RtpNumSeqGaps:%d RtpMaxSeqGap:%d", session->m_numRtpPackets, session->m_rtpNumMissingPkts, session->m_rtpNumSeqGaps, session->m_highestRtpSeqNumDelta);
+
+		m_byIpAndPort.insert(std::make_pair(newSession->m_ipAndPort, newSession));
+		m_byCallId.insert(std::make_pair(newSession->m_callId, newSession));
 	}
 	else
 	{
@@ -4552,8 +4607,17 @@ CStdString VoIpSessions::StopCaptureNativeCallId(CStdString& nativecallid, CStdS
 	{
 		logMsg.Format("[%s] StopCaptureNativeCallId: stopping capture, nativecallid:%s", session->m_trackingId, nativecallid);
 		LOG4CXX_INFO(m_log, logMsg);
+
+		// This session might be stopped prematurely by this API call, preserve its metadata into a new session which will gather the subsequent RTP packets
+		CStdString nextTrackId = m_alphaCounter.GetNext();
+		VoIpSessionRef newSession(new VoIpSession(nextTrackId));
+		CopyMetadataToNewSession(session, newSession);
+
 		Stop(session);
 		qos.Format("RtpNumPkts:%d RtpNumMissingPkts:%d RtpNumSeqGaps:%d RtpMaxSeqGap:%d", session->m_numRtpPackets, session->m_rtpNumMissingPkts, session->m_rtpNumSeqGaps, session->m_highestRtpSeqNumDelta);
+
+		m_byIpAndPort.insert(std::make_pair(newSession->m_ipAndPort, newSession));
+		m_byCallId.insert(std::make_pair(newSession->m_callId, newSession));
 	}
 	else
 	{
