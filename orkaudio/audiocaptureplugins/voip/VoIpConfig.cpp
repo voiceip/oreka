@@ -121,6 +121,7 @@ VoIpConfig::VoIpConfig()
 	m_mediaAddressUseSecondRtpAddress = false;
 	m_transferTimeOutInSec = 7200;
 	m_rtpDtmfOnlyLocal = false;
+	m_udpMinPort = 1024;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -250,6 +251,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("MediaAddressUseSecondRtpAddress", m_mediaAddressUseSecondRtpAddress);
 	s->IntValue("TransferTimeOutInSec", m_transferTimeOutInSec);
 	s->BoolValue("RtpDtmfOnlyLocal", m_rtpDtmfOnlyLocal);
+	s->IntValue("UdpMinPort", m_udpMinPort);
 }
 
 void VoIpConfig::Validate()
