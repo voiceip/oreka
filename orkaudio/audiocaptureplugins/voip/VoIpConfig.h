@@ -174,6 +174,7 @@ public:
 	bool m_mediaAddressUseSecondRtpAddress;
 	int m_transferTimeOutInSec;
 	bool m_rtpDtmfOnlyLocal;
+	int m_udpMinPort;
 };
 
 //========================================

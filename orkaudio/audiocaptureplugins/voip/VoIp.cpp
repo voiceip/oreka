@@ -583,7 +583,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd)
 {
 	UdpHeaderStruct* udpHeader = (UdpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
-	if(ntohs(udpHeader->source) >= 1024 && ntohs(udpHeader->dest) >= 1024)
+	if(ntohs(udpHeader->source) >= DLLCONFIG.m_udpMinPort && ntohs(udpHeader->dest) >= DLLCONFIG.m_udpMinPort)
 	{
 		bool detectedUsefulPacket = false;
 		u_char* udpPayload = (u_char *)udpHeader + sizeof(UdpHeaderStruct);
