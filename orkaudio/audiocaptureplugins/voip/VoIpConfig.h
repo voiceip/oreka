@@ -175,6 +175,7 @@ public:
 	int m_transferTimeOutInSec;
 	bool m_rtpDtmfOnlyLocal;
 	int m_udpMinPort;
+	bool m_useLocalPartyNameMap;
 };
 
 //========================================
