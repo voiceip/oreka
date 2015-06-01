@@ -850,7 +850,7 @@ void VoIpSession::ReportMetadata()
 		LOG4CXX_INFO(m_log, "[" + m_trackingId + "] " + "is Sip Service Call Pick Up session, reverted call direction");
 	}
 
-	if (DLLCONFIG.m_useLocalPartyNameMap) {
+	if (DLLCONFIG.m_localPartyNameMapEnable) {
 		static std::map<CStdString, CStdString> s_localPartyNameMap;
 		CStdString localIp(szLocalIp);
 		CStdString tempLocalPartyName = s_localPartyNameMap[localIp];

@@ -122,7 +122,7 @@ VoIpConfig::VoIpConfig()
 	m_transferTimeOutInSec = 7200;
 	m_rtpDtmfOnlyLocal = false;
 	m_udpMinPort = 1024;
-	m_useLocalPartyNameMap = false;
+	m_localPartyNameMapEnable = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -253,7 +253,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("TransferTimeOutInSec", m_transferTimeOutInSec);
 	s->BoolValue("RtpDtmfOnlyLocal", m_rtpDtmfOnlyLocal);
 	s->IntValue("UdpMinPort", m_udpMinPort);
-	s->BoolValue("UseLocalPartyNameMap",m_useLocalPartyNameMap);
+	s->BoolValue("LocalPartyNameMapEnable",m_localPartyNameMapEnable);
 }
 
 void VoIpConfig::Validate()
