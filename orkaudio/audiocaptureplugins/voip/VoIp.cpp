@@ -49,12 +49,12 @@
 #include "Iax2Session.h"
 #include "SipTcp.h"
 #include "Win1251.h"
-#include "SipUdp.h"
 #include "LogManager.h"
 #include "ParsingUtils.h"
 #include "SkinnyParsers.h"
 #include "SipParsers.h"
 #include "Iax2Parsers.h"
+#include "SizedBuffer.h"
 
 extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;
@@ -84,7 +84,8 @@ static unsigned int s_udpCounter;
 static unsigned int s_numLostUdpPacketsInUdpMode;
 static unsigned int s_tcpCounter;
 static unsigned int s_numLostTcpPacketsInUdpMode;
-static SipFragmentedUdpMap s_sipFragmentedUdpMap;
+
+SizedBufferRef HandleIpFragment(IpHeaderStruct* ipHeader);
 
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 #define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
@@ -148,100 +149,6 @@ private:
 
 };
 typedef ACE_Acceptor<VoipTcpStream, ACE_SOCK_ACCEPTOR> VoipTcpStreamListener;
-//=========================================================
-bool IsFragmentedUdpPacket(IpHeaderStruct* ipHeader)
-{
-	unsigned char first3bits = 0;
-	unsigned char last13bits = 0;
-	unsigned short mask = 0x1FFF;
-	first3bits = (ntohs(ipHeader->ip_off)) >> 13;
-	last13bits = (ntohs(ipHeader->ip_off)) & mask;
-	int fragmentflag = (int)first3bits;
-	int offset = (int)last13bits;
-
-	if(((fragmentflag == 0) && (offset > 0)) || (fragmentflag == 1))		//either first fragment or followed fragments(then offset should >0)
-	{
-		return true;
-	}
-	else	return false;
-}
-
-void ProcessFragmentedUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader)
-{
-	CStdString logMsg;
-	MutexSentinel mutexSentinel(s_mutex);
-	//Make sure to maintain the SipFragmentedUdpMap at reasonable size: we keep 1000 packets???
-	if(s_sipFragmentedUdpMap.size() > 1000)
-	{
-		SipFragmentedUdpMapSeqIndex& seqIndex = s_sipFragmentedUdpMap.get<IndexSequential>();
-		seqIndex.pop_front();
-	}
-	SipUdpStreamRef udpStream(new SipUdpStream());
-	udpStream.reset(new SipUdpStream());	//make sure the pointer is reset
-	udpStream->GetUdpPacketInfo(ipHeader);
-
-	if(udpStream->m_isFragmentsWillFollow == true)
-	{
-		logMsg.Format("Packet which has ip's id:%d is fragmented", ntohs(ipHeader->ip_id));
-		LOG4CXX_INFO(s_packetLog, logMsg);
-
-		int ipHeaderLength = ipHeader->ip_hl*4;
-		UdpHeaderStruct* udpHeader = (UdpHeaderStruct*)((unsigned char *)ipHeader + ipHeaderLength);
-		int payloadLen= ntohs(ipHeader->ip_len) - ipHeaderLength - sizeof(UdpHeaderStruct);
-
-		u_char* startPayload = (u_char *)udpHeader + sizeof(UdpHeaderStruct);
-
-		//Verify if its already in the map, if not, add payload then insert, otherwise keep adding p
-		SipFragmentedUdpMapSearchIndex& searchIndex = s_sipFragmentedUdpMap.get<IndexSearchable>();
-		SipFragmentedUdpMapSearchIndex::iterator it = searchIndex.find(udpStream->m_packetIpId);
-		if(it == searchIndex.end())
-		{
-			udpStream->AddUdpPayload(startPayload, payloadLen);
-			searchIndex.insert(udpStream);
-		}
-		else
-		{
-			(*it)->m_mergedIpLen += udpStream->m_mergedIpLen;
-			(*it)->AddUdpPayload(startPayload, payloadLen);
-		}
-
-	}
-	else if(udpStream->m_isFollowedFragment == true)
-	{
-		logMsg.Format("Packet which has ip's id:%d is remnant from previous fragmented packet", ntohs(ipHeader->ip_id));
-		LOG4CXX_DEBUG(s_packetLog, logMsg);
-
-		int ipHeaderLength = ipHeader->ip_hl*4;
-		UdpHeaderStruct* udpHeader = (UdpHeaderStruct*)((unsigned char *)ipHeader + ipHeaderLength);
-		int payloadLen= ntohs(ipHeader->ip_len) - ipHeaderLength - sizeof(UdpHeaderStruct);
-		u_char* startPayload = (u_char *)udpHeader + sizeof(UdpHeaderStruct);
-		u_char* ipPacketEnd = (u_char*)ipHeader + ntohs(ipHeader->ip_len);
-
-		SipFragmentedUdpMapSearchIndex& searchIndex = s_sipFragmentedUdpMap.get<IndexSearchable>();
-		SipFragmentedUdpMapSearchIndex::iterator it = searchIndex.find(udpStream->m_packetIpId);
-		if(it != searchIndex.end())
-		{
-			logMsg.Format("Fragmented packet has ip's id:%d found in map", ntohs(ipHeader->ip_id));
-			LOG4CXX_DEBUG(s_packetLog, logMsg);
-
-			(*it)->AddUdpPayload(startPayload, payloadLen);
-
-			SafeBufferRef buffer = (*it)->GetCompleteUdpPayload();
-			//Huhmm, actually Length value of second packet is fine, not crash
-			int mergedPacketIpLen = (*it)->m_mergedIpLen + udpStream->m_mergedIpLen;
-			ipHeader->ip_len = htons(mergedPacketIpLen);
-			udpHeader->len = htons(mergedPacketIpLen - ipHeaderLength);
-			//For now we only concern about Sip INVITE packet
-			TrySipInvite(ethernetHeader, ipHeader, udpHeader, buffer->GetBuffer(), ipPacketEnd);
-
-			//We merged fragmented packets and processed them, they are no longer needed
-			searchIndex.erase(it);
-		}
-	}
-
-}
-
-
 
 //=========================================================
 bool TryRtcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload)
@@ -782,6 +689,58 @@ bool TryIpPacketV4(IpHeaderStruct* ipHeader)
 	return true;
 }
 
+void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader) {
+	size_t ipHeaderLength = ipHeader->headerLen();
+	u_char* ipPacketEnd    = reinterpret_cast<unsigned char*>(ipHeader) + ipHeader->packetLen();
+
+	if(ipHeader->ip_p == IPPROTO_UDP)
+	{
+		DetectUsefulUdpPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd);
+	}
+	else if(ipHeader->ip_p == IPPROTO_TCP)
+	{
+		DetectUsefulTcpPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd);
+	}
+	else if(ipHeader->ip_p == IPPROTO_GRE)
+	{
+		//Check if its ESPAN
+		GreHeaderStruct *greHeader = (GreHeaderStruct*)((char *)ipHeader + ipHeaderLength);
+		if(ntohs(greHeader->flagVersion) == 0x1000 && ntohs(greHeader->protocolType) == PROT_ERSPAN)
+		{
+			//temporary ignore Erspan payload, flag ...
+			//Follow is the real headers got encapsulated
+			EthernetHeaderStruct* encapsulatedEthernetHeader = (EthernetHeaderStruct *)((char *)ipHeader + ipHeaderLength +  sizeof(GreHeaderStruct) + sizeof(ErspanHeaderStruct));
+			IpHeaderStruct* encapsulatedIpHeader = NULL;
+
+			if(ntohs(encapsulatedEthernetHeader->type) == 0x8100)
+			{
+				encapsulatedIpHeader = (IpHeaderStruct*)((char*)encapsulatedEthernetHeader + sizeof(EthernetHeaderStruct) + 4);
+			}
+			else
+			{
+				encapsulatedIpHeader = (IpHeaderStruct*)((char*)encapsulatedEthernetHeader + sizeof(EthernetHeaderStruct));
+			}
+
+			if(TryIpPacketV4(encapsulatedIpHeader) != true)
+			{
+				return;
+			}
+
+			int encapsulatedIpHeaderLength = ipHeader->ip_hl*4;
+			u_char* encapsulatedIpPacketEnd = (u_char*)encapsulatedIpHeader + ntohs(encapsulatedIpHeader->ip_len);
+
+			if(encapsulatedIpHeader->ip_p == IPPROTO_UDP)
+			{
+				DetectUsefulUdpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd);
+			}
+			else if(encapsulatedIpHeader->ip_p == IPPROTO_TCP)
+			{
+				DetectUsefulTcpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd);
+			}
+		}
+	}
+}
+
 void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data)
 {
 	time_t now = time(NULL);
@@ -909,61 +868,14 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 		return;
 	}
 
-	if(ipHeader->ip_p == IPPROTO_UDP)
-	{
-		//Verify if this udp packet is fragmented
-		if(DLLCONFIG.m_sipUdpReassembleFragments == true)
-		{
-			if(IsFragmentedUdpPacket(ipHeader))
-			{
-				ProcessFragmentedUdpPacket(ethernetHeader, ipHeader);		//if this packet is fragmented, ProcessFragmentedUdpPacket() will do the job, no need to go further
-				return;
-			}
+	if (DLLCONFIG.m_ipFragmentsReassemble && ipHeader->isFragmented()) {
+		SizedBufferRef packetData = HandleIpFragment(ipHeader);	
+		if (packetData) { // Packet data will return non-empty when the packet is complete
+			ProcessTransportLayer(ethernetHeader,reinterpret_cast<IpHeaderStruct*>(packetData->get()) );
 		}
-		DetectUsefulUdpPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd);
 	}
-	else if(ipHeader->ip_p == IPPROTO_TCP)
-	{
-		DetectUsefulTcpPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd);
-	}
-	else if(ipHeader->ip_p == IPPROTO_GRE)
-	{
-		//Check if its ESPAN
-		GreHeaderStruct *greHeader = (GreHeaderStruct*)((char *)ipHeader + ipHeaderLength);
-		if(ntohs(greHeader->flagVersion) == 0x1000 && ntohs(greHeader->protocolType) == PROT_ERSPAN)
-		{
-			//temporary ignore Erspan payload, flag ...
-			//Follow is the real headers got encapsulated
-			EthernetHeaderStruct* encapsulatedEthernetHeader = (EthernetHeaderStruct *)((char *)ipHeader + ipHeaderLength +  sizeof(GreHeaderStruct) + sizeof(ErspanHeaderStruct));
-			IpHeaderStruct* encapsulatedIpHeader = NULL;
-
-			if(ntohs(encapsulatedEthernetHeader->type) == 0x8100)
-			{
-				encapsulatedIpHeader = (IpHeaderStruct*)((char*)encapsulatedEthernetHeader + sizeof(EthernetHeaderStruct) + 4);
-			}
-			else
-			{
-				encapsulatedIpHeader = (IpHeaderStruct*)((char*)encapsulatedEthernetHeader + sizeof(EthernetHeaderStruct));
-			}
-
-			if(TryIpPacketV4(encapsulatedIpHeader) != true)
-			{
-				return;
-			}
-
-			int encapsulatedIpHeaderLength = ipHeader->ip_hl*4;
-			u_char* encapsulatedIpPacketEnd = (u_char*)encapsulatedIpHeader + ntohs(encapsulatedIpHeader->ip_len);
-
-			if(encapsulatedIpHeader->ip_p == IPPROTO_UDP)
-			{
-				DetectUsefulUdpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd);
-			}
-			else if(encapsulatedIpHeader->ip_p == IPPROTO_TCP)
-			{
-				DetectUsefulTcpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd);
-			}
-		}
-
+	else {
+		ProcessTransportLayer(ethernetHeader,ipHeader);
 	}
 
 	if((now - s_lastHooveringTime) > 5)
