@@ -116,13 +116,13 @@ VoIpConfig::VoIpConfig()
 	m_rtpLogAllSsrc = false;
 	m_orekaEncapsulationMode = false;
 	m_orekaEncapsulationPort = 10002;
-	m_sipUdpReassembleFragments = false;
 	m_sipInfoDtmfRfc2976Detect = false;
 	m_mediaAddressUseSecondRtpAddress = false;
 	m_transferTimeOutInSec = 7200;
 	m_rtpDtmfOnlyLocal = false;
 	m_udpMinPort = 1024;
 	m_localPartyNameMapEnable = false;
+	m_ipFragmentsReassemble = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -243,7 +243,6 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("OrekaEncapsulationPort", m_orekaEncapsulationPort);
 	s->StringValue("OrekaEncapsulationHost", m_orekaEncapsulationHost);
 	s->BoolValue("OrekaEncapsulationMode", m_orekaEncapsulationMode);
-	s->BoolValue("SipUdpReassembleFragments", m_sipUdpReassembleFragments);
 	s->StringValue("OnDemandTcpMarkerKey", m_onDemandTcpMarkerKey);
 	s->StringValue("OnDemandTcpMarkerValue", m_onDemandTcpMarkerValue);
 	s->StringValue("OnDemandViaDtmfDigitsString", m_onDemandViaDtmfDigitsString);
@@ -254,6 +253,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("RtpDtmfOnlyLocal", m_rtpDtmfOnlyLocal);
 	s->IntValue("UdpMinPort", m_udpMinPort);
 	s->BoolValue("LocalPartyNameMapEnable",m_localPartyNameMapEnable);
+	s->BoolValue("IpFragmentsReassemble", m_ipFragmentsReassemble);
 }
 
 void VoIpConfig::Validate()

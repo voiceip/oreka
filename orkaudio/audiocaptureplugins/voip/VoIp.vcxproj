@@ -154,13 +154,13 @@
     <ClCompile Include="..\Common\AudioCapturePluginCommon.cpp" />
     <ClCompile Include="Iax2Parsers.cpp" />
     <ClCompile Include="Iax2Session.cpp" />
+    <ClCompile Include="IpFragmentation.cpp" />
     <ClCompile Include="PacketHeaderDefs.cpp" />
     <ClCompile Include="ParsingUtils.cpp" />
     <ClCompile Include="Rtp.cpp" />
     <ClCompile Include="SipHeaders.cpp" />
     <ClCompile Include="SipParsers.cpp" />
     <ClCompile Include="SipTcp.cpp" />
-    <ClCompile Include="SipUdp.cpp" />
     <ClCompile Include="SkinnyParsers.cpp" />
     <ClCompile Include="VoIp.cpp" />
     <ClCompile Include="VoIpConfig.cpp" />
@@ -177,7 +177,6 @@
     <ClInclude Include="SipHeaders.h" />
     <ClInclude Include="SipParsers.h" />
     <ClInclude Include="SipTcp.h" />
-    <ClInclude Include="SipUdp.h" />
     <ClInclude Include="SkinnyParsers.h" />
     <ClInclude Include="VoIpConfig.h" />
     <ClInclude Include="VoIpSession.h" />

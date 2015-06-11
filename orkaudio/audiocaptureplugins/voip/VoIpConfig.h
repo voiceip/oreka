@@ -21,6 +21,7 @@
 #include "boost/shared_ptr.hpp"
 #include "PacketHeaderDefs.h"
 #include "AudioCapture.h"
+#include "Utils.h"
  
 #define DEVICE_PARAM "Device"
 
@@ -165,7 +166,6 @@ public:
 	bool m_orekaEncapsulationMode;
 	int m_orekaEncapsulationPort;
 	CStdString m_orekaEncapsulationHost;
-	bool m_sipUdpReassembleFragments;
 	CStdString m_onDemandTcpMarkerKey;
 	CStdString m_onDemandTcpMarkerValue;
 	bool m_sipInfoDtmfRfc2976Detect;
@@ -176,6 +176,7 @@ public:
 	bool m_rtpDtmfOnlyLocal;
 	int m_udpMinPort;
 	bool m_localPartyNameMapEnable;
+	bool m_ipFragmentsReassemble;
 };
 
 //========================================

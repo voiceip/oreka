@@ -247,6 +247,7 @@
     <ClCompile Include="Serializers\SingleLineSerializer.cpp" />
     <ClCompile Include="Serializers\UrlSerializer.cpp" />
     <ClCompile Include="Serializers\XmlRpcSerializer.cpp" />
+    <ClCompile Include="SizedBuffer.cpp" />
     <ClCompile Include="SocketStreamer.cpp" />
     <ClCompile Include="TapeFileNaming.cpp" />
     <ClCompile Include="TapeProcessor.cpp" />
@@ -310,6 +311,7 @@
     <ClInclude Include="Serializers\SingleLineSerializer.h" />
     <ClInclude Include="Serializers\UrlSerializer.h" />
     <ClInclude Include="Serializers\XmlRpcSerializer.h" />
+    <ClInclude Include="SizedBuffer.h" />
     <ClInclude Include="SocketStreamer.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="StdString.h" />

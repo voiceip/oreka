@@ -44,6 +44,39 @@ typedef struct
 	unsigned short	ip_sum;			// Header checksum
 	struct in_addr	ip_src;			// Source address
 	struct in_addr	ip_dest;		// Destination address
+
+	bool isFragmented() {
+		return (!isLastFragment() || offset()>0) ;
+	}
+	bool isLastFragment() {
+		return fragmentFlags()%2 == 0;
+	}
+	size_t payloadLen() {
+		return packetLen() - headerLen();
+	}
+	unsigned short packetId () {
+		return ntohs(ip_id);
+	}
+	size_t offset() { 
+		   return ((ntohs(ip_off)) & 0x1FFF) << 3; // last 13 bits * 8
+	}
+	unsigned int fragmentFlags() {
+		return (ntohs(ip_off)) >> 13; // first 3 bits
+	}
+	size_t headerLen() {
+		return ip_hl*4;
+	}
+	size_t packetLen() {
+		return ntohs(ip_len);
+	}
+	void setPacketLen(size_t len) {
+		ip_len = htons(len);
+	}
+	CStdString log() {
+		CStdString s;
+		s.Format("ipHeaderLen:%u packetLen:%u payloadLen:%u",headerLen(),packetLen(),payloadLen());
+		return s;
+	}
 } IpHeaderStruct;
 
 
