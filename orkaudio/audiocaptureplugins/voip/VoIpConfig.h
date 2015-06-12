@@ -177,6 +177,7 @@ public:
 	int m_udpMinPort;
 	bool m_localPartyNameMapEnable;
 	bool m_ipFragmentsReassemble;
+	bool m_rtpS1S2MappingDeterministicS1IsLocal;
 };
 
 //========================================

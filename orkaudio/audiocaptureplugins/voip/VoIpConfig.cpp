@@ -123,6 +123,7 @@ VoIpConfig::VoIpConfig()
 	m_udpMinPort = 1024;
 	m_localPartyNameMapEnable = false;
 	m_ipFragmentsReassemble = false;
+	m_rtpS1S2MappingDeterministicS1IsLocal = true;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -254,6 +255,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("UdpMinPort", m_udpMinPort);
 	s->BoolValue("LocalPartyNameMapEnable",m_localPartyNameMapEnable);
 	s->BoolValue("IpFragmentsReassemble", m_ipFragmentsReassemble);
+	s->BoolValue("RtpS1S2MappingDeterministicS1IsLocal", m_rtpS1S2MappingDeterministicS1IsLocal);
 }
 
 void VoIpConfig::Validate()
