@@ -238,6 +238,25 @@ bool TrySipInfo(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, 
 			GrabTokenSkipLeadingWhitespaces(signalField, sipEnd, info->m_dtmfDigit);
 		}
 
+		CStdString ondemandFieldName;
+		ondemandFieldName.Format("%s:", DLLCONFIG.m_sipOnDemandFieldName);
+		char* recordField = memFindAfter(ondemandFieldName, (char*)udpPayload, (char*)sipEnd);
+		if(recordField)
+		{
+			CStdString field;
+			GrabLineSkipLeadingWhitespace(recordField, sipEnd, field);
+			if(field.CompareNoCase(DLLCONFIG.m_sipOnDemandFieldValue) == 0)
+			{
+				info->m_onDemand = true;
+				info->m_onDemandOff = false;
+			}
+			else if(field.CompareNoCase(DLLCONFIG.m_sipOnDemandFieldValueOff) == 0)
+			{
+				info->m_onDemand = false;
+				info->m_onDemandOff = true;
+			}
+
+		}
 		VoIpSessionsSingleton::instance()->ReportSipInfo(info);
 	}
 	return result;

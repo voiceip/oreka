@@ -103,6 +103,7 @@ public:
 	bool m_sipCallPickUpSupport;
 	CStdString m_sipOnDemandFieldName;
 	CStdString m_sipOnDemandFieldValue;
+	CStdString m_sipOnDemandFieldValueOff;
 	CStdString m_sipDialedNumberFieldName;
 	CStdString m_sipRemotePartyFieldName;
 	CStdString m_sipGroupPickUpPattern;

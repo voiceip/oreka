@@ -1740,6 +1740,17 @@ void VoIpSession::ReportSipInfo(SipInfoRef& info)
 	{
 		ReportDtmfDigit(0, info->m_dtmfDigit, 0, 0, 0, 0);
 	}
+	if((DLLCONFIG.m_sipOnDemandFieldValue.length() > 0) && (info->m_onDemand == true))
+	{
+		LOG4CXX_INFO(m_log, "[" + m_trackingId + "] " + DLLCONFIG.m_sipOnDemandFieldName + ":" + DLLCONFIG.m_sipOnDemandFieldValue + " triggered ondemand");
+		CStdString side = "both";
+		MarkAsOnDemand(side);
+	}
+	if((DLLCONFIG.m_sipOnDemandFieldValueOff.length() > 0) && (info->m_onDemandOff == true))
+	{
+		LOG4CXX_INFO(m_log, "[" + m_trackingId + "] " + DLLCONFIG.m_sipOnDemandFieldName + ":" + DLLCONFIG.m_sipOnDemandFieldValueOff + " triggered ondemand off");
+		MarkAsOnDemandOff();
+	}
 }
 
 void VoIpSession::ReportSipRefer(SipReferRef& info)
@@ -1911,6 +1922,23 @@ void VoIpSession::MarkAsOnDemand(CStdString& side)
 	}
 }
 
+void VoIpSession::MarkAsOnDemandOff()
+{
+	m_onDemand = false;
+	if(m_started == true)
+	{
+		CaptureEventRef event(new CaptureEvent());
+		event->m_type = CaptureEvent::EtKeyValue;
+		event->m_key  = CStdString("ondemand");
+		event->m_value = CStdString("false");
+		g_captureEventCallBack(event, m_capturePort);
+
+		// Trigger metadata update
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtUpdate;
+		g_captureEventCallBack(event, m_capturePort);
+	}
+}
 
 void VoIpSession::SkinnyTrackConferencesTransfers(CStdString callId, CStdString capturePort)
 {
