@@ -188,6 +188,8 @@ public:
 	CStdString m_callId;
 	CStdString m_dtmfDigit;
 	CStdString m_cSeq;
+	bool m_onDemand;
+	bool m_onDemandOff;
 };
 typedef boost::shared_ptr<SipInfo> SipInfoRef;
 

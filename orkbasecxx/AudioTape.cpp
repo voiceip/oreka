@@ -529,8 +529,14 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 	case CaptureEvent::EtKeyValue:
 		if(eventRef->m_key.CompareNoCase("ondemand") == 0)
 		{
-			// If this reported, the recording was started by the API
-			m_onDemand = true;
+			if(eventRef->m_value.CompareNoCase("true") == 0)
+			{
+				m_onDemand = true;
+			}
+			else if(eventRef->m_value.CompareNoCase("false") == 0)
+			{
+				m_onDemand = false;
+			}
 		}
 		else if(eventRef->m_key.CompareNoCase("Keep") == 0)
 		{

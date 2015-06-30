@@ -176,7 +176,8 @@ SipNotifyInfo::SipNotifyInfo()
 //================================================
 SipInfo::SipInfo()
 {
-
+	m_onDemand = false;
+	m_onDemandOff = false;
 }
 //==================================================
 SipRefer::SipRefer()

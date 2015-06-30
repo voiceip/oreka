@@ -63,7 +63,8 @@ VoIpConfig::VoIpConfig()
 	m_sipDialedNumberFieldName = "";
 	m_sipRemotePartyFieldName = "";
 	m_sipGroupPickUpPattern = "";
-	m_sipOnDemandFieldValue = "1";
+	m_sipOnDemandFieldValue = "";
+	m_sipOnDemandFieldValueOff = "";
 	m_sipTrackMediaAddressOnSender = false;
 	m_sipAllowMetadataUpdateOnRtpChange = false;
 
@@ -183,6 +184,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SipPickUpSupport", m_sipCallPickUpSupport);
 	s->StringValue("SipOnDemandFieldName", m_sipOnDemandFieldName);
 	s->StringValue("SipOnDemandFieldValue", m_sipOnDemandFieldValue);
+	s->StringValue("SipOnDemandFieldValueOff", m_sipOnDemandFieldValueOff);
 	s->StringValue("SipDialedNumberFieldName", m_sipDialedNumberFieldName);
 	s->StringValue("SipRemotePartyFieldName", m_sipRemotePartyFieldName);
 	s->StringValue("SipGroupPickUpPattern", m_sipGroupPickUpPattern);

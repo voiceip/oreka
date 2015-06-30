@@ -93,6 +93,7 @@ public:
 	void GoOffHold(time_t offHoldTime);
 	CStdString GetOrkUid();
 	void MarkAsOnDemand(CStdString& side);
+	void MarkAsOnDemandOff();
 	bool Stopped();
 	RtpPacketInfoRef GetLastRtpPacket();
 	void SkinnyTrackConferencesTransfers(CStdString callId, CStdString capturePort);
