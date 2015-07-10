@@ -16,7 +16,7 @@
 
 #include "StdString.h"
 #include "Object.h"
-#include "boost/shared_ptr.hpp"
+#include "shared_ptr.h"
 
 #define NUM_CONCURRENT_PORTS_PARAM "NumConcurrentPorts"
 #define NUM_CONCURRENT_PORTS_DEFAULT 10 
@@ -60,7 +60,7 @@ public:
 	GeneratorConfig m_config;
 };
 
-typedef boost::shared_ptr<GeneratorConfigTopObject> GeneratorConfigTopObjectRef;
+typedef oreka::shared_ptr<GeneratorConfigTopObject> GeneratorConfigTopObjectRef;
 
 
 #endif

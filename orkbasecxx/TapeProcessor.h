@@ -23,7 +23,7 @@
 
 class DLL_IMPORT_EXPORT_ORKBASE TapeProcessor;
 
-typedef boost::shared_ptr<TapeProcessor> TapeProcessorRef;
+typedef oreka::shared_ptr<TapeProcessor> TapeProcessorRef;
 
 /** TapeProcessor Interface
  *  a Tape Processor is a black box that takes Audio Tapes as an input and 

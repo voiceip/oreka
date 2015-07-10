@@ -17,7 +17,7 @@
 #include "ace/Thread_Mutex.h"
 #include "time.h"
 #include "StdString.h"
-#include "boost/shared_ptr.hpp"
+#include "shared_ptr.h"
 #include <queue>
 #include <vector>
 #include "AudioCapture.h"
@@ -33,7 +33,7 @@ public:
 	time_t m_nextTimestampMark;
 	CaptureEvent::AudioKeepDirectionEnum m_audioKeepDirectionEnum;
 };
-typedef boost::shared_ptr<AudioDirectionMarks> AudioDirectionMarksRef;
+typedef oreka::shared_ptr<AudioDirectionMarks> AudioDirectionMarksRef;
 
 class DLL_IMPORT_EXPORT_ORKBASE MediaType
 {
@@ -193,7 +193,7 @@ private:
 	bool m_passedPartyFilterTest;
 };
 
-typedef boost::shared_ptr<AudioTape> AudioTapeRef;
+typedef oreka::shared_ptr<AudioTape> AudioTapeRef;
 
 //==========================================================
 

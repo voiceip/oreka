@@ -15,7 +15,7 @@
 #define __RTP_H__
 
 #include "ace/OS_NS_arpa_inet.h"
-#include "boost/shared_ptr.hpp"
+#include "shared_ptr.h"
 #include "StdString.h"
 
 
@@ -43,7 +43,7 @@ public:
 	unsigned int m_timestamp;
 	time_t m_arrivalTimestamp;
 };
-typedef boost::shared_ptr<RtpPacketInfo> RtpPacketInfoRef;
+typedef oreka::shared_ptr<RtpPacketInfo> RtpPacketInfoRef;
 
 class RtpEventInfo
 {
@@ -57,7 +57,7 @@ public:
 	unsigned short m_duration;
 	unsigned int m_startTimestamp;
 };
-typedef boost::shared_ptr<RtpEventInfo> RtpEventInfoRef;
+typedef oreka::shared_ptr<RtpEventInfo> RtpEventInfoRef;
 
 class RtcpSrcDescriptionPacketInfo
 {
@@ -74,7 +74,7 @@ public:
 	CStdString m_cnamePort;
 	CStdString m_fullCname;
 };
-typedef boost::shared_ptr<RtcpSrcDescriptionPacketInfo> RtcpSrcDescriptionPacketInfoRef;
+typedef oreka::shared_ptr<RtcpSrcDescriptionPacketInfo> RtcpSrcDescriptionPacketInfoRef;
 
 #endif
 

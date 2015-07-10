@@ -95,7 +95,7 @@ public:
         CStdString m_sender_callno;
         CStdString m_receiver_callno;
 };
-typedef boost::shared_ptr<Iax2AcceptInfo> Iax2AcceptInfoRef;
+typedef oreka::shared_ptr<Iax2AcceptInfo> Iax2AcceptInfoRef;
 
 
 class Iax2AuthreqInfo
@@ -110,7 +110,7 @@ public:
 	CStdString m_sender_callno;
 	CStdString m_receiver_callno;
 };
-typedef boost::shared_ptr<Iax2AuthreqInfo> Iax2AuthreqInfoRef;
+typedef oreka::shared_ptr<Iax2AuthreqInfo> Iax2AuthreqInfoRef;
 
 class Iax2NewInfo
 {
@@ -129,7 +129,7 @@ public:
 
 	bool m_validated; // true when an IAX2 voice stream has been seen for the NEW
 };
-typedef boost::shared_ptr<Iax2NewInfo> Iax2NewInfoRef;
+typedef oreka::shared_ptr<Iax2NewInfo> Iax2NewInfoRef;
 
 class Iax2HangupInfo
 {
@@ -144,7 +144,7 @@ public:
 	CStdString m_sender_callno;
 	CStdString m_receiver_callno;
 };
-typedef boost::shared_ptr<Iax2HangupInfo> Iax2HangupInfoRef;
+typedef oreka::shared_ptr<Iax2HangupInfo> Iax2HangupInfoRef;
 
 #define IAX2_FRAME_FULL         1
 #define IAX2_FRAME_MINI         2
@@ -170,7 +170,7 @@ public:
         unsigned int m_timestamp;
         time_t m_arrivalTimestamp;
 };
-typedef boost::shared_ptr<Iax2PacketInfo> Iax2PacketInfoRef;
+typedef oreka::shared_ptr<Iax2PacketInfo> Iax2PacketInfoRef;
 
 // ============================================================
 
@@ -248,7 +248,7 @@ private:
 	unsigned short m_channel1SeqNo;
 	unsigned short m_channel2SeqNo;
 };
-typedef boost::shared_ptr<Iax2Session> Iax2SessionRef;
+typedef oreka::shared_ptr<Iax2Session> Iax2SessionRef;
 
 //===================================================================
 class Iax2Sessions

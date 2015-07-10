@@ -29,7 +29,7 @@ struct ReportingThreadInfo
 	ThreadSafeQueue<MessageRef> m_messageQueue;
 	ACE_Thread_Mutex m_mutex;
 };
-typedef boost::shared_ptr<ReportingThreadInfo> ReportingThreadInfoRef;
+typedef oreka::shared_ptr<ReportingThreadInfo> ReportingThreadInfoRef;
 
 
 class ReportingThread

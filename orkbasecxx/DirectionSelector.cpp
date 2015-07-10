@@ -189,7 +189,7 @@ void DirectionSelector::ThreadHandler(void *args)
 	for(;stop == false;)
 	{
 		AudioFileRef fileRef;
-		boost::shared_ptr<MediaChunkFile> outFile (new MediaChunkFile());
+		oreka::shared_ptr<MediaChunkFile> outFile (new MediaChunkFile());
 		AudioTapeRef audioTapeRef;
 		CStdString trackingId = "[no-trk]";
 		int numSamplesOutv = 0;

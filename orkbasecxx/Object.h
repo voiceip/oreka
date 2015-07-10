@@ -17,7 +17,7 @@
 #include "dll.h"
 #include "OrkBase.h"
 #include "StdString.h"
-#include "boost/shared_ptr.hpp"
+#include "shared_ptr.h"
 #include "xercesc/dom/DOMNode.hpp"
 
 class Serializer;
@@ -25,7 +25,7 @@ class Object;
 
 using namespace XERCES_CPP_NAMESPACE;
 
-typedef boost::shared_ptr<Object> ObjectRef;
+typedef oreka::shared_ptr<Object> ObjectRef;
 
 #define OBJECT_TYPE_TAG "type"
 
@@ -51,10 +51,10 @@ public:
 
 	virtual ObjectRef Process() = 0;
 
-	boost::shared_ptr<Serializer> GetSerializer();
+	oreka::shared_ptr<Serializer> GetSerializer();
 
 private:
-	boost::shared_ptr<Serializer> m_serializer;
+	oreka::shared_ptr<Serializer> m_serializer;
 };
 
 

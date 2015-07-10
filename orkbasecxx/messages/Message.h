@@ -55,7 +55,7 @@ protected:
 	bool m_sent;
 };
 
-typedef boost::shared_ptr<Message> MessageRef;
+typedef oreka::shared_ptr<Message> MessageRef;
 
 #endif
 

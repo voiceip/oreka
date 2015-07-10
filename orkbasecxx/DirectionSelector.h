@@ -21,7 +21,7 @@
 #include <map>
 
 class  DirectionSelector;
-typedef boost::shared_ptr<DirectionSelector> DirectionSelectorRef;
+typedef oreka::shared_ptr<DirectionSelector> DirectionSelectorRef;
 
 #define LOCAL_AREA_CODES_MAP_FILE "area-codes-recorded-side.csv"
 #define ETC_LOCAL_AREA_CODES_MAP_FILE "/etc/orkaudio/area-codes-recorded-side.csv"

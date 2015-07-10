@@ -72,7 +72,7 @@ public:
 	bool m_onDemand;
 };
 
-typedef boost::shared_ptr<TapeMsg> TapeMsgRef;
+typedef oreka::shared_ptr<TapeMsg> TapeMsgRef;
 
 /** A TapeResponse is a response to TapeMsg 
 */
@@ -90,7 +90,7 @@ public:
 	bool m_deleteTape;
 };
 
-typedef boost::shared_ptr<TapeResponse> TapeResponseRef;
+typedef oreka::shared_ptr<TapeResponse> TapeResponseRef;
 
 //class DLL_IMPORT_EXPORT_ORKBASE TapeResponseFwd : public TapeResponse
 //{
@@ -121,7 +121,7 @@ public:
 	CStdString m_key;
 	CStdString m_value;
 };
-typedef boost::shared_ptr<TapeTagMsg> TapeTagMsgRef;
+typedef oreka::shared_ptr<TapeTagMsg> TapeTagMsgRef;
 
 #endif
 

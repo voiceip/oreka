@@ -44,7 +44,7 @@ public:
 	CStdString m_toName;
 	CStdString m_contactName;
 };
-typedef boost::shared_ptr<Sip302MovedTemporarilyInfo> Sip302MovedTemporarilyInfoRef;
+typedef oreka::shared_ptr<Sip302MovedTemporarilyInfo> Sip302MovedTemporarilyInfoRef;
 
 class SipInviteInfo
 {
@@ -83,7 +83,7 @@ public:
 
 	time_t m_recvTime;
 };
-typedef boost::shared_ptr<SipInviteInfo> SipInviteInfoRef;
+typedef oreka::shared_ptr<SipInviteInfo> SipInviteInfoRef;
 
 class SipFailureMessageInfo
 {
@@ -101,7 +101,7 @@ public:
 	CStdString m_errorCode;
 	CStdString m_errorString;
 };
-typedef boost::shared_ptr<SipFailureMessageInfo> SipFailureMessageInfoRef;
+typedef oreka::shared_ptr<SipFailureMessageInfo> SipFailureMessageInfoRef;
 
 class SipByeInfo
 {
@@ -119,7 +119,7 @@ public:
 	CStdString m_fromName;
 	CStdString m_toName;
 };
-typedef boost::shared_ptr<SipByeInfo> SipByeInfoRef;
+typedef oreka::shared_ptr<SipByeInfo> SipByeInfoRef;
 
 class SipNotifyInfo
 {
@@ -134,7 +134,7 @@ public:
 	struct in_addr m_receiverIp;
 	CStdString m_dsp;
 };
-typedef boost::shared_ptr<SipNotifyInfo> SipNotifyInfoRef;
+typedef oreka::shared_ptr<SipNotifyInfo> SipNotifyInfoRef;
 
 class Sip200OkInfo
 {
@@ -152,7 +152,7 @@ public:
 	CStdString m_from;
 	CStdString m_to;
 };
-typedef boost::shared_ptr<Sip200OkInfo> Sip200OkInfoRef;
+typedef oreka::shared_ptr<Sip200OkInfo> Sip200OkInfoRef;
 
 class SipSubscribeInfo
 {
@@ -161,7 +161,7 @@ public:
 	CStdString m_callId;
 	CStdString m_event;
 };
-typedef boost::shared_ptr<SipSubscribeInfo> SipSubscribeInfoRef;
+typedef oreka::shared_ptr<SipSubscribeInfo> SipSubscribeInfoRef;
 
 class SipSessionProgressInfo
 {
@@ -179,7 +179,7 @@ public:
 	CStdString m_from;
 	CStdString m_to;
 };
-typedef boost::shared_ptr<SipSessionProgressInfo> SipSessionProgressInfoRef;
+typedef oreka::shared_ptr<SipSessionProgressInfo> SipSessionProgressInfoRef;
 
 class SipInfo
 {
@@ -191,7 +191,7 @@ public:
 	bool m_onDemand;
 	bool m_onDemandOff;
 };
-typedef boost::shared_ptr<SipInfo> SipInfoRef;
+typedef oreka::shared_ptr<SipInfo> SipInfoRef;
 
 //============================================================
 typedef boost::multi_index_container
@@ -232,6 +232,6 @@ public:
 	CStdString m_referredBy;
 	CStdString m_origOrkUid;
 };
-typedef boost::shared_ptr<SipRefer> SipReferRef;
+typedef oreka::shared_ptr<SipRefer> SipReferRef;
 
 #endif

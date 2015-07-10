@@ -21,7 +21,7 @@
 #include <map>
 
 class  BatchProcessing;
-typedef boost::shared_ptr<BatchProcessing> BatchProcessingRef;
+typedef oreka::shared_ptr<BatchProcessing> BatchProcessingRef;
 
 /**
  * This tape processor handles the audio transcoding

@@ -14,7 +14,7 @@
 #ifndef __AUDIOFILE_H__
 #define __AUDIOFILE_H__
 
-#include "boost/shared_ptr.hpp"
+#include "shared_ptr.h"
 #include "ace/OS_NS_stdio.h"
 #include "ace/OS_NS_sys_stat.h"
 
@@ -65,7 +65,7 @@ protected:
 	int m_sampleRate;
 };
 
-typedef boost::shared_ptr<AudioFile> AudioFileRef;
+typedef oreka::shared_ptr<AudioFile> AudioFileRef;
 
 #endif
 

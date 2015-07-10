@@ -19,7 +19,7 @@
 #include "dll.h"
 #include "OrkBase.h"
 
-#include "boost/shared_ptr.hpp"
+#include "shared_ptr.h"
 
 
 typedef enum
@@ -113,7 +113,7 @@ private:
 	AudioChunkDetails m_details;
 };
 
-typedef boost::shared_ptr<AudioChunk> AudioChunkRef;
+typedef oreka::shared_ptr<AudioChunk> AudioChunkRef;
 
 
 //==========================================================
@@ -222,7 +222,7 @@ public:
 	CStdString m_value;
 };
 
-typedef boost::shared_ptr<CaptureEvent> CaptureEventRef;
+typedef oreka::shared_ptr<CaptureEvent> CaptureEventRef;
 
 
 //=========================================================

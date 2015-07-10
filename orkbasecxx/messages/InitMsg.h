@@ -53,6 +53,6 @@ public:
 	CStdString m_password;
 	int m_sshPort;
 };
-typedef boost::shared_ptr<InitMsg> InitMsgRef;
+typedef oreka::shared_ptr<InitMsg> InitMsgRef;
 
 #endif

@@ -38,7 +38,7 @@ private:
         u_char *m_pBuffer;
         int m_size;
 };
-typedef boost::shared_ptr<SafeBuffer> SafeBufferRef;
+typedef oreka::shared_ptr<SafeBuffer> SafeBufferRef;
 
 // ============================================================
 
@@ -63,7 +63,7 @@ public:
 private:
 	SafeBufferRef m_sipRequest;
 };
-typedef boost::shared_ptr<SipTcpStream> SipTcpStreamRef;
+typedef oreka::shared_ptr<SipTcpStream> SipTcpStreamRef;
 
 #endif
 

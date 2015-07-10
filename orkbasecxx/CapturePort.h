@@ -18,7 +18,7 @@
 
 #include <map>
 #include <list>
-#include "boost/shared_ptr.hpp"
+#include "shared_ptr.h"
 #include "ace/Thread_Mutex.h"
 #include "ace/Singleton.h"
 
@@ -64,7 +64,7 @@ private:
 	int m_segmentNumber;
 };
 
-typedef boost::shared_ptr<CapturePort> CapturePortRef;
+typedef oreka::shared_ptr<CapturePort> CapturePortRef;
 
 /** This singleton holds all dynamically created capture ports and allows convenient access. */
 class DLL_IMPORT_EXPORT_ORKBASE CapturePorts

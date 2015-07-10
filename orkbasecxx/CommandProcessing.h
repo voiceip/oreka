@@ -21,7 +21,7 @@
 #include <map>
 
 class  CommandProcessing;
-typedef boost::shared_ptr<CommandProcessing> CommandProcessingRef;
+typedef oreka::shared_ptr<CommandProcessing> CommandProcessingRef;
 
 /**
  * This tape processor handles the audio transcoding

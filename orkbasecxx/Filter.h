@@ -25,11 +25,11 @@ public:
 	void* param2;
 
 };
-typedef boost::shared_ptr<FilterConfigurationParameters> FilterConfigurationParametersRef;
+typedef oreka::shared_ptr<FilterConfigurationParameters> FilterConfigurationParametersRef;
 
 class Filter;
 
-typedef boost::shared_ptr<Filter> FilterRef;
+typedef oreka::shared_ptr<Filter> FilterRef;
 
 /** Filter Interface
  *  a filter is a black box that takes media chunks as an input and produces media chunks as an output

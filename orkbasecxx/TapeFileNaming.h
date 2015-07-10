@@ -21,7 +21,7 @@
 #include <map>
 
 class TapeFileNaming;
-typedef boost::shared_ptr<TapeFileNaming> TapeFileNamingRef;
+typedef oreka::shared_ptr<TapeFileNaming> TapeFileNamingRef;
 
 /**
  * This tape processor handles the naming of audio files 

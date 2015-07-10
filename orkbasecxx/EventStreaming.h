@@ -16,7 +16,7 @@
 #include "Utils.h"
 #include <queue>
 #include <list>
-#include "boost/shared_ptr.hpp"
+#include "shared_ptr.h"
 #include "ace/Singleton.h"
 #include "ace/Thread_Mutex.h"
 #include "ace/Thread_Semaphore.h"
@@ -44,7 +44,7 @@ private:
 	ACE_Thread_Mutex m_mutex;
 	ACE_Thread_Semaphore m_semaphore;
 };
-typedef boost::shared_ptr<EventStreamingSession> EventStreamingSessionRef;
+typedef oreka::shared_ptr<EventStreamingSession> EventStreamingSessionRef;
 
 //==========================================================
 
