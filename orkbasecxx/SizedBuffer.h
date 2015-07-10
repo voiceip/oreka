@@ -14,7 +14,7 @@
 #ifndef SizedBuffer_h
 #define SizedBuffer_h 1
 
-#include "boost/shared_ptr.hpp"
+#include "shared_ptr.h"
 #include <stdexcept>
 #include "OrkBase.h"
 
@@ -49,6 +49,6 @@ class DLL_IMPORT_EXPORT_ORKBASE SizedBuffer {
 		SizedBuffer& operator=(const SizedBuffer&);
 };
 
-typedef boost::shared_ptr<SizedBuffer> SizedBufferRef;
+typedef oreka::shared_ptr<SizedBuffer> SizedBufferRef;
 
 #endif

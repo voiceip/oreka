@@ -49,7 +49,7 @@ public:
 	time_t m_time;
 };
 
-typedef boost::shared_ptr<TestMsg> TestMsgRef;
+typedef oreka::shared_ptr<TestMsg> TestMsgRef;
 
 #endif
 

@@ -49,7 +49,7 @@ public:
 	int m_seqNumDiscontinuities;
 	int m_lastTimestamp;
 };
-typedef boost::shared_ptr<RtpMixerChannel> RtpMixerChannelRef;
+typedef oreka::shared_ptr<RtpMixerChannel> RtpMixerChannelRef;
 
 class RtpMixer : public Filter
 {

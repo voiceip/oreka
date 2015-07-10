@@ -20,7 +20,7 @@
 #include "VoIpSession.h"
 #include "Iax2Session.h"
 #include "SipTcp.h"
-#include "boost/shared_ptr.hpp"
+#include "shared_ptr.h"
 #include "StdString.h"
 #include "SipTcp.h"
 

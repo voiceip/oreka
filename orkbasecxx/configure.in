@@ -5,8 +5,24 @@ AM_INIT_AUTOMAKE(orkbase, 1.0)
 
 AC_PREFIX_DEFAULT(/usr)
 
+# Check if gcc supports cpp11 
+if [echo "main(){}" | $CXX -std=c++11 -xc++ -S -]; then 
+	CXXFLAGS=" -g -O2 -std=c++11 -DSUPPORTS_CPP11 $CXXFLAGS"
+else	
+	CXXFLAGS=" -g -O2"
+fi
+
 AC_LANG_CPLUSPLUS
 AC_PROG_CXX
 AM_PROG_LIBTOOL
 
 AC_OUTPUT(Makefile messages/Makefile serializers/Makefile audiofile/Makefile filters/Makefile filters/gsm/Makefile filters/gsm/gsm610/Makefile filters/ilbc/Makefile filters/ilbc/ilbc/Makefile filters/audiogain/Makefile filters/g722codec/Makefile filters/speex/Makefile filters/g726codecs/Makefile filters/g726codecs/g72x/Makefile)
+
+
+echo ""
+echo "========= Configuration ==========="
+echo ""
+echo "  cxx : $CXX"
+echo "flags : $CXXFLAGS"
+echo ""
+echo "==================================="

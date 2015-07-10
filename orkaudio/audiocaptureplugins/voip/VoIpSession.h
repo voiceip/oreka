@@ -40,7 +40,7 @@ public:
 	CStdString m_value;
 	time_t m_timestamp;
 };
-typedef boost::shared_ptr<UrlExtractionValue> UrlExtractionValueRef;
+typedef oreka::shared_ptr<UrlExtractionValue> UrlExtractionValueRef;
 
 //=============================================================
 
@@ -57,7 +57,7 @@ public:
 	CStdString m_origOrkUid;
 	std::map<CStdString, UrlExtractionValueRef> m_urlExtractionMap;		//map<urlParam, urlValue>
 };
-typedef boost::shared_ptr<VoIpEndpointInfo> VoIpEndpointInfoRef;
+typedef oreka::shared_ptr<VoIpEndpointInfo> VoIpEndpointInfoRef;
 
 // ============================================================
 
@@ -198,7 +198,7 @@ private:
 	std::map<unsigned int, int> m_loggedSsrcMap;
 	SipInfoRef m_lastSipInfo;
 };
-typedef boost::shared_ptr<VoIpSession> VoIpSessionRef;
+typedef oreka::shared_ptr<VoIpSession> VoIpSessionRef;
 
 //===================================================================
 class VoIpSessions

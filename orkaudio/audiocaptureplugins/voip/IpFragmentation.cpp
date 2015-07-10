@@ -32,7 +32,7 @@ class FragmentationAlgorithmInterface {
 		virtual SizedBufferRef packetData() = 0;
 		virtual ~FragmentationAlgorithmInterface() {} ;
 };
-typedef boost::shared_ptr<FragmentationAlgorithmInterface> FragmentationAlgorithmRef; 
+typedef oreka::shared_ptr<FragmentationAlgorithmInterface> FragmentationAlgorithmRef; 
 
 // Can only handle fragments coming inorder from first to last, without retransmission, can handle overlap
 class ForwardSequentialAlgorithm : public FragmentationAlgorithmInterface {

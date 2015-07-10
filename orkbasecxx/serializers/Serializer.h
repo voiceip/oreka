@@ -21,14 +21,14 @@
 #include "OrkBase.h"
 #include <map>
 #include <list>
-#include "boost/shared_ptr.hpp"
 #include "StdString.h"
+#include "shared_ptr.h"
 
 typedef int (*StringToEnumFunction)(CStdString&);
 typedef CStdString (*EnumToStringFunction)(int);
 
 class Object;
-typedef boost::shared_ptr<Object> ObjectRef;
+typedef oreka::shared_ptr<Object> ObjectRef;
 
 /** Base class for serializing Objects.
 */
@@ -83,7 +83,7 @@ protected:
 	bool m_deSerialize;
 };
 
-typedef boost::shared_ptr<Serializer> SerializerRef;
+typedef oreka::shared_ptr<Serializer> SerializerRef;
 
 /** Base class for all Key-Value pair based serializers.
 */

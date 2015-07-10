@@ -18,7 +18,7 @@
 #include <map>
 #include "StdString.h"
 #include "Object.h"
-#include "boost/shared_ptr.hpp"
+#include "shared_ptr.h"
 #include "PacketHeaderDefs.h"
 #include "AudioCapture.h"
 #include "Utils.h"
@@ -199,7 +199,7 @@ public:
 	VoIpConfig m_config;
 };
 
-typedef boost::shared_ptr<VoIpConfigTopObject> VoIpConfigTopObjectRef;
+typedef oreka::shared_ptr<VoIpConfigTopObject> VoIpConfigTopObjectRef;
 
 
 #endif

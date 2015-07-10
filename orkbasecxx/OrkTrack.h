@@ -9,14 +9,14 @@
 #ifndef __ORKTRACK_H__
 #define __ORKTRACK_H__ 1
 
-#include "boost/shared_ptr.hpp"
+#include "shared_ptr.h"
 #include "OrkClient.h"
 
 struct OrkTrackHost {
 	char m_serverHostname[256];
 	int m_serverPort;
 };
-typedef boost::shared_ptr<OrkTrackHost> OrkTrackHostRef;
+typedef oreka::shared_ptr<OrkTrackHost> OrkTrackHostRef;
 
 class DLL_IMPORT_EXPORT_ORKBASE OrkTrack {
 public:

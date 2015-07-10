@@ -36,6 +36,6 @@ public:
 	bool m_success;
 
 };
-typedef boost::shared_ptr<AddTagMsg> AddTagMsgRef;
+typedef oreka::shared_ptr<AddTagMsg> AddTagMsgRef;
 
 #endif

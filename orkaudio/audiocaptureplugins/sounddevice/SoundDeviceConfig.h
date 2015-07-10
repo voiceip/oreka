@@ -16,7 +16,7 @@
 
 #include "StdString.h"
 #include "Object.h"
-#include "boost/shared_ptr.hpp"
+#include "shared_ptr.h"
  
 #define AUDIO_CHUNK_SIZE_PARAM "AudioChunkSize"
 #define AUDIO_CHUNK_SIZE_DEFAULT 8000
