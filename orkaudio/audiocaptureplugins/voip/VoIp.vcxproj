@@ -64,7 +64,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>C:\DevExtVC12\winpcap\WpdPack\Include;../..;../../../OrkBaseCxx;C:\DevExtVC12\boost\boost_1_32_0;C:\DevExtVC12\ACE_wrappers;C:\DevExtVC12\xerces\src;../Common;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\src\main\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;VoIp_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SUPPORTS_CPP11;WIN32;_DEBUG;_WINDOWS;_USRDLL;VoIp_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -115,7 +115,7 @@
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <AdditionalIncludeDirectories>C:\DevExtVC12\winpcap\WpdPack\Include;../..;../../../OrkBaseCxx;C:\DevExtVC12\boost\boost_1_32_0;C:\DevExtVC12\ACE_wrappers;C:\DevExtVC12\xerces\src;../Common;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\src\main\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;VoIp_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SUPPORTS_CPP11;WIN32;NDEBUG;_WINDOWS;_USRDLL;VoIp_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
