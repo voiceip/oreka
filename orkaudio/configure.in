@@ -6,6 +6,7 @@ AM_INIT_AUTOMAKE(orkaudio, 1.0)
 # Check if gcc supports cpp11
 if [echo "main(){}" | $CXX -std=c++11 -xc++ -S -]; then
 	CXXFLAGS+=" -g -O2 -std=c++11 -DSUPPORTS_CPP11"
+	LDFLAGS+=" -ldl"
 else
 	CXXFLAGS+=" -g -O2"
 fi
@@ -21,7 +22,8 @@ AC_OUTPUT(Makefile audiocaptureplugins/Makefile audiocaptureplugins/generator/Ma
 echo ""
 echo "========= Configuration ==========="
 echo ""
-echo "  cxx : $CXX"
-echo "flags : $CXXFLAGS"
+echo "     cxx : $CXX"
+echo "cxxflags : $CXXFLAGS"
+echo " ldflags : $LDFLAGS"
 echo ""
 echo "==================================="
