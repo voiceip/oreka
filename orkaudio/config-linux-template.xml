@@ -41,6 +41,10 @@
 	<!-- maintained of the amount of data which has been read. -->
 	<!-- <SocketStreamerTargets></SocketStreamerTargets> -->
     
+        <SipUAPlugin>
+                <SipRecExtractFields>groupid,serviceproviderid</SipRecExtractFields>
+        </SipUAPlugin>
+	
 	<VoIpPlugin>
 		<PcapSocketBufferSize>8388608</PcapSocketBufferSize>
 
