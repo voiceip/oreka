@@ -105,6 +105,8 @@ public class RecSegmentServiceHbn implements RecSegmentService{
 				queryString.append(" where seg.timestamp > :startDate ");
 			else if (filter.getEndDate() != null)
 				queryString.append(" where seg.timestamp < :endDate ");
+			else
+				queryString.append(" where 1=1 ");
 			
 			if(filter.getLocalParty().length() > 0) {
 				queryString.append(" and seg.localParty=:localParty ");
@@ -159,7 +161,7 @@ public class RecSegmentServiceHbn implements RecSegmentService{
 				query.setString("maxDuration", filter.getMaxDuration());
 			}
 			if(filter.getDirection() != Direction.ALL){
-				query.setParameter( "direction", filter.getDirection().ordinal() );
+				query.setParameter( "direction", filter.getDirection());
 				//query.setParameter( "direction", filter.getDirection().name() );
 			}
 			
