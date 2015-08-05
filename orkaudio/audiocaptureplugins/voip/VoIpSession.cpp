@@ -81,7 +81,7 @@ VoIpSession::VoIpSession(CStdString& trackingId)
 	m_lastKeepAlive = time(NULL);
 	m_numAlienRtpPacketsS1 = 0;
 	m_numAlienRtpPacketsS2 = 0;
-	m_ssrcCandidate = 0;
+	m_ssrcCandidate = -1;
 	m_mappedS1S2 =  false;
 }
 
@@ -1390,7 +1390,7 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 				else
 				{
 					// this packet does not match either s1 or s2 (on the basis of SSRC)
-					if(m_ssrcCandidate == 0)
+					if(m_ssrcCandidate == -1)
 					{
 						m_ssrcCandidate = rtpPacket->m_ssrc;
 						m_ssrcCandidateTimestamp = (unsigned int)rtpPacket->m_arrivalTimestamp;
@@ -1408,7 +1408,7 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 					{
 						if((time(NULL) - m_ssrcCandidateTimestamp) > 2)
 						{
-							m_ssrcCandidate = 0;
+							m_ssrcCandidate = -1;
 							m_numAlienRtpPacketsS1 = 0;
 							m_numAlienRtpPacketsS2 = 0;
 							logMsg.Format("[%s] ssrc:0x%x candidate stopped", m_trackingId, rtpPacket->m_ssrc);
@@ -1433,7 +1433,7 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 					{
 						// We have seen 10 alien packets and no s1 packets during the same period of time
 						m_numAlienRtpPacketsS1 = 0;
-						m_ssrcCandidate = 0;
+						m_ssrcCandidate = -1;
 						remapped = true;
 						channel = 1;
 						m_lastRtpPacketSide1 = rtpPacket;
@@ -1446,7 +1446,7 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 					{
 						// We have seen 10 alien packets and no s2 packets during the same period of time
 						m_numAlienRtpPacketsS2 = 0;
-						m_ssrcCandidate = 0;
+						m_ssrcCandidate = -1;
 						remapped = true;
 						channel = 2;
 						m_lastRtpPacketSide2 = rtpPacket;
