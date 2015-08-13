@@ -19,36 +19,6 @@
 #include "AudioTape.h"
 
 
-struct ReportingThreadInfo
-{
-	char m_serverHostname[256];
-	int m_serverPort;
-	int m_numTapesToSkip;
-	char m_threadId[256];
-	//ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
-	ThreadSafeQueue<MessageRef> m_messageQueue;
-	ACE_Thread_Mutex m_mutex;
-};
-typedef oreka::shared_ptr<ReportingThreadInfo> ReportingThreadInfoRef;
-
-
-class ReportingThread
-{
-public:
-	ReportingThread();
-	void Run();
-
-	CStdString m_serverHostname;
-	int m_serverPort;
-
-	CStdString m_threadId;
-	ReportingThreadInfoRef m_myInfo;
-private:
-	bool IsSkip();
-};
-
-//=======================================================
-
 class DLL_IMPORT_EXPORT_ORKBASE Reporting : public TapeProcessor
 {
 public:

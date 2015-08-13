@@ -37,7 +37,6 @@ public:
 	LoggerPtr tapeFileNamingLog;
 	LoggerPtr portLog;
 	LoggerPtr fileLog;
-	LoggerPtr reportingLog;
 	LoggerPtr configLog;
 	LoggerPtr tapelistLog;
 	LoggerPtr tapeLog;
@@ -53,6 +52,11 @@ private:
 #define FLOG_INFO(logger,fmt, ...) logMsg.Format(fmt,__VA_ARGS__); LOG4CXX_INFO(logger, logMsg);
 #define FLOG_WARN(logger,fmt, ...) logMsg.Format(fmt,__VA_ARGS__); LOG4CXX_WARN(logger, logMsg);
 #define FLOG_ERROR(logger,fmt, ...) logMsg.Format(fmt,__VA_ARGS__); LOG4CXX_ERROR(logger, logMsg);
+
+#define LOG_DEBUG(fmt, ...) logMsg.Format(fmt,__VA_ARGS__); LOG4CXX_DEBUG(defaultLogger, logMsg);
+#define LOG_INFO(fmt, ...) logMsg.Format(fmt,__VA_ARGS__); LOG4CXX_INFO(defaultLogger, logMsg);
+#define LOG_WARN(fmt, ...) logMsg.Format(fmt,__VA_ARGS__); LOG4CXX_WARN(defaultLogger, logMsg);
+#define LOG_ERROR(fmt, ...) logMsg.Format(fmt,__VA_ARGS__); LOG4CXX_ERROR(defaultLogger, logMsg);
 
 #endif
 
