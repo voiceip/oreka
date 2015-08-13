@@ -8,83 +8,32 @@
  */
 
 #include "OrkTrack.h"
-#include "LogManager.h"
-#include "ace/Thread_Manager.h"
-#include "messages/InitMsg.h"
-#include "ConfigManager.h"
-#include "Reporting.h"
 
-#ifdef WIN32
-#define snprintf _snprintf
-#endif
+std::vector<OrkTrack> OrkTrack::s_trackers;
 
-void OrkTrack::Initialize()
+void OrkTrack::Initialize(const std::list<CStdString>& hostnameList, const CStdString defaultServicename, const int defaultPort)
 {
-	CStdString logMsg;
+	s_trackers.clear();
 
-	for(std::list<CStdString>::iterator it = CONFIG.m_trackerHostname.begin(); it != CONFIG.m_trackerHostname.end(); it++)
-	{
-		CStdString trackerHostname = *it;
-		OrkTrackHost *oth = (OrkTrackHost *)malloc(sizeof(OrkTrackHost));
+	for(std::list<CStdString>::const_iterator it = hostnameList.begin(); it != hostnameList.end(); it++) {
+		CStdString token = *it;
+		OrkTrack tracker;
+		size_t pos = std::string::npos;
 
-		memset(oth, 0, sizeof(OrkTrackHost));
-		snprintf(oth->m_serverHostname, sizeof(oth->m_serverHostname), "%s", trackerHostname.c_str());
-		oth->m_serverPort = CONFIG.m_trackerTcpPort;
+		// chop the servicename, if any
+		pos = token.find("/");
+		tracker.m_servicename = (pos != std::string::npos) ? token.substr(pos+1) : CStdString(defaultServicename);
+		token = token.substr(0,pos);
+		
+		// chop the port, if any
+		pos = token.find(":");
+		tracker.m_port = (pos != std::string::npos) ? atoi(token.substr(pos+1).c_str()) : defaultPort;
+		token = token.substr(0,pos);
 
-		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(OrkTrack::Run), (void*)oth, THR_DETACHED))
-		{
-			logMsg.Format("OrkTrack::Initialize(): Failed to start thread for %s,%d", oth->m_serverHostname, oth->m_serverPort);
-			LOG4CXX_WARN(LOG.rootLog, logMsg);
-			free(oth);
-		}
+		// remaining bit is the hostname
+		tracker.m_hostname = token;
+
+		s_trackers.push_back(tracker);
 	}
 }
 
-void OrkTrack::Run(void* args)
-{
-	OrkTrackHostRef hostRef;
-	OrkTrackHost *pHost = (OrkTrackHost *)args;
-	InitMsgRef msgRef(new InitMsg());
-	char host[255];
-	time_t reportErrorLastTime = 0;
-	CStdString serverHostname;
-	CStdString logMsg;
-
-	ACE_OS::hostname(host, sizeof(host));
-
-	hostRef.reset(pHost);
-	serverHostname = hostRef->m_serverHostname;
-	msgRef->m_name = CONFIG.m_serviceName;
-	msgRef->m_hostname = host;
-	msgRef->m_type = "A";
-	msgRef->m_tcpPort = 59140;
-	msgRef->m_contextPath = "/audio";
-	msgRef->m_absolutePath = CONFIG.m_audioOutputPath;
-
-	OrkHttpSingleLineClient c;
-	SimpleResponseMsg response;
-	CStdString msgAsSingleLineString = msgRef->SerializeSingleLine();
-	bool success = false;
-
-	while (!success)
-	{
-		if (c.Execute((SyncMessage&)(*msgRef.get()), (AsyncMessage&)response, serverHostname, hostRef->m_serverPort, CONFIG.m_trackerServicename, CONFIG.m_clientTimeout))
-		{
-			success = true;
-			logMsg.Format("OrkTrack::Run(): [%s,%d] success:%s comment:%s", hostRef->m_serverHostname, hostRef->m_serverPort, (response.m_success == true ? "true" : "false"), response.m_comment);
-			LOG4CXX_INFO(LOG.rootLog, logMsg);
-			Reporting::Instance()->SetReadyToReport(true);
-		}
-		else
-		{
-			if(((time(NULL) - reportErrorLastTime) > 60))
-			{
-				reportErrorLastTime = time(NULL);
-				logMsg.Format("OrkTrack::Run(): [%s,%d] Could not contact orktrack", hostRef->m_serverHostname, hostRef->m_serverPort);
-				LOG4CXX_WARN(LOG.rootLog, logMsg);
-			}
-
-			ACE_OS::sleep(CONFIG.m_clientTimeout + 10);
-		}
-	}
-}

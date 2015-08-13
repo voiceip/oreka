@@ -24,12 +24,34 @@
 #include "CapturePluginProxy.h"
 #include "ace/Thread_Manager.h"
 #include "EventStreaming.h"
+#include "messages/InitMsg.h"
+#include "OrkTrack.h"
 
-#ifdef WIN32
-# ifndef snprintf
-#  define snprintf _snprintf
-# endif
-#endif
+static LoggerPtr defaultLogger = Logger::getLogger("reporting");
+
+struct ReportingThreadInfo
+{
+	int m_numTapesToSkip;
+	CStdString m_threadId;
+	//ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
+	ThreadSafeQueue<MessageRef> m_messageQueue;
+	ACE_Thread_Mutex m_mutex;
+	OrkTrack m_tracker;
+};
+typedef oreka::shared_ptr<ReportingThreadInfo> ReportingThreadInfoRef;
+
+
+class ReportingThread
+{
+public:
+	void Run();
+
+	CStdString m_threadId;
+	ReportingThreadInfoRef m_myInfo;
+	OrkTrack m_tracker;
+private:
+	bool IsSkip();
+};
 
 TapeProcessorRef Reporting::m_singleton;
 static std::map<CStdString, ReportingThreadInfoRef> s_reportingThreads;
@@ -42,20 +64,14 @@ void Reporting::Initialize()
 	{
 		m_singleton.reset(new Reporting());
 
-		for(std::list<CStdString>::iterator it = CONFIG.m_trackerHostname.begin(); it != CONFIG.m_trackerHostname.end(); it++)
-		{
-			CStdString trackerHostname = *it;
-			ReportingThreadInfo *rtInfo = (ReportingThreadInfo *)malloc(sizeof(ReportingThreadInfo));
-
-			memset(rtInfo, 0, sizeof(ReportingThreadInfo));
-			snprintf(rtInfo->m_serverHostname, sizeof(rtInfo->m_serverHostname), "%s", trackerHostname.c_str());
-			rtInfo->m_serverPort = CONFIG.m_trackerTcpPort;
+		for (std::vector<OrkTrack>::const_iterator it = OrkTrack::getTrackers().begin(); it != OrkTrack::getTrackers().end(); it++) {
+			ReportingThreadInfo *rtInfo = new ReportingThreadInfo();
+			rtInfo->m_tracker = *it;
 
 			if(!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(ReportingThreadEntryPoint), (void *)rtInfo))
 			{
-				logMsg.Format("Failed to start thread reporting to %s,%d", rtInfo->m_serverHostname, rtInfo->m_serverPort);
-				LOG4CXX_WARN(LOG.reportingLog, logMsg);
-				free(rtInfo);
+				LOG_WARN("[%s] failed to start reporting thread", rtInfo->m_tracker.ToString());
+				delete rtInfo;
 			}
 		}
 
@@ -66,22 +82,20 @@ void Reporting::Initialize()
 void Reporting::ReportingThreadEntryPoint(void *args)
 {
 	ReportingThreadInfo *rtInfo = (ReportingThreadInfo *)args;
+
 	ReportingThreadInfoRef rtInfoRef(new ReportingThreadInfo());
-	ReportingThread myRunInfo;
-
-	myRunInfo.m_serverHostname.Format("%s", rtInfo->m_serverHostname);
-	myRunInfo.m_serverPort = rtInfo->m_serverPort;
-	myRunInfo.m_threadId.Format("%s,%d", myRunInfo.m_serverHostname, myRunInfo.m_serverPort);
-
-	snprintf(rtInfoRef->m_serverHostname, sizeof(rtInfoRef->m_serverHostname), "%s", rtInfo->m_serverHostname);
-	rtInfoRef->m_serverPort = rtInfo->m_serverPort;
+	rtInfoRef->m_tracker = rtInfo->m_tracker;
 	rtInfoRef->m_numTapesToSkip = 0;
-	snprintf(rtInfoRef->m_threadId, sizeof(rtInfoRef->m_threadId), "%s,%d", rtInfoRef->m_serverHostname, rtInfoRef->m_serverPort);
 	rtInfoRef->m_messageQueue.setSize(CONFIG.m_reportingQueueSize);
-	myRunInfo.m_myInfo = rtInfoRef;
+	rtInfoRef->m_threadId.Format("%s,%d", rtInfoRef->m_tracker.m_hostname, rtInfoRef->m_tracker.m_port);
 
-	s_reportingThreads.insert(std::make_pair(myRunInfo.m_serverHostname, rtInfoRef));
-	free(rtInfo);
+	ReportingThread myRunInfo;
+	myRunInfo.m_tracker = rtInfo->m_tracker;
+	myRunInfo.m_myInfo = rtInfoRef;
+	myRunInfo.m_threadId.Format("%s,%d", myRunInfo.m_tracker.m_hostname, myRunInfo.m_tracker.m_port);
+
+	s_reportingThreads.insert(std::make_pair(myRunInfo.m_tracker.m_hostname, rtInfoRef));
+	delete rtInfo;
 
 	myRunInfo.Run();
 }
@@ -180,16 +194,13 @@ bool Reporting::AddTapeMessage(MessageRef& messageRef)
 
 		if(reportingThread->m_messageQueue.push(reportingMsgRef))
 		{
-			logMsg.Format("[%s] enqueued: %s", reportingThread->m_threadId, msgAsSingleLineString);
-			LOG4CXX_INFO(LOG.reportingLog, logMsg);
+			LOG_INFO("[%s] enqueued: %s", reportingThread->m_tracker.ToString(), msgAsSingleLineString);
 			ret = true;
 		}
 		else
 		{
-
-				logMsg.Format("[%s] queue full, rejected: %s", reportingThread->m_threadId, msgAsSingleLineString);
-				LOG4CXX_WARN(LOG.reportingLog, logMsg);
-				ret = false;
+			LOG_WARN("[%s] queue full, rejected: %s", reportingThread->m_tracker.ToString(), msgAsSingleLineString);
+			ret = false;
 		}
 	}
 
@@ -233,15 +244,6 @@ void Reporting::ThreadHandler(void *args)
 	return;
 }
 
-void Reporting::SetReadyToReport(bool status)
-{
-	m_readyToReport = status;
-}
-
-bool Reporting::GetReadyStatus()
-{
-	return m_readyToReport;
-}
 //=======================================================
 #define REPORTING_SKIP_TAPE_CLASS "reportingskiptape"
 
@@ -289,11 +291,6 @@ ObjectRef ReportingSkipTapeMsg::Process()
 
 
 //=======================================================
-ReportingThread::ReportingThread()
-{
-	m_serverPort = 0;
-	m_serverHostname = "0.0.0.0";
-}
 
 bool ReportingThread::IsSkip()
 {
@@ -312,21 +309,39 @@ void ReportingThread::Run()
 {
 	CStdString logMsg;
 
-	logMsg.Format("Thread reporting to %s started", m_threadId);
-	LOG4CXX_INFO(LOG.reportingLog, logMsg);
+	LOG_INFO("[%s] reporting thread started", m_tracker.ToString());
 
 	bool stop = false;
 	bool reportError = true;
 	time_t reportErrorLastTime = 0;
 	bool error = false;
 
+	char szLocalHostname[255];
+	ACE_OS::hostname(szLocalHostname, sizeof(szLocalHostname));
+
+	InitMsgRef initMsgRef(new InitMsg());
+	initMsgRef->m_name = CONFIG.m_serviceName;
+	initMsgRef->m_hostname = szLocalHostname;
+	initMsgRef->m_type = "A";
+	initMsgRef->m_tcpPort = 59140;
+	initMsgRef->m_contextPath = "/audio";
+	initMsgRef->m_absolutePath = CONFIG.m_audioOutputPath;
+
+	OrkHttpSingleLineClient c;
+	SimpleResponseMsg response;
+
+	while (!c.Execute((SyncMessage&)(*initMsgRef.get()), (AsyncMessage&)response, m_tracker.m_hostname, m_tracker.m_port, m_tracker.m_servicename, CONFIG.m_clientTimeout))
+	{
+		if (time(NULL) - reportErrorLastTime > 60) {
+			LOG_WARN("[%s] could not contact to the tracker", m_tracker.ToString());
+			reportErrorLastTime = time(NULL);
+		}
+		ACE_OS::sleep(CONFIG.m_clientRetryPeriodSec);	
+	}
+	LOG_INFO("[%s] init success:%s comment:%s", m_tracker.ToString(), response.m_success?"true":"false", response.m_comment);
+
 	for(;stop == false;)
 	{
-		if(Reporting::Instance()->GetReadyStatus() == false)
-		{
-			ACE_OS::sleep(CONFIG.m_clientTimeout + 10);
-			continue;
-		}
 		try
 		{
 			MessageRef msgRef = m_myInfo->m_messageQueue.pop();
@@ -356,7 +371,7 @@ void ReportingThread::Run()
 					}
 
 					CStdString msgAsSingleLineString = msgRef->SerializeSingleLine();
-					LOG4CXX_INFO(LOG.reportingLog, "[" + m_threadId + "] sending: " + msgAsSingleLineString);
+					LOG_INFO("[%s] sending: %s", m_tracker.ToString(), msgAsSingleLineString);
 
 					OrkHttpSingleLineClient c;
 					TapeResponseRef tr(new TapeResponse());
@@ -365,14 +380,14 @@ void ReportingThread::Run()
 
 					while (!success && !IsSkip())
 					{
-						if (c.Execute((SyncMessage&)(*msgRef.get()), (AsyncMessage&)(*tr.get()), m_serverHostname, m_serverPort, CONFIG.m_trackerServicename, CONFIG.m_clientTimeout))
+						if (c.Execute((SyncMessage&)(*msgRef.get()), (AsyncMessage&)(*tr.get()), m_tracker.m_hostname, m_tracker.m_port, m_tracker.m_servicename, CONFIG.m_clientTimeout))
 						{
 							success = true;
 							reportError = true; // reenable error reporting
 							if(error)
 							{
 								error = false;
-								LOG4CXX_ERROR(LOG.reportingLog, "[" + m_threadId + "] " + CStdString("Orktrack successfully contacted"));
+								LOG_INFO("[%s] successfully reconnected to the tracker after error", m_tracker.ToString());
 							}
 
 							if(tr->m_deleteTape && ptapeMsg->m_stage.Equals("ready") )
@@ -382,11 +397,11 @@ void ReportingThread::Run()
                                                         	CStdString absoluteFilename = CONFIG.m_audioOutputPath + "/" + tapeFilename;
                                                          	if (ACE_OS::unlink((PCSTR)absoluteFilename) == 0)
                                                                 {
-                                                                	LOG4CXX_INFO(LOG.reportingLog, "[" + m_threadId + "] " + "Deleted tape: " + tapeFilename);
+                                                                	LOG_INFO("[%s] deleted tape: %s", m_tracker.ToString(), tapeFilename);
                                                                 }
                                                                	else
 								{
-                                                                	LOG4CXX_DEBUG(LOG.reportingLog, "[" + m_threadId + "] " + "Could not delete tape: " + tapeFilename);
+                                                                	LOG_DEBUG("[%s] could not delete tape: %s ", m_tracker.ToString(), tapeFilename);
                                                                 }
 
 							}
@@ -423,7 +438,7 @@ void ReportingThread::Run()
 							{
 								reportError = false;
 								reportErrorLastTime = time(NULL);
-								LOG4CXX_ERROR(LOG.reportingLog, "[" + m_threadId + "] " + CStdString("Could not contact orktrack - check that orktrack is running and that TrackerHostname and TrackerTcpPort are correct."));
+								LOG_ERROR("[%s] could not connect to tracker", m_tracker.ToString());
 							}
 							if(realtimeMessage)
 							{
@@ -440,9 +455,9 @@ void ReportingThread::Run()
 		}
 		catch (CStdString& e)
 		{
-			LOG4CXX_ERROR(LOG.reportingLog, "[" + m_threadId + "] " + CStdString("Exception: ") + e);
+			LOG_ERROR("[%s] exception:", m_tracker.ToString(), e);
 		}
 	}
-	LOG4CXX_INFO(LOG.reportingLog, "[" + m_threadId + "] " + CStdString("Exiting thread"));
+	LOG_INFO("[%s] gracefully terminating the reporting thread", m_tracker.ToString());
 }
 

@@ -83,7 +83,6 @@ void OrkLogManager::Initialize()
 	tapeFileNamingLog = Logger::getLogger("tapeFileNamingLog");
 	portLog =  Logger::getLogger("port");
 	fileLog = Logger::getLogger("file");
-	reportingLog = Logger::getLogger("reporting");
 	configLog = Logger::getLogger("config");
 	tapelistLog = Logger::getLogger("tapelist");
 	tapeLog = Logger::getLogger("tape");

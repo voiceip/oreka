@@ -269,6 +269,7 @@ void MainThread()
 	FilterRegistry::instance()->RegisterFilter(filter);
 	
 	// Register in-built tape processors and build the processing chain
+	OrkTrack::Initialize(CONFIG.m_trackerHostname, CONFIG.m_trackerServicename, CONFIG.m_trackerTcpPort);
 	BatchProcessing::Initialize();
 	CommandProcessing::Initialize();
 	Reporting::Initialize();
@@ -330,7 +331,6 @@ void MainThread()
 		CapturePluginProxy::Singleton()->Run();
 	}
 
-	OrkTrack::Initialize();
 	SocketStreamer::Initialize();
 
 	//ACE_Thread_Manager::instance ()->wait ();
