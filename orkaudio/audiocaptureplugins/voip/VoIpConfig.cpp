@@ -90,6 +90,7 @@ VoIpConfig::VoIpConfig()
 	m_skinnyRtpSearchesForCallInfo = false;
 	m_SkinnyTrackConferencesTransfers = false;
 	m_skinnyBehindNat = false;
+	m_skinnyIgnoreHold = false;
 
 	m_sangomaEnable = false;
 	m_sangomaRxTcpPortStart = 0;
@@ -216,6 +217,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SkinnyRtpSearchesForCallInfo", m_skinnyRtpSearchesForCallInfo);
 	s->BoolValue("SkinnyTrackConferencesTransfers", m_SkinnyTrackConferencesTransfers);
 	s->BoolValue("SkinnyBehindNat", m_skinnyBehindNat);
+	s->BoolValue("SkinnyIgnoreHold", m_skinnyIgnoreHold);
 
 	s->IntValue("SangomaRxTcpPortStart", m_sangomaRxTcpPortStart);
 	s->IntValue("SangomaTxTcpPortStart", m_sangomaTxTcpPortStart);

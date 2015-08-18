@@ -133,6 +133,7 @@ public:
 	bool m_skinnyRtpSearchesForCallInfo;
 	bool m_SkinnyTrackConferencesTransfers;
 	bool m_skinnyBehindNat;
+	bool m_skinnyIgnoreHold;
 
 	std::list<CStdString> m_dnisNumbers;
 	std::list<CStdString> m_sipExtractFields;

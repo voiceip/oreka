@@ -1881,11 +1881,10 @@ void VoIpSession::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 
 void VoIpSession::ReportSkinnyCallStateMessage(SkCallStateMessageStruct* callStateMessage, IpHeaderStruct* ipHeader)
 {
-	if(callStateMessage->callState == 8)	//on hold
+	if(callStateMessage->callState == 8 && DLLCONFIG.m_skinnyIgnoreHold == false)	//on hold
 	{
 		CStdString logMsg;
-		m_onHold = true;
-		m_holdBegin = time(NULL);
+		GoOnHold(time(NULL));
 		logMsg.Format("[%s] Going on hold due to CallStateMessage: HOLD", m_trackingId);
 		LOG4CXX_INFO(m_log,logMsg);
 
@@ -3416,6 +3415,10 @@ void VoIpSessions::ReportSkinnyLineStat(SkLineStatStruct* lineStat, IpHeaderStru
 
 void VoIpSessions::ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
+	if(DLLCONFIG.m_skinnyIgnoreHold == true)
+	{
+		return;
+	}
 	VoIpSessionRef session;
 	CStdString logMsg;
 
