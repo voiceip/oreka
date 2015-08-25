@@ -87,8 +87,6 @@ static unsigned int s_numLostTcpPacketsInUdpMode;
 
 SizedBufferRef HandleIpFragment(IpHeaderStruct* ipHeader);
 
-VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
-#define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
 
 #define PROMISCUOUS 1
 #define LOCAL_PARTY_MAP_FILE	"localpartymap.csv"

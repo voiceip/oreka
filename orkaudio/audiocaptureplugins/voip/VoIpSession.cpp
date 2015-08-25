@@ -27,10 +27,11 @@
 extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;
 
-extern VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
-#define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
-
 #define CONFERENCE_TRANSFER_TRACKING_TAG_KEY "orig-orkuid"
+
+#ifdef TESTING
+	VoIpSessions* VoIpSessionsSingleton::voipSessions = NULL;
+#endif
 
 VoIpSession::VoIpSession(CStdString& trackingId)
 {

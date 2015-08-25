@@ -13,8 +13,6 @@
 #include "Iax2Parsers.h"
 #include "VoIpConfig.h"
 
-extern VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
-#define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
 static LoggerPtr s_iax2parsersLog = Logger::getLogger("iax2parsers");
 
 static int iax2_codec_to_rtp_payloadtype(int codec)

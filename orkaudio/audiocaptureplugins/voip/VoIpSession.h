@@ -29,6 +29,14 @@
 #include "AudioCapturePlugin.h"
 #include "AudioCapturePluginCommon.h"
 #include "SipHeaders.h"
+#include "Utils.h"
+
+
+#ifdef TESTING
+	#define VIT virtual
+#else
+	#define VIT 
+#endif
 
 using namespace log4cxx;
 
@@ -207,9 +215,9 @@ public:
 	VoIpSessions();
 	void Stop(VoIpSessionRef& session);
 	void StopAll();
-	void ReportSipInvite(SipInviteInfoRef& invite);
-	void ReportSipNotify(SipNotifyInfoRef& notify);
-	void ReportSipBye(SipByeInfoRef& bye);
+	VIT void ReportSipInvite(SipInviteInfoRef& invite);
+	VIT void ReportSipNotify(SipNotifyInfoRef& notify);
+	VIT void ReportSipBye(SipByeInfoRef& bye);
 	void ReportSipSubscribe(SipSubscribeInfoRef& subscribe);
 	void ReportSkinnyCallInfo(SkCallInfoStruct*, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
 	void ReportSkinnyCallStateMessage(SkCallStateMessageStruct*, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
@@ -284,7 +292,20 @@ private:
 	LoggerPtr m_log;
 	AlphaCounter m_alphaCounter;
 };
-typedef ACE_Singleton<VoIpSessions, ACE_Thread_Mutex> VoIpSessionsSingleton;
+
+#ifdef TESTING
+	typedef ACE_Singleton<VoIpSessions, ACE_Thread_Mutex> TestVoIpSessionsSingleton;
+	class VoIpSessionsSingleton {
+		static VoIpSessions* voipSessions;
+		public:
+		static void set (VoIpSessions* vs) {voipSessions=vs;};
+		static VoIpSessions* instance() {
+			return voipSessions?voipSessions:TestVoIpSessionsSingleton::instance();
+		}
+	};
+#else
+	typedef ACE_Singleton<VoIpSessions, ACE_Thread_Mutex> VoIpSessionsSingleton;
+#endif
 
 #endif
 

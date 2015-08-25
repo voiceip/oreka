@@ -18,8 +18,18 @@
 #include "VoIpConfig.h"
 #include "ace/OS_NS_arpa_inet.h"
 
+VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
+
+#ifdef TESTING
+	VoIpConfig* g_pTestingVoIpConfig = NULL;
+#endif
+
 VoIpConfig::VoIpConfig()
 {
+	Reset();
+}
+
+void VoIpConfig::Reset() {
 	// Standard LAN internal IP range masks 
 	m_asciiLanMasks.push_back("192.168.255.255");
 	m_asciiLanMasks.push_back("10.255.255.255");
