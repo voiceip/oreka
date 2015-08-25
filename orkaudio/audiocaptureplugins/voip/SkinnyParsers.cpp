@@ -13,8 +13,6 @@
 #include "Win1251.h"
 
 static LoggerPtr s_skinnyParsersLog = Logger::getLogger("packet.skinnyparsers");
-extern VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
-#define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
 extern unsigned short utf[256];		//UTF-8 encoding table (partial)
 
 

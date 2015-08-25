@@ -32,6 +32,7 @@ public:
 	VoIpConfig();	
 	void Define(Serializer* s);
 	void Validate();
+	void Reset();
 
 	CStdString GetClassName();
 	ObjectRef NewInstance();
@@ -202,6 +203,14 @@ public:
 
 typedef oreka::shared_ptr<VoIpConfigTopObject> VoIpConfigTopObjectRef;
 
+extern VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
+
+#ifdef TESTING
+	extern VoIpConfig* g_pTestingVoIpConfig;
+	#define DLLCONFIG (g_pTestingVoIpConfig?*g_pTestingVoIpConfig:g_VoIpConfigTopObjectRef.get()->m_config)
+#else
+	#define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
+#endif
 
 #endif
 

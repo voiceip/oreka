@@ -26,9 +26,6 @@
 extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;
 
-extern VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
-#define DLLCONFIG g_VoIpConfigTopObjectRef.get()->m_config
-
 Iax2Session::Iax2Session(CStdString& trackingId)
 {
 	m_trackingId = trackingId;
