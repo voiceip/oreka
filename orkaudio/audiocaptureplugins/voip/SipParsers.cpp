@@ -19,12 +19,6 @@ static LoggerPtr s_rtcpPacketLog = Logger::getLogger("packet.rtcp");
 static LoggerPtr s_sipparsersLog = Logger::getLogger("packet.sipparsers");
 extern std::list<SipTcpStreamRef> s_SipTcpStreams;
 
-#ifdef TESTING	
-	#define LOG4CXX_INFO(a,b) (0)
-	#define LOG4CXX_DEBUG(a,b) (0)
-	#define LOG4CXX_WARN(a,b) (0)
-#endif
-
 bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
 	bool result = false;
