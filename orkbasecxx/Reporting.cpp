@@ -330,15 +330,24 @@ void ReportingThread::Run()
 	OrkHttpSingleLineClient c;
 	SimpleResponseMsg response;
 
-	while (!c.Execute((SyncMessage&)(*initMsgRef.get()), (AsyncMessage&)response, m_tracker.m_hostname, m_tracker.m_port, m_tracker.m_servicename, CONFIG.m_clientTimeout))
-	{
-		if (time(NULL) - reportErrorLastTime > 60) {
-			LOG_WARN("[%s] could not contact to the tracker", m_tracker.ToString());
-			reportErrorLastTime = time(NULL);
+	do {
+		bool conn = c.Execute((SyncMessage&)(*initMsgRef.get()), 
+				              (AsyncMessage&)response, 
+							  m_tracker.m_hostname, 
+							  m_tracker.m_port,
+							  m_tracker.m_servicename, 
+							  CONFIG.m_clientTimeout);
+
+		if (!response.m_success) {
+			if (time(NULL) - reportErrorLastTime > 60) {
+				LOG_WARN("[%s] init connection:%s success:false comment:%s ", m_tracker.ToString(), conn?"true":"false", response.m_comment);
+				reportErrorLastTime = time(NULL);
+			}
+			ACE_OS::sleep(CONFIG.m_clientRetryPeriodSec);	
 		}
-		ACE_OS::sleep(CONFIG.m_clientRetryPeriodSec);	
-	}
-	LOG_INFO("[%s] init success:%s comment:%s", m_tracker.ToString(), response.m_success?"true":"false", response.m_comment);
+	} while (!response.m_success);
+
+	LOG_INFO("[%s] init success:true comment:%s", m_tracker.ToString(),  response.m_comment);
 
 	for(;stop == false;)
 	{
