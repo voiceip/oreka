@@ -127,7 +127,9 @@ bool OrkHttpClient::ExecuteUrl(CStdString& request, CStdString& response, CStdSt
 		}
 	}
 	peer.close();
-
+	
+	logMsg.Format("%s:%d response:%s",hostname, tcpPort, response);
+	LOG4CXX_DEBUG(m_log, logMsg);
 	if(numReceived < 0)
 	{
 		logMsg.Format("numReceived:%d %s", numReceived, requestDetails);
