@@ -26,6 +26,7 @@
 #include "EventStreaming.h"
 #include "messages/InitMsg.h"
 #include "OrkTrack.h"
+#include <vector>
 
 static LoggerPtr defaultLogger = Logger::getLogger("reporting");
 
@@ -55,6 +56,7 @@ private:
 
 TapeProcessorRef Reporting::m_singleton;
 static std::map<CStdString, ReportingThreadInfoRef> s_reportingThreads;
+static std::vector<ReportingThreadInfoRef> s_reportingThreadsVector;
 
 void Reporting::Initialize()
 {
@@ -95,6 +97,7 @@ void Reporting::ReportingThreadEntryPoint(void *args)
 	myRunInfo.m_threadId.Format("%s,%d", myRunInfo.m_tracker.m_hostname, myRunInfo.m_tracker.m_port);
 
 	s_reportingThreads.insert(std::make_pair(myRunInfo.m_tracker.m_hostname, rtInfoRef));
+	s_reportingThreadsVector.push_back(rtInfoRef);
 	delete rtInfo;
 
 	myRunInfo.Run();
@@ -159,14 +162,14 @@ void __CDECL__ Reporting::SkipTapes(int number, CStdString trackingServer)
 bool Reporting::AddTapeMessage(MessageRef& messageRef)
 {
 	bool ret = true;
-	std::map<CStdString, ReportingThreadInfoRef>::iterator pair;
+	std::vector<ReportingThreadInfoRef>::iterator it;
 	CStdString logMsg;
 	TapeMsg *pTapeMsg = (TapeMsg*)messageRef.get(), *pRptTapeMsg;
 	MessageRef reportingMsgRef;
 	
-	for(pair = s_reportingThreads.begin(); pair != s_reportingThreads.end(); pair++)
+	for(it = s_reportingThreadsVector.begin(); it != s_reportingThreadsVector.end(); it++)
 	{
-		ReportingThreadInfoRef reportingThread = pair->second;
+		ReportingThreadInfoRef reportingThread = *it;
 
 		reportingMsgRef.reset(new TapeMsg);
 		pRptTapeMsg = (TapeMsg*)reportingMsgRef.get();
