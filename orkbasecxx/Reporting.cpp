@@ -346,7 +346,7 @@ void ReportingThread::Run()
 				LOG_WARN("[%s] init connection:%s success:false comment:%s ", m_tracker.ToString(), conn?"true":"false", response.m_comment);
 				reportErrorLastTime = time(NULL);
 			}
-			ACE_OS::sleep(CONFIG.m_clientRetryPeriodSec);	
+			ACE_OS::sleep(CONFIG.m_clientTimeout + 10);
 		}
 	} while (!response.m_success);
 
