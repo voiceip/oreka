@@ -333,39 +333,6 @@ bool TryLogFailedSip(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHea
 	return true;
 }
 
-static bool SipByeTcpToUdp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,TcpHeaderStruct* tcpHeader, u_char *pBuffer, int bLength)
-{
-        UdpHeaderStruct udpHeader;
-
-        udpHeader.source = tcpHeader->source;
-        udpHeader.dest = tcpHeader->dest;
-        udpHeader.len = htons(bLength+sizeof(UdpHeaderStruct));
-
-        return TrySipBye(ethernetHeader, ipHeader, &udpHeader, pBuffer, pBuffer+bLength);
-}
-
-static bool SipInviteTcpToUdp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader, u_char *pBuffer, int bLength)
-{
-	UdpHeaderStruct udpHeader;
-
-	udpHeader.source = tcpHeader->source;
-	udpHeader.dest = tcpHeader->dest;
-	udpHeader.len = htons(bLength+sizeof(UdpHeaderStruct));
-
-	return TrySipInvite(ethernetHeader, ipHeader, &udpHeader, pBuffer, pBuffer+bLength);
-}
-
-static bool SipFailedTcpToUdp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader, u_char *pBuffer, int bLength)
-{
-	UdpHeaderStruct udpHeader;
-
-        udpHeader.source = tcpHeader->source;
-        udpHeader.dest = tcpHeader->dest;
-        udpHeader.len = htons(bLength+sizeof(UdpHeaderStruct));
-
-        return TryLogFailedSip(ethernetHeader, ipHeader, &udpHeader, pBuffer, pBuffer+bLength);
-}
-
 bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	int tcpLengthPayloadLength = 0;
@@ -401,6 +368,11 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 		   (memcmp(SIP_METHOD_BYE, (void*)startTcpPayload, SIP_METHOD_BYE_SIZE) == 0) ||
 		   (memcmp(SIP_RESPONSE_200_OK, (void*)startTcpPayload, SIP_RESPONSE_200_OK_SIZE) == 0) ||
 		   (memcmp(SIP_RESPONSE_SESSION_PROGRESS, (void*)startTcpPayload, SIP_RESPONSE_SESSION_PROGRESS_SIZE) == 0) ||
+		   (memcmp(SIP_METHOD_REFER, (void*)startTcpPayload, SIP_METHOD_REFER_SIZE) == 0) ||
+		   (memcmp(SIP_METHOD_INFO, (void*)startTcpPayload, SIP_METHOD_INFO_SIZE) == 0) ||
+		   (memcmp(SIP_METHOD_SUBSCRIBE, (void*)startTcpPayload, SIP_METHOD_SUBSCRIBE_SIZE) == 0) ||
+		   (memcmp(SIP_RESPONSE_302_MOVED_TEMPORARILY, (void*)startTcpPayload, SIP_RESPONSE_302_MOVED_TEMPORARILY_SIZE) == 0) ||
+		   (memcmp(SIP_METHOD_NOTIFY, (void*)startTcpPayload, SIP_METHOD_NOTIFY_SIZE) == 0) ||
 		   (memcmp("SIP/2.0 4", (void*)startTcpPayload, 9) == 0) ||
 		   (memcmp("SIP/2.0 5", (void*)startTcpPayload, 9) == 0) ||
 		   (memcmp("SIP/2.0 6", (void*)startTcpPayload, 9) == 0) ||
@@ -451,17 +423,57 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 			LOG4CXX_DEBUG(s_sipTcpPacketLog, "Obtained complete TCP Stream: " + tcpStream);
 
 			bool usefulPacket = false;
+			UdpHeaderStruct udpHeader;
+			udpHeader.source = tcpHeader->source;
+			udpHeader.dest = tcpHeader->dest;
+			udpHeader.len = htons(buffer->Size()+sizeof(UdpHeaderStruct));
+			u_char* packetEnd = buffer->GetBuffer() + buffer->Size();
 
-			usefulPacket = SipInviteTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+			usefulPacket = TrySipInvite(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
 
 			if(!usefulPacket)
 			{
-				usefulPacket = SipByeTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+				usefulPacket = TrySip200Ok(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
 			}
 
 			if(!usefulPacket)
 			{
-				usefulPacket = SipFailedTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+				usefulPacket = TrySipNotify(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
+			}
+
+			if(!usefulPacket)
+			{
+				usefulPacket = TrySipSessionProgress(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
+			}
+
+			if(!usefulPacket)
+			{
+				usefulPacket = TrySip302MovedTemporarily(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
+			}
+
+			if(!usefulPacket)
+			{
+				usefulPacket = TrySipBye(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
+			}
+
+			if(!usefulPacket)
+			{
+				usefulPacket = TrySipRefer(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
+			}
+
+			if(!usefulPacket)
+			{
+				usefulPacket = TrySipInfo(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
+			}
+
+			if(!usefulPacket)
+			{
+				usefulPacket = TrySipSubscribe(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
+			}
+
+			if(!usefulPacket)
+			{
+				usefulPacket = TryLogFailedSip(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
 			}
 
 			return usefulPacket;
@@ -505,17 +517,57 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
                 	        LOG4CXX_INFO(s_sipTcpPacketLog, "TCP Stream updated to completion: " + tcpStream);
 
 				bool usefulPacket = false;
+				UdpHeaderStruct udpHeader;
+				udpHeader.source = tcpHeader->source;
+				udpHeader.dest = tcpHeader->dest;
+				udpHeader.len = htons(buffer->Size()+sizeof(UdpHeaderStruct));
+				u_char* packetEnd = buffer->GetBuffer() + buffer->Size();
 
-				usefulPacket = SipInviteTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+				usefulPacket = TrySipInvite(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
 
 				if(!usefulPacket)
 				{
-					usefulPacket = SipByeTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+					usefulPacket = TrySip200Ok(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
 				}
 
 				if(!usefulPacket)
 				{
-					usefulPacket = SipFailedTcpToUdp(ethernetHeader, ipHeader, tcpHeader, buffer->GetBuffer(), buffer->Size());
+					usefulPacket = TrySipNotify(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
+				}
+
+				if(!usefulPacket)
+				{
+					usefulPacket = TrySipSessionProgress(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
+				}
+
+				if(!usefulPacket)
+				{
+					usefulPacket = TrySip302MovedTemporarily(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
+				}
+
+				if(!usefulPacket)
+				{
+					usefulPacket = TrySipBye(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
+				}
+
+				if(!usefulPacket)
+				{
+					usefulPacket = TrySipRefer(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
+				}
+
+				if(!usefulPacket)
+				{
+					usefulPacket = TrySipInfo(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
+				}
+
+				if(!usefulPacket)
+				{
+					usefulPacket = TrySipSubscribe(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
+				}
+
+				if(!usefulPacket)
+				{
+					usefulPacket = TryLogFailedSip(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
 				}
 
 				toErase.push_back(tcpstream);
