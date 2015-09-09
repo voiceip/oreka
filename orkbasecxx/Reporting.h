@@ -28,14 +28,12 @@ public:
 	CStdString __CDECL__ GetName();
 	TapeProcessorRef __CDECL__ Instanciate();
 	void __CDECL__ AddAudioTape(AudioTapeRef& audioTapeRef);
-	bool __CDECL__ AddTapeMessage(MessageRef& messageRef);
+	bool __CDECL__ AddTapeMessage(MessageRef messageRef);
 	void __CDECL__ SkipTapes(int number, CStdString trackingServer="");
 
 	//static Reporting* GetInstance();
 	static void ThreadHandler(void *args);
 	static void ReportingThreadEntryPoint(void *args);
-	void SetReadyToReport(bool status);
-	bool GetReadyStatus();
 
 private:
 	Reporting();
