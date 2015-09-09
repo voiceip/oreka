@@ -23,7 +23,7 @@ class DLL_IMPORT_EXPORT_ORKBASE OrkClient
 {
 public:
 	OrkClient();
-	virtual bool Execute(SyncMessage& request, AsyncMessage& response, CStdString& hostname, int tcpPort, CStdString& serviceName, int timeout = 5) = 0;
+	virtual bool Execute(SyncMessage& request, AsyncMessage& response, const CStdString hostname, const int tcpPort, const CStdString serviceName, int timeout = 5) = 0;
 protected:
 	void LogError(CStdString& errorString);
 
@@ -35,8 +35,8 @@ protected:
 class DLL_IMPORT_EXPORT_ORKBASE OrkHttpClient : public OrkClient
 {
 public:
-	virtual bool Execute(SyncMessage& request, AsyncMessage& response, CStdString& hostname, int tcpPort, CStdString& serviceName, int timeout = 5) = 0;
-	bool ExecuteUrl(CStdString& request, CStdString& response, CStdString& hostname, int tcpPort, int timeout = 5);
+	virtual bool Execute(SyncMessage& request, AsyncMessage& response, const CStdString hostname, const int tcpPort, const CStdString serviceName, int timeout = 5) = 0;
+	bool ExecuteUrl(const CStdString request, CStdString& response, const CStdString hostname, const int tcpPort, int timeout = 5);
 protected:
 };
 
@@ -44,7 +44,7 @@ protected:
 class DLL_IMPORT_EXPORT_ORKBASE OrkHttpSingleLineClient : public OrkHttpClient
 {
 public:
-	bool Execute(SyncMessage& request, AsyncMessage& response, CStdString& hostname, int tcpPort, CStdString& serviceName, int timeout = 5);
+	bool Execute(SyncMessage& request, AsyncMessage& response, const CStdString hostname, const int tcpPort, const CStdString serviceName, int timeout = 5);
 };
 
 #endif

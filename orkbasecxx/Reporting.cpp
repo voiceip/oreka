@@ -159,7 +159,7 @@ void __CDECL__ Reporting::SkipTapes(int number, CStdString trackingServer)
 	}
 }
 
-bool Reporting::AddTapeMessage(MessageRef& messageRef)
+bool Reporting::AddTapeMessage(MessageRef messageRef)
 {
 	bool ret = true;
 	std::vector<ReportingThreadInfoRef>::iterator it;
