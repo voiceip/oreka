@@ -40,7 +40,7 @@ void OrkClient::LogError(CStdString& logMsg)
 	}
 }
 
-bool OrkHttpClient::ExecuteUrl(const CStdString request, CStdString& response, const CStdString hostname, const int tcpPort, int timeout)
+bool OrkHttpClient::ExecuteUrl(const CStdString& request, CStdString& response, const CStdString& hostname, const int tcpPort, int timeout)
 {
 	CStdString logMsg;
 	response = "";
@@ -156,7 +156,7 @@ bool OrkHttpClient::ExecuteUrl(const CStdString request, CStdString& response, c
 	return true;
 }
 
-bool OrkHttpSingleLineClient::Execute(SyncMessage& request, AsyncMessage& response, const CStdString hostname,const int tcpPort, const CStdString serviceName, const int timeout)
+bool OrkHttpSingleLineClient::Execute(SyncMessage& request, AsyncMessage& response, const CStdString& hostname,const int tcpPort, const CStdString& serviceName, const int timeout)
 {
 	CStdString requestString = "/" + serviceName + "/command?";
 	requestString += request.SerializeUrl();
