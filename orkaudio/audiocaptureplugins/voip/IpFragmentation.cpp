@@ -18,8 +18,6 @@
 #include "LogManager.h"
 #include <stdexcept>
 
-static LoggerPtr s_log = Logger::getLogger("IP fragmentation");
-
 CStdString logMsg;
 
 // All the fragmentation handling algorithms must comply to this interface
@@ -68,7 +66,7 @@ class ForwardSequentialAlgorithm : public FragmentationAlgorithmInterface {
 				_lastUpdate = time(NULL);
 			}
 			catch (const std::exception& ex) {
-				FLOG_ERROR(s_log,"Caught exception will drop fragment id:%u, offset:%u, description: %s",ipHeader->packetId(), ipHeader->offset(), ex.what());
+				FLOG_ERROR(LOG.ipfragmentation,"Caught exception will drop fragment id:%u, offset:%u, description: %s",ipHeader->packetId(), ipHeader->offset(), ex.what());
 				_drop = true;
 			}
 		}
@@ -123,7 +121,7 @@ class WaitAllAndSortAlgorithm : public FragmentationAlgorithmInterface {
 				_lastUpdate = time(NULL);
 			}
 			catch (const std::exception& ex) {
-				FLOG_ERROR(s_log,"Caught exception will drop fragment id:%u, offset:%u, description: %s",ipHeader->packetId(), ipHeader->offset(), ex.what());
+				FLOG_ERROR(LOG.ipfragmentation,"Caught exception will drop fragment id:%u, offset:%u, description: %s",ipHeader->packetId(), ipHeader->offset(), ex.what());
 				_drop = true;
 			}
 		}
@@ -167,12 +165,12 @@ SizedBufferRef HandleIpFragment(IpHeaderStruct* ipHeader)
 			for (std::list <FragmentMap::iterator>::iterator it=toBeDeleted.begin(); it!=toBeDeleted.end();++it) {
 				fragmentMap.erase(*it);
 			} 
-			FLOG_WARN(s_log,"%d fragmented packets older than %u seconds has been removed from the map", toBeDeleted.size(), timeoutSec);
+			FLOG_WARN(LOG.ipfragmentation,"%d fragmented packets older than %u seconds has been removed from the map", toBeDeleted.size(), timeoutSec);
 		}
 		lastCheck = now;
 	}
 
-	FLOG_DEBUG(s_log,"Recieved fragment with packet id:%u, offset:%u, payload length:%u", ipHeader->packetId(), ipHeader->offset(), ipHeader->payloadLen());
+	FLOG_DEBUG(LOG.ipfragmentation,"Recieved fragment with packet id:%u, offset:%u, payload length:%u", ipHeader->packetId(), ipHeader->offset(), ipHeader->payloadLen());
 	FragmentMap::iterator it = fragmentMap.find(ipHeader->packetId());
 	if (it == fragmentMap.end()) { 
 		it = fragmentMap.insert(std::make_pair(ipHeader->packetId(), FragmentationAlgorithmRef(new FRAGMENTATION_ALGORITHM()))).first;
@@ -182,13 +180,13 @@ SizedBufferRef HandleIpFragment(IpHeaderStruct* ipHeader)
 
 	if (algorithm->drop()) {
 		fragmentMap.erase(it);
-		FLOG_WARN(s_log,"Dropping fragmented packet data with id:%u", ipHeader->packetId());
+		FLOG_WARN(LOG.ipfragmentation,"Dropping fragmented packet data with id:%u", ipHeader->packetId());
 	} 
 
 	if (algorithm->isComplete()) {
 		fragmentMap.erase(it);
 		IpHeaderStruct *header = reinterpret_cast<IpHeaderStruct*>(algorithm->packetData()->get());
-		FLOG_INFO(s_log, "Reassembled fragmented packet with id:%u, total payload length:%u", header->packetId(), header->payloadLen());
+		FLOG_INFO(LOG.ipfragmentation, "Reassembled fragmented packet with id:%u, total payload length:%u", header->packetId(), header->payloadLen());
 		return algorithm->packetData(); 
 	}
 	return SizedBufferRef(); // By default return empty ref
