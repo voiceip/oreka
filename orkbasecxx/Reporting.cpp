@@ -28,8 +28,6 @@
 #include "OrkTrack.h"
 #include <vector>
 
-static LoggerPtr defaultLogger = Logger::getLogger("reporting");
-
 struct ReportingThreadInfo
 {
 	int m_numTapesToSkip;
@@ -72,7 +70,7 @@ void Reporting::Initialize()
 
 			if(!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(ReportingThreadEntryPoint), (void *)rtInfo))
 			{
-				LOG_WARN("[%s] failed to start reporting thread", rtInfo->m_tracker.ToString());
+				FLOG_WARN(LOG.reporting,"[%s] failed to start reporting thread", rtInfo->m_tracker.ToString());
 				delete rtInfo;
 			}
 		}
@@ -197,12 +195,12 @@ bool Reporting::AddTapeMessage(MessageRef messageRef)
 
 		if(reportingThread->m_messageQueue.push(reportingMsgRef))
 		{
-			LOG_INFO("[%s] enqueued: %s", reportingThread->m_tracker.ToString(), msgAsSingleLineString);
+			FLOG_INFO(LOG.reporting,"[%s] enqueued: %s", reportingThread->m_tracker.ToString(), msgAsSingleLineString);
 			ret = true;
 		}
 		else
 		{
-			LOG_WARN("[%s] queue full, rejected: %s", reportingThread->m_tracker.ToString(), msgAsSingleLineString);
+			FLOG_WARN(LOG.reporting,"[%s] queue full, rejected: %s", reportingThread->m_tracker.ToString(), msgAsSingleLineString);
 			ret = false;
 		}
 	}
@@ -312,7 +310,7 @@ void ReportingThread::Run()
 {
 	CStdString logMsg;
 
-	LOG_INFO("[%s] reporting thread started", m_tracker.ToString());
+	FLOG_INFO(LOG.reporting,"[%s] reporting thread started", m_tracker.ToString());
 
 	bool stop = false;
 	bool reportError = true;
@@ -343,14 +341,14 @@ void ReportingThread::Run()
 
 		if (!response.m_success) {
 			if (time(NULL) - reportErrorLastTime > 60) {
-				LOG_WARN("[%s] init connection:%s success:false comment:%s ", m_tracker.ToString(), conn?"true":"false", response.m_comment);
+				FLOG_WARN(LOG.reporting,"[%s] init connection:%s success:false comment:%s ", m_tracker.ToString(), conn?"true":"false", response.m_comment);
 				reportErrorLastTime = time(NULL);
 			}
 			ACE_OS::sleep(CONFIG.m_clientTimeout + 10);
 		}
 	} while (!response.m_success);
 
-	LOG_INFO("[%s] init success:true comment:%s", m_tracker.ToString(),  response.m_comment);
+	FLOG_INFO(LOG.reporting,"[%s] init success:true comment:%s", m_tracker.ToString(),  response.m_comment);
 
 	for(;stop == false;)
 	{
@@ -383,7 +381,7 @@ void ReportingThread::Run()
 					}
 
 					CStdString msgAsSingleLineString = msgRef->SerializeSingleLine();
-					LOG_INFO("[%s] sending: %s", m_tracker.ToString(), msgAsSingleLineString);
+					FLOG_INFO(LOG.reporting,"[%s] sending: %s", m_tracker.ToString(), msgAsSingleLineString);
 
 					OrkHttpSingleLineClient c;
 					TapeResponseRef tr(new TapeResponse());
@@ -399,7 +397,7 @@ void ReportingThread::Run()
 							if(error)
 							{
 								error = false;
-								LOG_INFO("[%s] successfully reconnected to the tracker after error", m_tracker.ToString());
+								FLOG_INFO(LOG.reporting,"[%s] successfully reconnected to the tracker after error", m_tracker.ToString());
 							}
 
 							if(tr->m_deleteTape && ptapeMsg->m_stage.Equals("ready") )
@@ -409,11 +407,11 @@ void ReportingThread::Run()
                                                         	CStdString absoluteFilename = CONFIG.m_audioOutputPath + "/" + tapeFilename;
                                                          	if (ACE_OS::unlink((PCSTR)absoluteFilename) == 0)
                                                                 {
-                                                                	LOG_INFO("[%s] deleted tape: %s", m_tracker.ToString(), tapeFilename);
+                                                                	FLOG_INFO(LOG.reporting,"[%s] deleted tape: %s", m_tracker.ToString(), tapeFilename);
                                                                 }
                                                                	else
 								{
-                                                                	LOG_DEBUG("[%s] could not delete tape: %s ", m_tracker.ToString(), tapeFilename);
+                                                                	FLOG_DEBUG(LOG.reporting,"[%s] could not delete tape: %s ", m_tracker.ToString(), tapeFilename);
                                                                 }
 
 							}
@@ -450,7 +448,7 @@ void ReportingThread::Run()
 							{
 								reportError = false;
 								reportErrorLastTime = time(NULL);
-								LOG_ERROR("[%s] could not connect to tracker", m_tracker.ToString());
+								FLOG_ERROR(LOG.reporting,"[%s] could not connect to tracker", m_tracker.ToString());
 							}
 							if(realtimeMessage)
 							{
@@ -467,9 +465,9 @@ void ReportingThread::Run()
 		}
 		catch (CStdString& e)
 		{
-			LOG_ERROR("[%s] exception:", m_tracker.ToString(), e);
+			FLOG_ERROR(LOG.reporting,"[%s] exception:", m_tracker.ToString(), e);
 		}
 	}
-	LOG_INFO("[%s] gracefully terminating the reporting thread", m_tracker.ToString());
+	FLOG_INFO(LOG.reporting,"[%s] gracefully terminating the reporting thread", m_tracker.ToString());
 }
 
