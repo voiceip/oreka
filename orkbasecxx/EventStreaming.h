@@ -34,8 +34,7 @@ class DLL_IMPORT_EXPORT_ORKBASE EventStreamingSession
 public:
 	EventStreamingSession();
 
-	void AddTapeMessage(MessageRef& message);
-	void AddAddTagMessage(MessageRef& message);
+	void AddMessage(MessageRef message);
 	void GetTapeMessage(MessageRef& message);
 	int GetNumMessages();
 	void WaitForMessages();
@@ -58,8 +57,7 @@ public:
 	void RemoveSession(EventStreamingSessionRef& session);
 	int GetNumSessions();
 	CStdString GetNewSessionId();
-	void AddTapeMessage(MessageRef& message);
-	void AddAddTagMessage(MessageRef& message);
+	void AddMessage(MessageRef message);
 
 private:
 	AlphaCounter m_alphaCounter;

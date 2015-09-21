@@ -44,6 +44,7 @@ public:
 	LoggerPtr directionSelectorLog;
 	LoggerPtr reporting;
 	LoggerPtr ipfragmentation;
+	LoggerPtr messaging;
 
 private:
 	static OrkLogManager m_orkLogManager;

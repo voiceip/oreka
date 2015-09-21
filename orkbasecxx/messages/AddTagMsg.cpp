@@ -11,6 +11,7 @@
  *
  */
 
+#include "LogManager.h"
 #include "AddTagMsg.h"
 #include "messages/TapeMsg.h"
 #define ADDTAG_CLASS "addtag"
@@ -53,3 +54,28 @@ ObjectRef AddTagMsg::Process()
 	return ObjectRef();
 }
 
+
+MessageRef AddTagMsg::CreateResponse() {
+	return oreka::shared_ptr<SimpleResponseMsg>(new SimpleResponseMsg());
+}
+
+void AddTagMsg::HandleResponse(MessageRef responseRef) {
+	// do not do anything with the response
+}
+
+bool AddTagMsg::IsRealtime() {
+	return false;
+}
+
+MessageRef AddTagMsg::Clone() {
+	oreka::shared_ptr<AddTagMsg> clone(new AddTagMsg());
+
+	clone->m_party        = m_party; 
+	clone->m_orkuid       = m_orkuid;
+	clone->m_tagType      = m_tagType;
+	clone->m_tagText      = m_tagText;
+	clone->m_dtagOffsetMs = m_dtagOffsetMs;
+	clone->m_success      = m_success;
+
+	return clone;
+}

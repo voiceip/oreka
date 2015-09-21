@@ -157,41 +157,30 @@ void __CDECL__ Reporting::SkipTapes(int number, CStdString trackingServer)
 	}
 }
 
-bool Reporting::AddTapeMessage(MessageRef messageRef)
+bool Reporting::AddMessage(MessageRef messageRef)
 {
+	CStdString logMsg;
+	const CStdString msgAsSingleLineString = messageRef->SerializeSingleLine();
+
+	IReportable* reportable = dynamic_cast<IReportable*>(messageRef.get());
+	if (!reportable) {
+		FLOG_WARN(LOG.reporting,"Discarding message that is not reportable: %s", msgAsSingleLineString);
+		return false;
+	}
+
+	// According to the legend once upon a time
+	// there was an unidentifed bug that was causing 
+	// a crash when the messages were not cloned 
+	// therefore we still clone the messages before 
+	// passing them down the reporting pipeline 
+	
 	bool ret = true;
 	std::vector<ReportingThreadInfoRef>::iterator it;
-	CStdString logMsg;
-	TapeMsg *pTapeMsg = (TapeMsg*)messageRef.get(), *pRptTapeMsg;
-	MessageRef reportingMsgRef;
 	
 	for(it = s_reportingThreadsVector.begin(); it != s_reportingThreadsVector.end(); it++)
 	{
 		ReportingThreadInfoRef reportingThread = *it;
-
-		reportingMsgRef.reset(new TapeMsg);
-		pRptTapeMsg = (TapeMsg*)reportingMsgRef.get();
-
-		pRptTapeMsg->m_recId = pTapeMsg->m_recId;
-		pRptTapeMsg->m_fileName = pTapeMsg->m_fileName;
-		pRptTapeMsg->m_stage = pTapeMsg->m_stage;
-		pRptTapeMsg->m_capturePort = pTapeMsg->m_capturePort;
-		pRptTapeMsg->m_localParty = pTapeMsg->m_localParty;
-		pRptTapeMsg->m_localEntryPoint = pTapeMsg->m_localEntryPoint;
-		pRptTapeMsg->m_remoteParty = pTapeMsg->m_remoteParty;
-		pRptTapeMsg->m_direction = pTapeMsg->m_direction;
-		//pRptTapeMsg->m_localSide = pTapeMsg->m_localSide;
-		pRptTapeMsg->m_audioKeepDirection = pTapeMsg->m_audioKeepDirection;
-		pRptTapeMsg->m_duration = pTapeMsg->m_duration;
-		pRptTapeMsg->m_timestamp = pTapeMsg->m_timestamp;
-		pRptTapeMsg->m_localIp = pTapeMsg->m_localIp;
-		pRptTapeMsg->m_remoteIp = pTapeMsg->m_remoteIp;
-		pRptTapeMsg->m_nativeCallId = pTapeMsg->m_nativeCallId;
-		pRptTapeMsg->m_onDemand = pTapeMsg->m_onDemand;
-		// Copy the tags!
-		std::copy(pTapeMsg->m_tags.begin(), pTapeMsg->m_tags.end(), std::inserter(pRptTapeMsg->m_tags, pRptTapeMsg->m_tags.begin()));
-
-		CStdString msgAsSingleLineString = reportingMsgRef->SerializeSingleLine();
+		MessageRef reportingMsgRef = reportable->Clone();
 
 		if(reportingThread->m_messageQueue.push(reportingMsgRef))
 		{
@@ -205,30 +194,7 @@ bool Reporting::AddTapeMessage(MessageRef messageRef)
 		}
 	}
 
-	// Send this message to the event streaming system
-	reportingMsgRef.reset(new TapeMsg);
-	pRptTapeMsg = (TapeMsg*)reportingMsgRef.get();
-
-	pRptTapeMsg->m_recId = pTapeMsg->m_recId;
-	pRptTapeMsg->m_fileName = pTapeMsg->m_fileName;
-	pRptTapeMsg->m_stage = pTapeMsg->m_stage;
-	pRptTapeMsg->m_capturePort = pTapeMsg->m_capturePort;
-	pRptTapeMsg->m_localParty = pTapeMsg->m_localParty;
-	pRptTapeMsg->m_localEntryPoint = pTapeMsg->m_localEntryPoint;
-	pRptTapeMsg->m_remoteParty = pTapeMsg->m_remoteParty;
-	pRptTapeMsg->m_direction = pTapeMsg->m_direction;
-	//pRptTapeMsg->m_localSide = pTapeMsg->m_localSide;
-	pRptTapeMsg->m_audioKeepDirection = pTapeMsg->m_audioKeepDirection;
-	pRptTapeMsg->m_duration = pTapeMsg->m_duration;
-	pRptTapeMsg->m_timestamp = pTapeMsg->m_timestamp;
-	pRptTapeMsg->m_localIp = pTapeMsg->m_localIp;
-	pRptTapeMsg->m_remoteIp = pTapeMsg->m_remoteIp;
-	pRptTapeMsg->m_nativeCallId = pTapeMsg->m_nativeCallId;
-	pRptTapeMsg->m_onDemand = pTapeMsg->m_onDemand;
-	// Copy the tags!
-	std::copy(pTapeMsg->m_tags.begin(), pTapeMsg->m_tags.end(), std::inserter(pRptTapeMsg->m_tags, pRptTapeMsg->m_tags.begin()));
-
-	EventStreamingSingleton::instance()->AddTapeMessage(reportingMsgRef);
+	EventStreamingSingleton::instance()->AddMessage(reportable->Clone());
 	return ret;
 }
 
@@ -237,7 +203,7 @@ void Reporting::AddAudioTape(AudioTapeRef& audioTapeRef)
 	audioTapeRef->m_isDoneProcessed = true; 	//to notify API caller the importing is good so far
 	MessageRef msgRef;
 	audioTapeRef->GetMessage(msgRef);
-	AddTapeMessage(msgRef);
+	AddMessage(msgRef);
 }
 
 void Reporting::ThreadHandler(void *args)
@@ -365,26 +331,21 @@ void ReportingThread::Run()
 			}
 			else
 			{
-				TapeMsg* ptapeMsg = (TapeMsg*)msgRef.get();
-				//bool startMsg = false;
-				bool realtimeMessage = false;
+				CStdString msgAsSingleLineString = msgRef->SerializeSingleLine();
 
-				if(msgRef.get() && CONFIG.m_enableReporting)
+				IReportable* reportable = dynamic_cast<IReportable*>(msgRef.get());
+				if (!reportable) {
+					FLOG_WARN(LOG.reporting,"[%s] Discarding message that is not reportable:%s", m_tracker.ToString(), msgAsSingleLineString);
+					continue;
+				}
+
+				if( CONFIG.m_enableReporting)
 				{
-					//if(ptapeMsg->m_stage.Equals("START"))
-					//{
-					//	startMsg = true;
-					//}
-					if(ptapeMsg->m_stage.Equals("start") || ptapeMsg->m_stage.Equals("stop"))
-					{
-						realtimeMessage = true;
-					}
-
-					CStdString msgAsSingleLineString = msgRef->SerializeSingleLine();
 					FLOG_INFO(LOG.reporting,"[%s] sending: %s", m_tracker.ToString(), msgAsSingleLineString);
 
 					OrkHttpSingleLineClient c;
-					TapeResponseRef tr(new TapeResponse());
+
+					MessageRef tr = reportable->CreateResponse();
 
 					bool success = false;
 
@@ -400,45 +361,7 @@ void ReportingThread::Run()
 								FLOG_INFO(LOG.reporting,"[%s] successfully reconnected to the tracker after error", m_tracker.ToString());
 							}
 
-							if(tr->m_deleteTape && ptapeMsg->m_stage.Equals("ready") )
-							{
-								CStdString tapeFilename = ptapeMsg->m_fileName;
-
-                                                        	CStdString absoluteFilename = CONFIG.m_audioOutputPath + "/" + tapeFilename;
-                                                         	if (ACE_OS::unlink((PCSTR)absoluteFilename) == 0)
-                                                                {
-                                                                	FLOG_INFO(LOG.reporting,"[%s] deleted tape: %s", m_tracker.ToString(), tapeFilename);
-                                                                }
-                                                               	else
-								{
-                                                                	FLOG_DEBUG(LOG.reporting,"[%s] could not delete tape: %s ", m_tracker.ToString(), tapeFilename);
-                                                                }
-
-							}
-							else if(tr->m_deleteTape && ptapeMsg->m_stage.Equals("start") && CONFIG.m_pauseRecordingOnRejectedStart == true)
-							{
-								CStdString orkUid = ptapeMsg->m_recId;
-								CStdString empty;
-								CapturePluginProxy::Singleton()->PauseCapture(empty, orkUid, empty);
-							}
-							else 
-							{
-								// Tape is wanted
-								if(CONFIG.m_lookBackRecording == false && CONFIG.m_allowAutomaticRecording && ptapeMsg->m_stage.Equals("start"))
-								{
-									CStdString orkuid = "", nativecallid = "", side = "";
-									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_localParty, orkuid, nativecallid, side);
-									CapturePluginProxy::Singleton()->StartCapture(ptapeMsg->m_remoteParty, orkuid, nativecallid, side);
-								}
-							}
-							//else
-							//{
-							//	if(!startMsg)
-							//	{
-							//		// Pass the tape to the next processor
-							//		pReporting->Runsftp NextProcessor(audioTapeRef);
-							//	}
-							//}
+							reportable->HandleResponse(tr);
 						}
 						else
 						{
@@ -450,8 +373,8 @@ void ReportingThread::Run()
 								reportErrorLastTime = time(NULL);
 								FLOG_ERROR(LOG.reporting,"[%s] could not connect to tracker", m_tracker.ToString());
 							}
-							if(realtimeMessage)
-							{
+
+							if (reportable->IsRealtime()) {
 								success = true;		// No need to resend realtime messages
 							}
 							else
