@@ -90,6 +90,7 @@ void OrkLogManager::Initialize()
 	directionSelectorLog = Logger::getLogger("directionSelector");
 	reporting = Logger::getLogger("reporting");
 	ipfragmentation = Logger::getLogger("ipfragmentation");
+	messaging = Logger::getLogger("messaging");
 }
 
 void OrkLogManager::Shutdown()

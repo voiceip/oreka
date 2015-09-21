@@ -17,6 +17,8 @@
 #include "Utils.h"
 #include "TapeMsg.h"
 #include "ConfigManager.h"
+#include "LogManager.h"
+#include "CapturePluginProxy.h"
 
 TapeMsg::TapeMsg()
 {
@@ -79,6 +81,81 @@ ObjectRef TapeMsg::Process()
 	return ObjectRef();
 }
 
+MessageRef TapeMsg::CreateResponse() {
+	return TapeResponseRef(new TapeResponse());
+}
+
+void TapeMsg::HandleResponse(MessageRef responseRef) {
+	CStdString logMsg;
+
+	TapeResponse* tr =(TapeResponse*) responseRef.get();
+
+	if(tr->m_deleteTape && this->m_stage.Equals("ready") )
+	{
+		CStdString tapeFilename = this->m_fileName;
+
+		CStdString absoluteFilename = CONFIG.m_audioOutputPath + "/" + tapeFilename;
+		if (ACE_OS::unlink((PCSTR)absoluteFilename) == 0)
+		{
+			FLOG_INFO(LOG.reporting,"deleted tape: %s", tapeFilename);
+		}
+		else
+		{
+			FLOG_DEBUG(LOG.reporting,"could not delete tape: %s ", tapeFilename);
+		}
+
+	}
+	else if(tr->m_deleteTape && this->m_stage.Equals("start") && CONFIG.m_pauseRecordingOnRejectedStart == true)
+	{
+		CStdString orkUid = this->m_recId;
+		CStdString empty;
+		CapturePluginProxy::Singleton()->PauseCapture(empty, orkUid, empty);
+	}
+	else 
+	{
+		// Tape is wanted
+		if(CONFIG.m_lookBackRecording == false && CONFIG.m_allowAutomaticRecording && this->m_stage.Equals("start"))
+		{
+			CStdString orkuid = "", nativecallid = "", side = "";
+			CapturePluginProxy::Singleton()->StartCapture(this->m_localParty, orkuid, nativecallid, side);
+			CapturePluginProxy::Singleton()->StartCapture(this->m_remoteParty, orkuid, nativecallid, side);
+		}
+	}
+
+}
+
+bool TapeMsg::IsRealtime() {
+	return (this->m_stage.Equals("start") || this->m_stage.Equals("stop"));
+}
+
+MessageRef TapeMsg::Clone() {
+	oreka::shared_ptr<TapeMsg> clone(new TapeMsg());
+
+	clone->m_recId              = this->m_recId;
+	clone->m_fileName           = this->m_fileName;
+	clone->m_stage              = this->m_stage;
+	clone->m_capturePort        = this->m_capturePort;
+	clone->m_localParty         = this->m_localParty;
+	clone->m_localEntryPoint    = this->m_localEntryPoint;
+	clone->m_remoteParty        = this->m_remoteParty;
+	clone->m_direction          = this->m_direction;
+	//clone->m_localSide        = this->m_localSide;
+	clone->m_audioKeepDirection = this->m_audioKeepDirection;
+	clone->m_duration           = this->m_duration;
+	clone->m_timestamp          = this->m_timestamp;
+	clone->m_localIp            = this->m_localIp;
+	clone->m_remoteIp           = this->m_remoteIp;
+	clone->m_nativeCallId       = this->m_nativeCallId;
+	clone->m_onDemand           = this->m_onDemand;
+
+	// Copy the tags!
+	std::copy(this->m_tags.begin(), this->m_tags.end(), std::inserter(clone->m_tags, clone->m_tags.begin()));
+
+	return clone;
+}
+
+
+
 //==========================================================
 TapeResponse::TapeResponse()
 {
@@ -121,28 +198,28 @@ ObjectRef TapeResponse::NewInstance()
 //}
 
 //====================================================================
-TapeTagMsg::TapeTagMsg()
-{
-	// Here is where default values are set
-}
+//TapeTagMsg::TapeTagMsg()
+//{
+	//// Here is where default values are set
+//}
 
-void TapeTagMsg::Define(Serializer* s)
-{
-	CStdString tapeMessageName("tapetagmsg");
-	s->StringValue(OBJECT_TYPE_TAG, tapeMessageName, true);
-	DefineMessage(s);
-}
+//void TapeTagMsg::Define(Serializer* s)
+//{
+	//CStdString tapeMessageName("tapetagmsg");
+	//s->StringValue(OBJECT_TYPE_TAG, tapeMessageName, true);
+	//DefineMessage(s);
+//}
 
-void TapeTagMsg::Validate()
-{
-}
+//void TapeTagMsg::Validate()
+//{
+//}
 
-CStdString TapeTagMsg::GetClassName()
-{
-	return CStdString("tapetagmsg");
-}
+//CStdString TapeTagMsg::GetClassName()
+//{
+	//return CStdString("tapetagmsg");
+//}
 
-ObjectRef TapeTagMsg::NewInstance()
-{
-	return ObjectRef(new TapeTagMsg);
-}
+//ObjectRef TapeTagMsg::NewInstance()
+//{
+	//return ObjectRef(new TapeTagMsg);
+//}

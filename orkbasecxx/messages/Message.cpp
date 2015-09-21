@@ -44,4 +44,22 @@ void Message::DefineMessage(Serializer* s)
 	s->StringValue("hostname", m_hostname, false);
 }
 
+/*
+bool Message::IsRealtime() {
+	throw "IsRealtime is not implemented this message cannot be reported";
+	return false;
+}
 
+oreka::shared_ptr<Message> Message::CreateResponse() {
+	throw "CreateResponse is not implemented this message cannot be reported";
+	return oreka::shared_ptr<Message>();
+}
+
+void Message::HandleResponse(oreka::shared_ptr<Message> responseRef) {
+	throw "HandleResponde is not implemented this message cannot be reported";
+}
+
+oreka::shared_ptr<Message> Message::Clone() {
+	throw "Clone function is not implemented this message cannot be reported";
+}
+*/

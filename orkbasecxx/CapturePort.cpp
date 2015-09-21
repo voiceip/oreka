@@ -327,7 +327,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			
 			MessageRef msgRef;
 			audioTapeRef->GetMessage(msgRef);
-			Reporting::Instance()->AddTapeMessage(msgRef);
+			Reporting::Instance()->AddMessage(msgRef);
 			m_needSendStop = false;
 
 			if (m_audioTapeRef->GetAudioFileRef().get())
@@ -349,7 +349,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 
 			MessageRef msgRef;
 			audioTapeRef->GetMessage(msgRef);
-			Reporting::Instance()->AddTapeMessage(msgRef);
+			Reporting::Instance()->AddMessage(msgRef);
 			m_needSendStop = true;
 
 			break;
@@ -360,7 +360,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			// Generate tape update message
 			MessageRef msgRef;
 			audioTapeRef->GetMessage(msgRef);
-			Reporting::Instance()->AddTapeMessage(msgRef);
+			Reporting::Instance()->AddMessage(msgRef);
 			break;
 		}
 		case CaptureEvent::EtLocalSide:
@@ -406,7 +406,7 @@ void CapturePort::Finalize()
 
 		MessageRef msgRef;
 		m_audioTapeRef->GetMessage(msgRef);
-		Reporting::Instance()->AddTapeMessage(msgRef);
+		Reporting::Instance()->AddMessage(msgRef);
 		m_needSendStop = false;
 	}
 }

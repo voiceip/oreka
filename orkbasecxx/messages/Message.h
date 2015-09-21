@@ -57,5 +57,14 @@ protected:
 
 typedef oreka::shared_ptr<Message> MessageRef;
 
+// Implement this interafce if you want to pass messages to Reporting::AddMessage
+class IReportable {
+	public:
+		virtual bool IsRealtime() = 0;
+		virtual MessageRef CreateResponse() = 0;
+		virtual void HandleResponse(MessageRef responseRef) = 0;
+		virtual MessageRef Clone() = 0;
+};
+
 #endif
 

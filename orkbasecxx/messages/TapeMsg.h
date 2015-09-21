@@ -37,13 +37,19 @@
 //#define LOCALSIDE_PARAM "localside"
 #define AUDIOKEEPDIRECTION_PARAM "side"
 
-class DLL_IMPORT_EXPORT_ORKBASE TapeMsg : public SyncMessage
+class DLL_IMPORT_EXPORT_ORKBASE TapeMsg :  public SyncMessage, public IReportable
 {
 public:
 	TapeMsg();
 
 	void Define(Serializer* s);
 	void Validate();
+
+	//IReportable interface
+	MessageRef CreateResponse();
+	void HandleResponse(MessageRef responseRef);
+	virtual bool IsRealtime();
+	MessageRef Clone();
 
 	CStdString GetClassName();
 	ObjectRef NewInstance();
@@ -104,24 +110,24 @@ typedef oreka::shared_ptr<TapeResponse> TapeResponseRef;
 //};
 
 
-class DLL_IMPORT_EXPORT_ORKBASE TapeTagMsg : public SyncMessage
-{
-public:
-	TapeTagMsg();
+//class DLL_IMPORT_EXPORT_ORKBASE TapeTagMsg : public SyncMessage
+//{
+//public:
+	//TapeTagMsg();
 
-	void Define(Serializer* s);
-	void Validate();
+	//void Define(Serializer* s);
+	//void Validate();
 
-	CStdString GetClassName();
-	ObjectRef NewInstance();
-	inline ObjectRef Process() {return ObjectRef();};
+	//CStdString GetClassName();
+	//ObjectRef NewInstance();
+	//inline ObjectRef Process() {return ObjectRef();};
 
-	CStdString m_orkUid;
-	time_t m_timestamp;
-	CStdString m_key;
-	CStdString m_value;
-};
-typedef oreka::shared_ptr<TapeTagMsg> TapeTagMsgRef;
+	//CStdString m_orkUid;
+	//time_t m_timestamp;
+	//CStdString m_key;
+	//CStdString m_value;
+//};
+//typedef oreka::shared_ptr<TapeTagMsg> TapeTagMsgRef;
 
 #endif
 

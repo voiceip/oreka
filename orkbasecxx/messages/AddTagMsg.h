@@ -17,7 +17,7 @@
 #include "messages/SyncMessage.h"
 #include "messages/AsyncMessage.h"
 
-class DLL_IMPORT_EXPORT_ORKBASE AddTagMsg : public SyncMessage
+class DLL_IMPORT_EXPORT_ORKBASE AddTagMsg : public SyncMessage, public IReportable
 {
 public:
 	AddTagMsg();
@@ -27,6 +27,12 @@ public:
 	CStdString GetClassName();
 	ObjectRef NewInstance();
 	ObjectRef Process();
+
+	//IReportable interface
+	bool IsRealtime();
+	MessageRef CreateResponse();
+	void HandleResponse(MessageRef responseRef);
+	MessageRef Clone();
 
 	CStdString m_party;
 	CStdString m_orkuid;
