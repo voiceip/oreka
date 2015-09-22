@@ -182,16 +182,8 @@ bool Reporting::AddMessage(MessageRef messageRef)
 		ReportingThreadInfoRef reportingThread = *it;
 		MessageRef reportingMsgRef = reportable->Clone();
 
-		if(reportingThread->m_messageQueue.push(reportingMsgRef))
-		{
-			FLOG_INFO(LOG.reporting,"[%s] enqueued: %s", reportingThread->m_tracker.ToString(), msgAsSingleLineString);
-			ret = true;
-		}
-		else
-		{
-			FLOG_WARN(LOG.reporting,"[%s] queue full, rejected: %s", reportingThread->m_tracker.ToString(), msgAsSingleLineString);
-			ret = false;
-		}
+		ret = reportingThread->m_messageQueue.push(reportingMsgRef);
+		FLOG_INFO(LOG.reporting,"[%s] %s: %s",reportingThread->m_tracker.ToString(),ret?"enqueued":"queue full, rejected",msgAsSingleLineString);
 	}
 
 	EventStreamingSingleton::instance()->AddMessage(reportable->Clone());
