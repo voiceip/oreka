@@ -88,7 +88,11 @@ MessageRef TapeMsg::CreateResponse() {
 void TapeMsg::HandleResponse(MessageRef responseRef) {
 	CStdString logMsg;
 
-	TapeResponse* tr =(TapeResponse*) responseRef.get();
+	TapeResponse* tr = dynamic_cast<TapeResponse*>(responseRef.get());
+	if (!tr) {
+		LOG4CXX_WARN(LOG.messaging,"Ignoring wrong response type");
+		return;
+	}
 
 	if(tr->m_deleteTape && this->m_stage.Equals("ready") )
 	{
@@ -97,11 +101,11 @@ void TapeMsg::HandleResponse(MessageRef responseRef) {
 		CStdString absoluteFilename = CONFIG.m_audioOutputPath + "/" + tapeFilename;
 		if (ACE_OS::unlink((PCSTR)absoluteFilename) == 0)
 		{
-			FLOG_INFO(LOG.reporting,"deleted tape: %s", tapeFilename);
+			FLOG_INFO(LOG.messaging,"deleted tape: %s", tapeFilename);
 		}
 		else
 		{
-			FLOG_DEBUG(LOG.reporting,"could not delete tape: %s ", tapeFilename);
+			FLOG_DEBUG(LOG.messaging,"could not delete tape: %s ", tapeFilename);
 		}
 
 	}
