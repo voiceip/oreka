@@ -1061,6 +1061,10 @@ void VoIpSession::ReportDtmfDigit(int channel, CStdString digitValue,  unsigned 
 
 void VoIpSession::GoOnHold(time_t onHoldTime)
 {
+	if(m_started != true)
+	{
+		return;
+	}
 	m_onHold = true;
 	m_holdBegin = onHoldTime;
 }
