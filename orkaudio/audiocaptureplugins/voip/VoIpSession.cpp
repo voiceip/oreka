@@ -4176,6 +4176,26 @@ void VoIpSessions::TaggingSipTransferCalls(VoIpSessionRef& session)
 			g_captureEventCallBack(event, session->m_capturePort);
 			logMsg.Format("transfer via SIP REFER:[%s] new leg, tagging with orig-orkuid:%s",session->m_trackingId, sipRefer->m_origOrkUid);
 			LOG4CXX_INFO(m_log, logMsg);
+
+			//Try to swap the correct external number into remote party, otherwise its displayed as internal ext<->internal ext call
+			//Actual external remote number is sipRefer->to
+			//Party which is matched siprefer->m_referredBy need to be replaced
+			if(session->m_localParty.CompareNoCase(sipRefer->m_referredBy) == 0)
+			{
+				session->m_localParty = sipRefer->m_to;
+				CaptureEventRef event(new CaptureEvent());
+				event->m_type = CaptureEvent::EtLocalParty;
+				event->m_value = session->m_localParty;
+				g_captureEventCallBack(event, session->m_capturePort);
+			}
+			else if(session->m_remoteParty.CompareNoCase(sipRefer->m_referredBy) == 0)
+			{
+				session->m_remoteParty = sipRefer->m_to;
+				CaptureEventRef event(new CaptureEvent());
+				event->m_type = CaptureEvent::EtRemoteParty;
+				event->m_value = session->m_remoteParty;
+				g_captureEventCallBack(event, session->m_capturePort);
+			}
 		}
 		it++;
 	}
