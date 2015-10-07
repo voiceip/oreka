@@ -76,6 +76,7 @@ public:
 
 	std::map<CStdString, CStdString> m_tags;
 	bool m_onDemand;
+	bool m_live;
 };
 
 typedef oreka::shared_ptr<TapeMsg> TapeMsgRef;
