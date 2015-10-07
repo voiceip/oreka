@@ -20,7 +20,7 @@
 #include "LogManager.h"
 #include "CapturePluginProxy.h"
 
-TapeMsg::TapeMsg()
+TapeMsg::TapeMsg() : m_live(false)
 {
 	// Here is where default values are set
 	m_timestamp = 0;
@@ -57,6 +57,7 @@ void TapeMsg::Define(Serializer* s)
 	s->BoolValue(ON_DEMAND_PARAM, m_onDemand);
 	//s->StringValue(LOCALSIDE_PARAM, m_localSide);
 	s->StringValue(AUDIOKEEPDIRECTION_PARAM, m_audioKeepDirection);
+	s->BoolValue("live", m_live);
 
 
 	DefineMessage(s);
