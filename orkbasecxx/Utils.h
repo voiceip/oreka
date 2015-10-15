@@ -129,6 +129,7 @@ private:
 	std::list<unsigned int> m_ipRangeBitWidths;
 };
 
+void DLL_IMPORT_EXPORT_ORKBASE GetHostFqdn(CStdString& fqdn, int size);
 
 //=====================================================
 // Miscellanous stuff

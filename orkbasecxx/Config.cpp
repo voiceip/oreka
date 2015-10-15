@@ -92,6 +92,7 @@ Config::Config()
 	m_remotePartyMaxDigits = 0;
 	m_dtmfReportingDetailed = DTMF_REPORTING_DETAILED;
 	m_clientRetryPeriodSec = CLIENT_RETRY_PERIOD_SEC_DEFAULT;
+	m_hostnameReportFqdn = HOSTNAME_REPORT_FQDN_DEFAULT;
 }
 
 void Config::Define(Serializer* s)
@@ -195,6 +196,7 @@ void Config::Define(Serializer* s)
 	s->IntValue("RemotePartyMaxDigits", m_remotePartyMaxDigits);
 	s->BoolValue("DtmfReportingDetailed" ,m_dtmfReportingDetailed);
 	s->CsvValue(DYNAMIC_TAGS, m_dynamicTags);
+	s->BoolValue(HOSTNAME_REPORT_FQDN ,m_hostnameReportFqdn);
 	//Construct the partyFilterMap
 	if(m_partyFilterCharsReplaceWith.size() != 0)
 	{

@@ -153,6 +153,8 @@
 #define CLIENT_RETRY_PERIOD_SEC "ClientRetryPeriodSec"
 #define CLIENT_RETRY_PERIOD_SEC_DEFAULT 2
 #define DYNAMIC_TAGS "DynamicTags"
+#define HOSTNAME_REPORT_FQDN "HostnameReportFqdn"
+#define HOSTNAME_REPORT_FQDN_DEFAULT false
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -245,6 +247,7 @@ public:
 	bool m_dtmfReportingDetailed;
 	int m_clientRetryPeriodSec;
 	std::list<CStdString> m_dynamicTags;
+	bool m_hostnameReportFqdn;
 
 private:
 	log4cxx::LoggerPtr m_log;

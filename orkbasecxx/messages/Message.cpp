@@ -17,14 +17,22 @@
 
 #include "serializers/XmlRpcSerializer.h"
 #include "Message.h"
-
+#include "ConfigManager.h"
+#include "Utils.h"
 
 Message::Message()
 {
 	m_creationTime = time(NULL);
 	char hostname[HOSTNAME_BUF_LEN];
-	ACE_OS::hostname(hostname, HOSTNAME_BUF_LEN);
-	m_hostname = hostname;
+	if(CONFIG.m_hostnameReportFqdn == false)
+	{
+		ACE_OS::hostname(hostname, HOSTNAME_BUF_LEN);
+		m_hostname = hostname;
+	}
+	else
+	{
+		GetHostFqdn(m_hostname, HOSTNAME_BUF_LEN);
+	}
 }
 
 

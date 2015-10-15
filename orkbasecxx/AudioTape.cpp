@@ -853,13 +853,21 @@ void AudioTape::GenerateFinalFilePath()
                         case TapeAttributes::TaHostname:
                         {
                                 char host_name[255];
-
-                                memset(host_name, 0, sizeof(host_name));
-                                ACE_OS::hostname(host_name, sizeof(host_name));
-
-                                if(strlen(host_name))
+				CStdString hostname;
+				if(CONFIG.m_hostnameReportFqdn == false)
+				{
+					memset(host_name, 0, sizeof(host_name));
+					ACE_OS::hostname(host_name, sizeof(host_name));
+					hostname.Format("%s", host_name);
+				}
+				else
+				{
+					GetHostFqdn(hostname, 255);
+				}
+				
+                                if(strlen(hostname))
                                 {
-                                        pathIdentifier += host_name;
+                                        pathIdentifier += hostname;
                                 }
                                 else
                                 {

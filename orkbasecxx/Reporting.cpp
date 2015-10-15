@@ -275,12 +275,18 @@ void ReportingThread::Run()
 	time_t reportErrorLastTime = 0;
 	bool error = false;
 
-	char szLocalHostname[255];
-	ACE_OS::hostname(szLocalHostname, sizeof(szLocalHostname));
-
 	InitMsgRef initMsgRef(new InitMsg());
-	initMsgRef->m_name = CONFIG.m_serviceName;
-	initMsgRef->m_hostname = szLocalHostname;
+	if(CONFIG.m_hostnameReportFqdn == false)
+	{
+		char szLocalHostname[255];
+		ACE_OS::hostname(szLocalHostname, sizeof(szLocalHostname));
+		initMsgRef->m_hostname = szLocalHostname;
+	}
+	else
+	{
+		GetHostFqdn(initMsgRef->m_hostname, 255);
+	}
+	initMsgRef->m_name = CONFIG.m_serviceName;	
 	initMsgRef->m_type = "A";
 	initMsgRef->m_tcpPort = 59140;
 	initMsgRef->m_contextPath = "/audio";

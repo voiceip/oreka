@@ -7,6 +7,8 @@
 #ifndef WIN32
 #include <pwd.h>
 #include <grp.h>
+#include <netdb.h>
+#include <unistd.h>
 #endif
 
 //========================================================
@@ -444,6 +446,17 @@ bool TcpAddressList::HasAddressOrAdd(struct in_addr ip, unsigned short port)
 		return false;
 	}
 	return true;
+}
+
+void GetHostFqdn(CStdString& fqdn, int size)
+{
+#ifndef WIN32	
+	char hostname[255];
+	struct hostent *hp;
+	gethostname(hostname, size);
+	hp = gethostbyname(hostname);
+	fqdn.Format("%s", hp->h_name);
+#endif
 }
 
 //=========================
