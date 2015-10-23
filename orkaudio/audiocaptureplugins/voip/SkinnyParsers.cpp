@@ -181,7 +181,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			//(1) not always available, in this case, use calling general number
 			//(2) not always available
 			int tokenNr = 0;
-			while(tokenNr < 10 && partiesPtr < parties+partiesLen)
+			while(tokenNr < 12 && partiesPtr < parties+partiesLen)
 			{
 				CStdString party;
 				GrabTokenAcceptSpace(partiesPtr, parties+partiesLen, party);
@@ -229,6 +229,18 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 					break;
 				case 10:
 					calledPartyName = party;
+					break;
+				case 11:
+					if(calledPartyName.length() < 3)	//the name should be more than 3 letter!?
+					{
+						calledPartyName = party;
+					}
+					break;
+				case 12:
+					if(calledPartyName.length() < 3)	//the name should be more than 3 letter!?
+					{
+						calledPartyName = party;
+					}
 					break;
 				}
 			}
