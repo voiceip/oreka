@@ -74,7 +74,7 @@
         
 		<!-- Those two parameters are only needed for call direction detection (one or the other) -->
 		<!--<SipDomains>company.com, 65.34.25.87</SipDomains>-->
-		<!--<SipDirectionRefenceIpAddresses>65.34.98.56, 65.34.98.57</SipDirectionRefenceIpAddresses>-->
+		<!--<SipDirectionReferenceIpAddresses>65.34.98.56, 65.34.98.57</SipDirectionReferenceIpAddresses>-->
                 
 		<!-- Sangoma wanpipe RTP tap for TDM boards -->
 		<!--<SangomaRxTcpPortStart>9000</SangomaRxTcpPortStart>-->
