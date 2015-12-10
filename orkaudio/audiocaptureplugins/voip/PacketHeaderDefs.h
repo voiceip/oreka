@@ -161,7 +161,7 @@ typedef struct {
 typedef struct
 {
 	unsigned int len;
-	unsigned int reserved;
+	unsigned int headerVersion;
 	unsigned int messageType;
 } SkinnyHeaderStruct;
 

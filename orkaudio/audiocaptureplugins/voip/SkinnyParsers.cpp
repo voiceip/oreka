@@ -225,19 +225,29 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 					// This is the called party extension, not used for now
 					break;
 				case 9:
-					callingPartyName = party;
+					if(ccm5CallInfo->header.headerVersion == 0x0)
+					{
+						callingPartyName = party;
+					}
 					break;
 				case 10:
-					calledPartyName = party;
+					if(ccm5CallInfo->header.headerVersion == 0x0)
+					{
+						calledPartyName = party;
+					}
+					else
+					{
+						callingPartyName = party;
+					}
 					break;
 				case 11:
-					if(calledPartyName.length() < 3)	//the name should be more than 3 letter!?
+					if(ccm5CallInfo->header.headerVersion != 0x0)
 					{
 						calledPartyName = party;
 					}
 					break;
 				case 12:
-					if(calledPartyName.length() < 3)	//the name should be more than 3 letter!?
+					if(ccm5CallInfo->header.headerVersion != 0x0)
 					{
 						calledPartyName = party;
 					}
