@@ -247,7 +247,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 					}
 					break;
 				case 12:
-					if(ccm5CallInfo->header.headerVersion != 0x0)
+					if(ccm5CallInfo->header.headerVersion != 0x0 && party.length() > calledPartyName.length())
 					{
 						calledPartyName = party;
 					}
