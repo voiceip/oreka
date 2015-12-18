@@ -96,7 +96,7 @@ void VoIpConfig::Reset() {
 	m_skinnyCallInfoStopsPrevious = false;
 	m_skinnyCallInfoStopsPreviousToleranceSec = 3;
 	m_cucm7_1Mode = true;
-	m_skinnyAllowMediaAddressTransfer = false;
+	m_skinnyAllowMediaAddressTransfer = true;
 	m_skinnyRtpSearchesForCallInfo = false;
 	m_SkinnyTrackConferencesTransfers = false;
 	m_skinnyBehindNat = false;
