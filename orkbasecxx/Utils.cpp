@@ -542,3 +542,27 @@ bool IpRanges::Empty()
 		return false;
 }
 
+//This maps dynamic payload types >= 96  that are detected in the SDP to our own arbitrary static payload type values
+//for example, the opus codec will always be mapped to oreka payload type 60, regardless of the dynamic payload type it is given in a particular SIP session.
+int GetOrekaRtpPayloadTypeForSdpRtpMap(CStdString sdp)
+{
+	CStdString rtpCodec;
+	int ret = 0;
+	if(sdp.Find("opus") != std::string::npos)
+	{
+		rtpCodec = "opus";
+		ret = 60;
+	}
+	else if(sdp.Find("AMR/8000") != std::string::npos)
+	{
+		rtpCodec = "amr-nb";
+		ret = 61;
+	}
+	else if(sdp.Find("AMR-WB") != std::string::npos)
+	{
+		rtpCodec = "amr-wb";
+		ret = 62;
+	}
+	return ret;
+}
+

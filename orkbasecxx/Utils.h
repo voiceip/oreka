@@ -90,6 +90,9 @@ void DLL_IMPORT_EXPORT_ORKBASE FileEscapeName(CStdString& in, CStdString& out);
 bool DLL_IMPORT_EXPORT_ORKBASE FileIsExist(CStdString fileName);
 int DLL_IMPORT_EXPORT_ORKBASE FileSizeInKb(CStdString fileName);	//return file's size in Kb
 
+//===========================================================
+int DLL_IMPORT_EXPORT_ORKBASE GetOrekaRtpPayloadTypeForSdpRtpMap(CStdString sdp);
+
 //=====================================================
 // threading related stuff
 
