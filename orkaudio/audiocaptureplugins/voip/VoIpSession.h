@@ -161,6 +161,7 @@ public:
 	unsigned int m_numAlienRtpPacketsS2;
 	unsigned int m_ssrcCandidate;
 	CStdString m_dtmfDigitString;
+	int m_orekaRtpPayloadType;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);

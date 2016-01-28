@@ -80,6 +80,7 @@ public:
 	CStdString m_contactName;
 	CStdString m_contactDomain;
 	bool m_SipGroupPickUpPatternDetected;
+	int m_orekaRtpPayloadType;
 
 	time_t m_recvTime;
 };

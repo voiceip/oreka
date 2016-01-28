@@ -1532,6 +1532,18 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			}
 		}
 
+		//Determine the being used codec: should be the first rtpmap
+		if(sipMethod == SIP_METHOD_200_OK)
+		{
+			rtpmapAttribute = memFindAfter("\na=rtpmap:", (char*)udpPayload, sipEnd);
+			if(rtpmapAttribute)
+			{
+				CStdString line;
+				GrabLineSkipLeadingWhitespace(rtpmapAttribute, sipEnd, line);
+				info->m_orekaRtpPayloadType = GetOrekaRtpPayloadTypeForSdpRtpMap(line);
+			}
+		}
+
 		if((unsigned int)info->m_fromRtpIp.s_addr == 0)
 		{
 			// In case connection address could not be extracted, use SIP invite sender IP address

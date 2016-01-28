@@ -84,6 +84,7 @@ VoIpSession::VoIpSession(CStdString& trackingId)
 	m_numAlienRtpPacketsS2 = 0;
 	m_ssrcCandidate = -1;
 	m_mappedS1S2 =  false;
+	m_orekaRtpPayloadType = 0;
 }
 
 void VoIpSession::Stop()
@@ -1551,11 +1552,18 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		details.m_arrivalTimestamp = rtpPacket->m_arrivalTimestamp;
 		details.m_numBytes = rtpPacket->m_payloadSize;
 		details.m_timestamp = rtpPacket->m_timestamp;
-		details.m_rtpPayloadType = rtpPacket->m_payloadType;
 		details.m_sequenceNumber = rtpPacket->m_seqNum;
 		details.m_channel = channel;
 		details.m_encoding = AlawAudio;
 		details.m_numBytes = rtpPacket->m_payloadSize;
+		if(m_orekaRtpPayloadType != 0)
+		{
+			details.m_rtpPayloadType = m_orekaRtpPayloadType;
+		}
+		else
+		{
+			details.m_rtpPayloadType = rtpPacket->m_payloadType;
+		}
 		AudioChunkRef chunk(new AudioChunk());
 		chunk->SetBuffer(rtpPacket->m_payload, details);
 		g_audioChunkCallBack(chunk, m_capturePort);
@@ -1692,6 +1700,14 @@ void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	if(invite->m_sipRemoteParty != "")
 	{
 		m_sipRemoteParty = invite->m_sipRemoteParty;
+	}
+
+	// Use the RTP codec that was extracted from SDP if available
+	//- WARNING, if near end and far end use different codecs, it will force the codec detected in the SDP onto both streams and will not work
+	//- might need to fix this at some point
+	if(invite->m_orekaRtpPayloadType != 0)
+	{
+		m_orekaRtpPayloadType = invite->m_orekaRtpPayloadType;
 	}
 
 	// Gather extracted fields
