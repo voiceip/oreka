@@ -4188,11 +4188,13 @@ void VoIpSessions::TaggingSipTransferCalls(VoIpSessionRef& session)
 
 		int timeDifFromCreation = (int)(sipRefer->m_timestamp - session->m_creationDate.sec());
 		if((timeDifFromCreation > -2)
-			&& (
-					(toUser.CompareNoCase(sipRefer->m_referTo) == 0 && fromUser.CompareNoCase(sipRefer->m_referredBy) == 0)
-					|| (fromUser.CompareNoCase(sipRefer->m_from) == 0 || fromUser.CompareNoCase(sipRefer->m_to) == 0)
+			&&(
+					(toUser.CompareNoCase(sipRefer->m_referTo) == 0)
 			   )
-		  )
+			&&(
+					fromUser.CompareNoCase(sipRefer->m_referredBy) == 0 || (fromUser.CompareNoCase(sipRefer->m_from) == 0 || fromUser.CompareNoCase(sipRefer->m_to) == 0)
+			   )
+		   )
 		{
 			CaptureEventRef event (new CaptureEvent());
 			event->m_type = CaptureEvent::EtKeyValue;
