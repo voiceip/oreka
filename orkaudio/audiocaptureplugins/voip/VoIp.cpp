@@ -739,6 +739,10 @@ void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 	}
 }
 
+#define ETHER_TYPE_IPV4 0x0800
+#define ETHER_TYPE_ARP 0x0806
+#define ETHER_TYPE_IEEE8021Q 0x8100
+#define ETHER_TYPE_IPV6 0x86DD
 void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data)
 {
 	time_t now = time(NULL);
@@ -791,13 +795,35 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	EthernetHeaderStruct* ethernetHeader = (EthernetHeaderStruct *)pkt_data;
 	IpHeaderStruct* ipHeader = NULL;
 
-	if(ntohs(ethernetHeader->type) == 0x8100)
+	if(ntohs(ethernetHeader->type) == ETHER_TYPE_IEEE8021Q)
 	{
 		ipHeader = (IpHeaderStruct*)((char*)ethernetHeader + sizeof(EthernetHeaderStruct) + 4);
 	}
-	else
+	else if(ntohs(ethernetHeader->type) == ETHER_TYPE_IPV4 || ntohs(ethernetHeader->type) == ETHER_TYPE_ARP)
 	{
 		ipHeader = (IpHeaderStruct*)((char*)ethernetHeader + sizeof(EthernetHeaderStruct));
+	}
+	else if(ntohs(ethernetHeader->type) == ETHER_TYPE_IPV6)
+	{
+		return;
+	}
+	else	//Maybe linux cooked pcap
+	{
+		//If Linux cooked capture, we arbitrarily align the Ethernet header pointer so that its ETHER_TYPE is aligned with the ETHER_TYPE field of the Linux Cooked header.
+		//This means that the source and destination MAC addresses of the obtained Ethernet header are totally wrong, but this is fine, as long as we are aware of this limitation
+		ethernetHeader = (EthernetHeaderStruct *)(pkt_data + 2);
+		if(ntohs(ethernetHeader->type) == ETHER_TYPE_IEEE8021Q)
+		{
+			ipHeader = (IpHeaderStruct*)((char*)ethernetHeader + sizeof(EthernetHeaderStruct) + 4);
+		}
+		else if(ntohs(ethernetHeader->type) == ETHER_TYPE_IPV6)
+		{
+			return;
+		}
+		else
+		{
+			ipHeader = (IpHeaderStruct*)((char*)ethernetHeader + sizeof(EthernetHeaderStruct));
+		}
 	}
 
 	if(TryIpPacketV4(ipHeader) != true)
