@@ -835,7 +835,8 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	if(DLLCONFIG.m_orekaEncapsulationMode == false)
 	{
 		u_char* captureEnd = (u_char*)pkt_data + header->caplen;
-		if( captureEnd < (u_char*)ipPacketEnd  || (u_char*)ipPacketEnd <= ((u_char*)ipHeader + ipHeaderLength + TCP_HEADER_LENGTH))
+		const int MIN_TRANSPORT_HEADER_LEN=8; // Size of a UDP header
+		if( captureEnd < (u_char*)ipPacketEnd  || (u_char*)ipPacketEnd <= ((u_char*)ipHeader + ipHeaderLength + MIN_TRANSPORT_HEADER_LEN))
 		{
 			// The packet has been snipped or has not enough payload, drop it,
 			return;
