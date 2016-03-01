@@ -235,7 +235,7 @@ public:
 	void ReportRtpPacket(RtpPacketInfoRef& rtpPacket);
 	bool ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo);
 	void ReportSipErrorPacket(SipFailureMessageInfoRef& sipError);
-	void ReportSip200Ok(Sip200OkInfoRef info);
+	VIT void ReportSip200Ok(Sip200OkInfoRef info);
 	void ReportSipSessionProgress(SipSessionProgressInfoRef& info);
 	void ReportSip302MovedTemporarily(Sip302MovedTemporarilyInfoRef& info);
 	void ReportSipInfo(SipInfoRef& info);
