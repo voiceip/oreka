@@ -1129,12 +1129,19 @@ bool TrySipSubscribe(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHea
 }
 bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
+	CStdString logMsg;
 	bool result = false;
 	bool drop = false;
 	CStdString sipMethod;
 
 	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
 	char* sipEnd = (char*)udpPayload + sipLength;
+
+	if (DLLCONFIG.m_ipFragmentsReassemble == false && sipEnd > (char*)packetEnd && ipHeader->offset() == 0) {
+		FLOG_DEBUG(s_sipExtractionLog, "Will try to process incomplete first fragment with id:%u",ipHeader->packetId());
+		sipEnd = (char*)packetEnd;
+	}
+
 	if(sipLength < 3 || sipEnd > (char*)packetEnd)
 	{
 		drop = true;	// packet too short
@@ -1574,7 +1581,6 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		if(sipMethod.Equals(SIP_METHOD_INVITE) || info->m_fromRtpPort.size())
 		{
 			// Only log SIP non-INVITE messages that contain SDP (i.e. with a valid RTP port)
-			CStdString logMsg;
 			info->ToString(logMsg);
 			logMsg = sipMethod + ": " + logMsg;
 			LOG4CXX_INFO(s_sipPacketLog, logMsg);
