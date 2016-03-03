@@ -87,6 +87,7 @@ static unsigned int s_numLostTcpPacketsInUdpMode;
 
 SizedBufferRef HandleIpFragment(IpHeaderStruct* ipHeader);
 
+const int pcap_live_snaplen = 65535;
 
 #define PROMISCUOUS 1
 #define LOCAL_PARTY_MAP_FILE	"localpartymap.csv"
@@ -1263,7 +1264,7 @@ pcap_t* VoIp::OpenDevice(CStdString& name)
 	CStdString logMsg;
 
 	m_pcapHandle = NULL;
-	m_pcapHandle = pcap_open_live((char*)name.c_str(), 1500, PROMISCUOUS, 500, errorBuf);
+	m_pcapHandle = pcap_open_live((char*)name.c_str(), pcap_live_snaplen, PROMISCUOUS, 500, errorBuf);
 
 	if(m_pcapHandle)
 	{
@@ -1334,7 +1335,7 @@ void VoIp::OpenDevices()
 				if((DLLCONFIG.m_devices.size() > 0 && (*DLLCONFIG.m_devices.begin()).CompareNoCase("all") == 0) || DLLCONFIG.IsDeviceWanted(device->name))
 				{
 					// Open device
-					m_pcapHandle = pcap_open_live(device->name, 1500, PROMISCUOUS, 500, errorBuf);
+					m_pcapHandle = pcap_open_live(device->name, pcap_live_snaplen, PROMISCUOUS, 500, errorBuf);
 					
 					if(m_pcapHandle)
 					{
@@ -1372,7 +1373,7 @@ void VoIp::OpenDevices()
 				// Let's open the default device
 				if(defaultDevice)
 				{
-					m_pcapHandle = pcap_open_live(defaultDevice->name, 1500, PROMISCUOUS, 500, errorBuf);
+					m_pcapHandle = pcap_open_live(defaultDevice->name, pcap_live_snaplen, PROMISCUOUS, 500, errorBuf);
 
 					if(m_pcapHandle)
 					{
