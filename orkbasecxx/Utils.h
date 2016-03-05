@@ -67,6 +67,12 @@ inline double StringToDouble(CStdString& value)
 	return doubleValue;
 }
 
+inline CStdString IpToString(const in_addr& ip) {
+	char s[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &ip, s, INET_ADDRSTRLEN);
+	return CStdString(s);
+}
+
 bool DLL_IMPORT_EXPORT_ORKBASE StringIsDigit(CStdString& string);
 bool DLL_IMPORT_EXPORT_ORKBASE StringIsPhoneNumber(CStdString& string);
 bool DLL_IMPORT_EXPORT_ORKBASE MatchesStringList(CStdString& string, std::list<CStdString>& stringList);
