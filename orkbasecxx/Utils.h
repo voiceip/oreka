@@ -67,9 +67,9 @@ inline double StringToDouble(CStdString& value)
 	return doubleValue;
 }
 
-inline CStdString IpToString(const in_addr& ip) {
-	char s[INET_ADDRSTRLEN];
-	inet_ntop(AF_INET, &ip, s, INET_ADDRSTRLEN);
+inline CStdString IpToString(const struct in_addr& ip) {
+	char s[16];
+	ACE_OS::inet_ntop(AF_INET, (void*)&ip, s, sizeof(s));
 	return CStdString(s);
 }
 
