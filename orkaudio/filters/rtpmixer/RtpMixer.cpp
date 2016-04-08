@@ -65,6 +65,7 @@ public:
 	CStdString __CDECL__ GetName();
 	inline void __CDECL__ CaptureEventIn(CaptureEventRef& event) {;}
 	inline void __CDECL__ CaptureEventOut(CaptureEventRef& event) {;}
+	void __CDECL__ SetNumOutputChannels(int numChan);
 
 private:
 	//AudioChunkRef m_outputAudioChunk;
@@ -119,7 +120,7 @@ private:
 	//==========================================================
 	// Multi-channel separated output
 
-	int m_numChannels; // Number of channels
+	int m_numInputChannels; // Number of channels
 	std::vector<RtpMixerChannelRef> m_rtpMixerChannels; // Channel information
 };
 
@@ -166,7 +167,7 @@ RtpMixer::RtpMixer()
 	m_seqNumOutOfOrderS2 = 0;
 	m_seqNumDiscontinuitiesS1 = 0;
 	m_seqNumDiscontinuitiesS2 = 0;
-	m_numChannels = 0;
+	m_numInputChannels = 0;
 	m_oneS1PacketState = false;
 	m_rtpMixerChannels.clear();
 	m_numSampleTrigger = NUM_SAMPLES_TRIGGER;
@@ -175,7 +176,7 @@ RtpMixer::RtpMixer()
 
 void RtpMixer::CreateChannels(int channelNumber)
 {
-	if(CONFIG.m_stereoRecording == false)
+	if(m_numOutputChannels == 1)
 	{
 		return;
 	}
@@ -185,7 +186,7 @@ void RtpMixer::CreateChannels(int channelNumber)
 		return;
 	}
 
-	if(channelNumber <= m_numChannels)
+	if(channelNumber <= m_numInputChannels)
 	{
 		// Channel already created
 		return;
@@ -195,7 +196,7 @@ void RtpMixer::CreateChannels(int channelNumber)
 
 	int i;
 
-	i = m_numChannels;
+	i = m_numInputChannels;
 
 	// Always create channels until this number
 	for(; i < channelNumber; i++)
@@ -203,7 +204,7 @@ void RtpMixer::CreateChannels(int channelNumber)
 		rtpMixerChannel.reset(new RtpMixerChannel());
 		rtpMixerChannel->m_channel = i+1;
 		m_rtpMixerChannels.push_back(rtpMixerChannel);
-		m_numChannels += 1;
+		m_numInputChannels += 1;
 	}
 
 	return;
@@ -268,9 +269,9 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 
 	if(details->m_marker == MEDIA_CHUNK_EOS_MARKER)
 	{
-		if(m_numChannels)
+		if(m_numInputChannels)
 		{
-			for(int i = 0; i < m_numChannels; i++)
+			for(int i = 0; i < m_numInputChannels; i++)
 			{
 				CStdString statsChan;
 
@@ -327,14 +328,14 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 
 	unsigned int correctedTimestamp = 0;
 
-	if(CONFIG.m_stereoRecording == true)
+	if(m_numOutputChannels == 2)
 	{
 		CreateChannels(details->m_channel);
 	}
 
 	if(details->m_channel == 1)
 	{
-		if(m_numChannels)
+		if(m_numInputChannels)
 		{
 			int chanIdx = 0;
 			AudioChunkRef lastChunk = m_rtpMixerChannels[chanIdx]->m_lastChunk;
@@ -371,7 +372,7 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 	}
 	else if(details->m_channel == 2)
 	{
-		if(m_numChannels)
+		if(m_numInputChannels)
 		{
 			int chanIdx = 1;
 			AudioChunkRef lastChunk = m_rtpMixerChannels[chanIdx]->m_lastChunk;
@@ -431,7 +432,7 @@ void RtpMixer::AudioChunkIn(AudioChunkRef& chunk)
 	else
 	{
 		// Support for channel 3, 4, 5, ...
-		if(m_numChannels)
+		if(m_numInputChannels)
 		{
 			int chanIdx = (details->m_channel)-1;
 			AudioChunkRef lastChunk = m_rtpMixerChannels[chanIdx]->m_lastChunk;
@@ -578,7 +579,7 @@ void RtpMixer::ManageOutOfRangeTimestamp(AudioChunkRef& chunk)
 	}
 	else
 	{
-		if(m_numChannels)
+		if(m_numInputChannels)
 		{
 			int chanIdx = details->m_channel - 1;
 
@@ -639,7 +640,7 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk, unsigned int correctedT
 	AudioChunkDetails* details = audioChunk->GetDetails();
 	RtpMixerChannelRef myChannel;
 
-	if(m_numChannels)
+	if(m_numInputChannels)
 	{
 		// Define this once and for all
 		myChannel = m_rtpMixerChannels[details->m_channel - 1];
@@ -667,9 +668,9 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk, unsigned int correctedT
 		{
 			*m_writePtr = 0;
 
-			if(m_numChannels)
+			if(m_numInputChannels)
 			{
-				for(int x = 0; x < m_numChannels; x++)
+				for(int x = 0; x < m_numInputChannels; x++)
 				{
 					// We follow in step and zero the bytes in the buffers of all the
 					// RtpMixer channels, in preparation for the write - this means that
@@ -712,7 +713,7 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk, unsigned int correctedT
 		*tempWritePtr = (short)sample;
 
 		// Follow in step and save the payload in the respective channel buffer
-		if(m_numChannels)
+		if(m_numInputChannels)
 		{
 			short* myChannelTempWritePtr = myChannel->m_buffer + (tempWritePtr - m_buffer);
 			*myChannelTempWritePtr = (short)payload[i];
@@ -754,7 +755,7 @@ short* RtpMixer::CicularPointerSubtractOffset(short *ptr, size_t offset)
 
 void RtpMixer::HandleMixedOutput(AudioChunkRef &chunk, AudioChunkDetails& details, short *readPtr)
 {
-	if(CONFIG.m_stereoRecording == false)
+	if(m_numOutputChannels == 1)
 	{
 		return;
 	}
@@ -767,7 +768,7 @@ void RtpMixer::HandleMixedOutput(AudioChunkRef &chunk, AudioChunkDetails& detail
 	// know about in the RtpMixer, we will need to adjust the chunk such that it has
 	// the exact number of channel buffers we're required to output i.e so that
 	// the number of channel buffers in the chunk == CONFIG.m_tapeNumChannels
-	if(CONFIG.m_tapeNumChannels != m_numChannels)
+	if(CONFIG.m_tapeNumChannels != m_numInputChannels)
 	{
 		chunk.reset(new AudioChunk(CONFIG.m_tapeNumChannels));
 		chunk->SetBuffer((void*)readPtr, details);
@@ -809,7 +810,7 @@ void RtpMixer::HandleMixedOutput(AudioChunkRef &chunk, AudioChunkDetails& detail
 	int chanNo = 0;
 	int chanIdx = 0;
 
-	for(int i = 0; i < m_numChannels; i++)
+	for(int i = 0; i < m_numInputChannels; i++)
 	{
 		chanNo = i+1;
 		chanIdx = i;
@@ -891,9 +892,9 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 	AudioChunkRef chunk;
 	AudioChunkDetails details;
 
-	if(m_numChannels)
+	if(m_numInputChannels)
 	{
-		chunk.reset(new AudioChunk(m_numChannels));
+		chunk.reset(new AudioChunk(m_numInputChannels));
 		details.m_channel = 100;
 	}
 	else
@@ -906,7 +907,7 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 	if(CheckChunkDetails(details))
 	{
 		chunk->SetBuffer((void*)m_readPtr, details);
-		if(CONFIG.m_stereoRecording == true)
+		if(m_numOutputChannels == 2)
 		{
 			HandleMixedOutput(chunk, details, m_readPtr);
 		}
@@ -929,9 +930,9 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 		shortSize = wrappedStopPtr - m_buffer;
 		byteSize = shortSize*2;
 
-		if(m_numChannels)
+		if(m_numInputChannels)
 		{
-			chunk.reset(new AudioChunk(m_numChannels));
+			chunk.reset(new AudioChunk(m_numInputChannels));
 			details.m_channel = 100;
 		}
 		else
@@ -945,7 +946,7 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 		if(CheckChunkDetails(details))
 		{
 			chunk->SetBuffer((void*)m_buffer, details);
-			if(CONFIG.m_stereoRecording == true)
+			if(m_numOutputChannels == 2)
 			{
 				HandleMixedOutput(chunk, details, m_buffer);
 			}
@@ -966,7 +967,7 @@ void RtpMixer::CreateShipment(size_t silenceSize, bool force)
 		AudioChunkRef chunk;
 		AudioChunkDetails details;
 
-		if(CONFIG.m_stereoRecording == true)
+		if(m_numOutputChannels == 2)
 		{
 			if(CONFIG.m_tapeNumChannels > 1)
 			{
@@ -1029,6 +1030,11 @@ bool RtpMixer::CheckChunkDetails(AudioChunkDetails& details)
 		return false;
 	}
 	return true;
+}
+
+void RtpMixer::SetNumOutputChannels(int numChan)
+{
+	m_numOutputChannels = numChan;
 }
 
 //=====================================================================

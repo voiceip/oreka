@@ -14,6 +14,11 @@
 #include "AudioFile.h"
 #include "ace/OS_NS_unistd.h"
 
+AudioFile::AudioFile()
+{
+	m_numOutputChannels = 1;
+}
+
 void AudioFile::Open(fileOpenModeEnum mode, bool stereo , int sampleRate)
 {
 	Open(m_filename, mode, stereo, sampleRate);

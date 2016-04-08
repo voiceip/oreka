@@ -38,6 +38,7 @@ typedef oreka::shared_ptr<Filter> FilterRef;
 class DLL_IMPORT_EXPORT_ORKBASE Filter
 {
 public:
+	Filter();
 	virtual FilterRef __CDECL__ Instanciate() = 0;
 	virtual void __CDECL__ AudioChunkIn(AudioChunkRef& chunk) = 0;
 	virtual void __CDECL__ AudioChunkOut(AudioChunkRef& chunk) = 0;
@@ -51,8 +52,10 @@ public:
 	virtual void __CDECL__ CaptureEventOut(CaptureEventRef& event) = 0;
 	virtual void __CDECL__ SetSessionInfo(CStdString& trackingId);
 	virtual void __CDECL__ Configure(FilterConfigurationParametersRef configParams);
+	virtual void __CDECL__ SetNumOutputChannels(int numChan);
 protected:
 	CStdString m_trackingId;
+	int m_numOutputChannels;
 
 };
 //===================================================================

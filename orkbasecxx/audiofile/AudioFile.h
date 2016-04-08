@@ -26,6 +26,7 @@
 class DLL_IMPORT_EXPORT_ORKBASE AudioFile
 {
 public:
+	AudioFile();
 	typedef enum {READ = 0, WRITE = 1} fileOpenModeEnum;
 
 	/** Open audio file for reading or writing.
@@ -57,12 +58,14 @@ public:
 	void Delete();
 	virtual CStdString GetExtension() = 0;
 	virtual int GetSampleRate();
+	virtual void SetNumOutputChannels(int numChan) = 0;
 
 protected:
 	CStdString m_filename;
 	fileOpenModeEnum m_mode;
 	int m_numChunksWritten;
 	int m_sampleRate;
+	int m_numOutputChannels;
 };
 
 typedef oreka::shared_ptr<AudioFile> AudioFileRef;

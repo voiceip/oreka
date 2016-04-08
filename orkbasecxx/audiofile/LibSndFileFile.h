@@ -37,6 +37,7 @@ public:
 	int ReadChunkMono(AudioChunkRef& chunk);
 
 	CStdString GetExtension();
+	void SetNumOutputChannels(int numChan);
 private:
 	SF_INFO	m_fileInfo;
 	SNDFILE*	m_pFile;

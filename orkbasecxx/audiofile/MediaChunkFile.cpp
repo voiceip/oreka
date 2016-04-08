@@ -197,3 +197,9 @@ CStdString MediaChunkFile::GetExtension()
 {
 	return ".mcf";
 }
+
+void MediaChunkFile::SetNumOutputChannels(int numChan)
+{
+
+}
+

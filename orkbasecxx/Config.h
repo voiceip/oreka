@@ -65,7 +65,9 @@
 #define REPORTING_RETRY_DELAY_PARAM "ReportingRetryDelay"
 #define CLIENT_TIMEOUT_PARAM "ClientTimeout"
 #define AUDIO_OUTPUT_PATH_PARAM "AudioOutputPath"
+#define AUDIO_OUTPUT_SECONDARY_PATH_PARAM "AudioOutputPathSecondary"
 #define AUDIO_OUTPUT_PATH_DEFAULT "."
+#define AUDIO_OUTPUT_SECONDARY_PATH_DEFAULT ""
 #define AUDIO_FILE_PERMISSIONS_PARAM "AudioFilePermissions"
 #define AUDIO_FILE_PERMISSIONS_DEFAULT "0644"
 #define AUDIO_FILE_OWNER_PARAM "AudioFileOwner"
@@ -192,6 +194,7 @@ public:
 	int m_reportingRetryDelay;
 	int m_clientTimeout;
 	CStdString m_audioOutputPath;
+	CStdString m_audioOutputPathSecondary;
 	int m_audioFilePermissions;
 	CStdString m_audioFileOwner;
 	CStdString m_audioFileGroup;

@@ -234,7 +234,7 @@ void BatchProcessing::ThreadHandler(void *args)
 	for(;stop == false;)
 	{
 		AudioFileRef fileRef;
-		AudioFileRef outFileRef;
+		AudioFileRef outFileRef, outFileSecondaryRef;
 		AudioTapeRef audioTapeRef;
 		CStdString trackingId = "[no-trk]";
 
@@ -274,7 +274,7 @@ void BatchProcessing::ThreadHandler(void *args)
 				fileRef->Open(AudioFile::READ);
 
 				AudioChunkRef chunkRef;
-				AudioChunkRef tmpChunkRef;
+				AudioChunkRef tmpChunkRef, tmpChunkSecondaryRef;
 				unsigned int frameSleepCounter;
 
 				frameSleepCounter = 0;
@@ -295,7 +295,12 @@ void BatchProcessing::ThreadHandler(void *args)
 					outFileRef.reset(new LibSndFileFile(SF_FORMAT_PCM_16 | SF_FORMAT_WAV));
 				}
 
-				FilterRef filter;
+				if(CONFIG.m_stereoRecording == true)
+				{
+					outFileRef->SetNumOutputChannels(2);
+				}
+
+				FilterRef rtpMixer, rtpMixerSecondary;
 				FilterRef decoder1;
 				FilterRef decoder2;
 				FilterRef decoder;
@@ -324,7 +329,7 @@ void BatchProcessing::ThreadHandler(void *args)
 				audiogain = FilterRegistry::instance()->GetNewFilter(filterName);
 				if(audiogain.get() == NULL)
 				{
-					debug = "Could not instanciate AudioGain filter";
+					debug = "Could not instanciate AudioGain rtpMixer";
 					throw(debug);
 				}
 
@@ -340,7 +345,6 @@ void BatchProcessing::ThreadHandler(void *args)
 
 					AudioChunkDetails details = *chunkRef->GetDetails();
 					int channelToSkip = 0;
-
 					if(CONFIG.m_directionLookBack == true)					//if DirectionLookBack is not enable, DirectionSelector Tape should have taken care everything
 					{
 						if(BatchProcessing::SkipChunk(audioTapeRef, chunkRef, channelToSkip) == true)
@@ -422,13 +426,34 @@ void BatchProcessing::ThreadHandler(void *args)
 						if(voIpSession)
 						{
 							CStdString filterName("RtpMixer");
-							filter = FilterRegistry::instance()->GetNewFilter(filterName);
-							if(filter.get() == NULL)
+							rtpMixer = FilterRegistry::instance()->GetNewFilter(filterName);
+							if(rtpMixer.get() == NULL)
 							{
 								debug = "Could not instanciate RTP mixer";
 								throw(debug);
 							}
-							filter->SetSessionInfo(trackingId);
+							if(CONFIG.m_stereoRecording == true)
+							{
+								rtpMixer->SetNumOutputChannels(2);
+							}
+							rtpMixer->SetSessionInfo(trackingId);
+
+							//create another rtpmixer to store stereo audio
+							if(CONFIG.m_audioOutputPathSecondary.length() > 3)
+							{
+								outFileSecondaryRef.reset(new LibSndFileFile(SF_FORMAT_PCM_16 | SF_FORMAT_WAV));
+								outFileSecondaryRef->SetNumOutputChannels(2);
+								rtpMixerSecondary = FilterRegistry::instance()->GetNewFilter(filterName);
+								if(rtpMixerSecondary.get() == NULL)
+								{
+									debug = "Could not instanciate RTP mixer";
+									throw(debug);
+								}
+								rtpMixerSecondary->SetNumOutputChannels(2);
+								rtpMixerSecondary->SetSessionInfo(trackingId);
+
+							}
+
 						}
 
 						CStdString path = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath();
@@ -436,9 +461,18 @@ void BatchProcessing::ThreadHandler(void *args)
 
 						CStdString file = path + "/" + audioTapeRef->GetIdentifier();
 						outFileRef->Open(file, AudioFile::WRITE, false, fileRef->GetSampleRate());
+
+						if(CONFIG.m_audioOutputPathSecondary.length() > 3)
+						{
+							path = CONFIG.m_audioOutputPathSecondary + "/" + audioTapeRef->GetPath();
+							FileRecursiveMkdir(path, CONFIG.m_audioFilePermissions, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, CONFIG.m_audioOutputPathSecondary);
+							CStdString storageFile = path + "/" + audioTapeRef->GetIdentifier();
+							outFileSecondaryRef->Open(storageFile, AudioFile::WRITE, false, fileRef->GetSampleRate());
+						}
+
 					}
 					if(voIpSession)
-					{	
+					{
 						if(details.m_channel == 2)
 						{
 							decoder2->AudioChunkIn(chunkRef);
@@ -446,6 +480,11 @@ void BatchProcessing::ThreadHandler(void *args)
 							if(tmpChunkRef.get())
 							{
 								numSamplesS2 += tmpChunkRef->GetNumSamples();
+							}
+
+							if(rtpMixerSecondary.get() != NULL)
+							{
+								decoder2->AudioChunkOut(tmpChunkSecondaryRef);
 							}
 						}
 						else
@@ -456,18 +495,34 @@ void BatchProcessing::ThreadHandler(void *args)
 							{
 								numSamplesS1 += tmpChunkRef->GetNumSamples();
 							}
+
+							if(rtpMixerSecondary.get() != NULL)
+							{
+								decoder1->AudioChunkOut(tmpChunkSecondaryRef);
+							}
 						}
 
 						audiogain->AudioChunkIn(tmpChunkRef);
 						audiogain->AudioChunkOut(tmpChunkRef);
-						filter->AudioChunkIn(tmpChunkRef);
-						filter->AudioChunkOut(tmpChunkRef);
+						rtpMixer->AudioChunkIn(tmpChunkRef);
+						rtpMixer->AudioChunkOut(tmpChunkRef);
+						if(rtpMixerSecondary.get() != NULL)
+						{
+							rtpMixerSecondary->AudioChunkIn(tmpChunkSecondaryRef);
+							rtpMixerSecondary->AudioChunkOut(tmpChunkSecondaryRef);
+						}
+
 					} else {
 						audiogain->AudioChunkIn(tmpChunkRef);
 						audiogain->AudioChunkOut(tmpChunkRef);
 					}
 
 					outFileRef->WriteChunk(tmpChunkRef);
+					if(rtpMixerSecondary.get() != NULL)
+					{
+						outFileSecondaryRef->WriteChunk(tmpChunkSecondaryRef);
+					}
+
 					if(tmpChunkRef.get())
 					{
 						numSamplesOut += tmpChunkRef->GetNumSamples();
@@ -509,19 +564,32 @@ void BatchProcessing::ThreadHandler(void *args)
 					// Flush the RTP mixer
 					AudioChunkRef stopChunk(new AudioChunk());
 					stopChunk->GetDetails()->m_marker = MEDIA_CHUNK_EOS_MARKER;
-					filter->AudioChunkIn(stopChunk);
-					filter->AudioChunkOut(tmpChunkRef);
+					rtpMixer->AudioChunkIn(stopChunk);
+					rtpMixer->AudioChunkOut(tmpChunkRef);
+					if(rtpMixerSecondary.get() != NULL)
+					{
+						rtpMixerSecondary->AudioChunkOut(tmpChunkSecondaryRef);
+					}
 
 					while(tmpChunkRef.get())
 					{
 						outFileRef->WriteChunk(tmpChunkRef);
 						numSamplesOut += tmpChunkRef->GetNumSamples();
-						filter->AudioChunkOut(tmpChunkRef);
+						rtpMixer->AudioChunkOut(tmpChunkRef);
+					}
+					while(tmpChunkSecondaryRef.get())
+					{
+						outFileSecondaryRef->WriteChunk(tmpChunkSecondaryRef);
+						rtpMixerSecondary->AudioChunkOut(tmpChunkSecondaryRef);
 					}
 				}
 
 				fileRef->Close();
 				outFileRef->Close();
+				if(rtpMixerSecondary.get() != NULL)
+				{
+					outFileSecondaryRef->Close();
+				}
 				logMsg.Format("[%s] Th%s stop: num samples: s1:%u s2:%u out:%u", trackingId, threadIdString, numSamplesS1, numSamplesS2, numSamplesOut);
 				LOG4CXX_INFO(LOG.batchProcessingLog, logMsg);
 

@@ -43,6 +43,7 @@ Config::Config()
 	m_trackerTcpPort = TRACKER_TCP_PORT_DEFAULT;
 	m_trackerServicename = TRACKER_SERVICENAME_DEFAULT;
 	m_audioOutputPath = AUDIO_OUTPUT_PATH_DEFAULT;
+	m_audioOutputPathSecondary = AUDIO_OUTPUT_SECONDARY_PATH_DEFAULT;
 
 	m_audioFilePermissions = 0;
 
@@ -127,7 +128,6 @@ void Config::Define(Serializer* s)
 	s->IntValue(CLIENT_TIMEOUT_PARAM, m_clientTimeout);
 
 	s->StringValue(AUDIO_OUTPUT_PATH_PARAM, m_audioOutputPath);
-
 	if(!m_audioOutputPath.size()) {
 		char *loggingPath = NULL;
 
@@ -140,6 +140,8 @@ void Config::Define(Serializer* s)
 		        }
 		}
 	}
+
+	s->StringValue(AUDIO_OUTPUT_SECONDARY_PATH_PARAM, m_audioOutputPathSecondary);
 
 	s->StringValue(AUDIO_FILE_PERMISSIONS_PARAM, m_audioFilePermissionsStr);
 	if(m_audioFilePermissionsStr.size())

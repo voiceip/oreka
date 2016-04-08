@@ -30,6 +30,7 @@ public:
 
 	void WriteChunk(AudioChunkRef chunkRef);
 	int ReadChunkMono(AudioChunkRef& chunkRef);
+	void SetNumOutputChannels(int numChan);
 
 	CStdString GetExtension();
 protected:

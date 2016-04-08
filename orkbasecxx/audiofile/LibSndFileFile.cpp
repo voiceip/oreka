@@ -43,7 +43,7 @@ void LibSndFileFile::Open(CStdString& filename, fileOpenModeEnum mode, bool ster
 		m_filename = filename + ".wav";
 	}
 	m_mode = mode;
-	if(CONFIG.m_stereoRecording == true)
+	if(m_numOutputChannels == 2)
 	{
 		if(CONFIG.m_tapeNumChannels > 1)
 		{
@@ -99,7 +99,7 @@ void LibSndFileFile::WriteChunk(AudioChunkRef chunkRef)
 			// We have faith that whoever is producing these chunks created them
 			// with the same number of channels that we have opened the soundfile
 			// with above - this is enforced in the RtpMixer
-			if(chunkRef->m_numChannels > 0 && CONFIG.m_stereoRecording == true)
+			if(chunkRef->m_numChannels > 0 && m_numOutputChannels == 2)
 			{
 				int numBytes = 0;
 				unsigned char *muxAudio = NULL;
@@ -147,7 +147,7 @@ void LibSndFileFile::WriteChunk(AudioChunkRef chunkRef)
 			// We have faith that whoever is producing these chunks created them
 			// with the same number of channels that we have opened the soundfile
 			// with above - this is enforced in the RtpMixer
-			if(chunkRef->m_numChannels > 0 && CONFIG.m_stereoRecording == true)
+			if(chunkRef->m_numChannels > 0 && m_numOutputChannels == 2)
 			{
 				int numShorts = 0;
 				short *muxAudio = NULL;
@@ -229,3 +229,9 @@ CStdString LibSndFileFile::GetExtension()
 {
 	return ".wav";
 }
+
+void LibSndFileFile::SetNumOutputChannels(int numChan)
+{
+	m_numOutputChannels = numChan;
+}
+
