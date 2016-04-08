@@ -18,6 +18,11 @@ extern "C"
 #include "g711.h"
 }
 
+Filter::Filter()
+{
+	m_numOutputChannels = 1;
+}
+
 void Filter::SetSessionInfo(CStdString& trackingId)
 {
 	m_trackingId = trackingId;
@@ -31,6 +36,11 @@ bool Filter::SupportsInputRtpPayloadType( int rtpPayloadType )
 void Filter::Configure(FilterConfigurationParametersRef configParams)
 {
 ;
+}
+
+void Filter::SetNumOutputChannels(int numChan)
+{
+	m_numOutputChannels = numChan;
 }
 
 void FilterRegistry::RegisterFilter(FilterRef& Filter) 
