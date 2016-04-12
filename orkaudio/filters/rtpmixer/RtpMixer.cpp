@@ -102,6 +102,7 @@ private:
 	bool m_oneS1PacketState;
 
 	// Statistics related variables
+	// m_lastTimestampS1 and m_lastTimestampS2 are currently only being used for rogue User Agents who report it in miliseconds instead of in number of samples. In the normal case, they stay stuck at the timestamp of the first audio chunk for this session, for the relevant side
 	int m_lastTimestampS1;
 	int m_lastTimestampS2;
 	AudioChunkRef m_lastChunkS1;
@@ -122,6 +123,7 @@ private:
 
 	int m_numInputChannels; // Number of channels
 	std::vector<RtpMixerChannelRef> m_rtpMixerChannels; // Channel information
+	bool m_toLog;
 };
 
 //==========================================================
@@ -172,6 +174,7 @@ RtpMixer::RtpMixer()
 	m_rtpMixerChannels.clear();
 	m_numSampleTrigger = NUM_SAMPLES_TRIGGER;
 	m_NumSampleShipmentHoldoff = NUM_SAMPLES_SHIPMENT_HOLDOFF;
+	m_toLog = true;
 }
 
 void RtpMixer::CreateChannels(int channelNumber)
@@ -662,9 +665,20 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk, unsigned int correctedT
 		endRtpTimestamp = (unsigned int)endRtpTimestamp64;
 	}	
 
-	if (endRtpTimestamp > m_writeTimestamp)
+	double silenceSize  = endRtpTimestamp - m_writeTimestamp;
+	if ((silenceSize < 0) || (silenceSize >= NUM_SAMPLES_CIRCULAR_BUFFER))
 	{
-		for(unsigned int i=0; i<(endRtpTimestamp - m_writeTimestamp); i++)
+		if(m_toLog == true)
+		{
+			debug.Format("[%s] silencesize out of range, s%d silencesize:%.0f wrptr:%x rdptr:%x wrts%u: rdts:%u rtpmixerbufptr:%x ts:%u corr-ts:%u corr-delta:%.0f firstts-s1:%u firstts-s2:%u chunknumsamples:%u endts:%u", m_trackingId, details->m_channel,silenceSize, m_writePtr, m_readPtr, m_writeTimestamp, m_readTimestamp, m_buffer, details->m_timestamp, correctedTimestamp, m_timestampCorrectiveDelta,m_lastTimestampS1,m_lastTimestampS2, audioChunk->GetNumSamples(), endRtpTimestamp);
+			LOG4CXX_WARN(m_log, debug);
+			m_toLog = false;
+		}
+		return;
+	}
+	else
+	{
+		for(unsigned int i=0; i<silenceSize; i++)
 		{
 			*m_writePtr = 0;
 
@@ -687,16 +701,24 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk, unsigned int correctedT
 				m_writePtr = m_buffer;
 			}
 		}
-		int silenceSize = endRtpTimestamp - m_writeTimestamp;
 		m_writeTimestamp = endRtpTimestamp;
-		debug.Format("[%s] Zeroed %d samples, wr:%x wrts:%u",m_trackingId, silenceSize, m_writePtr-m_buffer, m_writeTimestamp);
+		debug.Format("[%s] Zeroed %.0f samples, wr:%x wrts:%u",m_trackingId, silenceSize, m_writePtr-m_buffer, m_writeTimestamp);
 		LOG4CXX_DEBUG(m_log, debug);
 	}
 
 	// 2. Mix in the latest samples from this RTP packet
-	unsigned int timestampDelta = m_writeTimestamp - correctedTimestamp;
-	ASSERT(timestampDelta>=0);
-	short* tempWritePtr = CicularPointerSubtractOffset(m_writePtr, timestampDelta);
+	double timestampDelta = m_writeTimestamp - correctedTimestamp;
+	if((timestampDelta < 0) || (timestampDelta >= NUM_SAMPLES_CIRCULAR_BUFFER))
+	{
+		if(m_toLog == true)
+		{
+			debug.Format("[%s] timestampDelta out of range, s%d timestampDelta:%.0f wrptr:%x rdptr:%x wrts%u: rdts:%u rtpmixerbufptr:%x ts:%u corr-ts:%u corr-delta:%.0f firstts-s1:%u firstts-s2:%u chunknumsamples:%u endts:%u", m_trackingId, details->m_channel,timestampDelta, m_writePtr, m_readPtr, m_writeTimestamp, m_readTimestamp, m_buffer, details->m_timestamp, correctedTimestamp, m_timestampCorrectiveDelta,m_lastTimestampS1,m_lastTimestampS2, audioChunk->GetNumSamples(), endRtpTimestamp);
+			LOG4CXX_WARN(m_log, debug);
+			m_toLog = false;
+		}
+		return;
+	}
+	short* tempWritePtr = CicularPointerSubtractOffset(m_writePtr, (size_t)timestampDelta);
 	short* payload = (short *)audioChunk->m_pBuffer;
 
 	for(int i=0; i<audioChunk->GetNumSamples() ; i++)
