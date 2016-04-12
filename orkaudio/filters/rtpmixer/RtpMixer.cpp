@@ -665,8 +665,8 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk, unsigned int correctedT
 		endRtpTimestamp = (unsigned int)endRtpTimestamp64;
 	}	
 
-	double silenceSize  = endRtpTimestamp - m_writeTimestamp;
-	if ((silenceSize < 0) || (silenceSize >= NUM_SAMPLES_CIRCULAR_BUFFER))
+	double silenceSize  = (double)endRtpTimestamp - (double)m_writeTimestamp;
+	if (silenceSize >= NUM_SAMPLES_CIRCULAR_BUFFER)
 	{
 		if(m_toLog == true)
 		{
@@ -676,7 +676,7 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk, unsigned int correctedT
 		}
 		return;
 	}
-	else
+	else if(silenceSize > 0)
 	{
 		for(unsigned int i=0; i<silenceSize; i++)
 		{
