@@ -707,7 +707,7 @@ void RtpMixer::StoreRtpPacket(AudioChunkRef& audioChunk, unsigned int correctedT
 	}
 
 	// 2. Mix in the latest samples from this RTP packet
-	double timestampDelta = m_writeTimestamp - correctedTimestamp;
+	double timestampDelta = (double)m_writeTimestamp - (double)correctedTimestamp;
 	if((timestampDelta < 0) || (timestampDelta >= NUM_SAMPLES_CIRCULAR_BUFFER))
 	{
 		if(m_toLog == true)
