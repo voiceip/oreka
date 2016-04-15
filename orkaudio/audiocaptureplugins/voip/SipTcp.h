@@ -49,8 +49,15 @@ public:
 	~SipTcpStream();
 	void ToString(CStdString& string);
 	void AddTcpPacket(u_char *pBuffer, int packetLen);
-	bool SipRequestIsComplete();
-	SafeBufferRef GetCompleteSipRequest();
+	void AddTcpPacket(TcpHeaderStruct* tcpHeader);
+
+	u_char* GetBufferWithOffset() {
+		return m_tcpBuffer->GetBuffer() + m_offset;
+	}
+	
+	u_char* GetBufferEnd() {
+		return m_tcpBuffer->GetBuffer() + m_tcpBuffer->Size();
+	}
 
 	struct in_addr m_senderIp;
 	struct in_addr m_receiverIp;
@@ -59,9 +66,10 @@ public:
 	unsigned long int m_expectingSeqNo;
 	unsigned long int m_lastSeqNo;
 
+	size_t m_offset;
 	int m_entryTime;
+	SafeBufferRef m_tcpBuffer;
 private:
-	SafeBufferRef m_sipRequest;
 };
 typedef oreka::shared_ptr<SipTcpStream> SipTcpStreamRef;
 

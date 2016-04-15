@@ -78,7 +78,6 @@ static unsigned int s_numPackets;
 static unsigned int s_numPacketsPerSecond;
 static unsigned int s_minPacketsPerSecond;
 static unsigned int s_maxPacketsPerSecond;
-std::list<SipTcpStreamRef> s_SipTcpStreams;
 unsigned short utf[256];		//UTF-8 encoding table (partial)
 static unsigned int s_udpCounter;
 static unsigned int s_numLostUdpPacketsInUdpMode;
@@ -1557,7 +1556,6 @@ void VoIp::LoadSkinnyGlobalNumbers()
 void VoIp::Initialize()
 {
 	m_pcapHandles.clear();
-	s_SipTcpStreams.clear();
 
 	s_packetLog = Logger::getLogger("packet");
 	s_packetStatsLog = Logger::getLogger("packet.pcapstats");

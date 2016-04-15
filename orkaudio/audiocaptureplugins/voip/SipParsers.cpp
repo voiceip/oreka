@@ -10,6 +10,7 @@
 #include "ParsingUtils.h"
 #include "LogManager.h"
 #include "VoIpConfig.h"
+#include <boost/algorithm/string/predicate.hpp>
 
 static LoggerPtr s_parsersLog = Logger::getLogger("parsers.sip");
 static LoggerPtr s_sipPacketLog = Logger::getLogger("packet.sip");
@@ -17,7 +18,6 @@ static LoggerPtr s_sipTcpPacketLog = Logger::getLogger("packet.tcpsip");
 static LoggerPtr s_sipExtractionLog = Logger::getLogger("sipextraction");
 static LoggerPtr s_rtcpPacketLog = Logger::getLogger("packet.rtcp");
 static LoggerPtr s_sipparsersLog = Logger::getLogger("packet.sipparsers");
-extern std::list<SipTcpStreamRef> s_SipTcpStreams;
 
 bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
@@ -180,6 +180,7 @@ bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		if(dspField)
 		{
 			GrabTokenSkipLeadingWhitespaces(dspField, sipEnd, info->m_dsp);
+		}
 
 			CStdString logMsg;
 			LOG4CXX_INFO(s_sipPacketLog, "NOTIFY: " + logMsg);
@@ -187,7 +188,6 @@ bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			{
 				VoIpSessionsSingleton::instance()->ReportSipNotify(info);
 			}
-		}
 	}
 	return result;
 }
@@ -333,256 +333,201 @@ bool TryLogFailedSip(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHea
 	return true;
 }
 
+bool ParseSipMessage(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,TcpHeaderStruct *tcpHeader, u_char* payload, u_char* packetEnd) {
+
+		UdpHeaderStruct udpHeader;
+
+		udpHeader.source = tcpHeader->source;
+		udpHeader.dest = tcpHeader->dest;
+
+		udpHeader.len = htons((packetEnd-payload)+sizeof(UdpHeaderStruct));
+
+		bool usefulPacket = TrySipInvite(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd);
+
+		if(!usefulPacket)
+		{
+				usefulPacket = TrySip200Ok(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd);
+		}
+
+		if(!usefulPacket)
+		{
+				usefulPacket = TrySipNotify(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd);
+		}
+
+		if(!usefulPacket)
+		{
+				usefulPacket = TrySipSessionProgress(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd);
+		}
+
+		if(!usefulPacket)
+		{
+				usefulPacket = TrySip302MovedTemporarily(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd);
+		}
+
+		if(!usefulPacket)
+		{
+				usefulPacket = TrySipBye(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd);
+		}
+
+		if(!usefulPacket)
+		{
+				usefulPacket = TrySipRefer(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd);
+		}
+
+		if(!usefulPacket)
+		{
+				usefulPacket = TrySipInfo(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd);
+		}
+
+		if(!usefulPacket)
+		{
+				usefulPacket = TrySipSubscribe(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd);
+		}
+
+		if(!usefulPacket)
+		{
+				usefulPacket = TryLogFailedSip(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd);
+		}
+
+		return usefulPacket;
+}
+
+//Returns the total number of bytes consumed corresponding to one or more successfully parsed complete SIP messages in the input byte stream. If no complete SIP message could be found, returns zero
+size_t ParseSipStream(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader, char* bufferStart, char *bufferEnd) 
+{
+	size_t offset=0;
+	char * sipMessageStart = bufferStart;
+
+	while(1) {
+		char *contentLenStart = memFindAfter("Content-Length: ", sipMessageStart, bufferEnd);
+		if (!contentLenStart) {
+			return offset;
+		}
+
+		int contentLen;
+		sscanf(contentLenStart,"%d\r\n",&contentLen);
+
+		char *sipHeaderEnd = memFindAfter("\r\n\r\n", contentLenStart, bufferEnd);
+		if (!sipHeaderEnd) {
+			return offset;
+		}
+		
+		char* sipMessageEnd = sipHeaderEnd + contentLen;
+	 	if (sipMessageEnd > bufferEnd) {
+			return offset;
+		}	
+			
+		// We have a complete SIP message, try to parse it 
+		ParseSipMessage(ethernetHeader, ipHeader, tcpHeader, (u_char*) sipMessageStart, (u_char*) sipMessageEnd) ;
+
+		offset = sipMessageEnd - bufferStart;
+		sipMessageStart = sipMessageEnd;
+	}
+
+	return offset;
+}
+
 bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
-	int tcpLengthPayloadLength = 0;
-	bool result = false;
-	std::list<SipTcpStreamRef> toErase;
-	u_char* startTcpPayload;
+	static std::list<SipTcpStreamRef> s_SipTcpStreams;
+	CStdString logMsg;
+	int tcpPayloadLen = 0;
+	u_char* tcpPayload;
 
-	// Not checking typical SIP port numbers anymore. This is not done on UDP either.
-	//if(ntohs(tcpHeader->source) != 5060 && ntohs(tcpHeader->dest) != 5060 &&
-	//	ntohs(tcpHeader->source) != 8060 && ntohs(tcpHeader->dest) != 8060    )
-	//{
-		// interactive intelligence sometimes sends SIP traffic on port 8060
-	//	return false;
-	//}
-
-	startTcpPayload = (u_char*)tcpHeader + (tcpHeader->off * 4);
-	tcpLengthPayloadLength = ((u_char*)ipHeader+ntohs(ipHeader->ip_len)) - startTcpPayload;
-
-
-	if(s_sipPacketLog->isDebugEnabled())
-	{
-		char head[13];
-		memcpy(head, (void*)startTcpPayload, 12);
-		head[12] = 0;
-		CStdString logMsg;
-		logMsg.Format("TCP head:%s", head);
-		LOG4CXX_DEBUG(s_sipPacketLog, logMsg);
-	}
-
-    if( (tcpLengthPayloadLength >= SIP_RESPONSE_SESSION_PROGRESS_SIZE+3) &&	// payload must be longer than the longest method name
-		  ((memcmp(SIP_METHOD_INVITE, (void*)startTcpPayload, SIP_METHOD_INVITE_SIZE) == 0) ||
-		   (memcmp(SIP_METHOD_ACK, (void*)startTcpPayload, SIP_METHOD_ACK_SIZE) == 0) ||
-		   (memcmp(SIP_METHOD_BYE, (void*)startTcpPayload, SIP_METHOD_BYE_SIZE) == 0) ||
-		   (memcmp(SIP_RESPONSE_200_OK, (void*)startTcpPayload, SIP_RESPONSE_200_OK_SIZE) == 0) ||
-		   (memcmp(SIP_RESPONSE_SESSION_PROGRESS, (void*)startTcpPayload, SIP_RESPONSE_SESSION_PROGRESS_SIZE) == 0) ||
-		   (memcmp(SIP_METHOD_REFER, (void*)startTcpPayload, SIP_METHOD_REFER_SIZE) == 0) ||
-		   (memcmp(SIP_METHOD_INFO, (void*)startTcpPayload, SIP_METHOD_INFO_SIZE) == 0) ||
-		   (memcmp(SIP_METHOD_SUBSCRIBE, (void*)startTcpPayload, SIP_METHOD_SUBSCRIBE_SIZE) == 0) ||
-		   (memcmp(SIP_RESPONSE_302_MOVED_TEMPORARILY, (void*)startTcpPayload, SIP_RESPONSE_302_MOVED_TEMPORARILY_SIZE) == 0) ||
-		   (memcmp(SIP_METHOD_NOTIFY, (void*)startTcpPayload, SIP_METHOD_NOTIFY_SIZE) == 0) ||
-		   (memcmp("SIP/2.0 4", (void*)startTcpPayload, 9) == 0) ||
-		   (memcmp("SIP/2.0 5", (void*)startTcpPayload, 9) == 0) ||
-		   (memcmp("SIP/2.0 6", (void*)startTcpPayload, 9) == 0) ||
-		   (memcmp("CANCEL ", (void*)startTcpPayload, 7) == 0)) )
-	{
-		SipTcpStreamRef tcpstream(new SipTcpStream());
-		int exists = 0;
-
-		tcpstream->m_senderIp = ipHeader->ip_src;
-		tcpstream->m_receiverIp = ipHeader->ip_dest;
-		tcpstream->m_senderPort = ntohs(tcpHeader->source);
-		tcpstream->m_receiverPort = ntohs(tcpHeader->dest);
-		tcpstream->m_expectingSeqNo = ntohl(tcpHeader->seq)+tcpLengthPayloadLength;
-		tcpstream->m_lastSeqNo = ntohl(tcpHeader->seq);
-		tcpstream->AddTcpPacket(startTcpPayload, tcpLengthPayloadLength);
-
-		// Ensure this is not a duplicate
-	        for(std::list<SipTcpStreamRef>::iterator it = s_SipTcpStreams.begin(); it != s_SipTcpStreams.end(); it++)
-        	{
-               		SipTcpStreamRef tcpStreamList = *it;
-
-	                if(((unsigned int)(tcpstream->m_senderIp.s_addr) == (unsigned int)(tcpStreamList->m_senderIp.s_addr)) &&
-        	           ((unsigned int)(tcpstream->m_receiverIp.s_addr) == (unsigned int)(tcpStreamList->m_receiverIp.s_addr)) &&
-                	   (tcpstream->m_senderPort == tcpStreamList->m_senderPort) &&
-	                   (tcpstream->m_receiverPort == tcpStreamList->m_receiverPort) &&
-        	           (tcpstream->m_expectingSeqNo == tcpStreamList->m_expectingSeqNo) &&
-			   (tcpstream->m_lastSeqNo == tcpStreamList->m_lastSeqNo))
-                	{
-				exists = 1;
-				break;
-			}
-		}
-
-		if(exists == 1) {
-			CStdString logMsg;
-
-			logMsg.Format("Dropped duplicate TCP packet");
-			LOG4CXX_INFO(s_sipTcpPacketLog, logMsg);
-			return true;
-		}
-
-		if(tcpstream->SipRequestIsComplete()) {
-			/* Hmm.. Lucky us */
-			SafeBufferRef buffer = tcpstream->GetCompleteSipRequest();
-			CStdString tcpStream;
-
-			tcpstream->ToString(tcpStream);
-			LOG4CXX_DEBUG(s_sipTcpPacketLog, "Obtained complete TCP Stream: " + tcpStream);
-
-			bool usefulPacket = false;
-			UdpHeaderStruct udpHeader;
-			udpHeader.source = tcpHeader->source;
-			udpHeader.dest = tcpHeader->dest;
-			udpHeader.len = htons(buffer->Size()+sizeof(UdpHeaderStruct));
-			u_char* packetEnd = buffer->GetBuffer() + buffer->Size();
-
-			usefulPacket = TrySipInvite(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-
-			if(!usefulPacket)
-			{
-				usefulPacket = TrySip200Ok(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-			}
-
-			if(!usefulPacket)
-			{
-				usefulPacket = TrySipNotify(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-			}
-
-			if(!usefulPacket)
-			{
-				usefulPacket = TrySipSessionProgress(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-			}
-
-			if(!usefulPacket)
-			{
-				usefulPacket = TrySip302MovedTemporarily(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-			}
-
-			if(!usefulPacket)
-			{
-				usefulPacket = TrySipBye(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-			}
-
-			if(!usefulPacket)
-			{
-				usefulPacket = TrySipRefer(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-			}
-
-			if(!usefulPacket)
-			{
-				usefulPacket = TrySipInfo(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-			}
-
-			if(!usefulPacket)
-			{
-				usefulPacket = TrySipSubscribe(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-			}
-
-			if(!usefulPacket)
-			{
-				usefulPacket = TryLogFailedSip(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-			}
-
-			return usefulPacket;
-		}
-
-		s_SipTcpStreams.push_back(tcpstream);
-
-		CStdString tcpStream;
-
-                tcpstream->ToString(tcpStream);
-		LOG4CXX_INFO(s_sipTcpPacketLog, "Obtained incomplete TCP Stream: " + tcpStream);
-
-		return true;
-	}
-	else
-	{
-		LOG4CXX_DEBUG(s_sipTcpPacketLog,"Short payload, will look if it belongs to a previous TCP stream");
-	}
-
+	tcpPayload = (u_char*)tcpHeader + (tcpHeader->off * 4);
+	tcpPayloadLen = ((u_char*)ipHeader+ipHeader->packetLen()) - tcpPayload;
+	
+	// Ensure this is not a duplicate
 	for(std::list<SipTcpStreamRef>::iterator it = s_SipTcpStreams.begin(); it != s_SipTcpStreams.end(); it++)
 	{
-		SipTcpStreamRef tcpstream = *it;
-		int found = 0;
+		SipTcpStreamRef streamRef = *it;
 
-		if(((unsigned int)(tcpstream->m_senderIp.s_addr) == (unsigned int)(ipHeader->ip_src.s_addr)) &&
-		   ((unsigned int)(tcpstream->m_receiverIp.s_addr) == (unsigned int)(ipHeader->ip_dest.s_addr)) &&
-		   (tcpstream->m_senderPort == ntohs(tcpHeader->source)) &&
-		   (tcpstream->m_receiverPort == ntohs(tcpHeader->dest)) &&
-		   (tcpstream->m_expectingSeqNo == ntohl(tcpHeader->seq)) && !found)
+		if(((unsigned int)(streamRef->m_senderIp.s_addr) == (unsigned int)(ipHeader->ip_src.s_addr)) &&
+			((unsigned int)(streamRef->m_receiverIp.s_addr) == (unsigned int)(ipHeader->ip_dest.s_addr)) &&
+			(streamRef->m_senderPort == ntohs(tcpHeader->source)) &&
+			(streamRef->m_receiverPort == ntohs(tcpHeader->dest)) &&
+			(streamRef->m_lastSeqNo >= ntohl(tcpHeader->seq)) ) 
 		{
-			result = true;
-			found = 1;
-
-			tcpstream->AddTcpPacket(startTcpPayload, tcpLengthPayloadLength);
-
-			if(tcpstream->SipRequestIsComplete()) {
-				SafeBufferRef buffer = tcpstream->GetCompleteSipRequest();
-	                        CStdString tcpStream;
-
-        	                tcpstream->ToString(tcpStream);
-                	        LOG4CXX_INFO(s_sipTcpPacketLog, "TCP Stream updated to completion: " + tcpStream);
-
-				bool usefulPacket = false;
-				UdpHeaderStruct udpHeader;
-				udpHeader.source = tcpHeader->source;
-				udpHeader.dest = tcpHeader->dest;
-				udpHeader.len = htons(buffer->Size()+sizeof(UdpHeaderStruct));
-				u_char* packetEnd = buffer->GetBuffer() + buffer->Size();
-
-				usefulPacket = TrySipInvite(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-
-				if(!usefulPacket)
-				{
-					usefulPacket = TrySip200Ok(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-				}
-
-				if(!usefulPacket)
-				{
-					usefulPacket = TrySipNotify(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-				}
-
-				if(!usefulPacket)
-				{
-					usefulPacket = TrySipSessionProgress(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-				}
-
-				if(!usefulPacket)
-				{
-					usefulPacket = TrySip302MovedTemporarily(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-				}
-
-				if(!usefulPacket)
-				{
-					usefulPacket = TrySipBye(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-				}
-
-				if(!usefulPacket)
-				{
-					usefulPacket = TrySipRefer(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-				}
-
-				if(!usefulPacket)
-				{
-					usefulPacket = TrySipInfo(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-				}
-
-				if(!usefulPacket)
-				{
-					usefulPacket = TrySipSubscribe(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-				}
-
-				if(!usefulPacket)
-				{
-					usefulPacket = TryLogFailedSip(ethernetHeader, ipHeader, &udpHeader, buffer->GetBuffer(), packetEnd);
-				}
-
-				toErase.push_back(tcpstream);
-			}
-		} else {
-			if((time(NULL) - tcpstream->m_entryTime) >= 60)
-				toErase.push_back(tcpstream);
+			// TODO log packet id
+			LOG4CXX_DEBUG(s_sipTcpPacketLog, "Dropped duplicate TCP packet");
+			return true;
 		}
 	}
 
-	for(std::list<SipTcpStreamRef>::iterator it2 = toErase.begin(); it2 != toErase.end(); it2++)
-        {
-		SipTcpStreamRef tcpstream = *it2;
+    if( (tcpPayloadLen >= SIP_RESPONSE_SESSION_PROGRESS_SIZE+3) &&	// payload must be longer than the longest method name
+		  (boost::starts_with((char*)tcpPayload,SIP_METHOD_INVITE) ||
+		   boost::starts_with((char*)tcpPayload,SIP_METHOD_ACK) ||
+		   boost::starts_with((char*)tcpPayload,SIP_METHOD_BYE) ||
+		   boost::starts_with((char*)tcpPayload,SIP_RESPONSE_200_OK) ||
+		   boost::starts_with((char*)tcpPayload,SIP_RESPONSE_SESSION_PROGRESS) ||
+		   boost::starts_with((char*)tcpPayload,SIP_METHOD_REFER) ||
+		   boost::starts_with((char*)tcpPayload,SIP_METHOD_INFO) ||
+		   boost::starts_with((char*)tcpPayload,SIP_METHOD_SUBSCRIBE) ||
+		   boost::starts_with((char*)tcpPayload,SIP_RESPONSE_302_MOVED_TEMPORARILY) ||
+		   boost::starts_with((char*)tcpPayload,SIP_METHOD_NOTIFY) ||
+		   boost::starts_with((char*)tcpPayload,"SIP/2.0 4") ||
+		   boost::starts_with((char*)tcpPayload,"SIP/2.0 5") ||
+		   boost::starts_with((char*)tcpPayload,"SIP/2.0 6") ||
+		   boost::starts_with((char*)tcpPayload,"CANCEL ")) )
+	{
+		size_t tcpSipStreamOffset = ParseSipStream(ethernetHeader, ipHeader, tcpHeader, (char*)tcpPayload, (char*)tcpPayload + tcpPayloadLen);
+		
+		if(tcpSipStreamOffset != tcpPayloadLen)
+		{
+			SipTcpStreamRef streamRef(new SipTcpStream());
+			streamRef->m_senderIp = ipHeader->ip_src;
+			streamRef->m_receiverIp = ipHeader->ip_dest;
+			streamRef->m_senderPort = ntohs(tcpHeader->source);
+			streamRef->m_receiverPort = ntohs(tcpHeader->dest);
+			streamRef->m_expectingSeqNo = ntohl(tcpHeader->seq)+tcpPayloadLen;
+			streamRef->m_lastSeqNo = ntohl(tcpHeader->seq);
+			streamRef->AddTcpPacket(tcpPayload, tcpPayloadLen);
+			streamRef->m_offset += tcpSipStreamOffset;
+			
+			s_SipTcpStreams.push_back(streamRef);
+			streamRef->ToString(logMsg);
+			LOG4CXX_DEBUG(s_sipTcpPacketLog, "Obtained incomplete TCP Stream: " + logMsg);
+		}
 
-		s_SipTcpStreams.remove(tcpstream);
+
+//		streamRef->m_offset += ParseSipStream(ethernetHeader, ipHeader, tcpHeader, (char*)streamRef->GetBufferWithOffset(), (char*)streamRef->GetBufferEnd());
+
+//		if (streamRef->GetBufferWithOffset() != streamRef->GetBufferEnd()) {
+//			s_SipTcpStreams.push_back(streamRef);
+//			streamRef->ToString(logMsg);
+//			LOG4CXX_DEBUG(s_sipTcpPacketLog, "Obtained incomplete TCP Stream: " + logMsg);
+//		}
+		
+		return true;
+	}
+
+	LOG4CXX_DEBUG(s_sipTcpPacketLog,"Short payload, will look if it belongs to a previous TCP stream");
+
+	bool result = false;
+	std::list<SipTcpStreamRef>::iterator it = s_SipTcpStreams.begin(); 
+	while (it != s_SipTcpStreams.end())
+	{
+		SipTcpStreamRef streamRef = *it;
+
+		if(((unsigned int)(streamRef->m_senderIp.s_addr) == (unsigned int)(ipHeader->ip_src.s_addr)) &&
+		   ((unsigned int)(streamRef->m_receiverIp.s_addr) == (unsigned int)(ipHeader->ip_dest.s_addr)) &&
+		   (streamRef->m_senderPort == ntohs(tcpHeader->source)) &&
+		   (streamRef->m_receiverPort == ntohs(tcpHeader->dest)) &&
+		   (streamRef->m_expectingSeqNo == ntohl(tcpHeader->seq)) ) 
+		{
+			streamRef->AddTcpPacket(tcpPayload, tcpPayloadLen);
+			streamRef->m_offset += ParseSipStream(ethernetHeader, ipHeader, tcpHeader, (char*)streamRef->GetBufferWithOffset(), (char*)streamRef->GetBufferEnd());
+			streamRef->m_expectingSeqNo += tcpPayloadLen;
+			result = true;
+		} 
+		
+		if(streamRef->GetBufferWithOffset() == streamRef->GetBufferEnd() || 
+		  (time(NULL) - streamRef->m_entryTime) >= 60) {
+			it = s_SipTcpStreams.erase(it);
+		}
+		else {
+			it++;
+		}
 	}
 
 	return result;
