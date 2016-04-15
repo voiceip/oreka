@@ -169,7 +169,7 @@ static void memToHex(unsigned char* input, size_t len, CStdString&output)
         }
 }
 
-SipTcpStream::SipTcpStream()
+SipTcpStream::SipTcpStream() : m_offset(0)
 {
 	m_expectingSeqNo = 0;
 	m_senderIp.s_addr = 0;
@@ -177,7 +177,7 @@ SipTcpStream::SipTcpStream()
 	m_senderPort = 0;
 	m_receiverPort = 0;
 	m_entryTime = time(NULL);
-	m_sipRequest = SafeBufferRef(new SafeBuffer());
+	m_tcpBuffer = SafeBufferRef(new SafeBuffer());
 }
 
 SipTcpStream::~SipTcpStream()
@@ -195,118 +195,12 @@ void SipTcpStream::ToString(CStdString& string)
         ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
         ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
-	//string.Format("sender:%s receiver:%s sender-port:%d receiver-port:%d entry-time:%d expecting-seq-no:%s total-bytes:%d last-seqno:%s [[[%s]]]", senderIp, receiverIp, m_senderPort, m_receiverPort, m_entryTime, expSeq, m_sipRequest->Size(), lastSeq, m_sipRequest->GetBuffer());
-	string.Format("sender:%s receiver:%s sender-port:%d receiver-port:%d entry-time:%d expecting-seq-no:%s total-bytes:%d last-seqno:%s", senderIp, receiverIp, m_senderPort, m_receiverPort, m_entryTime, expSeq, m_sipRequest->Size(), lastSeq);
+	//string.Format("sender:%s receiver:%s sender-port:%d receiver-port:%d entry-time:%d expecting-seq-no:%s total-bytes:%d last-seqno:%s [[[%s]]]", senderIp, receiverIp, m_senderPort, m_receiverPort, m_entryTime, expSeq, m_tcpBuffer->Size(), lastSeq, m_tcpBuffer->GetBuffer());
+	string.Format("sender:%s receiver:%s sender-port:%d receiver-port:%d entry-time:%d expecting-seq-no:%s total-bytes:%d last-seqno:%s", senderIp, receiverIp, m_senderPort, m_receiverPort, m_entryTime, expSeq, m_tcpBuffer->Size(), lastSeq);
 }
 
 void SipTcpStream::AddTcpPacket(u_char *pBuffer, int packetLen)
 {
-	m_sipRequest->Add(pBuffer, packetLen);
-}
-
-/*
- * How we know the SIP request is complete:  Small excerpt from
- * RFC3261
- * 
- * ---8<---
- * ...
- * 20.14 Content-Length
- *
- * The Content-Length header field indicates the size of the message-
- * body, in decimal number of octets, sent to the recipient.
- * Applications SHOULD use this field to indicate the size of the
- * message-body to be transferred, regardless of the media type of the
- * entity.  If a stream-based protocol (such as TCP) is used as
- * transport, the header field MUST be used.
- *
- * The size of the message-body does not include the CRLF separating
- * header fields and body.  Any Content-Length greater than or equal to
- * zero is a valid value.  If no body is present in a message, then the
- * Content-Length header field value MUST be set to zero.
- * ...
- * --->8---
- *
- */
-bool SipTcpStream::SipRequestIsComplete()
-{
-	if(!m_sipRequest->Size())
-		return false;
-		
-	char *pBufStart = (char*)m_sipRequest->GetBuffer();
-	char *pBufEnd = pBufStart+m_sipRequest->Size();
-	char *contentLengthHeader = memFindStr("Content-Length: ", pBufStart, pBufEnd);
-	char *contentLength = memFindAfter("Content-Length: ", pBufStart, pBufEnd);
-	unsigned int cLength = 0;
-
-	if(!contentLength || !contentLengthHeader)
-		return false;
-
-        char *eol = memFindEOL(contentLengthHeader, pBufEnd);
-
-	if(eol == contentLengthHeader)
-		return false;
-
-	cLength = ACE_OS::atoi(contentLength);
-
-	/* Step over headers */
-	bool lnl = false, headerEndLocated = false;
-	while(eol < pBufEnd) {
-		if(*eol == '\r' && ((eol+1) < pBufEnd) && (*(eol+1) == '\n')) {
-			if(lnl == true) {
-				eol += 2;
-				headerEndLocated = true;
-				break;
-			}
-
-			eol += 2;
-			lnl = true;
-			continue;
-		}
-
-		if(*eol == '\n') {
-			if(lnl == true) {
-                                eol += 1;
-				headerEndLocated = true;
-                                break;
-                        }
-
-                        eol += 1;
-                        lnl = true;
-                        continue;
-		}
-
-		eol += 1;
-		lnl = false;
-		continue;
-	}
-
-	if(!headerEndLocated)
-		return false;
-
-	if(eol >= pBufEnd)
-	{
-		if(cLength == 0)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
-
-	if(strlen(eol) == cLength)
-		return true;
-
-	return false;
-}
-
-SafeBufferRef SipTcpStream::GetCompleteSipRequest()
-{
-	SafeBufferRef buf(new SafeBuffer());
-
-	buf->Store(m_sipRequest->GetBuffer(), m_sipRequest->Size());
-
-	return buf;
+	m_tcpBuffer->Add(pBuffer, packetLen);
 }
 
