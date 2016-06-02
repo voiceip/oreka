@@ -23,6 +23,7 @@
 #include "VoIpConfig.h"
 #include "ace/OS_NS_arpa_inet.h"
 #include "MemUtils.h"
+#include <boost/algorithm/string/predicate.hpp>
 
 extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;
@@ -1640,21 +1641,36 @@ void VoIpSession::ReportSipBye(SipByeInfoRef& bye)
 	}
 }
 
+
+bool IsNecExternal(SipInviteInfoRef& invite) {
+	CStdString from_or_to = DLLCONFIG.m_sipDirectionReferenceIpAddresses.Matches(invite->m_senderIp)?invite->m_from:invite->m_to;
+	
+	if ( from_or_to.CompareNoCase(CStdString("sipphd")) == 0 || boost::starts_with(from_or_to.c_str(),"trk") ) {
+		return true;
+	}
+
+	return false;
+}
+
 void VoIpSession::ReportSipNotify(SipNotifyInfoRef& notify)
 {
-
-	if( notify->m_dsp != "")
+	if (IsNecExternal(m_invite))
 	{
-		if(m_remoteParty.CompareNoCase(CStdString("sipphd")) == 0)
-		{
+		LOG4CXX_INFO(m_log, "external notify");
+		if (m_started) {
 			// NecSip is not updated by any other update routine so is "safe"
 			m_remotePartyNecSip = notify->m_dsp;
-	
+
 			// Report Remote party to Audio Tape
 			CaptureEventRef event(new CaptureEvent());
 			event->m_type = CaptureEvent::EtRemoteParty;
 			event->m_value = m_remotePartyNecSip;
 			g_captureEventCallBack(event, m_capturePort);
+		}
+		else {
+			LOG4CXX_INFO(m_log, "not started");
+			m_invite->m_sipRemoteParty = notify->m_dsp;
+			m_sipRemoteParty = notify->m_dsp;
 		}
 	}
 }
@@ -2157,6 +2173,17 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	newSession->m_callId = invite->m_callId;
 	newSession->m_protocol = VoIpSession::ProtSip;
 	newSession->m_sipDialedNumber = invite->m_sipDialedNumber;
+
+	if (DLLCONFIG.m_sipNotifySupport) {
+		struct in_addr& endpointIp = DLLCONFIG.m_sipDirectionReferenceIpAddresses.Matches(invite->m_senderIp)? invite->m_receiverIp: invite->m_senderIp;
+		VoIpEndpointInfoRef infoRef = GetVoIpEndpointInfo(endpointIp, 0);
+
+		if (infoRef && infoRef->m_preInviteNotifyRef && IsNecExternal(invite) ) {
+			invite->m_sipRemoteParty = infoRef->m_preInviteNotifyRef->m_dsp;
+			infoRef->m_preInviteNotifyRef.reset() ; // Use it only once
+		}
+	}
+
 	newSession->ReportSipInvite(invite);
 	newSession->m_sipLastInvite = ACE_OS::gettimeofday();
 	SetMediaAddress(newSession, invite->m_fromRtpIp, rtpPort);
@@ -2343,12 +2370,41 @@ void VoIpSessions::ReportSipBye(SipByeInfoRef& bye)
 	}
 }
 
+
+static inline bool isNotAlnum(char c) { return !isalnum(c); }
+
 void VoIpSessions::ReportSipNotify(SipNotifyInfoRef& notify)
 {
-	VoIpSessionRef session = SipfindNewestBySenderIp(notify->m_receiverIp);
-	if(session.get())
-	{
+	VoIpSessionRef session;
+	for(std::map<CStdString, VoIpSessionRef>::iterator pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++) {
+		VoIpSessionRef tmpSession = pair->second;
+		unsigned int invite_s_addr = DLLCONFIG.m_sipDirectionReferenceIpAddresses.Matches(tmpSession->m_invite->m_senderIp)? tmpSession->m_invite->m_receiverIp.s_addr: tmpSession->m_invite->m_senderIp.s_addr;
+
+		if ( (invite_s_addr == (unsigned int) notify->m_receiverIp.s_addr) && (!session || tmpSession->m_sipLastInvite > session->m_sipLastInvite) ) {
+			session = tmpSession;
+		}
+ 	}
+
+	if (notify->m_dsp.size() < 4) {
+		return; 
+	}
+
+	if (find_if(notify->m_dsp.begin(), notify->m_dsp.end(), isNotAlnum) != notify->m_dsp.end()) {
+		return;
+	}
+
+	if (session) {
 		session->ReportSipNotify(notify);
+	}
+	else {
+		unsigned long long recieverIp;
+		Craft64bitMediaAddress(recieverIp, notify->m_receiverIp, 0);
+
+		std::map<unsigned long long, VoIpEndpointInfoRef>::iterator it = m_endpoints.find(recieverIp);
+		if(it == m_endpoints.end()) {
+			it = m_endpoints.insert(it, std::make_pair(recieverIp, VoIpEndpointInfoRef(new VoIpEndpointInfo()) ));
+		}
+		it->second->m_preInviteNotifyRef = notify;
 	}
 }
 
