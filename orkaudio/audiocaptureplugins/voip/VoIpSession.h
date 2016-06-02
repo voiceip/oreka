@@ -64,6 +64,7 @@ public:
 	time_t m_lastConnectedWithConference;
 	CStdString m_origOrkUid;
 	std::map<CStdString, UrlExtractionValueRef> m_urlExtractionMap;		//map<urlParam, urlValue>
+	ConstSipNotifyInfoRef m_preInviteNotifyRef;
 };
 typedef oreka::shared_ptr<VoIpEndpointInfo> VoIpEndpointInfoRef;
 

@@ -134,8 +134,15 @@ public:
 	struct in_addr m_senderIp;
 	struct in_addr m_receiverIp;
 	CStdString m_dsp;
+
+	CStdString ToString() {
+		CStdString retVal;
+		retVal.Format("callid:%s display:%s",m_callId,m_dsp);
+		return retVal;
+	}
 };
 typedef oreka::shared_ptr<SipNotifyInfo> SipNotifyInfoRef;
+typedef oreka::shared_ptr<const SipNotifyInfo> ConstSipNotifyInfoRef;
 
 class Sip200OkInfo
 {

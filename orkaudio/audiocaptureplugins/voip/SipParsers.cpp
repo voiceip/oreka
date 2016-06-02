@@ -146,8 +146,6 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 
 bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
-	bool result = false;
-
 	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
 	char* sipEnd = (char*)udpPayload + sipLength;
 	if(sipLength < (int)sizeof(SIP_METHOD_BYE) || sipEnd > (char*)packetEnd)
@@ -155,9 +153,8 @@ bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		return false;
 	}
 
-	if (memcmp(SIP_METHOD_NOTIFY, (void*)udpPayload, SIP_METHOD_NOTIFY_SIZE) == 0)
+	if (boost::starts_with((char*)udpPayload, "NOTIFY")) 
 	{
-		result = true;
 		SipNotifyInfoRef info(new SipNotifyInfo());
 		info->m_senderIp = ipHeader->ip_src;
 		info->m_receiverIp = ipHeader->ip_dest;
@@ -172,24 +169,30 @@ bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
 		}
 
-		char* dspField = memFindAfter(SIP_FIELD_LINE3, (char*)udpPayload, sipEnd);
+		char* dspField = memFindAfter("Ind-DispLineN=3:Dsp:", (char*)udpPayload, sipEnd);
 		if(!dspField)
 		{
 			dspField = memFindAfter("\nt:", (char*)udpPayload, sipEnd);
 		}
 		if(dspField)
 		{
+			char* contentLen = memFindAfter("Content-Length: 50", (char*)udpPayload, sipEnd);
+			if (contentLen) {
+				dspField = contentLen+50;
+				while (*dspField != ' ') dspField--; // find the position of the lastest token before end
+			}
+
 			GrabTokenSkipLeadingWhitespaces(dspField, sipEnd, info->m_dsp);
 		}
 
-			CStdString logMsg;
-			LOG4CXX_INFO(s_sipPacketLog, "NOTIFY: " + logMsg);
-			if(callIdField && DLLCONFIG.m_sipNotifySupport == true)
-			{
-				VoIpSessionsSingleton::instance()->ReportSipNotify(info);
-			}
+		if (callIdField && DLLCONFIG.m_sipNotifySupport)
+		{
+			LOG4CXX_INFO(s_sipPacketLog, "NOTIFY: " + info->ToString());
+			VoIpSessionsSingleton::instance()->ReportSipNotify(info);
+			return true;
+		}
 	}
-	return result;
+	return false;
 }
 
 bool TrySipInfo(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
