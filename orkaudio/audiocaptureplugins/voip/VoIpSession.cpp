@@ -2679,6 +2679,63 @@ bool VoIpSessions::SkinnyFindMostLikelySessionForRtpBehindNat(RtpPacketInfoRef& 
 	return true;
 }
 
+
+void VoIpSession::ReportMetadataUpdateSkinny() {
+
+	CaptureEventRef event(new CaptureEvent());
+
+	// Report remote party
+	event.reset(new CaptureEvent());
+	event->m_type = CaptureEvent::EtRemoteParty;
+	if(DLLCONFIG.m_partiesUseName == true && m_remotePartyName.size())
+	{
+		event->m_value = m_remotePartyName;
+	}
+	else
+	{
+		event->m_value = m_remoteParty;
+	}
+	g_captureEventCallBack(event, m_capturePort);
+	m_remotePartyReported = true;
+
+	// Report local entry point
+	if(m_localEntryPoint.size())
+	{
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtLocalEntryPoint;
+		event->m_value = m_localEntryPoint;
+		g_captureEventCallBack(event, m_capturePort);
+	}
+
+	if(DLLCONFIG.m_sipReportNamesAsTags == true)
+	{
+		CStdString key, value;
+
+		key = "localname";
+		value = m_localPartyName;
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtKeyValue;
+		event->m_key = key;
+		event->m_value = value;
+		g_captureEventCallBack(event, m_capturePort);
+
+		key = "remotename";
+		value = m_remotePartyName;
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtKeyValue;
+		event->m_key = key;
+		event->m_value = value;
+		g_captureEventCallBack(event, m_capturePort);
+	}
+
+	if (m_started) {
+		CaptureEventRef event(new CaptureEvent());
+		event->m_type = CaptureEvent::EtUpdate;
+		event->m_value = m_remoteParty;
+		g_captureEventCallBack(event, m_capturePort);
+	}
+}
+
 void VoIpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
 {
 	CStdString callId = GenerateSkinnyCallId(ipHeader->ip_dest, ntohs(tcpHeader->dest), callInfo->callId);
@@ -2695,6 +2752,8 @@ void VoIpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStru
 		// just update timestamp
 		VoIpSessionRef existingSession = pair->second;
 		existingSession->m_skinnyLastCallInfoTime = ACE_OS::gettimeofday();
+		
+		CStdString oldVal = existingSession->m_remoteParty;;
 
 		if(DLLCONFIG.m_skinnyAllowCallInfoUpdate)
 		{
@@ -2702,6 +2761,11 @@ void VoIpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStru
 		}
 
 		existingSession->ReportSkinnyCallInfo(callInfo, ipHeader);
+
+		if (!existingSession->m_remoteParty.empty() && oldVal != existingSession->m_remoteParty) {
+			// sometimes, the remote party is updated by the CM to the correct value after we have started recording the current call leg, e.g. trace 0771e7efb755dae6076f911508ea3ab7 for the last leg of a transfer, so we need to update orktrack.
+			existingSession->ReportMetadataUpdateSkinny();
+		}
 
 		return;
 	}

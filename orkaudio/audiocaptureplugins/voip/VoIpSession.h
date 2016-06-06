@@ -163,6 +163,7 @@ public:
 	unsigned int m_ssrcCandidate;
 	CStdString m_dtmfDigitString;
 	int m_orekaRtpPayloadType;
+	void ReportMetadataUpdateSkinny();
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
