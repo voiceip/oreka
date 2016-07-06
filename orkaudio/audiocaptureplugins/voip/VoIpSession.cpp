@@ -2076,7 +2076,7 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			// Do nothing here so that we end up stopping this Raw RTP session 
 			// and creating new session below
 		}
-	    if(session->m_protocol == VoIpSession::ProtSip && DLLCONFIG.m_rtpAllowMultipleMappings == true)
+	    else if(session->m_protocol == VoIpSession::ProtSip && DLLCONFIG.m_rtpAllowMultipleMappings == true)
 	    {
 	    	// Do nothing here so that this new session ends up receiving
 			// all future RTP packets to this media address
