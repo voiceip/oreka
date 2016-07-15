@@ -1073,6 +1073,7 @@ void VoIpSession::GoOnHold(time_t onHoldTime)
 
 void VoIpSession::GoOffHold(time_t offHoldTime)
 {
+        m_lastUpdated = offHoldTime;
 	m_onHold = false;
 	m_holdDuration += offHoldTime - m_holdBegin;
 
