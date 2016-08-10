@@ -1230,7 +1230,7 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	{
 		if(m_lastRtpPacket.get())
 		{
-			if( rtpPacket->m_payloadType != m_lastRtpPacket->m_payloadType )
+			if( rtpPacket->m_payloadType > 18 )
 			{
 				// Some telephony systems have RTP "keepalive" packets while on hold in the dynamic payload type range. Ignore them.
 				
