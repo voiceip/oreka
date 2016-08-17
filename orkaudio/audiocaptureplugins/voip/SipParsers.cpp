@@ -1162,12 +1162,26 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			contactField = memFindAfter("\nc:", (char*)udpPayload, sipEnd);
 		}
 
+                char * audioSdpStart = (char*) udpPayload;;
+                char * audioSdpEnd   = (char*) sipEnd;;
+
+                char* audioStart = memFindAfter("m=audio", (char*)udpPayload, sipEnd);
+                char* videoStart = memFindAfter("m=video", (char*)udpPayload, sipEnd);
+
+                if (audioStart < videoStart) {
+                    audioSdpEnd = videoStart;
+                }
+
+                if (audioStart > videoStart) {
+                    audioSdpStart = audioStart;
+                }
+
 		char* localExtensionField = memFindAfter("x-Local-Extension:", (char*)udpPayload, sipEnd);
 		char* audioField = NULL;
 		char* connectionAddressField = NULL;
-		char* attribSendonly = memFindAfter("a=sendonly", (char*)udpPayload, sipEnd);
-		char* attribInactive = memFindAfter("a=inactive", (char*)udpPayload, sipEnd);
-		char* rtpmapAttribute = memFindAfter("\na=rtpmap:", (char*)udpPayload, sipEnd);
+		char* attribSendonly = memFindAfter("a=sendonly", (char*)audioSdpStart, audioSdpEnd);
+		char* attribInactive = memFindAfter("a=inactive", (char*)audioSdpStart, audioSdpEnd);
+		char* rtpmapAttribute = memFindAfter("\na=rtpmap:", (char*)audioSdpStart, audioSdpEnd);
 		char* userAgentField = memFindAfter("\nUser-Agent:", (char*)udpPayload, sipEnd);
 
 		if(DLLCONFIG.m_sipRequestUriAsLocalParty == true)
@@ -1464,9 +1478,9 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 				while(rtpmapAttribute && rtpmapAttribute < sipEnd)
 				{
 					rtpPayloadType = "";
-					GrabTokenSkipLeadingWhitespaces(rtpmapAttribute, sipEnd, rtpPayloadType);
+					GrabTokenSkipLeadingWhitespaces(rtpmapAttribute, audioSdpEnd, rtpPayloadType);
 					nextToken.Format("%s ", rtpPayloadType);
-					nextStep = memFindAfter((char*)nextToken.c_str(), rtpmapAttribute, sipEnd);
+					nextStep = memFindAfter((char*)nextToken.c_str(), rtpmapAttribute, audioSdpEnd);
 
 					/* We need our "nextStep" to contain at least the length
 					 * of the string "telephone-event", 15 characters */
@@ -1482,7 +1496,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 						}
 					}
 
-					rtpmapAttribute = memFindAfter("\na=rtpmap:", rtpmapAttribute, sipEnd);
+					rtpmapAttribute = memFindAfter("\na=rtpmap:", rtpmapAttribute, audioSdpEnd);
 				}
 			}
 		}
@@ -1490,7 +1504,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		//Determine the being used codec: should be the first rtpmap
 		if(sipMethod == SIP_METHOD_200_OK)
 		{
-			rtpmapAttribute = memFindAfter("\na=rtpmap:", (char*)udpPayload, sipEnd);
+			rtpmapAttribute = memFindAfter("\na=rtpmap:", (char*)audioSdpStart, audioSdpEnd);
 			if(rtpmapAttribute)
 			{
 				CStdString line;
