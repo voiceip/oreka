@@ -4387,6 +4387,11 @@ void VoIpSessions::CopyMetadataToNewSession(VoIpSessionRef& oldSession, VoIpSess
 	newSession->m_metadataProcessed = true;
 }
 
+void VoIpSessions::ClearLocalPartyMap()
+{
+       m_localPartyMap.clear();
+}
+
 void VoIpSessions::StopAll()
 {
 	time_t forceExpiryTime = time(NULL) + 2*DLLCONFIG.m_rtpSessionOnHoldTimeOutSec;

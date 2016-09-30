@@ -263,6 +263,7 @@ public:
 	void ReportOnDemandMarkerByIp(struct in_addr endpointIp);
 	void TaggingSipTransferCalls(VoIpSessionRef& session);
 	void CopyMetadataToNewSession(VoIpSessionRef& oldSession, VoIpSessionRef& newSession);
+	void ClearLocalPartyMap();
 
 private:
 	void CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort);
