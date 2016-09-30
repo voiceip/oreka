@@ -90,7 +90,7 @@ const int pcap_live_snaplen = 65535;
 
 #define PROMISCUOUS 1
 #define LOCAL_PARTY_MAP_FILE	"localpartymap.csv"
-#define ETC_LOCAL_PARTY_MAP_FILE	"/etc/orkaudio/localpartymap.csv"
+#define ETC_LOCAL_PARTY_MAP_FILE "/etc/orkaudio/" LOCAL_PARTY_MAP_FILE
 #define SKINNY_GLOBAL_NUMBERS_FILE	"skinnyglobalnumbers.csv"
 #define ETC_SKINNY_GLOBAL_NUMBERS_FILE	"/etc/orkaudio/skinnyglobalnumbers.csv"
 #define PROT_ERSPAN 0x88be
@@ -131,6 +131,7 @@ private:
 
 	std::map<pcap_t*, CStdString> m_pcapDeviceMap;
 	ACE_Thread_Mutex m_pcapDeviceMapMutex;
+	time_t m_lastModLocalPartyMapTs;
 };
 
 typedef ACE_Singleton<VoIp, ACE_Thread_Mutex> VoIpSingleton;
@@ -909,6 +910,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 		s_lastHooveringTime = now;
 		VoIpSessionsSingleton::instance()->Hoover(now);
 		Iax2SessionsSingleton::instance()->Hoover(now);
+		VoIpSingleton::instance()->LoadPartyMaps();
 	}
 }
 
@@ -1075,6 +1077,8 @@ void UdpListenerThread()
 VoIp::VoIp()
 {
 	m_pcapHandle = NULL;
+	m_lastModLocalPartyMapTs = 0;
+
 }
 
 void Configure(DOMNode* node)
@@ -1445,27 +1449,53 @@ void VoIp::ProcessLocalPartyMap(char *line, int ln)
 
 void VoIp::LoadPartyMaps()
 {
+	CStdString logMsg;
+    //Separate file operation for file stat, just to not affect the current working stuff
+    ACE_stat stat;
+    memset(&stat, 0, sizeof(stat));
+    ACE_HANDLE fh = ACE_INVALID_HANDLE;
+    fh = ACE_OS::open(LOCAL_PARTY_MAP_FILE, O_RDONLY);
+    if(fh == ACE_INVALID_HANDLE)
+    {
+            fh = ACE_OS::open(ETC_LOCAL_PARTY_MAP_FILE, O_RDONLY);
+    }
+    if(fh != ACE_INVALID_HANDLE)
+    {
+            ACE_OS::fstat(fh, &stat);
+            if(stat.st_mtime <= m_lastModLocalPartyMapTs)
+            {
+                    //the file was already loaded and there has been no change since then
+                    return;
+            }
+            else
+            {
+                    logMsg.Format("Detected %s modification, timestamp:%lu oldtimestamp:%lu", LOCAL_PARTY_MAP_FILE, stat.st_mtime, m_lastModLocalPartyMapTs);
+                    LOG4CXX_INFO(s_packetLog, logMsg);
+                    m_lastModLocalPartyMapTs = stat.st_mtime;
+                    VoIpSessionsSingleton::instance()->ClearLocalPartyMap();
+            }
+            ACE_OS::close(fh);
+    }
+
 	FILE *maps = NULL;
 	char buf[1024];
 	int ln = 0;
-	CStdString logMsg;
 
 	memset(buf, 0, sizeof(buf));
 	maps = fopen(LOCAL_PARTY_MAP_FILE, "r");
 	if(!maps)
 	{
-		logMsg.Format("LoadPartyMaps: Could not open file:%s -- trying:%s now", LOCAL_PARTY_MAP_FILE, ETC_LOCAL_PARTY_MAP_FILE);
-		LOG4CXX_INFO(s_packetLog, logMsg);
-
 		maps = fopen(ETC_LOCAL_PARTY_MAP_FILE, "r");
 		if(!maps)
 		{
-			logMsg.Format("LoadPartyMaps: Could not open file:%s either -- giving up", ETC_LOCAL_PARTY_MAP_FILE);
+			logMsg.Format("No %s supplied, either locally or at %s", LOCAL_PARTY_MAP_FILE, ETC_LOCAL_PARTY_MAP_FILE);
 			LOG4CXX_INFO(s_packetLog, logMsg);
 
 			return;
 		}
 	}
+	logMsg.Format("Loading %s", LOCAL_PARTY_MAP_FILE);
+	LOG4CXX_INFO(s_packetLog, logMsg);
 
 	while(fgets(buf, sizeof(buf), maps))
 	{
