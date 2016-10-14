@@ -118,3 +118,50 @@ void MemMacToHumanReadable(unsigned char* macAddress, CStdString&output)
 		output += byteAsHex;
 	}
 }
+
+char* MemGrabAlphaNumSpace(char* in, char* limit, CStdString& out)
+{
+	// Look for first printable character
+	char* start = in;
+	char* c = NULL;
+	while (!ACE_OS::ace_isalnum(*start) && start<limit)
+	{
+		start++;
+	}
+
+	if(start < (limit -1))
+	{
+		for(c = start; (ACE_OS::ace_isalnum(*c) || ACE_OS::ace_isspace(*c)) && c<limit; c = c+1)
+		{
+			out += *c;
+		}
+
+		return c;
+	}
+
+	return NULL;
+}
+
+char* MemGrabDigits(char* in, char* limit, CStdString& out)
+{
+	// Look for first printable character
+	char* start = in;
+	char* c = NULL;
+	while (!ACE_OS::ace_isdigit(*start) && start<limit)
+	{
+		start++;
+	}
+
+	if(start < (limit -1))
+	{
+		for(c = start; ACE_OS::ace_isdigit(*c) && c<limit; c = c+1)
+		{
+			out += *c;
+		}
+
+		return c;
+	}
+
+	return NULL;
+}
+
