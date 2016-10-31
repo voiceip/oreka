@@ -120,10 +120,12 @@ public:
 	void GetConnectionStatus(CStdString& msg);
 
 private:
+	pcap_t* OpenPcapDeviceLive(CStdString name);
+	bool ActivatePcapHandle(pcap_t* pcapHandle);
 	void OpenDevices();
 	void OpenPcapFile(CStdString& filename);
 	void OpenPcapDirectory(CStdString& path);
-	void SetPcapSocketBufferSize(pcap_t* pcapHandle);
+	bool SetPcapSocketBufferSize(pcap_t* pcapHandle);
 	char* ApplyPcapFilter();
 
 	pcap_t* m_pcapHandle;
@@ -1194,38 +1196,70 @@ void VoIp::OpenPcapFile(CStdString& filename)
 	}
 }
 
-void VoIp::SetPcapSocketBufferSize(pcap_t* pcapHandle)
+bool VoIp::SetPcapSocketBufferSize(pcap_t* pcapHandle)
 {
-	CStdString logMsg = "failure";
+	bool ret = true;
+	CStdString logMsg;
 	size_t bufSize = 0;
-#ifndef WIN32
-	int pcapFileno = pcap_fileno(m_pcapHandle);
+
+	int status = 0;
 	bufSize = DLLCONFIG.m_pcapSocketBufferSize;
 	if(bufSize < 1)
 	{
-		return;
+		return ret;
 	}
-	if(pcapFileno)
+
+	status = pcap_set_buffer_size(pcapHandle, bufSize);	//66584576 ~64Mb
+	if(status == 0)
 	{
+		logMsg.Format("Setting pcap socket buffer size:%u bytes successful", bufSize);
+		LOG4CXX_INFO(s_packetLog, logMsg);
+		return ret;
+
+	}
+	else
+	{
+		logMsg.Format("Setting pcap buffer size on pcaphandle:%x failed error:%d", pcapHandle, status);
+		LOG4CXX_ERROR(s_packetLog, logMsg);
+		return false;
+	}
+}
+
+bool VoIp::ActivatePcapHandle(pcap_t* pcapHandle)
+{
+	CStdString logMsg;
+	int status = 0;
+	status = pcap_activate(pcapHandle);
+	if(status < 0)
+	{
+		logMsg.Format("Activating pcaphandle:%x failed error:%d", pcapHandle, status);
+		LOG4CXX_ERROR(s_packetLog, logMsg);
+		return false;
+	}
+	logMsg.Format("Activating pcaphandle:%x successfully", pcapHandle);
+	LOG4CXX_INFO(s_packetLog, logMsg);
+	#ifndef WIN32
+	//Setting SO_RCVBUF size - this proved to help under CentOS6. This is probably not necessary under CentOS7 but does no harm.
+		int pcapFileno = pcap_fileno(pcapHandle);
+		if(pcapFileno < 0)
+		{
+			logMsg.Format("Getting pcaphandle:%x descriptor failed", pcapHandle);
+			LOG4CXX_ERROR(s_packetLog, logMsg);
+			return false;
+		}
+		size_t bufSize = 0;
+		bufSize = DLLCONFIG.m_pcapSocketBufferSize;
 		if(setsockopt(pcapFileno, SOL_SOCKET, SO_RCVBUF, &bufSize, sizeof(bufSize)) == 0)
 		{
-			logMsg = "success";		
+			logMsg.Format("Setting setsockopt with bufsize:%d successfully", bufSize);
+			LOG4CXX_INFO(s_packetLog, logMsg);
 		}
-	}
-	logMsg.Format("Setting pcap socket buffer size:%u bytes ... %s", bufSize, logMsg);
-	LOG4CXX_INFO(s_packetLog, logMsg);
-#elif WIN32
-	bufSize = DLLCONFIG.m_pcapSocketBufferSize;
-	if(bufSize > 0)
-	{
-		if(pcap_setbuff(m_pcapHandle, bufSize) == 0)
+		else
 		{
-			logMsg = "success";	
+			logMsg.Format("Setting setsockopt with bufsize:%d failed", bufSize);
+			LOG4CXX_ERROR(s_packetLog, logMsg);
 		}
-		logMsg.Format("Setting pcap socket buffer size:%u bytes ... %s", bufSize, logMsg);
-		LOG4CXX_INFO(s_packetLog, logMsg);
-	}
-#endif
+	#endif
 }
 
 void VoIp::AddPcapDeviceToMap(CStdString& deviceName, pcap_t* pcapHandle)
@@ -1257,17 +1291,67 @@ CStdString VoIp::GetPcapDeviceName(pcap_t* pcapHandle)
 	return deviceName;
 }
 
-pcap_t* VoIp::OpenDevice(CStdString& name)
+pcap_t* VoIp::OpenPcapDeviceLive(CStdString name)
 {
 	char errorBuf[PCAP_ERRBUF_SIZE];
 	memset(errorBuf, 0, sizeof(errorBuf));
 	char * error = errorBuf;
-
-	MutexSentinel mutexSentinel(m_pcapDeviceMapMutex);
 	CStdString logMsg;
+	pcap_t* pcapHandle = NULL;
+	int status = 0;
 
+	pcapHandle = pcap_create((char*)name.c_str(), errorBuf);
+	if(pcapHandle == NULL)
+	{
+		error = errorBuf;
+		LOG4CXX_ERROR(s_packetLog, CStdString("pcap error when creating pcaphandle; error message:") + error);
+		return NULL;
+	}
+	status = pcap_set_snaplen(pcapHandle, pcap_live_snaplen);
+        if(status < 0)
+	{
+    		logMsg.Format("pcap error when setting snaplen %d; error return:%d", pcap_live_snaplen, status);
+		LOG4CXX_ERROR(s_packetLog, logMsg);
+		return NULL;
+	}
+	status = pcap_set_promisc(pcapHandle, PROMISCUOUS);
+        if(status < 0)
+	{
+    		logMsg.Format("pcap error when setting promiscous mode; error return:%d", status);
+		LOG4CXX_ERROR(s_packetLog, logMsg);
+		return NULL;
+	}
+	status = pcap_set_timeout(pcapHandle, 500);
+    	if(status < 0)
+	{
+    		logMsg.Format("pcap error when setting timeout; error return:%d", status);
+		LOG4CXX_ERROR(s_packetLog, logMsg);
+		return NULL;
+	}
+
+	if(SetPcapSocketBufferSize(pcapHandle) == false)
+	{
+		return NULL;
+	}
+	if(ActivatePcapHandle(pcapHandle) == false)
+	{
+		return NULL;
+	}
+        logMsg.Format("Successfully opened device. pcap handle:%x message:%s", pcapHandle, error);
+        LOG4CXX_INFO(s_packetLog, logMsg);
+
+	return pcapHandle;
+}
+
+pcap_t* VoIp::OpenDevice(CStdString& name)
+{
+	CStdString logMsg;
+	char errorBuf[PCAP_ERRBUF_SIZE];
+	memset(errorBuf, 0, sizeof(errorBuf));
+	char * error = errorBuf;
+	MutexSentinel mutexSentinel(m_pcapDeviceMapMutex);
 	m_pcapHandle = NULL;
-	m_pcapHandle = pcap_open_live((char*)name.c_str(), pcap_live_snaplen, PROMISCUOUS, 500, errorBuf);
+	m_pcapHandle = OpenPcapDeviceLive(name);
 
 	if(m_pcapHandle)
 	{
@@ -1285,7 +1369,6 @@ pcap_t* VoIp::OpenDevice(CStdString& name)
 	{
 		logMsg.Format("Successfully opened device. pcap handle:%x message:%s", m_pcapHandle, error);
 		LOG4CXX_INFO(s_packetLog, logMsg);
-		SetPcapSocketBufferSize(m_pcapHandle);
 	}
 
 	return m_pcapHandle;
@@ -1338,7 +1421,7 @@ void VoIp::OpenDevices()
 				if((DLLCONFIG.m_devices.size() > 0 && (*DLLCONFIG.m_devices.begin()).CompareNoCase("all") == 0) || DLLCONFIG.IsDeviceWanted(device->name))
 				{
 					// Open device
-					m_pcapHandle = pcap_open_live(device->name, pcap_live_snaplen, PROMISCUOUS, 500, errorBuf);
+					m_pcapHandle = OpenPcapDeviceLive(device->name);
 					
 					if(m_pcapHandle)
 					{
@@ -1354,13 +1437,6 @@ void VoIp::OpenDevices()
 					}
 					else
 					{
-						CStdString logMsg, deviceName;
-
-						deviceName = device->name;
-						logMsg.Format("Successfully opened device. pcap handle:%x message:%s", m_pcapHandle, error);
-						LOG4CXX_INFO(s_packetLog, logMsg);
-						SetPcapSocketBufferSize(m_pcapHandle);
-
 						m_pcapHandles.push_back(m_pcapHandle);
 						AddPcapDeviceToMap(deviceName, m_pcapHandle);
 					}
@@ -1376,7 +1452,7 @@ void VoIp::OpenDevices()
 				// Let's open the default device
 				if(defaultDevice)
 				{
-					m_pcapHandle = pcap_open_live(defaultDevice->name, pcap_live_snaplen, PROMISCUOUS, 500, errorBuf);
+					m_pcapHandle = OpenPcapDeviceLive(defaultDevice->name);
 
 					if(m_pcapHandle)
 					{
@@ -1397,7 +1473,6 @@ void VoIp::OpenDevices()
 
 						logMsg.Format("Successfully opened default device:%s pcap handle:%x message:%s", defaultDevice->name, m_pcapHandle, error);
 						LOG4CXX_INFO(s_packetLog, logMsg);
-						SetPcapSocketBufferSize(m_pcapHandle);
 
 						m_pcapHandles.push_back(m_pcapHandle);
 						deviceName = defaultDevice->name;
