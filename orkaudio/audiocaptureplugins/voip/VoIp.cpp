@@ -1253,13 +1253,16 @@ bool VoIp::ActivatePcapHandle(pcap_t* pcapHandle)
 		{
 			logMsg.Format("Setting setsockopt with bufsize:%d successfully", bufSize);
 			LOG4CXX_INFO(s_packetLog, logMsg);
+                	return true;
 		}
 		else
 		{
 			logMsg.Format("Setting setsockopt with bufsize:%d failed", bufSize);
 			LOG4CXX_ERROR(s_packetLog, logMsg);
+                	return false;
 		}
 	#endif
+	return true;
 }
 
 void VoIp::AddPcapDeviceToMap(CStdString& deviceName, pcap_t* pcapHandle)
