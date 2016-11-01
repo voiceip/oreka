@@ -1543,6 +1543,7 @@ void VoIp::LoadPartyMaps()
             if(stat.st_mtime <= m_lastModLocalPartyMapTs)
             {
                     //the file was already loaded and there has been no change since then
+                    ACE_OS::close(fh);
                     return;
             }
             else
