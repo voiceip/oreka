@@ -1248,7 +1248,7 @@ bool VoIp::ActivatePcapHandle(pcap_t* pcapHandle)
 			return false;
 		}
 		size_t bufSize = 0;
-		bufSize = DLLCONFIG.m_pcapSocketBufferSize;
+		bufSize = 8388608;
 		if(setsockopt(pcapFileno, SOL_SOCKET, SO_RCVBUF, &bufSize, sizeof(bufSize)) == 0)
 		{
 			logMsg.Format("Setting setsockopt with bufsize:%d successfully", bufSize);
