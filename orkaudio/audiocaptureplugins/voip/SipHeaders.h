@@ -236,8 +236,12 @@ public:
 	CStdString m_fromName;
 	CStdString m_toName;
 	CStdString m_callId;
-	CStdString m_referTo;
-	CStdString m_referredBy;
+//referredByParty: the party that refers the call to referredToParty
+//referredToParty: the party that receives the transfer from referredByParty
+//referredParty: the party that was originally in contact with referredByParty (via either inbound or outbound call) and that is transferred by referredByParty to referredToParty.
+	CStdString m_referToParty;
+	CStdString m_referredByParty;
+	CStdString m_referredParty;
 	CStdString m_origOrkUid;
 };
 typedef oreka::shared_ptr<SipRefer> SipReferRef;

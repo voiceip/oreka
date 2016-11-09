@@ -2427,8 +2427,8 @@ void VoIpSessions::ReportSipRefer(SipReferRef& info)
 	it = m_byCallId.find(info->m_callId);
 	if(it != m_byCallId.end())
 	{
-		info->m_referTo = GetLocalPartyMap(info->m_referTo);
-		info->m_referredBy = GetLocalPartyMap(info->m_referredBy);
+		info->m_referToParty = GetLocalPartyMap(info->m_referToParty);
+		info->m_referredByParty = GetLocalPartyMap(info->m_referredByParty);
 		it->second->ReportSipRefer(info);
 		m_sipReferList.push_back(info);
 	}
@@ -4313,10 +4313,10 @@ void VoIpSessions::TaggingSipTransferCalls(VoIpSessionRef& session)
 		int timeDifFromCreation = (int)(sipRefer->m_timestamp - session->m_creationDate.sec());
 		if((timeDifFromCreation > -2)
 			&&(
-					(toUser.CompareNoCase(sipRefer->m_referTo) == 0)
+					(toUser.CompareNoCase(sipRefer->m_referToParty) == 0)
 			   )
 			&&(
-					fromUser.CompareNoCase(sipRefer->m_referredBy) == 0 || (fromUser.CompareNoCase(sipRefer->m_from) == 0 || fromUser.CompareNoCase(sipRefer->m_to) == 0)
+					fromUser.CompareNoCase(sipRefer->m_referredByParty) == 0 || (fromUser.CompareNoCase(sipRefer->m_from) == 0 || fromUser.CompareNoCase(sipRefer->m_to) == 0)
 			   )
 		   )
 		{
@@ -4329,19 +4329,11 @@ void VoIpSessions::TaggingSipTransferCalls(VoIpSessionRef& session)
 			LOG4CXX_INFO(m_log, logMsg);
 
 			//Try to swap the correct external number into remote party, otherwise its displayed as internal ext<->internal ext call
-			//Actual external remote number is sipRefer->to
-			//Party which is matched siprefer->m_referredBy need to be replaced
-			if(session->m_localParty.CompareNoCase(sipRefer->m_referredBy) == 0)
+			//Party which is matched siprefer->m_referredByParty need to be replaced
+			//This swap will only work if the PBX(es) IP(s) is(are) present in SipDirectionReferenceIpAddresses
+			if(session->m_remoteParty.CompareNoCase(sipRefer->m_referredByParty) == 0)
 			{
-				session->m_localParty = sipRefer->m_to;
-				CaptureEventRef event(new CaptureEvent());
-				event->m_type = CaptureEvent::EtLocalParty;
-				event->m_value = session->m_localParty;
-				g_captureEventCallBack(event, session->m_capturePort);
-			}
-			else if(session->m_remoteParty.CompareNoCase(sipRefer->m_referredBy) == 0)
-			{
-				session->m_remoteParty = sipRefer->m_to;
+				session->m_remoteParty = sipRefer->m_referredParty;
 				CaptureEventRef event(new CaptureEvent());
 				event->m_type = CaptureEvent::EtRemoteParty;
 				event->m_value = session->m_remoteParty;
