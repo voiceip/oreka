@@ -2105,6 +2105,7 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 					session->GoOffHold(invite->m_recvTime);
 					session->m_lastUpdated = time(NULL);	// so that timeout countdown is reset
 					LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going off hold");
+					SetMediaAddress(session, invite->m_fromRtpIp, rtpPort);
 					return;
 				}
 			}
@@ -2144,6 +2145,7 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 				session->GoOffHold(invite->m_recvTime);
 				session->m_lastUpdated = time(NULL);	// so that timeout countdown is reset
 				LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going off hold");
+				SetMediaAddress(session, invite->m_fromRtpIp, rtpPort);
 				return;
 			}
 		}
@@ -3214,7 +3216,8 @@ void VoIpSessions::SetMediaAddress(VoIpSessionRef& session, struct in_addr media
 			doChangeMediaAddress = false;
 		}
 		else if(oldSession->m_protocol == VoIpSession::ProtRawRtp || oldSession->m_numRtpPackets == 0 ||
-			(session->m_protocol == VoIpSession::ProtSkinny && DLLCONFIG.m_skinnyAllowMediaAddressTransfer)   )
+			(session->m_protocol == VoIpSession::ProtSkinny && DLLCONFIG.m_skinnyAllowMediaAddressTransfer)
+			|| (session->m_protocol == VoIpSession::ProtSip && DLLCONFIG.m_sipAllowMediaAddressTransfer))
 		{
 			logMsg.Format("[%s] on %s replaces [%s]",
 							session->m_trackingId, MediaAddressToString(mediaAddress), oldSession->m_trackingId);
