@@ -1647,7 +1647,7 @@ bool TrySipRefer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 			char* sipUser = memFindAfter("sip:", referToField, referToFieldEnd);
 			if(sipUser)
 			{
-				GrabSipUriUser(sipUser, referToFieldEnd, info->m_referTo);
+				GrabSipUriUser(sipUser, referToFieldEnd, info->m_referToParty);
 
 			}
 		}
@@ -1657,9 +1657,17 @@ bool TrySipRefer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 			char* sipUser = memFindAfter("sip:", referredByField, referredByFieldEnd);
 			if(sipUser)
 			{
-				GrabSipUriUser(sipUser, referredByFieldEnd, info->m_referredBy);
+				GrabSipUriUser(sipUser, referredByFieldEnd, info->m_referredByParty);
 
 			}
+		}
+		if((!info->m_to.empty()) && (info->m_to.CompareNoCase(info->m_referToParty) != 0) && (info->m_to.CompareNoCase(info->m_referredByParty) != 0))
+		{
+			info->m_referredParty = info->m_to;
+		}
+		if((!info->m_from.empty()) && (info->m_from.CompareNoCase(info->m_referToParty) != 0) && (info->m_from.CompareNoCase(info->m_referredByParty) != 0))
+		{
+			info->m_referredParty = info->m_from;
 		}
 		info->m_senderIp = ipHeader->ip_src;
 		info->m_receiverIp = ipHeader->ip_dest;

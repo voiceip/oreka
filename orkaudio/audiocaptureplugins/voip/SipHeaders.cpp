@@ -194,7 +194,7 @@ void SipRefer::ToString(CStdString& string)
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
 	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
-	string.Format("sender:%s rcvr:%s from:%s@%s to:%s@%s fromname:%s toname:%s referto:%s referredby:%s callid:%s", senderIp, receiverIp, m_from, m_fromDomain, m_to, m_toDomain, m_fromName, m_toName, m_referTo, m_referredBy, m_callId);
+	string.Format("sender:%s rcvr:%s from:%s@%s to:%s@%s fromname:%s toname:%s referto:%s referredby:%s referredParty:%s callid:%s", senderIp, receiverIp, m_from, m_fromDomain, m_to, m_toDomain, m_fromName, m_toName, m_referToParty, m_referredByParty, m_referredParty, m_callId);
 }
 
 
