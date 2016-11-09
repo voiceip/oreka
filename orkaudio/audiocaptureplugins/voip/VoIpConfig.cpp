@@ -77,6 +77,7 @@ void VoIpConfig::Reset() {
 	m_sipOnDemandFieldValueOff = "";
 	m_sipTrackMediaAddressOnSender = false;
 	m_sipAllowMetadataUpdateOnRtpChange = false;
+	m_sipAllowMediaAddressTransfer = false;
 
 	m_rtcpDetect = false;
 	m_inInMode = false;
@@ -201,6 +202,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->StringValue("SipGroupPickUpPattern", m_sipGroupPickUpPattern);
 	s->BoolValue("SipTrackMediaAddressOnSender", m_sipTrackMediaAddressOnSender);
 	s->BoolValue("SipAllowMetadataUpdateOnRtpChange", m_sipAllowMetadataUpdateOnRtpChange);
+	s->BoolValue("SipAllowMediaAddressTransfer", m_sipAllowMediaAddressTransfer);
 
 	s->BoolValue("RtcpDetect", m_rtcpDetect);
 	s->BoolValue("InInMode", m_inInMode);
