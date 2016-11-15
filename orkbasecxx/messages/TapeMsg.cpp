@@ -86,6 +86,13 @@ MessageRef TapeMsg::CreateResponse() {
 	return TapeResponseRef(new TapeResponse());
 }
 
+bool TapeMsg::IsValid() {
+	if(m_recId.empty()) {
+		LOG4CXX_WARN(LOG.messaging,"Ignoring tape message with empty recId");
+		return false;
+	}
+}
+
 void TapeMsg::HandleResponse(MessageRef responseRef) {
 	CStdString logMsg;
 

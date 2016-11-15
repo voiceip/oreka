@@ -329,6 +329,10 @@ void ReportingThread::Run()
 			}
 			else
 			{
+				if ( msgRef->IsValid() == false ) {
+					continue;
+				}
+
 				CStdString msgAsSingleLineString = msgRef->SerializeSingleLine();
 
 				IReportable* reportable = dynamic_cast<IReportable*>(msgRef.get());

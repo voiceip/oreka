@@ -48,6 +48,7 @@ public:
 	Message();
 	void DefineMessage(Serializer* s);
 	bool InvokeXmlRpc(CStdString& hostname, int tcpport);
+	virtual bool IsValid() {return true;};
 
 	CStdString m_hostname;
 protected:

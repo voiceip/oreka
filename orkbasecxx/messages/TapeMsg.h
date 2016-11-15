@@ -50,6 +50,7 @@ public:
 	void HandleResponse(MessageRef responseRef);
 	virtual bool IsRealtime();
 	MessageRef Clone();
+	bool IsValid();
 
 	CStdString GetClassName();
 	ObjectRef NewInstance();
