@@ -169,7 +169,7 @@ bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
 		}
 
-		char* dspField = memFindAfter("Ind-DispLineN=3:Dsp:", (char*)udpPayload, sipEnd);
+		char* dspField = memFindAfter(DLLCONFIG.m_necNotifyDispLine, (char*)udpPayload, sipEnd);
 		if(!dspField)
 		{
 			dspField = memFindAfter("\nt:", (char*)udpPayload, sipEnd);

@@ -1646,10 +1646,12 @@ void VoIpSession::ReportSipBye(SipByeInfoRef& bye)
 bool IsNecExternal(SipInviteInfoRef& invite) {
 	CStdString from_or_to = DLLCONFIG.m_sipDirectionReferenceIpAddresses.Matches(invite->m_senderIp)?invite->m_from:invite->m_to;
 	
-	if ( from_or_to.CompareNoCase(CStdString("sipphd")) == 0 || boost::starts_with(from_or_to.c_str(),"trk") ) {
-		return true;
+	std::list<CStdString>::iterator it;
+	for (it = DLLCONFIG.m_necVoipGatewayNames.begin() ; it != DLLCONFIG.m_necVoipGatewayNames.end() ; it++) {
+		if (boost::starts_with(from_or_to.c_str(),*it) ) {
+			return true;
+		}
 	}
-
 	return false;
 }
 

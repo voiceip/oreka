@@ -182,6 +182,8 @@ public:
 	bool m_localPartyNameMapEnable;
 	bool m_ipFragmentsReassemble;
 	bool m_rtpS1S2MappingDeterministicS1IsLocal;
+	CStdString m_necNotifyDispLine;
+	std::list<CStdString> m_necVoipGatewayNames;	// new style devices csv
 };
 
 //========================================
