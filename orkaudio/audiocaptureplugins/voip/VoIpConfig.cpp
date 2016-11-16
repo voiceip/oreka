@@ -137,6 +137,10 @@ void VoIpConfig::Reset() {
 	m_localPartyNameMapEnable = false;
 	m_ipFragmentsReassemble = false;
 	m_rtpS1S2MappingDeterministicS1IsLocal = true;
+	m_necNotifyDispLine = "Ind-DispLineN=3:Dsp:";
+
+	m_necVoipGatewayNames.push_back("siphdd");
+	m_necVoipGatewayNames.push_back("trk");
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -272,6 +276,8 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("LocalPartyNameMapEnable",m_localPartyNameMapEnable);
 	s->BoolValue("IpFragmentsReassemble", m_ipFragmentsReassemble);
 	s->BoolValue("RtpS1S2MappingDeterministicS1IsLocal", m_rtpS1S2MappingDeterministicS1IsLocal);
+	s->StringValue("NecNotifyDispLine", m_necNotifyDispLine);
+	s->CsvValue("NecGatewayNames",m_necVoipGatewayNames);
 }
 
 void VoIpConfig::Validate()
