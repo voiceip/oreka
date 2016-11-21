@@ -46,7 +46,7 @@
         </SipUAPlugin>
 	
 	<VoIpPlugin>
-		<PcapSocketBufferSize>8388608</PcapSocketBufferSize>
+		<PcapSocketBufferSize>67108864</PcapSocketBufferSize>
 
 		<!--queuemetrics integration, uncomment the following line-->
 		<!--<SipExtractFields>X-Unique-ID</SipExtractFields>-->
