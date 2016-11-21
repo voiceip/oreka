@@ -37,7 +37,7 @@ void VoIpConfig::Reset() {
 	
 	m_sipDropIndirectInvite = false;
 	m_pcapRepeat = false;
-	m_pcapSocketBufferSize = 0;
+	m_pcapSocketBufferSize = 67108864;
 	m_pcapFastReplay = true;
 	m_pcapFastReplaySleepUsPerSec = 0;
 	m_rtpSessionTimeoutSec = 10;
