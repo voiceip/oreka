@@ -1680,7 +1680,7 @@ void VoIpSession::ReportSipNotify(SipNotifyInfoRef& notify)
 
 void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 {
-	if(m_invite.get() == NULL)
+	if(DLLCONFIG.m_sipMetadataUseLastInvite || m_invite.get() == NULL)
 	{
 		m_invite = invite;
 	}
