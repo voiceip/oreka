@@ -141,6 +141,7 @@ void VoIpConfig::Reset() {
 
 	m_necVoipGatewayNames.push_back("siphdd");
 	m_necVoipGatewayNames.push_back("trk");
+	m_sipMetadataUseLastInvite = false;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -278,6 +279,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("RtpS1S2MappingDeterministicS1IsLocal", m_rtpS1S2MappingDeterministicS1IsLocal);
 	s->StringValue("NecNotifyDispLine", m_necNotifyDispLine);
 	s->CsvValue("NecGatewayNames",m_necVoipGatewayNames);
+	s->BoolValue("SipMetadataUseLastInvite", m_sipMetadataUseLastInvite);
 }
 
 void VoIpConfig::Validate()
