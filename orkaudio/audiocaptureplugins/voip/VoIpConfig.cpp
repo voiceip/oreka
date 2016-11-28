@@ -140,7 +140,9 @@ void VoIpConfig::Reset() {
 	m_necNotifyDispLine = "Ind-DispLineN=3:Dsp:";
 
 	m_necVoipGatewayNames.push_back("siphdd");
-	m_necVoipGatewayNames.push_back("trk");
+	m_necVoipGatewayNames.push_back("trk001");
+	m_necVoipGatewayNames.push_back("trk002");
+
 	m_sipMetadataUseLastInvite = false;
 }
 

@@ -1646,12 +1646,8 @@ void VoIpSession::ReportSipBye(SipByeInfoRef& bye)
 bool IsNecExternal(SipInviteInfoRef& invite) {
 	CStdString from_or_to = DLLCONFIG.m_sipDirectionReferenceIpAddresses.Matches(invite->m_senderIp)?invite->m_from:invite->m_to;
 	
-	std::list<CStdString>::iterator it;
-	for (it = DLLCONFIG.m_necVoipGatewayNames.begin() ; it != DLLCONFIG.m_necVoipGatewayNames.end() ; it++) {
-		if (boost::starts_with(from_or_to.c_str(),*it) ) {
-			return true;
-		}
-	}
+	MatchesStringList(from_or_to, DLLCONFIG.m_necVoipGatewayNames);
+
 	return false;
 }
 
