@@ -139,7 +139,7 @@ void VoIpConfig::Reset() {
 	m_rtpS1S2MappingDeterministicS1IsLocal = true;
 	m_necNotifyDispLine = "Ind-DispLineN=3:Dsp:";
 
-	m_necVoipGatewayNames.push_back("siphdd");
+	m_necVoipGatewayNames.push_back("sipphd");
 	m_necVoipGatewayNames.push_back("trk001");
 	m_necVoipGatewayNames.push_back("trk002");
 
