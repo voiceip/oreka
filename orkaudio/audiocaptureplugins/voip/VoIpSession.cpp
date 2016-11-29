@@ -1645,8 +1645,10 @@ void VoIpSession::ReportSipBye(SipByeInfoRef& bye)
 
 bool IsNecExternal(SipInviteInfoRef& invite) {
 	CStdString from_or_to = DLLCONFIG.m_sipDirectionReferenceIpAddresses.Matches(invite->m_senderIp)?invite->m_from:invite->m_to;
-	
-	MatchesStringList(from_or_to, DLLCONFIG.m_necVoipGatewayNames);
+
+	if (MatchesStringList(from_or_to, DLLCONFIG.m_necVoipGatewayNames)) {
+		return true;
+	}
 
 	return false;
 }
