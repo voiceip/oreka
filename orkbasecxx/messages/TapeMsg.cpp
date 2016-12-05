@@ -87,7 +87,7 @@ MessageRef TapeMsg::CreateResponse() {
 }
 
 bool TapeMsg::IsValid() {
-	if(m_recId.empty()) {
+	if(m_recId.length() == 0) {
 		LOG4CXX_WARN(LOG.messaging,"Ignoring tape message with empty recId");
 		return false;
 	}
