@@ -1196,6 +1196,44 @@ void VoIp::OpenPcapFile(CStdString& filename)
 	}
 }
 
+#ifdef CENTOS_5
+
+bool VoIp::SetPcapSocketBufferSize(pcap_t* pcapHandle)
+{
+	CStdString logMsg = "failure";
+	size_t bufSize = 0;
+#ifndef WIN32
+	int pcapFileno = pcap_fileno(m_pcapHandle);
+	bufSize = DLLCONFIG.m_pcapSocketBufferSize;
+	if(bufSize < 1)
+	{
+		return false;
+	}
+	if(pcapFileno)
+	{
+		if(setsockopt(pcapFileno, SOL_SOCKET, SO_RCVBUF, &bufSize, sizeof(bufSize)) == 0)
+		{
+			logMsg = "success";		
+		}
+	}
+	logMsg.Format("Setting pcap socket buffer size:%u bytes ... %s", bufSize, logMsg);
+	LOG4CXX_INFO(s_packetLog, logMsg);
+#elif WIN32
+	bufSize = DLLCONFIG.m_pcapSocketBufferSize;
+	if(bufSize > 0)
+	{
+		if(pcap_setbuff(m_pcapHandle, bufSize) == 0)
+		{
+			logMsg = "success";	
+		}
+		logMsg.Format("Setting pcap socket buffer size:%u bytes ... %s", bufSize, logMsg);
+		LOG4CXX_INFO(s_packetLog, logMsg);
+	}
+#endif
+}
+
+#else
+
 bool VoIp::SetPcapSocketBufferSize(pcap_t* pcapHandle)
 {
 	bool ret = true;
@@ -1265,6 +1303,7 @@ bool VoIp::ActivatePcapHandle(pcap_t* pcapHandle)
 	return true;
 }
 
+#endif
 void VoIp::AddPcapDeviceToMap(CStdString& deviceName, pcap_t* pcapHandle)
 {
 	MutexSentinel mutexSentinel(m_pcapDeviceMapMutex);
@@ -1293,6 +1332,8 @@ CStdString VoIp::GetPcapDeviceName(pcap_t* pcapHandle)
 
 	return deviceName;
 }
+
+#ifndef CENTOS_5
 
 pcap_t* VoIp::OpenPcapDeviceLive(CStdString name)
 {
@@ -1345,6 +1386,8 @@ pcap_t* VoIp::OpenPcapDeviceLive(CStdString name)
 
 	return pcapHandle;
 }
+
+#endif
 
 pcap_t* VoIp::OpenDevice(CStdString& name)
 {
@@ -1424,7 +1467,11 @@ void VoIp::OpenDevices()
 				if((DLLCONFIG.m_devices.size() > 0 && (*DLLCONFIG.m_devices.begin()).CompareNoCase("all") == 0) || DLLCONFIG.IsDeviceWanted(device->name))
 				{
 					// Open device
+#ifdef CENTOS_5
+					m_pcapHandle = pcap_open_live(device->name, pcap_live_snaplen, PROMISCUOUS, 500, errorBuf);
+#else
 					m_pcapHandle = OpenPcapDeviceLive(device->name);
+#endif
 					
 					if(m_pcapHandle)
 					{
@@ -1440,6 +1487,14 @@ void VoIp::OpenDevices()
 					}
 					else
 					{
+#ifdef CENTOS_5
+						CStdString logMsg, deviceName;
+
+						deviceName = device->name;
+						logMsg.Format("Successfully opened device. pcap handle:%x message:%s", m_pcapHandle, error);
+						LOG4CXX_INFO(s_packetLog, logMsg);
+						SetPcapSocketBufferSize(m_pcapHandle);
+#endif
 						m_pcapHandles.push_back(m_pcapHandle);
 						AddPcapDeviceToMap(deviceName, m_pcapHandle);
 					}
@@ -1455,7 +1510,11 @@ void VoIp::OpenDevices()
 				// Let's open the default device
 				if(defaultDevice)
 				{
+#ifdef CENTOS_5
+					m_pcapHandle = pcap_open_live((char*)defaultDevice->name, pcap_live_snaplen, PROMISCUOUS, 500, errorBuf);
+#else
 					m_pcapHandle = OpenPcapDeviceLive(defaultDevice->name);
+#endif
 
 					if(m_pcapHandle)
 					{
@@ -1476,6 +1535,9 @@ void VoIp::OpenDevices()
 
 						logMsg.Format("Successfully opened default device:%s pcap handle:%x message:%s", defaultDevice->name, m_pcapHandle, error);
 						LOG4CXX_INFO(s_packetLog, logMsg);
+#ifdef CENTOS_5
+						SetPcapSocketBufferSize(m_pcapHandle);
+#endif
 
 						m_pcapHandles.push_back(m_pcapHandle);
 						deviceName = defaultDevice->name;
