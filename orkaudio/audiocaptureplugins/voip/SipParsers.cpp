@@ -1145,13 +1145,13 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		}
 
 		char * dialedNumber = NULL;
-		if(! DLLCONFIG.m_sipDialedNumberFieldName.empty() )
+		if(!(DLLCONFIG.m_sipDialedNumberFieldName.length()==0) )
 		{
 			dialedNumber = memFindAfter(DLLCONFIG.m_sipDialedNumberFieldName + ":", (char*)udpPayload,sipEnd);
 		}
 
 		char * sipRemoteParty = NULL;
-		if(! DLLCONFIG.m_sipRemotePartyFieldName.empty() )
+		if(!(DLLCONFIG.m_sipRemotePartyFieldName.length()==0) )
 		{
 			sipRemoteParty = memFindAfter(DLLCONFIG.m_sipRemotePartyFieldName + ":", (char*)udpPayload,sipEnd);
 		}
@@ -1661,11 +1661,11 @@ bool TrySipRefer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 
 			}
 		}
-		if((!info->m_to.empty()) && (info->m_to.CompareNoCase(info->m_referToParty) != 0) && (info->m_to.CompareNoCase(info->m_referredByParty) != 0))
+		if((!(info->m_to.length()==0)) && (info->m_to.CompareNoCase(info->m_referToParty) != 0) && (info->m_to.CompareNoCase(info->m_referredByParty) != 0))
 		{
 			info->m_referredParty = info->m_to;
 		}
-		if((!info->m_from.empty()) && (info->m_from.CompareNoCase(info->m_referToParty) != 0) && (info->m_from.CompareNoCase(info->m_referredByParty) != 0))
+		if((!(info->m_from.length()==0)) && (info->m_from.CompareNoCase(info->m_referToParty) != 0) && (info->m_from.CompareNoCase(info->m_referredByParty) != 0))
 		{
 			info->m_referredParty = info->m_from;
 		}
