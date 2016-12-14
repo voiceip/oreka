@@ -858,13 +858,13 @@ void VoIpSession::ReportMetadata()
 		CStdString localIp(szLocalIp);
 		CStdString tempLocalPartyName = s_localPartyNameMap[localIp];
 
-		if (m_localPartyName != m_localParty && !m_localPartyName.empty() && m_localPartyName != tempLocalPartyName) {
+		if (m_localPartyName != m_localParty && !(m_localPartyName.length()==0) && m_localPartyName != tempLocalPartyName) {
 			s_localPartyNameMap[localIp] = m_localPartyName;
 
 			logMsg.Format("[%s] Saved localPartyName:%s localIp:%s in localPartyNameMap",m_capturePort,m_localPartyName,localIp);
 			LOG4CXX_DEBUG(m_log, logMsg);
 		}
-		else if (!tempLocalPartyName.empty() && m_localPartyName != tempLocalPartyName) {
+		else if (!(tempLocalPartyName.length()==0) && m_localPartyName != tempLocalPartyName) {
 			logMsg.Format("[%s] Retrieved localPartyName:%s for localIp:%s from localPartyNameMap, old name:%s",m_capturePort,tempLocalPartyName,localIp,m_localPartyName);
 			LOG4CXX_INFO(m_log, logMsg);
 
@@ -2765,7 +2765,7 @@ void VoIpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStru
 
 		existingSession->ReportSkinnyCallInfo(callInfo, ipHeader);
 
-		if (!existingSession->m_remoteParty.empty() && oldVal != existingSession->m_remoteParty) {
+		if (!(existingSession->m_remoteParty.length()==0) && oldVal != existingSession->m_remoteParty) {
 			// sometimes, the remote party is updated by the CM to the correct value after we have started recording the current call leg, e.g. trace 0771e7efb755dae6076f911508ea3ab7 for the last leg of a transfer, so we need to update orktrack.
 			existingSession->ReportMetadataUpdateSkinny();
 		}
