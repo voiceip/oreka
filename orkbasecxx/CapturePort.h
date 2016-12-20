@@ -28,7 +28,7 @@
 #include "AudioTape.h"
 #include "Filter.h"
 
-
+#define HOSTNAME_BUF_LEN 255
 /** Base class for all types of capture ports. */ 
 class DLL_IMPORT_EXPORT_ORKBASE CapturePort
 {
@@ -74,11 +74,13 @@ public:
 	CapturePortRef GetPort(CStdString & portId);
 	/** Tries to find a capture port from its ID. If unsuccessful, creates a new one and returns it */
 	CapturePortRef AddAndReturnPort(CStdString & portId);
+	CStdString GetHostName();
 	void Hoover();
 private:
 	std::map<CStdString, CapturePortRef> m_ports;
 	ACE_Thread_Mutex m_mutex;
 	time_t m_lastHooveringTime;
+	CStdString m_hostname;
 };
 
 typedef ACE_Singleton<CapturePorts, ACE_Thread_Mutex> CapturePortsSingleton;
