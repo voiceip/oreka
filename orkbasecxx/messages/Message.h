@@ -27,8 +27,6 @@
 #include "serializers/Serializer.h"
 #include "Object.h"
 
-#define HOSTNAME_BUF_LEN 40
-
 #define TIMESTAMP_PARAM "timestamp"
 #define CAPTURE_PORT_PARAM "captureport"
 #define FILENAME_PARAM "filename"

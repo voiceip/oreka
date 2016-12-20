@@ -416,6 +416,16 @@ CapturePorts::CapturePorts()
 {
 	m_ports.clear();
 	m_lastHooveringTime = time(NULL);
+	char hostname[HOSTNAME_BUF_LEN];
+	if(CONFIG.m_hostnameReportFqdn == false)
+	{
+		ACE_OS::hostname(hostname, HOSTNAME_BUF_LEN);
+		m_hostname = hostname;
+	}
+	else
+	{
+		GetHostFqdn(m_hostname, HOSTNAME_BUF_LEN);
+	}
 	s_log = Logger::getLogger("port");
 }
 
@@ -453,6 +463,11 @@ CapturePortRef CapturePorts::AddAndReturnPort(CStdString & portId)
 	{
 		return portRef;
 	}
+}
+
+CStdString CapturePorts::GetHostName()
+{
+	return m_hostname;
 }
 
 void CapturePorts::Hoover()
