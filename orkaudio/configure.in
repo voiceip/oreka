@@ -3,6 +3,10 @@ AC_INIT(configure.in)
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE(orkaudio, 1.0)
  
+if [grep "release 5" /etc/redhat-release]; then
+    CXXFLAGS+="-DCENTOS_5"
+fi
+
 # Check if gcc supports cpp11
 if [echo "main(){}" | $CXX -std=c++11 -xc++ -S -  &>/dev/null]; then
 	CXXFLAGS+=" -g -O2 -fno-inline-functions -std=c++11 -DSUPPORTS_CPP11"
