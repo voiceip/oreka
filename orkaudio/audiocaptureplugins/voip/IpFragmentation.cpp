@@ -17,8 +17,10 @@
 #include <map>
 #include "LogManager.h"
 #include <stdexcept>
-
+#include "Utils.h"
+#include "ace/Thread_Mutex.h"
 CStdString logMsg;
+static ACE_Thread_Mutex s_threadMutex;
 
 // All the fragmentation handling algorithms must comply to this interface
 class FragmentationAlgorithmInterface {
@@ -149,6 +151,7 @@ typedef std::map<unsigned short,FragmentationAlgorithmRef> FragmentMap;
 
 SizedBufferRef HandleIpFragment(IpHeaderStruct* ipHeader)
 {
+        MutexSentinel mutexSentinel(s_threadMutex);
 	const time_t now = time(NULL);
 	const int timeoutSec = 60;
 	static time_t lastCheck = 0;
