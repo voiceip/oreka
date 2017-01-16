@@ -27,7 +27,7 @@ DLL_IMPORT_EXPORT_ORKBASE char* MemGrabLine(char* start, char* limit, CStdString
 void DLL_IMPORT_EXPORT_ORKBASE  MemMacToHumanReadable(unsigned char* macAddress, CStdString&output);
 DLL_IMPORT_EXPORT_ORKBASE char* MemGrabAlphaNumSpace(char* in, char* limit, CStdString& out);
 DLL_IMPORT_EXPORT_ORKBASE char* MemGrabDigits(char* in, char* limit, CStdString& out);
-
+DLL_IMPORT_EXPORT_ORKBASE char* memFindAfterBinary(const char * const memToFind, size_t size, const char* const  memStart, const char * const memEnd);
 
 #endif
 

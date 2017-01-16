@@ -165,3 +165,23 @@ char* MemGrabDigits(char* in, char* limit, CStdString& out)
 	return NULL;
 }
 
+char* memFindAfterBinary(const char * const memToFind, size_t size, const char* const  memStart, const char * const memEnd) {
+	const char* pos = memStart;
+
+	while (pos <= (memEnd - size)) {
+		bool equal = true;
+		for (int i=0; i<size; i++) {
+			if (pos[i] != memToFind[i]) {
+				equal = false;
+				break;
+			}
+		}
+		if (equal) {
+			return (char*) (pos+size);
+		}
+		pos++;
+	}
+
+	return NULL;
+}
+
