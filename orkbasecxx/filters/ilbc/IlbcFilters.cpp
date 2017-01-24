@@ -157,7 +157,7 @@ CStdString IlbcToPcmFilter::GetName()
 
 bool IlbcToPcmFilter::SupportsInputRtpPayloadType(int rtpPayloadType)
 {
-	return (rtpPayloadType == 0x61 || rtpPayloadType == 0x62);
+	return (rtpPayloadType == 0x61 || rtpPayloadType == 0x62 || rtpPayloadType == 63 );
 }
 
 void IlbcToPcmFilter::CaptureEventIn(CaptureEventRef& event)
