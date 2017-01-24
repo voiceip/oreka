@@ -566,7 +566,7 @@ int GetOrekaRtpPayloadTypeForSdpRtpMap(CStdString sdp)
 	else if(sdp.Find("iLBC") != std::string::npos) 
 	{
 		rtpCodec = "ilbc";
-		ret = 0x62;
+		ret = 63;
 	} 
 	return ret;
 }
