@@ -81,6 +81,7 @@ int DLL_IMPORT_EXPORT_ORKBASE GetPortFromAddressPair(CStdString& hostname);
 CStdString DLL_IMPORT_EXPORT_ORKBASE FormatDataSize(unsigned long int size);
 CStdString DLL_IMPORT_EXPORT_ORKBASE HexToString(const CStdString& hexInput);		//Only return digits
 CStdString DLL_IMPORT_EXPORT_ORKBASE IntUnixTsToString(int ts);
+void DLL_IMPORT_EXPORT_ORKBASE StringTokenizeToList(CStdString input, std::list<CStdString>& output);
 
 //========================================================
 // file related stuff
