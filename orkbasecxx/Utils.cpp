@@ -167,6 +167,22 @@ CStdString IntUnixTsToString(int ts)
 	dateFormat.Format("%s", calendarDate);
 	return dateFormat;
 }
+
+void StringTokenizeToList(CStdString input, std::list<CStdString>& output)
+{
+    int pos;
+    CStdString token;
+    input.TrimLeft();
+    input.TrimRight();
+    while((pos = input.find(" ")) != std::string::npos)
+    {
+        token = input.substr(0, pos);
+        output.push_back(token);
+        input = input.substr(pos+1);
+    }
+    output.push_back(input);
+}
+
 //========================================================
 // file related stuff
 
