@@ -93,7 +93,13 @@ int CommandLineServer::svc(void)
 			{
 				for(int j=0; j<size && !foundCRLF;j++)
 				{
-					if(buf[i+j] == '\r' || buf[i+j] == '\n')
+                                        if (buf[i+j] < 32 || buf[i+j] > 126)
+                                        {
+                                                // detected a char that cannot be part of an URL
+                                                LOG4CXX_WARN(s_log, "detected command URL with invalid character(s), ignoring");
+                                                return 0;
+                                        }
+					else if(buf[i+j] == '\r' || buf[i+j] == '\n')
 					{
 						foundCRLF = true;
 						buf[i+j] = '\0';
@@ -183,9 +189,21 @@ int HttpServer::svc(void)
 			char* stopUrl = ACE_OS::strstr(buf+startUrlOffset, " HTTP");	// detect location of post-URL trailing stuff
 			if(!stopUrl)
 			{
+                                LOG4CXX_WARN(s_log, "Malformed http request");
 				throw (CStdString("Malformed http request"));							;
 			}
 			*stopUrl = '\0';									// Remove post-URL trailing stuff
+                        int urlLen = stopUrl - buf;
+                        for(int i = startUrlOffset; i< urlLen; i++)
+                        {
+                                if(buf[i] < 33 || buf[i] > 126)
+                                {
+                                        // detected a char that cannot be part of an URL
+                                        LOG4CXX_WARN(s_log, "detected command URL with invalid character(s), ignoring");
+                                        throw (CStdString("Malformed command URL with invalid character(s)"));		
+                                }
+                        }
+
 			CStdString url(buf+startUrlOffset);
 			int queryOffset = url.Find("?");
 			if (queryOffset	 > 0)
@@ -200,11 +218,13 @@ int HttpServer::svc(void)
 			ObjectRef objRef = ObjectFactory::GetSingleton()->NewInstance(className);
 			if (objRef.get())
 			{
+                                LOG4CXX_INFO(s_log, "command: " + url);
 				objRef->DeSerializeUrl(url);
 				ObjectRef response = objRef->Process();
 
 				if(response.get() == NULL)
 				{
+                                        LOG4CXX_WARN(s_log, "Command does not return a response:" + className);
 					throw (CStdString("Command does not return a response:") + className);
 				}
 				else
@@ -219,6 +239,8 @@ int HttpServer::svc(void)
 					CStdString pingResponse = DomSerializer::DomNodeToString(myDoc);
 
 					CStdString httpOk("HTTP/1.0 200 OK\r\nContent-type: text/xml\r\n\r\n");
+                                        CStdString singleLineResponseString = response->SerializeSingleLine();
+                                        LOG4CXX_INFO(s_log, "response: " + singleLineResponseString);
 					peer().send(httpOk, httpOk.GetLength(), MSG_NOSIGNAL);
 					peer().send(pingResponse, pingResponse.GetLength(), MSG_NOSIGNAL);
 
@@ -227,6 +249,7 @@ int HttpServer::svc(void)
 			}
 			else
 			{
+                                LOG4CXX_WARN(s_log, "Command not found:" + className);
 				throw (CStdString("Command not found:") + className);							;
 			}
 
