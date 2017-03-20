@@ -241,7 +241,7 @@ void BatchProcessing::ThreadHandler(void *args)
 
 		if((time(NULL) - lastLogQueueSizeTs) > 9)
 		{
-			logMsg.Format("threadId:%s batchProcessingQueueSize:%d", threadIdString, pBatchProcessing->m_audioTapeQueue.numElements());
+			logMsg.Format("thread Th%s batchProcessingQueueSize:%d", threadIdString, pBatchProcessing->m_audioTapeQueue.numElements());
 			LOG4CXX_INFO(LOG.batchProcessingLog, logMsg);
 			lastLogQueueSizeTs = time(NULL);
 		}
