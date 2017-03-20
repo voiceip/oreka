@@ -228,6 +228,7 @@ void BatchProcessing::ThreadHandler(void *args)
 	CStdString threadIdString = IntToString(threadId);
 	debug.Format("thread Th%s starting - queue size:%d", threadIdString, CONFIG.m_batchProcessingQueueSize);
 	LOG4CXX_INFO(LOG.batchProcessingLog, debug);
+	time_t lastLogQueueSizeTs = time(NULL);
 
 	bool stop = false;
 
@@ -237,6 +238,13 @@ void BatchProcessing::ThreadHandler(void *args)
 		AudioFileRef outFileRef, outFileSecondaryRef;
 		AudioTapeRef audioTapeRef;
 		CStdString trackingId = "[no-trk]";
+
+		if((time(NULL) - lastLogQueueSizeTs) > 9)
+		{
+			logMsg.Format("threadId:%s batchProcessingQueueSize:%d", threadIdString, pBatchProcessing->m_audioTapeQueue.numElements());
+			LOG4CXX_INFO(LOG.batchProcessingLog, logMsg);
+			lastLogQueueSizeTs = time(NULL);
+		}
 
 		try
 		{
