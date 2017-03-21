@@ -135,8 +135,6 @@ public:
 	int m_numErrors;
 	bool m_onDemand;
 	bool m_keep;
-	bool m_noAudio;
-
 	bool m_isExternal;		// set if the tape is imported manually from API
 	MediaType::MediaTypeEnum m_mediaType;		// media type of manually imported tape
 	bool m_isSuccessfulImported;

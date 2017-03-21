@@ -329,18 +329,8 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			audioTapeRef->GetMessage(msgRef);
 			Reporting::Instance()->AddMessage(msgRef);
 			m_needSendStop = false;
-
-			if (m_audioTapeRef->GetAudioFileRef().get())
-			{
-				// Notify immediate processing that tape has stopped
-				ImmediateProcessing::GetInstance()->AddAudioTape(m_audioTapeRef);
-			}
-			else
-			{
-				// Received a stop but there is no valid audio file associated with the tape
-				audioTapeRef->m_noAudio = true;
-				LOG4CXX_WARN(s_log, "[" + audioTapeRef->m_trackingId + "] #" + m_id + " no audio reported between last start and stop");
-			}
+			// Notify immediate processing that tape has stopped
+			ImmediateProcessing::GetInstance()->AddAudioTape(m_audioTapeRef);
 			break;
 		}
 		case CaptureEvent::EtEndMetadata:
