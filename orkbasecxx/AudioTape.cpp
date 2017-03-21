@@ -129,7 +129,6 @@ AudioTape::AudioTape(CStdString &portId)
 	m_chunkQueueDataSize = 0;
 	m_chunkQueueErrorReported = false;
 	m_keep = true;
-	m_noAudio = false;
 
 	GenerateCaptureFilePathAndIdentifier();
 }
@@ -361,7 +360,7 @@ void AudioTape::Write()
 			 * tape processor.
 			 */
 			//GenerateFinalFilePathAndIdentifier();
-			if(m_noAudio == false)
+			if(m_bytesWritten > 0)
 			{
 				m_readyForBatchProcessing = true;
 			}
@@ -625,7 +624,7 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 	if(captureEventRef.get() == 0)
 	{
 		// No more events, the tape is ready
-		if(m_noAudio == false)
+		if(m_bytesWritten > 0)
 		{
 			PopulateTapeMessage(pTapeMsg, CaptureEvent::EtReady);
 		}
