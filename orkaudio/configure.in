@@ -21,7 +21,7 @@ AM_PROG_LIBTOOL
 
 AC_PREFIX_DEFAULT(/usr)
 
-AC_OUTPUT(Makefile audiocaptureplugins/Makefile audiocaptureplugins/generator/Makefile audiocaptureplugins/voip/Makefile filters/Makefile filters/rtpmixer/Makefile)
+AC_OUTPUT(Makefile audiocaptureplugins/Makefile audiocaptureplugins/generator/Makefile audiocaptureplugins/voip/Makefile filters/Makefile filters/rtpmixer/Makefile filters/silkcodec/Makefile)
 
 echo ""
 echo "========= Configuration ==========="

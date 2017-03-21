@@ -584,6 +584,16 @@ int GetOrekaRtpPayloadTypeForSdpRtpMap(CStdString sdp)
 		rtpCodec = "ilbc";
 		ret = 63;
 	} 
+	else if(sdp.Find("SILK/8000") != std::string::npos)
+	{
+		rtpCodec = "silk";
+		ret = 64;
+	}
+	else if(sdp.Find("SILK/16000") != std::string::npos)
+	{
+		rtpCodec = "silk";
+		ret = 64;
+	}
 	return ret;
 }
 

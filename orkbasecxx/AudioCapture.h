@@ -32,7 +32,8 @@ typedef enum
 	IlbcAudio = 5,
 	G722Audio = 6,
 	G721Audio = 7,
-	InvalidAudio = 8
+	SilkAudio = 8,
+	InvalidAudio = 9
 } AudioEncodingEnum;
 
 /** 
