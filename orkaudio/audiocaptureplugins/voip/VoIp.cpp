@@ -95,6 +95,22 @@ const int pcap_live_snaplen = 65535;
 #define ETC_SKINNY_GLOBAL_NUMBERS_FILE	"/etc/orkaudio/skinnyglobalnumbers.csv"
 #define PROT_ERSPAN 0x88be
 #define IPPROTO_GRE 47
+
+//========================================================
+class PcapHandleData
+{
+public:
+	PcapHandleData(pcap_t* pcaphandle);
+	pcap_t* m_pcapHandle;
+	time_t m_lastReportTs;
+	unsigned int m_numReceived;
+	unsigned int m_numReceived10s;
+	unsigned int m_numDropped;
+	unsigned int m_numDropped10s;
+	unsigned int m_numIfDropped;
+	unsigned int m_numIfDropped10s;
+};
+typedef oreka::shared_ptr<PcapHandleData> PcapHandleDataRef;
 //========================================================
 class VoIp
 {
@@ -126,11 +142,9 @@ private:
 	void OpenPcapFile(CStdString& filename);
 	void OpenPcapDirectory(CStdString& path);
 	bool SetPcapSocketBufferSize(pcap_t* pcapHandle);
-	char* ApplyPcapFilter();
+	char* ApplyPcapFilter(pcap_t* pcapHandle);
 
-	pcap_t* m_pcapHandle;
-	std::list<pcap_t*> m_pcapHandles;
-
+	std::list<PcapHandleDataRef> m_pcapHandles;
 	std::map<pcap_t*, CStdString> m_pcapDeviceMap;
 	ACE_Thread_Mutex m_pcapDeviceMapMutex;
 	time_t m_lastModLocalPartyMapTs;
@@ -1074,11 +1088,21 @@ void UdpListenerThread()
 		}
 	}
 }
-
+//=======================================================
+PcapHandleData::PcapHandleData(pcap_t* pcaphandle)
+{
+	m_pcapHandle = pcaphandle;
+	m_lastReportTs = time(NULL);
+	m_numReceived = 0;
+	m_numReceived10s = 0;
+	m_numDropped = 0;
+	m_numDropped10s = 0;
+	m_numIfDropped = 0;
+	m_numIfDropped10s = 0;
+}
 //=======================================================
 VoIp::VoIp()
 {
-	m_pcapHandle = NULL;
 	m_lastModLocalPartyMapTs = 0;
 
 }
@@ -1144,7 +1168,7 @@ void VoIp::OpenPcapDirectory(CStdString& path)
 
 }
 
-char* VoIp::ApplyPcapFilter()
+char* VoIp::ApplyPcapFilter(pcap_t* pcapHandle)
 {
 	struct bpf_program fp;
 	char* error = NULL;
@@ -1152,17 +1176,17 @@ char* VoIp::ApplyPcapFilter()
 
 	if(DLLCONFIG.m_pcapFilter.size())
 	{
-		if(pcap_compile(m_pcapHandle,&fp, (PSTR)(PCSTR)DLLCONFIG.m_pcapFilter,1,0) == -1)
+		if(pcap_compile(pcapHandle,&fp, (PSTR)(PCSTR)DLLCONFIG.m_pcapFilter,1,0) == -1)
 		{
-			error = pcap_geterr(m_pcapHandle);
-			logMsg.Format("pcap_compile: Please check your PcapFilter in config.xml; pcap handle:%x", m_pcapHandle);
+			error = pcap_geterr(pcapHandle);
+			logMsg.Format("pcap_compile: Please check your PcapFilter in config.xml; pcap handle:%x", pcapHandle);
 			LOG4CXX_ERROR(s_packetLog, logMsg);
 
 		} 
-		if(error == NULL && pcap_setfilter(m_pcapHandle,&fp) == -1)
+		if(error == NULL && pcap_setfilter(pcapHandle,&fp) == -1)
 		{ 
-			error = pcap_geterr(m_pcapHandle);
-			logMsg.Format("pcap_setfilter: Please check your PcapFilter in config.xml; pcap handle:%x", m_pcapHandle);
+			error = pcap_geterr(pcapHandle);
+			logMsg.Format("pcap_setfilter: Please check your PcapFilter in config.xml; pcap handle:%x", pcapHandle);
 			LOG4CXX_ERROR(s_packetLog, logMsg);
 		}
 	}
@@ -1174,15 +1198,15 @@ void VoIp::OpenPcapFile(CStdString& filename)
 	CStdString logMsg;
 
 	LOG4CXX_INFO(s_packetLog, CStdString("Adding pcap capture file to replay list:") + filename);
-
+	pcap_t* pcapHandle = NULL;
 	// Open device
 	char * error = NULL;
 
-	m_pcapHandle = pcap_open_offline((PCSTR)filename , error);
+	pcapHandle = pcap_open_offline((PCSTR)filename , error);
 
 	if(error == NULL)
 	{
-		error = ApplyPcapFilter();
+		error = ApplyPcapFilter(pcapHandle);
 	}
 	if(error)
 	{
@@ -1190,9 +1214,10 @@ void VoIp::OpenPcapFile(CStdString& filename)
 	}
 	else
 	{
-		logMsg.Format("Successfully opened file. pcap handle:%x", m_pcapHandle);
+		logMsg.Format("Successfully opened file. pcap handle:%x", pcapHandle);
 		LOG4CXX_INFO(s_packetLog, logMsg);
-		m_pcapHandles.push_back(m_pcapHandle);
+		PcapHandleDataRef pcapHandleData(new PcapHandleData(pcapHandle));
+		m_pcapHandles.push_back(pcapHandleData);
 	}
 }
 
@@ -1203,7 +1228,7 @@ bool VoIp::SetPcapSocketBufferSize(pcap_t* pcapHandle)
 	CStdString logMsg = "failure";
 	size_t bufSize = 0;
 #ifndef WIN32
-	int pcapFileno = pcap_fileno(m_pcapHandle);
+	int pcapFileno = pcap_fileno(pcapHandle);
 	bufSize = DLLCONFIG.m_pcapSocketBufferSize;
 	if(bufSize < 1)
 	{
@@ -1222,7 +1247,7 @@ bool VoIp::SetPcapSocketBufferSize(pcap_t* pcapHandle)
 	bufSize = DLLCONFIG.m_pcapSocketBufferSize;
 	if(bufSize > 0)
 	{
-		if(pcap_setbuff(m_pcapHandle, bufSize) == 0)
+		if(pcap_setbuff(pcapHandle, bufSize) == 0)
 		{
 			logMsg = "success";	
 		}
@@ -1396,28 +1421,28 @@ pcap_t* VoIp::OpenDevice(CStdString& name)
 	memset(errorBuf, 0, sizeof(errorBuf));
 	char * error = errorBuf;
 	MutexSentinel mutexSentinel(m_pcapDeviceMapMutex);
-	m_pcapHandle = NULL;
-	m_pcapHandle = OpenPcapDeviceLive(name);
+	pcap_t* pcapHandle = NULL;
+	pcapHandle = OpenPcapDeviceLive(name);
 
-	if(m_pcapHandle)
+	if(pcapHandle)
 	{
-		error = ApplyPcapFilter();
+		error = ApplyPcapFilter(pcapHandle);
 		if(error == NULL)
 		{
 			error = errorBuf;
 		}
 	}
-	if(m_pcapHandle == NULL)
+	if(pcapHandle == NULL)
 	{
 		LOG4CXX_ERROR(s_packetLog, CStdString("pcap error when opening device; error message:") + error);
 	}
 	else
 	{
-		logMsg.Format("Successfully opened device. pcap handle:%x message:%s", m_pcapHandle, error);
+		logMsg.Format("Successfully opened device. pcap handle:%x message:%s", pcapHandle, error);
 		LOG4CXX_INFO(s_packetLog, logMsg);
 	}
 
-	return m_pcapHandle;
+	return pcapHandle;
 }
 
 void VoIp::OpenDevices()
@@ -1432,7 +1457,7 @@ void VoIp::OpenDevices()
 	s_numPacketsPerSecond = 0;
 	s_minPacketsPerSecond = 0;
 	s_maxPacketsPerSecond = 0;
-	m_pcapHandle = NULL;
+	pcap_t* pcapHandle = NULL;
 
 	CStdString logMsg;
 
@@ -1468,20 +1493,20 @@ void VoIp::OpenDevices()
 				{
 					// Open device
 #ifdef CENTOS_5
-					m_pcapHandle = pcap_open_live(device->name, pcap_live_snaplen, PROMISCUOUS, 500, errorBuf);
+					pcapHandle = pcap_open_live(device->name, pcap_live_snaplen, PROMISCUOUS, 500, errorBuf);
 #else
-					m_pcapHandle = OpenPcapDeviceLive(device->name);
+					pcapHandle = OpenPcapDeviceLive(device->name);
 #endif
 					
-					if(m_pcapHandle)
+					if(pcapHandle)
 					{
-						error = ApplyPcapFilter();
+						error = ApplyPcapFilter(pcapHandle);
 						if(error == NULL)
 						{
 							error = errorBuf;
 						}
 					}
-					if(m_pcapHandle == NULL)
+					if(pcapHandle == NULL)
 					{
 						LOG4CXX_ERROR(s_packetLog, CStdString("pcap error when opening device; error message:") + error);
 					}
@@ -1491,12 +1516,13 @@ void VoIp::OpenDevices()
 						CStdString logMsg, deviceName;
 
 						deviceName = device->name;
-						logMsg.Format("Successfully opened device. pcap handle:%x message:%s", m_pcapHandle, error);
+						logMsg.Format("Successfully opened device. pcap handle:%x message:%s", pcapHandle, error);
 						LOG4CXX_INFO(s_packetLog, logMsg);
-						SetPcapSocketBufferSize(m_pcapHandle);
+						SetPcapSocketBufferSize(pcapHandle);
 #endif
-						m_pcapHandles.push_back(m_pcapHandle);
-						AddPcapDeviceToMap(deviceName, m_pcapHandle);
+						PcapHandleDataRef pcapHandleData(new PcapHandleData(pcapHandle));
+						m_pcapHandles.push_back(pcapHandleData);
+						AddPcapDeviceToMap(deviceName, pcapHandle);
 					}
 				}
 			}
@@ -1511,20 +1537,20 @@ void VoIp::OpenDevices()
 				if(defaultDevice)
 				{
 #ifdef CENTOS_5
-					m_pcapHandle = pcap_open_live((char*)defaultDevice->name, pcap_live_snaplen, PROMISCUOUS, 500, errorBuf);
+					pcapHandle = pcap_open_live((char*)defaultDevice->name, pcap_live_snaplen, PROMISCUOUS, 500, errorBuf);
 #else
-					m_pcapHandle = OpenPcapDeviceLive(defaultDevice->name);
+					pcapHandle = OpenPcapDeviceLive(defaultDevice->name);
 #endif
 
-					if(m_pcapHandle)
+					if(pcapHandle)
 					{
-						error = ApplyPcapFilter();
+						error = ApplyPcapFilter(pcapHandle);
 						if(error == NULL)
 						{
 							error = errorBuf;
 						}
 					}
-					if(m_pcapHandle == NULL)
+					if(pcapHandle == NULL)
 					{
 						logMsg.Format("pcap error when opening default device:%s error message:", defaultDevice->name, error);
 						LOG4CXX_ERROR(s_packetLog, logMsg);
@@ -1533,15 +1559,16 @@ void VoIp::OpenDevices()
 					{
 						CStdString deviceName;
 
-						logMsg.Format("Successfully opened default device:%s pcap handle:%x message:%s", defaultDevice->name, m_pcapHandle, error);
+						logMsg.Format("Successfully opened default device:%s pcap handle:%x message:%s", defaultDevice->name, pcapHandle, error);
 						LOG4CXX_INFO(s_packetLog, logMsg);
 #ifdef CENTOS_5
-						SetPcapSocketBufferSize(m_pcapHandle);
+						SetPcapSocketBufferSize(pcapHandle);
 #endif
 
-						m_pcapHandles.push_back(m_pcapHandle);
+						PcapHandleDataRef pcapHandleData(new PcapHandleData(pcapHandle));
+						m_pcapHandles.push_back(pcapHandleData);
 						deviceName = defaultDevice->name;
-						AddPcapDeviceToMap(deviceName, m_pcapHandle);
+						AddPcapDeviceToMap(deviceName, pcapHandle);
 					}
 				}
 				else
@@ -1771,15 +1798,30 @@ void VoIp::Initialize()
 
 void VoIp::ReportPcapStats()
 {
-	for(std::list<pcap_t*>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
+	for(std::list<PcapHandleDataRef>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
 	{
 		struct pcap_stat stats;
 		if(*it)
 		{
-			pcap_stats(*it, &stats);
+			PcapHandleDataRef pcapHandleData = *it;
+			pcap_stats(pcapHandleData->m_pcapHandle, &stats);
 			CStdString logMsg;
-			logMsg.Format("handle:%x received:%u dropped:%u", *it, stats.ps_recv, stats.ps_drop);
+			logMsg.Format("handle:%x received:%u dropped:%u", pcapHandleData->m_pcapHandle, stats.ps_recv, stats.ps_drop);
 			LOG4CXX_INFO(s_packetStatsLog, logMsg);
+
+			if((time(NULL) - pcapHandleData->m_lastReportTs) >= 10)
+			{
+				pcapHandleData->m_numReceived10s = stats.ps_recv - pcapHandleData->m_numReceived;
+				pcapHandleData->m_numDropped10s = stats.ps_drop - pcapHandleData->m_numDropped;
+				pcapHandleData->m_numIfDropped10s = stats.ps_ifdrop - pcapHandleData->m_numIfDropped;
+				pcapHandleData->m_numReceived = stats.ps_recv;
+				pcapHandleData->m_numDropped = stats.ps_drop;
+				pcapHandleData->m_numIfDropped = stats.ps_ifdrop;
+				logMsg.Format("handle:%x received:%u received10s:%u dropped:%u dropped10s:%u ifdropped:%u ifdropped10s:%u",
+							   pcapHandleData->m_pcapHandle, stats.ps_recv, pcapHandleData->m_numReceived10s,
+							   stats.ps_drop, pcapHandleData->m_numDropped10s, pcapHandleData->m_numIfDropped, pcapHandleData->m_numIfDropped10s);
+				 LOG4CXX_INFO(s_packetStatsLog, logMsg);
+			}
 		}
 	}
 }
@@ -1802,9 +1844,9 @@ void VoIp::Run()
 	}
 	else
 	{
-		for(std::list<pcap_t*>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
+		for(std::list<PcapHandleDataRef>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
 		{
-			if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(SingleDeviceCaptureThreadHandler), *it, THR_DETACHED))
+			if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(SingleDeviceCaptureThreadHandler), (*it)->m_pcapHandle, THR_DETACHED))
 			{
 				LOG4CXX_INFO(s_packetLog, CStdString("Failed to create pcap capture thread"));
 			}
