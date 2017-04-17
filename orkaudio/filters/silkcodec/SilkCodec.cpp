@@ -105,23 +105,34 @@ void SilkCodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 	}
 	else if((outputDetails.m_sequenceNumber - m_lastRtpSeq) == 1)
 	{
-		sampleRate = (outputDetails.m_timestamp - m_lastRtpTs)/160;
-  		if(sampleRate != m_sampleRate8KhzMultiplier && (sampleRate == 1 || sampleRate == 2 || sampleRate == 3))
+		if((outputDetails.m_timestamp - m_lastRtpTs) == 160 || (outputDetails.m_timestamp - m_lastRtpTs) == 320)
 		{
-			m_sampleRate8KhzMultiplier = sampleRate;
+			//only support 8MHZ and 16MHZ for now
+			//If this happen, it would mean silk stream has changed from 8MHZ to 16MHZ or vice versal in the same ssrc stream(consecutive sequence, but not timestamp)
+			sampleRate = (outputDetails.m_timestamp - m_lastRtpTs)/160;
+			if(sampleRate != m_sampleRate8KhzMultiplier && (sampleRate == 1 || sampleRate == 2 || sampleRate == 3))
+			{
+				m_sampleRate8KhzMultiplier = sampleRate;
+			}
 		}
-	}
-	else if(((outputDetails.m_sequenceNumber - m_lastRtpSeq) != 1) 
-                  && (abs(outputDetails.m_timestamp - m_lastRtpTs) != (abs(outputDetails.m_sequenceNumber - m_lastRtpSeq) *m_sampleRate8KhzMultiplier*160)))
-        {
-                // sequence number delta is not coherent with timestamp delta, recalculating m_sampleRate8KhzMultiplier.
-                //Using abs() in the condition to make sure that out of order packets will not trigger this and cause one additional unecessary lost packet
-                m_lastRtpSeq = outputDetails.m_sequenceNumber;
-                m_lastRtpTs = outputDetails.m_timestamp;
-                m_sampleRate8KhzMultiplier = -1;
-                return;
-        }
+		else
+		{
+			m_lastRtpSeq = outputDetails.m_sequenceNumber;
+			m_lastRtpTs = outputDetails.m_timestamp;
+			m_sampleRate8KhzMultiplier = -1;
+			return;
+		}
 
+	}
+	else if(abs(outputDetails.m_timestamp - m_lastRtpTs) != (abs(outputDetails.m_sequenceNumber - m_lastRtpSeq) *m_sampleRate8KhzMultiplier*160))
+	{
+		// sequence number delta is not coherent with timestamp delta, recalculating m_sampleRate8KhzMultiplier.
+		//Using abs() in the condition to make sure that out of order packets will not trigger this and cause one additional unecessary lost packet
+		m_lastRtpSeq = outputDetails.m_sequenceNumber;
+		m_lastRtpTs = outputDetails.m_timestamp;
+		m_sampleRate8KhzMultiplier = -1;
+		return;
+	}
 	//sanity check/ Currently not yet support 24Khz
 	if(m_sampleRate8KhzMultiplier != 1 && m_sampleRate8KhzMultiplier != 2)
 	{
