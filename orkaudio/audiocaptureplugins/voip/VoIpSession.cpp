@@ -1657,10 +1657,10 @@ void VoIpSession::ReportSipNotify(SipNotifyInfoRef& notify)
 {
 	if (IsNecExternal(m_invite))
 	{
-		LOG4CXX_INFO(m_log, "external notify");
 		if (m_started) {
 			// NecSip is not updated by any other update routine so is "safe"
 			m_remotePartyNecSip = notify->m_dsp;
+			m_sipRemoteParty = notify->m_dsp;
 
 			// Report Remote party to Audio Tape
 			CaptureEventRef event(new CaptureEvent());
@@ -1669,9 +1669,9 @@ void VoIpSession::ReportSipNotify(SipNotifyInfoRef& notify)
 			g_captureEventCallBack(event, m_capturePort);
 		}
 		else {
-			LOG4CXX_INFO(m_log, "not started");
 			m_invite->m_sipRemoteParty = notify->m_dsp;
 			m_sipRemoteParty = notify->m_dsp;
+			m_remotePartyNecSip = notify->m_dsp;
 		}
 	}
 }
@@ -2378,6 +2378,9 @@ static inline bool isNotAlnum(char c) { return !isalnum(c); }
 
 void VoIpSessions::ReportSipNotify(SipNotifyInfoRef& notify)
 {
+	CStdString logMsg;
+	static CStdString lastHoldRemoteParty[128];
+
 	VoIpSessionRef session;
 	for(std::map<CStdString, VoIpSessionRef>::iterator pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++) {
 		VoIpSessionRef tmpSession = pair->second;
@@ -2388,12 +2391,21 @@ void VoIpSessions::ReportSipNotify(SipNotifyInfoRef& notify)
 		}
  	}
 
-	if (notify->m_dsp.size() < 4) {
-		return; 
+	if (find_if(notify->m_dsp.begin(), notify->m_dsp.end(), isNotAlnum) != notify->m_dsp.end()) {
+		notify->m_dsp = "";
 	}
 
-	if (find_if(notify->m_dsp.begin(), notify->m_dsp.end(), isNotAlnum) != notify->m_dsp.end()) {
+	if (notify->m_onHoldMarker && session) {
+		lastHoldRemoteParty[notify->m_pkey] = session->m_sipRemoteParty;
 		return;
+	}
+
+	if (notify->m_offHoldMarker && notify->m_dsp.empty()) {
+		notify->m_dsp = lastHoldRemoteParty[notify->m_pkey];
+	}
+
+	if (notify->m_dsp.size() < 4) {
+		return; 
 	}
 
 	if (session) {

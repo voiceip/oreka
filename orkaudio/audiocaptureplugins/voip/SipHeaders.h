@@ -134,10 +134,13 @@ public:
 	struct in_addr m_senderIp;
 	struct in_addr m_receiverIp;
 	CStdString m_dsp;
+	bool m_onHoldMarker;
+	bool m_offHoldMarker;
+	int m_pkey;
 
 	CStdString ToString() {
 		CStdString retVal;
-		retVal.Format("callid:%s display:%s",m_callId,m_dsp);
+		retVal.Format("callid:%s display:%s onHoldMarker:%s offHoldMarker:%s",m_callId,m_dsp,m_onHoldMarker?"yes":"no",m_offHoldMarker?"yes":"no");
 		return retVal;
 	}
 };

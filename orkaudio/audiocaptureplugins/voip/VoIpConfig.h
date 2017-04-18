@@ -185,6 +185,8 @@ public:
 	CStdString m_necNotifyDispLine;
 	std::list<CStdString> m_necVoipGatewayNames;	// new style devices csv
 	bool m_sipMetadataUseLastInvite;
+	CStdString m_necOnHoldMarker;
+	CStdString m_necOffHoldMarker;
 };
 
 //========================================

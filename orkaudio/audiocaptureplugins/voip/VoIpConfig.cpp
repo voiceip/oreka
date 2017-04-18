@@ -144,6 +144,9 @@ void VoIpConfig::Reset() {
 	m_necVoipGatewayNames.push_back("trk002");
 
 	m_sipMetadataUseLastInvite = false;
+
+	m_necOnHoldMarker = "ffffff95ffffffdbffffff97ffffffaf"; 
+	m_necOffHoldMarker = "ffffff89ffffff9effffff93ffffff9a"; 
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -282,6 +285,8 @@ void VoIpConfig::Define(Serializer* s)
 	s->StringValue("NecNotifyDispLine", m_necNotifyDispLine);
 	s->CsvValue("NecGatewayNames",m_necVoipGatewayNames);
 	s->BoolValue("SipMetadataUseLastInvite", m_sipMetadataUseLastInvite);
+	s->StringValue("SipNecOnHoldMarker",m_necOnHoldMarker); 
+	s->StringValue("SipNecOffHoldMarker",m_necOffHoldMarker); 
 }
 
 void VoIpConfig::Validate()
