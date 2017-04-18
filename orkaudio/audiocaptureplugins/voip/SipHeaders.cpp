@@ -169,7 +169,7 @@ void SipByeInfo::ToString(CStdString& string)
 }
 
 //================================================
-SipNotifyInfo::SipNotifyInfo()
+SipNotifyInfo::SipNotifyInfo() : m_onHoldMarker(false), m_offHoldMarker(false)
 {
 	m_senderIp.s_addr = 0;
 	m_receiverIp.s_addr = 0;

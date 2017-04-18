@@ -183,6 +183,33 @@ bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			}
 
 			GrabTokenSkipLeadingWhitespaces(dspField, sipEnd, info->m_dsp);
+
+			CStdString hex;
+			for(int i=0;i<info->m_dsp.length();i++) {
+				char byteAsHex[2];
+				sprintf(byteAsHex, "%.2x",*(info->m_dsp.c_str()+i));
+				hex += byteAsHex;
+			}
+
+			if (hex == DLLCONFIG.m_necOnHoldMarker) {
+				info->m_onHoldMarker = true;
+			}
+
+			if (hex == DLLCONFIG.m_necOffHoldMarker) {
+				info->m_offHoldMarker = true;
+			}
+		}
+
+		char* pkeyField = memFindAfter("Ind-Pkey=", (char*)udpPayload, sipEnd);
+
+		if (!pkeyField) {
+			pkeyField = memFindAfter("Ind-Fkey=", (char*)udpPayload, sipEnd);
+		}
+
+		if (pkeyField) {
+			CStdString pkeyToken;
+			GrabTokenSkipLeadingWhitespaces(pkeyField, sipEnd, pkeyToken);
+			sscanf(pkeyToken.c_str(),"%d",&info->m_pkey);
 		}
 
 		if (callIdField && DLLCONFIG.m_sipNotifySupport)
