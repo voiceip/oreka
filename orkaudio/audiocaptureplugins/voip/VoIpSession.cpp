@@ -2384,6 +2384,11 @@ void VoIpSessions::ReportSipNotify(SipNotifyInfoRef& notify)
 	VoIpSessionRef session;
 	for(std::map<CStdString, VoIpSessionRef>::iterator pair = m_byCallId.begin(); pair != m_byCallId.end(); pair++) {
 		VoIpSessionRef tmpSession = pair->second;
+
+		if (!tmpSession->m_invite) {
+			continue;
+		}
+
 		unsigned int invite_s_addr = DLLCONFIG.m_sipDirectionReferenceIpAddresses.Matches(tmpSession->m_invite->m_senderIp)? tmpSession->m_invite->m_receiverIp.s_addr: tmpSession->m_invite->m_senderIp.s_addr;
 
 		if ( (invite_s_addr == (unsigned int) notify->m_receiverIp.s_addr) && (!session || tmpSession->m_sipLastInvite > session->m_sipLastInvite) ) {
