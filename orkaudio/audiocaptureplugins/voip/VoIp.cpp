@@ -1858,7 +1858,12 @@ void VoIp::Shutdown()
 {
 	LOG4CXX_INFO(s_packetLog, "Shutting down VoIp.dll");
 #ifdef WIN32
-	pcap_breakloop(m_pcapHandle);
+	for (std::list<PcapHandleDataRef>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++) {
+		if (*it) {
+			PcapHandleDataRef pcapHandleData = *it;
+			pcap_breakloop(pcapHandleData->m_pcapHandle);
+		}
+	}
 #endif
 }
 
