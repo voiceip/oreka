@@ -1558,7 +1558,7 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		details.m_channel = channel;
 		details.m_encoding = AlawAudio;
 		details.m_numBytes = rtpPacket->m_payloadSize;
-		if(m_orekaRtpPayloadType != 0)
+		if(m_orekaRtpPayloadType != 0 && rtpPacket->m_payloadType >= 96)
 		{
 			details.m_rtpPayloadType = m_orekaRtpPayloadType;
 		}
