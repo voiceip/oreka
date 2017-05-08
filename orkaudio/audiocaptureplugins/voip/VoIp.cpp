@@ -1431,6 +1431,10 @@ pcap_t* VoIp::OpenDevice(CStdString& name)
 		{
 			error = errorBuf;
 		}
+		else
+		{
+			return NULL;
+		}
 	}
 	if(pcapHandle == NULL)
 	{
@@ -1505,6 +1509,10 @@ void VoIp::OpenDevices()
 						{
 							error = errorBuf;
 						}
+						else
+						{
+							pcapHandle = NULL;
+						}
 					}
 					if(pcapHandle == NULL)
 					{
@@ -1548,6 +1556,10 @@ void VoIp::OpenDevices()
 						if(error == NULL)
 						{
 							error = errorBuf;
+						}
+						else
+						{
+							pcapHandle = NULL;
 						}
 					}
 					if(pcapHandle == NULL)
