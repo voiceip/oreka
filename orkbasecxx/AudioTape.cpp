@@ -286,7 +286,7 @@ void AudioTape::Write()
 					if (m_state == StateActive)
 					{
 						// A file format was successfully added to the tape, open it
-						CStdString file = CONFIG.m_audioOutputPath + "/" + m_filePath + m_fileIdentifier;
+						CStdString file = CONFIG.m_audioOutputPathMcf + "/" + m_filePath + m_fileIdentifier;
 
 						// Prevent identifier collision
 						CStdString path = CONFIG.m_audioOutputPath + "/" + m_filePath;

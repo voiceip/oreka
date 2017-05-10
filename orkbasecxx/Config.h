@@ -251,6 +251,7 @@ public:
 	int m_clientRetryPeriodSec;
 	std::list<CStdString> m_dynamicTags;
 	bool m_hostnameReportFqdn;
+	CStdString m_audioOutputPathMcf;
 
 private:
 	log4cxx::LoggerPtr m_log;
