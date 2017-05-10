@@ -141,6 +141,11 @@ void Config::Define(Serializer* s)
 		}
 	}
 
+	s->StringValue("AudioOutputPathMcf", m_audioOutputPathMcf);
+	if(!m_audioOutputPathMcf.size()) {
+		m_audioOutputPathMcf = m_audioOutputPath;
+	}
+
 	s->StringValue(AUDIO_OUTPUT_SECONDARY_PATH_PARAM, m_audioOutputPathSecondary);
 
 	s->StringValue(AUDIO_FILE_PERMISSIONS_PARAM, m_audioFilePermissionsStr);
