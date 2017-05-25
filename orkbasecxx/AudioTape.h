@@ -149,6 +149,7 @@ public:
 	 * access to the internal variables of the AudioTape class.
 	 */
 	void GenerateFinalFilePathAndIdentifier();
+	CStdString m_audioOutputPath;
 
 private:
 	void GenerateCaptureFilePathAndIdentifier();

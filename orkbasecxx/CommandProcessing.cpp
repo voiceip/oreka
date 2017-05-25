@@ -143,11 +143,11 @@ void CommandProcessing::ThreadHandler(void *args)
 				CStdString audioFileName;
 				if(!audioTapeRef->m_isExternal)
 				{
-					audioFileName = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath() + audioTapeRef->GetIdentifier() + ".wav" ;		//as usual
+					audioFileName = audioTapeRef->m_audioOutputPath + "/" + audioTapeRef->GetPath() + audioTapeRef->GetIdentifier() + ".wav" ;		//as usual
 				}
 				else
 				{
-					audioFileName = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath() + audioTapeRef->m_externalFileName;	//conventional orkaudio name + orginal name (include extension)
+					audioFileName = audioTapeRef->m_audioOutputPath + "/" + audioTapeRef->GetPath() + audioTapeRef->m_externalFileName;	//conventional orkaudio name + orginal name (include extension)
 				}
 
 #ifdef WIN32

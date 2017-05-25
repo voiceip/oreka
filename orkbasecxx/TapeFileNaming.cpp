@@ -112,9 +112,9 @@ void TapeFileNaming::ThreadHandler(void *args)
 
 				trackingId = audioTapeRef->m_trackingId;
 	
-				originalFilename = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetFilename();
+				originalFilename = audioTapeRef->m_audioOutputPath + "/" + audioTapeRef->GetFilename();
 				audioTapeRef->GenerateFinalFilePathAndIdentifier();
-				newFilename = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetFilename();
+				newFilename = audioTapeRef->m_audioOutputPath + "/" + audioTapeRef->GetFilename();
 
 				if(originalFilename.Compare(newFilename) != 0)
 				{
