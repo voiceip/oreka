@@ -130,6 +130,8 @@ AudioTape::AudioTape(CStdString &portId)
 	m_chunkQueueErrorReported = false;
 	m_keep = true;
 
+	m_audioOutputPath = CONFIG.m_audioOutputPathMcf;
+
 	GenerateCaptureFilePathAndIdentifier();
 }
 

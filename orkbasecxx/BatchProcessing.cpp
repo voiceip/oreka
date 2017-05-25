@@ -257,6 +257,8 @@ void BatchProcessing::ThreadHandler(void *args)
 				fileRef = audioTapeRef->GetAudioFileRef();
 				trackingId = audioTapeRef->m_trackingId;
 
+				audioTapeRef->m_audioOutputPath = CONFIG.m_audioOutputPath;
+
 				// Let's work on the tape we have pulled
 				//CStdString threadIdString = IntToString(threadId);
 				LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " processing " + audioTapeRef->GetIdentifier() + " localside:" + CaptureEvent::LocalSideToString(audioTapeRef->m_localSide) + " audiokeepdirection:" + CaptureEvent::AudioKeepDirectionToString(audioTapeRef->m_audioKeepDirectionEnum));
@@ -456,8 +458,8 @@ void BatchProcessing::ThreadHandler(void *args)
 
 						}
 
-						CStdString path = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath();
-						FileRecursiveMkdir(path, CONFIG.m_audioFilePermissions, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, CONFIG.m_audioOutputPath);
+						CStdString path = audioTapeRef->m_audioOutputPath + "/" + audioTapeRef->GetPath();
+						FileRecursiveMkdir(path, CONFIG.m_audioFilePermissions, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, audioTapeRef->m_audioOutputPath);
 
 						CStdString file = path + "/" + audioTapeRef->GetIdentifier();
 						outFileRef->Open(file, AudioFile::WRITE, false, fileRef->GetSampleRate());
@@ -593,7 +595,7 @@ void BatchProcessing::ThreadHandler(void *args)
 				logMsg.Format("[%s] Th%s stop: num samples: s1:%u s2:%u out:%u queueSize:%d", trackingId, threadIdString, numSamplesS1, numSamplesS2, numSamplesOut, pBatchProcessing->m_audioTapeQueue.numElements());
 				LOG4CXX_INFO(LOG.batchProcessingLog, logMsg);
 
-				CStdString audioFilePath = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath();
+				CStdString audioFilePath = audioTapeRef->m_audioOutputPath + "/" + audioTapeRef->GetPath();
 				CStdString audioFileName;
 
 				audioFileName = audioFilePath + "/" + audioTapeRef->GetIdentifier() + outFileRef->GetExtension();

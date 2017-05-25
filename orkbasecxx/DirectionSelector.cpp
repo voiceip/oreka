@@ -258,11 +258,11 @@ void DirectionSelector::ThreadHandler(void *args)
 				tmpExt = ".tmp";
 
 				audioTapeRef->SetExtension(mcfExt); 		//the real extension at this point
-				origFileName = CONFIG.m_audioOutputPath + "/"+ audioTapeRef->GetFilename();
-				origFileNameWoExt = CONFIG.m_audioOutputPath + "/" + audioTapeRef->GetPath() + audioTapeRef->GetIdentifier();
+				origFileName = audioTapeRef->m_audioOutputPath + "/"+ audioTapeRef->GetFilename();
+				origFileNameWoExt = audioTapeRef->m_audioOutputPath + "/" + audioTapeRef->GetPath() + audioTapeRef->GetIdentifier();
 				//copy a temporary file for processing
 				audioTapeRef->SetExtension(tmpExt);
-				tmpFileName = CONFIG.m_audioOutputPath + "/"+ audioTapeRef->GetFilename();
+				tmpFileName = audioTapeRef->m_audioOutputPath + "/"+ audioTapeRef->GetFilename();
 
 				if(ACE_OS::rename((PCSTR)origFileName, (PCSTR)tmpFileName) != 0){
 					LOG4CXX_ERROR(LOG.directionSelectorLog, "Can not rename audio file for processing");
