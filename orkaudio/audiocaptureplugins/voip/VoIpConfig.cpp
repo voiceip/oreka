@@ -147,6 +147,7 @@ void VoIpConfig::Reset() {
 
 	m_necOnHoldMarker = "ffffff95ffffffdbffffff97ffffffaf"; 
 	m_necOffHoldMarker = "ffffff89ffffff9effffff93ffffff9a"; 
+	m_mtuMaxSize = 18000;
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -287,6 +288,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("SipMetadataUseLastInvite", m_sipMetadataUseLastInvite);
 	s->StringValue("SipNecOnHoldMarker",m_necOnHoldMarker); 
 	s->StringValue("SipNecOffHoldMarker",m_necOffHoldMarker); 
+	s->IntValue("MtuMaxSize", m_mtuMaxSize);
 }
 
 void VoIpConfig::Validate()

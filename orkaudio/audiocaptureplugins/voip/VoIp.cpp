@@ -60,6 +60,9 @@ extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;
 extern OrkLogManager* g_logManager;
 
+void HandleTcpConnection(int clientSock);
+void TcpListenerThread();
+
 static LoggerPtr s_packetLog;
 static LoggerPtr s_packetStatsLog;
 static LoggerPtr s_rtpPacketLog;
@@ -83,6 +86,8 @@ static unsigned int s_udpCounter;
 static unsigned int s_numLostUdpPacketsInUdpMode;
 static unsigned int s_tcpCounter;
 static unsigned int s_numLostTcpPacketsInUdpMode;
+static int s_mtuMaxSize;
+static int s_tcpListenerSock;
 
 SizedBufferRef HandleIpFragment(IpHeaderStruct* ipHeader);
 
@@ -151,20 +156,6 @@ private:
 };
 
 typedef ACE_Singleton<VoIp, ACE_Thread_Mutex> VoIpSingleton;
-//=========================================================
-class VoipTcpStream : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_NULL_SYNCH>
-{
-public:
-	virtual int open (void *);
-	/** daemon thread */
-	static void run(void *args);
-	/** service routine */
-	virtual int svc (void);
-private:
-
-};
-typedef ACE_Acceptor<VoipTcpStream, ACE_SOCK_ACCEPTOR> VoipTcpStreamListener;
-
 //=========================================================
 bool TryRtcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload)
 {
@@ -849,15 +840,11 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	}
 	int ipHeaderLength = ipHeader->ip_hl*4;
 	u_char* ipPacketEnd = (u_char*)ipHeader + ntohs(ipHeader->ip_len);
-	if(DLLCONFIG.m_orekaEncapsulationMode == false)
+	u_char* captureEnd = (u_char*)pkt_data + header->caplen;
+	if( captureEnd < (u_char*)ipPacketEnd  || (u_char*)ipPacketEnd <= ((u_char*)ipHeader + ipHeaderLength + TCP_HEADER_LENGTH))
 	{
-		u_char* captureEnd = (u_char*)pkt_data + header->caplen;
-		const int MIN_TRANSPORT_HEADER_LEN=8; // Size of a UDP header
-		if( captureEnd < (u_char*)ipPacketEnd  || (u_char*)ipPacketEnd <= ((u_char*)ipHeader + ipHeaderLength + MIN_TRANSPORT_HEADER_LEN))
-		{
-			// The packet has been snipped or has not enough payload, drop it,
-			return;
-		}
+		// The packet has been snipped or has not enough payload, drop it,
+		return;
 	}
 
 //#ifdef WIN32
@@ -1044,48 +1031,72 @@ void UdpListenerThread()
 	ACE_INET_Addr remote;
 	ACE_Time_Value timeout;
 	timeout.set(0,1052);
-	unsigned char frameBuffer[2048];
+	unsigned char frameBuffer[65000];
 
 	if (updDgram.open(updPort) == -1)
 	{
 		return;
 	}
 
-	struct pcap_pkthdr* pcap_headerPtr ;
-	u_char* param;
-	size_t rev = 0;
+	struct pcap_pkthdr pcap_headerPtr ;
+	u_char param;
+	size_t recv_bytes = 0;
 	bool stop = false;
 	while(stop != true)
 	{
-		memset(frameBuffer, 0, 2048);
-		if(rev = updDgram.recv(frameBuffer,2048,remote,0,&timeout) != -1 )
+		memset(frameBuffer, 0, 65000);
+		if((recv_bytes = updDgram.recv(frameBuffer,65000,remote,0,&timeout)) != -1 )
 		{
+			//Need to deencapsulate each packets in this packet
 			OrkEncapsulationStruct* orkEncapsulationStruct = (OrkEncapsulationStruct*)frameBuffer;
 			if(ntohs(orkEncapsulationStruct->protocol) == 0xbeef && orkEncapsulationStruct->version == 0x01)
 			{
-				unsigned int counter = ntohl(orkEncapsulationStruct->seq);
-				if(counter > s_udpCounter)
+				int frameOffset = 0;
+				while(frameOffset < (recv_bytes - sizeof(OrkEncapsulationStruct)))
 				{
-					s_numLostUdpPacketsInUdpMode += counter - s_udpCounter - 1;
+					//deencapsulated this packet
+					OrkEncapsulationStruct* orkEncapsulationStruct = (OrkEncapsulationStruct*)(frameBuffer + frameOffset);
+					if(ntohs(orkEncapsulationStruct->protocol) == 0xbeef && orkEncapsulationStruct->version == 0x01)
+					{
+
+						unsigned int counter = ntohl(orkEncapsulationStruct->seq);
+						unsigned short packetLen = ntohs(orkEncapsulationStruct->totalPacketLength);
+						if(counter > s_udpCounter)
+						{
+							s_numLostUdpPacketsInUdpMode += counter - s_udpCounter - 1;
+						}
+						s_udpCounter = counter;
+						pcap_headerPtr.caplen = packetLen;
+
+						 if(pcap_headerPtr.caplen > (recv_bytes - frameOffset - sizeof(OrkEncapsulationStruct) + 1))
+						{
+							break;
+						}
+
+						HandlePacket(&param, &pcap_headerPtr, frameBuffer + frameOffset + sizeof(OrkEncapsulationStruct));
+						frameOffset = frameOffset + packetLen + sizeof(OrkEncapsulationStruct);
+					}
+					else
+					{
+						LOG4CXX_ERROR(s_packetLog, "udplistener got alien packet");
+						break;
+					}
+
 				}
-				s_udpCounter = counter;
-				HandlePacket(param, pcap_headerPtr, frameBuffer + sizeof(OrkEncapsulationStruct));		
+
 			}
-			else
-			{
-				LOG4CXX_ERROR(s_packetLog, "udplistener got alien packet");
-			}
-			
 		}
+
 		//In case there is no traffic coming into the socket, Hoover is not going to be called, try to avoid it
 		time_t now = time(NULL);
 		if((now - s_lastHooveringTime) > 5)
 		{
-			MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
+			MutexSentinel mutexSentinel(s_mutex);
 			s_lastHooveringTime = now;
-			VoIpSessionsSingleton::instance()->Hoover(now);
 			Iax2SessionsSingleton::instance()->Hoover(now);
+			VoIpSessionsSingleton::instance()->Hoover(now);
 		}
+
 	}
 }
 //=======================================================
@@ -1806,6 +1817,7 @@ void VoIp::Initialize()
 	InitializeWin1251Table(utf);
 	LoadPartyMaps();
 	LoadSkinnyGlobalNumbers();
+	s_mtuMaxSize = DLLCONFIG.m_mtuMaxSize;
 }
 
 void VoIp::ReportPcapStats()
@@ -1847,12 +1859,14 @@ void VoIp::Run()
 	{
 		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(UdpListenerThread), NULL, THR_DETACHED))
 		{
-					LOG4CXX_INFO(s_packetLog, CStdString("Failed to start udplistener thread"));
+				LOG4CXX_INFO(s_packetLog, CStdString("Failed to start udplistener thread"));
 		}
-		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(VoipTcpStream::run), NULL, THR_DETACHED))
+#ifndef WIN32
+		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(TcpListenerThread), NULL, THR_DETACHED))
 		{
-					LOG4CXX_INFO(s_packetLog, CStdString("Failed to start tcplistener thread"));
+				LOG4CXX_INFO(s_packetLog, CStdString("Failed to start tcplistener thread"));
 		}
+#endif
 	}
 	else
 	{
@@ -1966,173 +1980,215 @@ void VoIp::GetConnectionStatus(CStdString& msg)
 	msg = "unknown";
 }
 //================================================================================
-// This is run at the start of each connection
-int VoipTcpStream::open (void *void_acceptor)
-{
-	return this->activate (THR_DETACHED);
-}
-
-// This is run at program initialization
-void VoipTcpStream::run(void* args)
-{
-	VoipTcpStreamListener peer_acceptor;
-	ACE_INET_Addr addr;
-	if(DLLCONFIG.m_orekaEncapsulationHost.length() > 0)
-	{
-		addr.set((DLLCONFIG.m_orekaEncapsulationPort + 1), DLLCONFIG.m_orekaEncapsulationHost);
-	}
-	else
-	{
-		addr.set(DLLCONFIG.m_orekaEncapsulationPort + 1);
-	}
-
-	ACE_Reactor reactor;
-	CStdString tcpPortString = IntToString(DLLCONFIG.m_orekaEncapsulationPort + 1);
-
-	if (peer_acceptor.open (addr, &reactor) == -1)
-	{
-		LOG4CXX_ERROR(s_voipPluginLog, CStdString("Failed to open tcplistener on port:") + tcpPortString + CStdString(" do you have another instance of orkaudio running?"));
-	}
-	else
-	{
-		LOG4CXX_INFO(s_voipPluginLog, CStdString("Opened tcplistener on port:")+tcpPortString);
-		for(;;)
-		{
-			reactor.handle_events();
-		}
-	}
-}
-int VoipTcpStream::svc(void)
+#ifndef WIN32
+void HandleTcpConnection(int clientSock)
 {
 	CStdString logMsg;
-	unsigned char buf[4096];
-	buf[4096] = '\0';	// security
-	ACE_Time_Value timeout;
-	timeout.sec(10800);
+	unsigned char keepAliveBuf[4];
+	time_t keepAliveTimer = time(NULL);
+	unsigned char buf[s_mtuMaxSize];
+	buf[s_mtuMaxSize] = '\0';	// security
 	bool stop =false;
-	unsigned char prot[2] = {0xbe, 0xef};
-	unsigned char orkEncapsulationHeader [sizeof(OrkEncapsulationStruct)];
+	unsigned char prot[3] = {0xbe, 0xef, 0x1};
+	OrkEncapsulationStruct* orkEncapsulationHeader;
 
 	while(stop == false)
 	{
 		int wantedLen = 0;
 		int recvLen = 0;
 		bool isFullLen =  true;
-
-		memset(buf, 0, 4096);
+		int bufferPos = 0;
+		memset(buf, 0, s_mtuMaxSize);
 		//first try to see if this packet has our own OrkEncapsulation header
-		//Reading first 2 bytes
-		memset(orkEncapsulationHeader, 0, sizeof(OrkEncapsulationStruct));
-		ssize_t size = peer().recv(buf, 1, &timeout);
-		if(size == 1)
+		ssize_t size = recv(clientSock, buf, sizeof(OrkEncapsulationStruct), 0);
+		bufferPos = bufferPos + size;
+		wantedLen = sizeof(OrkEncapsulationStruct);
+		isFullLen = true;
+		
+		while(size != wantedLen)		// while() read header
 		{
-			if(buf[0] == prot[0])
+			if(size > wantedLen)
 			{
-				orkEncapsulationHeader[0] = buf[0];
-				size = peer().recv(&buf[1], 1, &timeout);
-				if(size == 1)
-				{
-					if(buf[1] == prot[1])		//we are sure its our packet now
-					{
-						orkEncapsulationHeader[1] = buf[1];
-						size = peer().recv(&buf[2], sizeof(OrkEncapsulationStruct) - 2, &timeout);
-						wantedLen = sizeof(OrkEncapsulationStruct) - 2;
-						int bufferHdrPos = 2;	// first at all, we expect to have bytes filled in &buf[2]
-						isFullLen = true;
-						while(size != wantedLen)
-						{
-							if(size > wantedLen)
-							{
-								isFullLen = false;
-								logMsg.Format("tcplistener skips overlimit orkencapsulation length:%d", wantedLen);
-								LOG4CXX_ERROR(s_packetLog, logMsg);
-								break;
-							}
-							recvLen = size;
-							wantedLen = wantedLen - recvLen;
-
-							size = peer().recv(&buf[bufferHdrPos + recvLen], wantedLen, &timeout);
-							bufferHdrPos = bufferHdrPos + recvLen;
-						}
-
-						if(isFullLen)
-						{
-							memcpy(&orkEncapsulationHeader[2], &buf[2], sizeof(OrkEncapsulationStruct) - 2);
-							OrkEncapsulationStruct* orkEncapsulationStruct = (OrkEncapsulationStruct*)orkEncapsulationHeader;
-							unsigned int counter = ntohl(orkEncapsulationStruct->seq);
-							if(counter > s_tcpCounter)
-							{
-								s_numLostTcpPacketsInUdpMode += counter - s_tcpCounter - 1;
-							}
-							s_tcpCounter = counter;
-							//now read the actual packetpayload
-							if(ntohs(orkEncapsulationStruct->totalPacketLength) > (4096 -sizeof(OrkEncapsulationStruct)))
-							{
-								logMsg.Format("tcplistener skips overlimit payload length:%d", ntohs(orkEncapsulationStruct->totalPacketLength));
-								LOG4CXX_ERROR(s_packetLog, logMsg);
-								continue;
-							}
-							//start to get actual payload
-							size = peer().recv(&buf[sizeof(OrkEncapsulationStruct)], ntohs(orkEncapsulationStruct->totalPacketLength), &timeout);
-							wantedLen = ntohs(orkEncapsulationStruct->totalPacketLength);
-							int bufferPos = sizeof(OrkEncapsulationStruct);	// first at all, we expect to have bytes filled in &buf[sizeof(OrkEncapsulationStruct)]
-							isFullLen = true;
-							while(size != wantedLen)
-							{
-								if(size > wantedLen)
-								{
-									isFullLen = false;
-									logMsg.Format("tcplistener skips overlimit payload length:%d", wantedLen);
-									LOG4CXX_ERROR(s_packetLog, logMsg);
-									break;
-								}
-								recvLen = size;
-								wantedLen = wantedLen - recvLen;
-
-								size = peer().recv(&buf[bufferPos + recvLen], wantedLen, &timeout);
-								bufferPos = bufferPos + recvLen;
-							}
-							//Get exactly how many bytes we want
-							if(isFullLen)
-							{
-								struct pcap_pkthdr* pcap_headerPtr ;
-								u_char* param;
-								HandlePacket(param, pcap_headerPtr, &buf[sizeof(OrkEncapsulationStruct)]);
-							}
-						}
-						else	//not fullLen
-						{
-							//continue next while
-						}
-					}
-				}
-				else if(size == 0)
-				{
-
-				}
-				else
-				{
-//					logMsg.Format("tcplistener returned error:%d", size);
-//					LOG4CXX_ERROR(s_packetLog, logMsg);
-				}
+				logMsg.Format("received %d bytes but was expecting %d", size, wantedLen);
+				LOG4CXX_ERROR(s_packetLog, logMsg);
+				stop = true; //terminate thread to reconnect
+				break;
 			}
-		}
-		else if(size == 0)
+			else if(size == 0)
+			{
+				logMsg.Format("remote socket was close");
+				LOG4CXX_ERROR(s_packetLog, logMsg);
+				stop = true;
+				break;
+			}
+			else if(size < 0)
+			{
+				logMsg.Format("tcplistener returned error:%s ", strerror(errno));
+				LOG4CXX_ERROR(s_packetLog, logMsg);
+				stop = true;
+				break;
+			}
+
+			recvLen = size;
+			wantedLen = wantedLen - recvLen;
+
+			size = recv(clientSock, &buf[bufferPos], wantedLen, 0);
+			bufferPos = bufferPos + size;
+		}	// while() read header
+		//Now validate the header. At here, we must have get sizeof(OrkEncapsulationStruct) length buffer
+
+		if(bufferPos != sizeof(OrkEncapsulationStruct))
 		{
-            ACE_Time_Value sl;
-            sl.set(0,1000);
-            ACE_OS::sleep(sl);
+			logMsg.Format("tcplistener bufferPos != sizeof oreka header ");
+			LOG4CXX_ERROR(s_packetLog, logMsg);
+			break;
 		}
-		else if(size < 0)
+		bufferPos = sizeof(OrkEncapsulationStruct);
+
+		orkEncapsulationHeader = (OrkEncapsulationStruct*)buf;
+		if((ntohs(orkEncapsulationHeader->protocol) != 0xbeef) || (orkEncapsulationHeader->version != 0x1))
 		{
-			logMsg.Format("tcplistener returned error:%d", size);
+			logMsg.Format("tcplistener invalid header");
 			LOG4CXX_ERROR(s_packetLog, logMsg);
 			stop = true;
+			break; //header is invalid,
 		}
+		if(ntohs(orkEncapsulationHeader->totalPacketLength) > (s_mtuMaxSize -sizeof(OrkEncapsulationStruct)))
+		{
+			logMsg.Format("tcplistener skips overlimit payload length:%d", ntohs(orkEncapsulationHeader->totalPacketLength));
+			LOG4CXX_ERROR(s_packetLog, logMsg);
+			stop = true; //terminate thread to reconnect
+			break;
+		}
+		//Now try to read actualy payload
+		//at this point: bufferPos must equal sizeof(OrkEncapsulationStruct)
+		size = recv(clientSock, &buf[bufferPos], ntohs(orkEncapsulationHeader->totalPacketLength), 0);
+		bufferPos = bufferPos + size;
+		wantedLen = ntohs(orkEncapsulationHeader->totalPacketLength);
+		isFullLen = true;
+		while(size != wantedLen)		//while() payload read
+		{
+			if(size > wantedLen)
+			{
+				logMsg.Format("received %d bytes but was expecting %d", size, wantedLen);
+				LOG4CXX_ERROR(s_packetLog, logMsg);
+				stop = true; //terminate thread to reconnect
+				break;
+			}
+			else if(size == 0)
+			{
+				logMsg.Format("remote socket was close");
+				LOG4CXX_ERROR(s_packetLog, logMsg);
+				stop = true;
+				break;
+			}
+			else if(size < 0)
+			{
+				logMsg.Format("tcplistener returned error:%s ", strerror(errno));
+				LOG4CXX_ERROR(s_packetLog, logMsg);
+				stop = true;
+				break;
+			}
+
+			recvLen = size;
+			wantedLen = wantedLen - recvLen;
+
+			size = recv(clientSock, &buf[bufferPos], wantedLen, 0);
+			bufferPos = bufferPos + size;
+
+		}	//while() payload read
+
+		if(bufferPos != (sizeof(OrkEncapsulationStruct) + ntohs(orkEncapsulationHeader->totalPacketLength)))
+		{
+	        logMsg.Format("tcplistener bufferPos:%d expected:%d", bufferPos, sizeof(OrkEncapsulationStruct) + ntohs(orkEncapsulationHeader->totalPacketLength));
+			LOG4CXX_ERROR(s_packetLog, logMsg);
+			break;
+		}
+
+		//at this point, we must have full payload
+		struct pcap_pkthdr pcap_headerPtr ;
+		pcap_headerPtr.caplen = ntohs(orkEncapsulationHeader->totalPacketLength);
+		u_char param;
+		HandlePacket(&param, &pcap_headerPtr, &buf[sizeof(OrkEncapsulationStruct)]);
+
+		//Keep alive: just to kill the thread, longer timer is not a problem
+		if((time(NULL) - keepAliveTimer) > 5)
+		{
+			int sendRet;
+			sendRet = send(clientSock, keepAliveBuf, 4, 0);
+			if(sendRet != 4)
+			{
+				logMsg.Format("HandleTcpConnectionThread is terminated due to tcp client disconnection on socket:%d", clientSock);
+				LOG4CXX_ERROR(s_packetLog, logMsg);
+				break;
+			}
+			else
+			{
+				keepAliveTimer = time(NULL);
+			}
+		}
+	}//Outer while()
+	close(clientSock);
+}
+
+void TcpListenerThread()
+{
+	static struct sockaddr_in hostTcpAddr;
+	CStdString logMsg;
+	LOG4CXX_INFO(s_packetLog, "TcpListenerThread is initialized successfully");
+	struct sockaddr_in remoteAddr;
+	memset(&hostTcpAddr, 0, sizeof(hostTcpAddr));
+	hostTcpAddr.sin_family = AF_INET;
+	CStdString localAddr = DLLCONFIG.m_orekaEncapsulationHost;
+	int localPort = DLLCONFIG.m_orekaEncapsulationPort + 1;
+	inet_pton(AF_INET, localAddr, &(hostTcpAddr.sin_addr));
+	hostTcpAddr.sin_port = htons(localPort);
+	s_tcpListenerSock = socket(PF_INET,SOCK_STREAM,IPPROTO_TCP);
+	if(s_tcpListenerSock < 0)
+	{
+		LOG4CXX_ERROR(s_packetLog, "Failed to created tcp listener socket");
+		return;
 	}
 
-	return 0;
+	int bindRet, listenRet, clientSock;
+	bindRet = bind(s_tcpListenerSock, (struct sockaddr*)&hostTcpAddr, sizeof(hostTcpAddr));
+	while(bindRet < 0)
+	{
+		LOG4CXX_ERROR(s_packetLog, "Failed to bind tcp listener socket. Retrying ...");
+		bindRet = bind(s_tcpListenerSock, (struct sockaddr*)&hostTcpAddr, sizeof(hostTcpAddr));
+		sleep(5);
+	}
+
+	listenRet = listen(s_tcpListenerSock, 5);
+	while(listenRet < 0)
+	{
+		LOG4CXX_ERROR(s_packetLog, "Failed to listen tcp listener socket. Retrying ...");
+		listenRet = listen(s_tcpListenerSock, 5);
+		sleep(5);
+	}
+	for(;;)
+	{
+		unsigned int remoteLen = sizeof(remoteAddr);
+		clientSock = accept(s_tcpListenerSock, (struct sockaddr*)&remoteAddr, &remoteLen);
+		while(clientSock < 0)
+		{
+			LOG4CXX_ERROR(s_packetLog, "Failed to accept tcp connection. Retrying ...");
+			clientSock = accept(s_tcpListenerSock, (struct sockaddr*)&remoteAddr, &remoteLen);
+			sleep(5);
+		}
+		logMsg.Format("Accepted incomming connection from:%s on socket:%d",inet_ntoa(remoteAddr.sin_addr), clientSock);
+		LOG4CXX_INFO(s_packetLog, logMsg);
+
+		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(HandleTcpConnection), reinterpret_cast<void*>(clientSock), THR_DETACHED))
+		{
+			LOG4CXX_INFO(s_packetLog, CStdString("Failed to create HandleTcpConnection thread"));
+		}
+
+	}
+
 }
+
+#endif
 //================================================================================
 void __CDECL__ Initialize()
 {
