@@ -21,6 +21,7 @@ import java.util.Date;
 import net.sf.oreka.HibernateManager;
 import net.sf.oreka.OrkObjectFactory;
 import net.sf.oreka.orktrack.messages.ConfigureLogMessage;
+import net.sf.oreka.orktrack.messages.InitMessage;
 import net.sf.oreka.orktrack.messages.MetadataMessage;
 import net.sf.oreka.orktrack.messages.PingMessage;
 import net.sf.oreka.orktrack.messages.TapeMessage;
@@ -60,6 +61,7 @@ public class OrkTrack {
 			OrkObjectFactory.instance().registerOrkObject(new UserStateMessage());
 			OrkObjectFactory.instance().registerOrkObject(new PingMessage());
 			OrkObjectFactory.instance().registerOrkObject(new ConfigureLogMessage());
+			OrkObjectFactory.instance().registerOrkObject(new InitMessage());
 			ConfigManager.getInstance().load(configFile);
 
 			hibernateManager.configure(hibernateConfigFile);
