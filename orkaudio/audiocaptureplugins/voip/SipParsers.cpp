@@ -1529,7 +1529,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		}
 
 		//Determine the being used codec: should be the first rtpmap
-		if(sipMethod == SIP_METHOD_200_OK)
+		if(sipMethod == SIP_METHOD_200_OK || sipMethod == SIP_RESPONSE_SESSION_PROGRESS)
 		{
 			rtpmapAttribute = memFindAfter("\na=rtpmap:", (char*)audioSdpStart, audioSdpEnd);
 			if(rtpmapAttribute)
