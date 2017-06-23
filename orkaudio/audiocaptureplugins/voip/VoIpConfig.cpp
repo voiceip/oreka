@@ -148,6 +148,7 @@ void VoIpConfig::Reset() {
 	m_necOnHoldMarker = "ffffff95ffffffdbffffff97ffffffaf"; 
 	m_necOffHoldMarker = "ffffff89ffffff9effffff93ffffff9a"; 
 	m_mtuMaxSize = 18000;
+	m_sipLocalPartyFieldName = "x-Local-Extension:";
 }
 
 void VoIpConfig::Define(Serializer* s)
@@ -289,6 +290,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->StringValue("SipNecOnHoldMarker",m_necOnHoldMarker); 
 	s->StringValue("SipNecOffHoldMarker",m_necOffHoldMarker); 
 	s->IntValue("MtuMaxSize", m_mtuMaxSize);
+	s->StringValue("SipLocalPartyFieldName", m_sipLocalPartyFieldName);
 }
 
 void VoIpConfig::Validate()
