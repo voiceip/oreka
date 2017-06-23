@@ -188,6 +188,7 @@ public:
 	CStdString m_necOnHoldMarker;
 	CStdString m_necOffHoldMarker;
 	int m_mtuMaxSize;
+	CStdString m_sipLocalPartyFieldName;
 };
 
 //========================================

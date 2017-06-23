@@ -1203,7 +1203,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
                     audioSdpStart = audioStart;
                 }
 
-		char* localExtensionField = memFindAfter("x-Local-Extension:", (char*)udpPayload, sipEnd);
+		char* localExtensionField = memFindAfter(DLLCONFIG.m_sipLocalPartyFieldName, (char*)udpPayload, sipEnd);
 		char* audioField = NULL;
 		char* connectionAddressField = NULL;
 		char* attribSendonly = memFindAfter("a=sendonly", (char*)audioSdpStart, audioSdpEnd);
