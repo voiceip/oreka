@@ -159,6 +159,7 @@ MessageRef TapeMsg::Clone() {
 	clone->m_remoteIp           = this->m_remoteIp;
 	clone->m_nativeCallId       = this->m_nativeCallId;
 	clone->m_onDemand           = this->m_onDemand;
+	clone->m_live               = this->m_live;
 
 	// Copy the tags!
 	std::copy(this->m_tags.begin(), this->m_tags.end(), std::inserter(clone->m_tags, clone->m_tags.begin()));
