@@ -20,7 +20,7 @@
 #include "LogManager.h"
 #include "CapturePluginProxy.h"
 
-TapeMsg::TapeMsg() : m_live(false)
+TapeMsg::TapeMsg() : m_live(true)
 {
 	// Here is where default values are set
 	m_timestamp = 0;
