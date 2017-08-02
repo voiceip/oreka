@@ -352,6 +352,13 @@ int EventStreamingServer::svc(void)
 
 		EventStreamingSessionRef session(new EventStreamingSession());
 		EventStreamingSingleton::instance()->AddSession(session);
+		if(EventStreamingSingleton::instance()->GetNumSessions() > 100)
+		{
+			EventStreamingSingleton::instance()->RemoveSession(session);
+			logMsg.Format("Event streaming number of session exceeds 100. Stopping %s", sessionId);
+			LOG4CXX_ERROR(s_log, logMsg);
+			return 0;
+		}
 
 		int sendRes = 0;
 		while(sendRes >= 0)
