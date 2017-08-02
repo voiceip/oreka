@@ -309,10 +309,10 @@ void MainThread()
 	}
 
 	// Create command line server
-	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(CommandLineServer::run), (void *)CONFIG.m_commandLineServerPort))
-	{
-		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create command line server"));
-	}
+//	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(CommandLineServer::run), (void *)CONFIG.m_commandLineServerPort))
+//	{
+//		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create command line server"));
+//	}
 
 	// Create Http server
 	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(HttpServer::run), (void *)CONFIG.m_httpServerPort))
