@@ -94,6 +94,7 @@ Config::Config()
 	m_dtmfReportingDetailed = DTMF_REPORTING_DETAILED;
 	m_clientRetryPeriodSec = CLIENT_RETRY_PERIOD_SEC_DEFAULT;
 	m_hostnameReportFqdn = HOSTNAME_REPORT_FQDN_DEFAULT;
+	m_discardUnidirectionalCalls = false;
 }
 
 void Config::Define(Serializer* s)
@@ -228,6 +229,7 @@ void Config::Define(Serializer* s)
 		}
 	}
 	s->IntValue(CLIENT_RETRY_PERIOD_SEC, m_clientRetryPeriodSec);
+	s->BoolValue("DiscardUnidirectionalCalls", m_discardUnidirectionalCalls);
 }
 
 void Config::Validate()

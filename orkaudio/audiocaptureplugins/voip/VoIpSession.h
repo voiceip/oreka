@@ -164,6 +164,7 @@ public:
 	CStdString m_dtmfDigitString;
 	int m_orekaRtpPayloadType;
 	void ReportMetadataUpdateSkinny();
+	bool m_startWhenReceiveS2;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);

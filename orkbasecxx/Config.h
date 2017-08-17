@@ -252,6 +252,7 @@ public:
 	std::list<CStdString> m_dynamicTags;
 	bool m_hostnameReportFqdn;
 	CStdString m_audioOutputPathMcf;
+	bool m_discardUnidirectionalCalls;
 
 private:
 	log4cxx::LoggerPtr m_log;

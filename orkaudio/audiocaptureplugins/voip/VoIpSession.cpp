@@ -36,6 +36,7 @@ extern CaptureEventCallBackFunction g_captureEventCallBack;
 
 VoIpSession::VoIpSession(CStdString& trackingId)
 {
+	m_startWhenReceiveS2 = false;
 	m_trackingId = trackingId;
 	m_lastUpdated = time(NULL);
 	m_creationDate = ACE_OS::gettimeofday();
@@ -1169,8 +1170,13 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	if(CONFIG.m_lookBackRecording == false && m_nonLookBackSessionStarted == false && (m_protocol != ProtRawRtp || (DLLCONFIG.m_trackRawRtpSessionInNonLookBackMode == true && m_numIgnoredRtpPackets == DLLCONFIG.m_rtpMinAmountOfPacketsBeforeStart))  )
 	{
-		Start();
-		ReportMetadata();
+		if(CONFIG.m_discardUnidirectionalCalls) {
+			m_startWhenReceiveS2 = true;
+		}
+		else {
+			Start();
+			ReportMetadata();
+		}
 		m_nonLookBackSessionStarted = true;
 	}
 
@@ -1211,8 +1217,13 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	if(CONFIG.m_lookBackRecording == false && m_numRtpPackets == 0)
 	{
-		Start();
-		ReportMetadata();
+		if (CONFIG.m_discardUnidirectionalCalls ) {
+			m_startWhenReceiveS2 = true;
+		}
+		else {
+			Start();
+			ReportMetadata();
+		}
 	}
 
 	// Dismiss packets that should not be part of a Skinny session
@@ -1339,6 +1350,10 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 					rtpPacket->ToString(logMsg);
 					logMsg =  "[" + m_trackingId + "] 1st packet s2: " + logMsg;
 					LOG4CXX_INFO(m_log, logMsg);
+				}
+				if (CONFIG.m_discardUnidirectionalCalls && m_startWhenReceiveS2) {
+					Start();
+					ReportMetadata();
 				}
 			}
 			else
@@ -1530,9 +1545,15 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		// For Raw RTP, the high number is to make sure we have a "real" raw RTP session, not a leftover from a SIP/Skinny session
 		if(CONFIG.m_lookBackRecording == true) 
 		{
-			Start();
-			ReportMetadata();
+			if(CONFIG.m_discardUnidirectionalCalls) {
+				m_startWhenReceiveS2 = true;
+			}
+			else {
+				Start();
+				ReportMetadata();
+			}
 		}
+
 	}
 
 	if(m_started)
