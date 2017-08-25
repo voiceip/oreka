@@ -25,6 +25,7 @@ EventStreamingSession::EventStreamingSession()
 
 void EventStreamingSession::AddMessage(MessageRef message)
 {
+	MutexSentinel mutexSentinel(m_mutex);
 	if(m_messages.size() > 10000)
 	{
 		m_messages.pop_front();
