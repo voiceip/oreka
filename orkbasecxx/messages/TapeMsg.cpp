@@ -91,6 +91,7 @@ bool TapeMsg::IsValid() {
 		LOG4CXX_WARN(LOG.messaging,"Ignoring tape message with empty recId");
 		return false;
 	}
+	return true;
 }
 
 void TapeMsg::HandleResponse(MessageRef responseRef) {
