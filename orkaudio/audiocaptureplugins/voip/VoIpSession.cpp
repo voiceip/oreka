@@ -2532,7 +2532,10 @@ void VoIpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, VoIpSes
 			session->m_localParty = GetLocalPartyMap(lp);
 		}
 		session->m_localPartyName = GetLocalPartyMap(lpn);
-		session->m_remoteParty = GetLocalPartyMap(rp);
+		if(rp.length() > 0)
+		{
+			session->m_remoteParty = GetLocalPartyMap(rp);
+		}
 		session->m_direction = CaptureEvent::DirIn;
 		break;
 	case SKINNY_CALL_TYPE_FORWARD:
@@ -2550,7 +2553,10 @@ void VoIpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, VoIpSes
 			LOG4CXX_DEBUG(m_log, logMsg);
 		}
 		session->m_localPartyName = GetLocalPartyMap(lpn);
-		session->m_remoteParty = GetLocalPartyMap(rp);
+		if(rp.length() > 0)
+		{
+			session->m_remoteParty = GetLocalPartyMap(rp);
+		}
 		session->m_direction = CaptureEvent::DirIn;
 		break;
 	case SKINNY_CALL_TYPE_OUTBOUND:
@@ -2562,7 +2568,10 @@ void VoIpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, VoIpSes
 			session->m_localParty = GetLocalPartyMap(lp);
 		}
 		session->m_localPartyName = GetLocalPartyMap(lpn);
-		session->m_remoteParty = GetLocalPartyMap(rp);
+		if(rp.length() > 0)
+		{
+			session->m_remoteParty = GetLocalPartyMap(rp);
+		}		
 		session->m_direction = CaptureEvent::DirOut;
 		break;
 	default:
@@ -2574,7 +2583,10 @@ void VoIpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, VoIpSes
 			session->m_localParty = GetLocalPartyMap(lp);
 		}
 		session->m_localPartyName = GetLocalPartyMap(lpn);
-		session->m_remoteParty = GetLocalPartyMap(rp);
+		if(rp.length() > 0)
+		{
+			session->m_remoteParty = GetLocalPartyMap(rp);
+		}		
 	}
 }
 
