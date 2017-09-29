@@ -17,6 +17,8 @@
 #include "ace/OS_NS_dirent.h"
 #include "Utils.h"
 #include <xercesc/parsers/XercesDOMParser.hpp>
+#include <xercesc/sax/ErrorHandler.hpp>
+#include <xercesc/sax/SAXParseException.hpp>
 #include <xercesc/dom/DOMWriter.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
@@ -40,6 +42,18 @@ ConfigManager* ConfigManager::Instance()
 	}
 	return m_singleton;
 }
+
+class XmlErrorHandler: public xercesc::ErrorHandler
+{
+public:
+	XmlErrorHandler() {}
+
+	void warning(const xercesc::SAXParseException& exc) { throw exc; }
+	void error(const xercesc::SAXParseException& exc) { throw exc; }
+	void fatalError(const xercesc::SAXParseException& exc) { throw exc; }
+	void resetErrors() {}
+};
+
 
 void ConfigManager::Initialize()
 {
@@ -96,6 +110,8 @@ void ConfigManager::Initialize()
 		//		...
 		//		delete parser;
 		XercesDOMParser *m_parser = new XercesDOMParser;
+		XmlErrorHandler errhandler;
+		m_parser->setErrorHandler(&errhandler);
 		m_parser->parse(cfgFilename);
 		DOMNode	*doc = NULL;
 		doc = m_parser->getDocument();
@@ -144,11 +160,18 @@ void ConfigManager::Initialize()
 		LOG4CXX_ERROR(LOG.configLog, e);
 		failed = true;
 	}
-    catch(const XMLException& e)
-    {
+	catch(const XMLException& e)
+	{
 		LOG4CXX_ERROR(LOG.configLog, e.getMessage());
 		failed = true;
-    }
+	}
+	catch(const SAXParseException& e)
+	{
+		CStdString logMsg;
+		logMsg.Format("config.xml error at line:%d, column:%d. (Use xmllint or xml editor to check the configuration)",  e.getLineNumber(), e.getColumnNumber());
+		LOG4CXX_ERROR(LOG.configLog, logMsg);
+		failed = true;
+	}
 	if (failed)
 	{
 		exit(0);
