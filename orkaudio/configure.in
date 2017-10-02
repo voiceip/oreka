@@ -3,6 +3,12 @@ AC_INIT(configure.in)
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE(orkaudio, 1.0)
  
+speex_lib=orkspeex
+
+if [cat /etc/issue | grep Ubuntu]; then
+	speex_lib=speex
+fi
+
 if [grep "release 5" /etc/redhat-release]; then
     CXXFLAGS+="-DCENTOS_5"
 fi
@@ -21,6 +27,8 @@ AM_PROG_LIBTOOL
 
 AC_PREFIX_DEFAULT(/usr)
 
+AC_SUBST(speex_lib,$speex_lib)
+	
 AC_OUTPUT(Makefile audiocaptureplugins/Makefile audiocaptureplugins/generator/Makefile audiocaptureplugins/voip/Makefile filters/Makefile filters/rtpmixer/Makefile filters/silkcodec/Makefile)
 
 echo ""
@@ -29,5 +37,6 @@ echo ""
 echo "     cxx : $CXX"
 echo "cxxflags : $CXXFLAGS"
 echo " ldflags : $LDFLAGS"
+echo "   speex : $speex_lib"
 echo ""
 echo "==================================="
