@@ -34,7 +34,7 @@ extern CaptureEventCallBackFunction g_captureEventCallBack;
 	VoIpSessions* VoIpSessionsSingleton::voipSessions = NULL;
 #endif
 
-VoIpSession::VoIpSession(CStdString& trackingId)
+VoIpSession::VoIpSession(CStdString& trackingId) : m_hasReceivedCallInfo(false)
 {
 	m_startWhenReceiveS2 = false;
 	m_trackingId = trackingId;
@@ -2520,6 +2520,11 @@ void VoIpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, VoIpSes
 
 	VoIpEndpointInfoRef endpoint = GetVoIpEndpointInfo(session->m_endPointIp, session->m_endPointSignallingPort);
 	ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
+
+	if (session->m_hasReceivedCallInfo==true &&  strcmp(callInfo->calledParty,callInfo->callingParty)==0) {
+		return;
+	}
+	session->m_hasReceivedCallInfo = true;
 
 	switch(callInfo->callType)
 	{
