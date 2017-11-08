@@ -165,6 +165,7 @@ public:
 	int m_orekaRtpPayloadType;
 	void ReportMetadataUpdateSkinny();
 	bool m_startWhenReceiveS2;
+	bool m_hasReceivedCallInfo;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
