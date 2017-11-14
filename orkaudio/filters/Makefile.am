@@ -1,2 +1,2 @@
 METASOURCES = AUTO
-SUBDIRS = rtpmixer silkcodec
+SUBDIRS = rtpmixer silkcodec opuscodec
