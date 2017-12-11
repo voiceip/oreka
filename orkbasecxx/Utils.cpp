@@ -564,7 +564,7 @@ int GetOrekaRtpPayloadTypeForSdpRtpMap(CStdString sdp)
 {
 	CStdString rtpCodec;
 	int ret = 0;
-	if(sdp.Find("opus") != std::string::npos)
+	if((sdp.Find("opus") != std::string::npos) || (sdp.Find("OPUS") != std::string::npos))
 	{
 		rtpCodec = "opus";
 		ret = 60;
