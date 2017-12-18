@@ -1276,7 +1276,7 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 	}
 	else
 	{
-		if( rtpPacket->m_ssrc == m_lastRtpPacketSide1->m_ssrc  )
+		if( rtpPacket->m_ssrc == m_lastRtpPacketSide1->m_ssrc && m_lastRtpPacketSide1->m_destIp.s_addr == rtpPacket->m_destIp.s_addr )
 		{
 			// Subsequent RTP packet for side 1
 			if(rtpPacket->m_timestamp == m_lastRtpPacketSide1->m_timestamp)
@@ -1358,7 +1358,7 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 			}
 			else
 			{
-				if(rtpPacket->m_ssrc == m_lastRtpPacketSide2->m_ssrc)
+				if(rtpPacket->m_ssrc == m_lastRtpPacketSide2->m_ssrc && m_lastRtpPacketSide2->m_destIp.s_addr == rtpPacket->m_destIp.s_addr)
 				{
 					// Subsequent RTP packet for side 2
 					if(rtpPacket->m_timestamp == m_lastRtpPacketSide2->m_timestamp)
