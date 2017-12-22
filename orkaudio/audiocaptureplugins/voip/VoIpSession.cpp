@@ -1735,9 +1735,20 @@ void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 		m_sessionTelephoneEventPtDefined = true;
 	}
 
-	if(invite->m_sipRemoteParty != "")
+	//with CUCM hunt pilots in the inbound case, Remote-Party-ID of the first INVITE to the endpoint is reported as the hunt pilot extension.
+	//Subsequent INVITEs report Remote-Party-ID as the true remote party. Also, Remote-Party-ID reported by the 200 OK messages is useless because it reports the local extension handling the call.
+	//See pcap with md5sum:bfa80e917bc00df595996b1429780867
+	if((invite->m_sipMethod == SIP_METHOD_INVITE) && (invite->m_sipRemoteParty != ""))
 	{
-		m_sipRemoteParty = invite->m_sipRemoteParty;
+		if(m_sipRemoteParty.length() == 0)
+		{
+			m_sipRemoteParty = invite->m_sipRemoteParty;
+		}
+		else if(m_sipRemoteParty.CompareNoCase(invite->m_sipRemoteParty) != 0)
+		{
+			m_localEntryPoint = m_sipRemoteParty;
+			m_sipRemoteParty = invite->m_sipRemoteParty;
+		}
 	}
 
 	// Use the RTP codec that was extracted from SDP if available

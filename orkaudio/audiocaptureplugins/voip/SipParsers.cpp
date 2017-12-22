@@ -1148,7 +1148,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		result = true;
 
 		SipInviteInfoRef info(new SipInviteInfo());
-
+		info->m_sipMethod = sipMethod;
 		char* fromField = memFindAfter("From:", (char*)udpPayload, sipEnd);
 		if(!fromField)
 		{
