@@ -51,7 +51,7 @@ class SipInviteInfo
 public:
 	SipInviteInfo();
 	void ToString(CStdString& string);
-
+	CStdString m_sipMethod;
 	struct in_addr m_senderIp;
 	struct in_addr m_originalSenderIp;
 	struct in_addr m_receiverIp;
