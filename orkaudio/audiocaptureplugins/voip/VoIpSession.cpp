@@ -1460,6 +1460,7 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 						remapped = true;
 						channel = 1;
 						m_lastRtpPacketSide1 = rtpPacket;
+						m_mappedS1S2 = false;
 
 						rtpPacket->ToString(logMsg);
 						logMsg.Format("[%s] s1 remapped to: %s", m_trackingId, logMsg);
@@ -1473,6 +1474,7 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 						remapped = true;
 						channel = 2;
 						m_lastRtpPacketSide2 = rtpPacket;
+						m_mappedS1S2 = false;
 
 						rtpPacket->ToString(logMsg);
 						logMsg.Format("[%s] s2 remapped to: %s", m_trackingId, logMsg);
