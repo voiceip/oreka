@@ -626,7 +626,7 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 	if(captureEventRef.get() == 0)
 	{
 		// No more events, the tape is ready
-		if(m_bytesWritten > 0)
+		if(m_isExternal || m_bytesWritten > 0)
 		{
 			PopulateTapeMessage(pTapeMsg, CaptureEvent::EtReady);
 		}
