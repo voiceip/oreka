@@ -565,6 +565,8 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		// Store or update the tags
 		if(eventRef->m_type == CaptureEvent::EtKeyValue && eventRef->m_value.size() > 0 && eventRef->m_key.size() > 0)
 		{
+			// dtmfdigit is considered a dynamic tag by default, even if it's not listed in <DynamicTags>
+			// <DtmfReportingDetailed> is OBSOLETE, use the DTagReporting CapturePortFilter instead
 			if(CONFIG.m_dtmfReportingDetailed == false && eventRef->m_key.CompareNoCase("dtmfdigit") == 0)
 			{
 				return;
