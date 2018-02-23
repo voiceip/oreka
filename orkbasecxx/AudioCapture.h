@@ -1,6 +1,6 @@
 /*
  * Oreka -- A media capture and retrieval platform
- * 
+ *
  * Copyright (C) 2005, orecx LLC
  *
  * http://www.orecx.com
@@ -34,10 +34,11 @@ typedef enum
 	G721Audio = 7,
 	SilkAudio = 8,
 	OpusAudio = 9,
-	InvalidAudio = 10
+	InvalidAudio = 10,
+	G729Audio = 11
 } AudioEncodingEnum;
 
-/** 
+/**
  * Serialization friendly details struct
  */
 #define MEDIA_CHUNK_MARKER 0x2A2A2A2A // corresponds to "****"
@@ -63,12 +64,12 @@ public:
 							// separated multiple channels
 };
 
-/** 
- * This class represents a piece of audio. 
+/**
+ * This class represents a piece of audio.
  */
 class DLL_IMPORT_EXPORT_ORKBASE AudioChunk
 {
-public: 
+public:
 	AudioChunk();
 	AudioChunk(int numChannels);
 	~AudioChunk();
@@ -162,9 +163,9 @@ public:
 #define DIR_IN_SHORT "I"
 #define DIR_OUT_SHORT "O"
 #define DIR_UNKN_SHORT "U"
-	typedef enum {	
-		DirIn = 0, 
-		DirOut = 1, 
+	typedef enum {
+		DirIn = 0,
+		DirOut = 1,
 		DirUnkn = 2
 	} DirectionEnum;
 	static CStdString DirectionToString(int);
@@ -216,7 +217,7 @@ public:
 	} EventTypeEnum;
 	static CStdString EventTypeToString(int eventTypeEnum);
 	static int EventTypeToEnum(CStdString&);
-	
+
 	time_t m_timestamp;
 	int m_offsetMs;
 	EventTypeEnum m_type;
@@ -250,6 +251,3 @@ CStdString DLL_IMPORT_EXPORT_ORKBASE FileFormatToString(int formatEnum);
 CStdString DLL_IMPORT_EXPORT_ORKBASE FileFormatGetExtension(FileFormatEnum);
 
 #endif
-
-
-

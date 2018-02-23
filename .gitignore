@@ -44,7 +44,11 @@ CTestTestfile.cmake
 build
 CMakeLists.txt
 cmake-build-debug/
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> g729 init filter
 ##Makefile##
 Makefile.in
 config.h.in
