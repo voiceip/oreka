@@ -47,7 +47,7 @@ void G729CodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 {
     int16_t pcmdata[8000];
     int input_size = 0;
-    int output_size = 80 * 2;
+    int output_size;
     CStdString logMsg;
 
     memset(pcmdata, 0, sizeof(pcmdata));
@@ -70,7 +70,7 @@ void G729CodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
     unsigned char* inputBuffer = (unsigned char*)inputAudioChunk->m_pBuffer;
     input_size = outputDetails.m_numBytes;
 
-    LOG4CXX_INFO(s_log, "G729 AudioChunkIn Size : " + toString(input_size));
+    LOG4CXX_DEBUG(s_log, "G729 AudioChunkIn Size : " + toString(input_size));
 
     if(input_size == 0){
        /* Native PLC interpolation */
@@ -83,7 +83,7 @@ void G729CodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
         int16_t *ddp = pcmdata;
 
         // PRINT_LOOP(inputBuffer, input_size);
-        for (x = 0; x < input_size && new_len < output_size; x += framesize) {
+        for (x = 0; x < input_size; x += framesize) {
             uint8_t isSID = (input_size - x < 8) ? 1 : 0;
             framesize = (isSID == 1) ? 2 : 10;
             bcg729Decoder(decoder, edp, 10, 0, isSID, 0, ddp);
@@ -91,12 +91,7 @@ void G729CodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
             edp += framesize;
             new_len += 160;
         }
-
-        if (new_len <= output_size) {
-            output_size = new_len;
-        } else {
-            LOG4CXX_ERROR(s_log, "G729CodecDecoder::AudioChunkIn buffer overflow!!!");
-        }
+        output_size = new_len;
     }
 
     m_outputAudioChunk.reset(new AudioChunk());
@@ -104,7 +99,7 @@ void G729CodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
     outputDetails.m_encoding = PcmAudio;
     outputDetails.m_numBytes = output_size;
 
-    LOG4CXX_INFO(s_log, "G729 AudioChunkOut Size : " + toString(outputDetails.m_numBytes));
+    LOG4CXX_DEBUG(s_log, "G729 AudioChunkOut Size : " + toString(outputDetails.m_numBytes));
     short* outputBuffer = (short*)m_outputAudioChunk->CreateBuffer(outputDetails);
     memcpy(outputBuffer, pcmdata, outputDetails.m_numBytes);
 }
