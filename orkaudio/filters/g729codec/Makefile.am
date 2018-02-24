@@ -4,7 +4,7 @@ plugin_LTLIBRARIES = libg729codec.la
 libg729codec_la_SOURCES = G729Codec.cpp
 libg729codec_la_LDFLAGS = -module
 AM_CPPFLAGS = -D_REENTRANT 
-libg729codec_la_LIBADD =  -lbcg729 -llog4cxx -L/opt/bcg729 -L/usr/lib
+libg729codec_la_LIBADD = -lbcg729 -llog4cxx -L/opt/bcg729 -L/usr/lib
 INCLUDES = -I@top_srcdir@ -I../../../orkbasecxx -I/opt/bcg729/include -I/opt/bcg729/src
 
 all-local: libg729codec.la

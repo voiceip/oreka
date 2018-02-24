@@ -12,6 +12,9 @@
 #include <iostream>
 #include <string>
 
+# define PRINT_LOOP(x, size) for(uint8_t i = 0; i<size; i++) printf("\t"#x"\t%x\n", x[i])
+# define GET_VAR(x) std::cout<< #x << "\t" << x <<std::endl
+
 static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("codec.g729");
 
 #define L_FRAME 80
@@ -26,22 +29,7 @@ std::string toString(const T &value) {
 
 G729CodecDecoder::G729CodecDecoder()
 {
-    // Initialize decoder
-    m_initialized = false;
-    // void *handle = dlopen ("libbcg729.so", RTLD_LAZY);
-    // if (!handle) {
-    //         LOG4CXX_ERROR(LOG.rootLog, CStdString("Couldn't load Bcg729 plugin"));
-    //     }
-    // else {
-    //   *(void **) (&initer) = dlsym(handle,"initBcg729DecoderChannel");
-    //   *(void **) (&decoder) = dlsym(handle,"bcg729Decoder");
-    //   if ((error = dlerror()) != NULL)  {
-    //       std::string str(error);
-    //       LOG4CXX_ERROR(LOG.rootLog, CStdString("Couldn't load Bcg729 plugin's functions => "+str));
-    //   } else {
     decoder = initBcg729DecoderChannel();
-    m_initialized = true;
-    // }
 }
 
 G729CodecDecoder::~G729CodecDecoder()
@@ -57,9 +45,9 @@ FilterRef G729CodecDecoder::Instanciate()
 
 void G729CodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 {
-    short outputSample = 0;
-    short pcmdata[8000];
+    int16_t pcmdata[8000];
     int input_size = 0;
+    int output_size = 80 * 2;
     CStdString logMsg;
 
     memset(pcmdata, 0, sizeof(pcmdata));
@@ -76,8 +64,6 @@ void G729CodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
     AudioChunkDetails outputDetails = *inputAudioChunk->GetDetails();
     if(SupportsInputRtpPayloadType(outputDetails.m_rtpPayloadType) == false)
     {
-        logMsg.Format("Wrong input RTP payload type:%i", outputDetails.m_rtpPayloadType);
-        LOG4CXX_DEBUG(s_log, logMsg);
         return;
     }
 
@@ -86,123 +72,41 @@ void G729CodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 
     LOG4CXX_INFO(s_log, "G729 AudioChunkIn Size : " + toString(input_size));
 
-    char *ret = (char*)malloc(10);
+    if(input_size == 0){
+       /* Native PLC interpolation */
+       LOG4CXX_INFO(s_log, "G729  zero length frame");
+    } else {
+        int framesize;
+        int x;
+        uint32_t new_len = 0;
+        uint8_t *edp = inputBuffer;
+        int16_t *ddp = pcmdata;
 
-    memcpy(ret, inputBuffer, 10);
-    char* firstFragment = ret;
-    ret = (char*)malloc(10);
-    memcpy(ret, inputBuffer+10, 10);
-    char* secondFragment = ret;
+        // PRINT_LOOP(inputBuffer, input_size);
+        for (x = 0; x < input_size && new_len < output_size; x += framesize) {
+            uint8_t isSID = (input_size - x < 8) ? 1 : 0;
+            framesize = (isSID == 1) ? 2 : 10;
+            bcg729Decoder(decoder, edp, 10, 0, isSID, 0, ddp);
+            ddp += 80;
+            edp += framesize;
+            new_len += 160;
+        }
 
-    LOG4CXX_INFO(s_log, CStdString("G729 AudioChunkIn buffer separated into two 10 bit buffers"));
+        if (new_len <= output_size) {
+            output_size = new_len;
+        } else {
+            LOG4CXX_ERROR(s_log, "G729CodecDecoder::AudioChunkIn buffer overflow!!!");
+        }
+    }
 
-    int16_t outputChannelABuffer[80]; /* output buffer: the reconstructed signal */
-    int16_t outputChannelBBuffer[80]; /* output buffer: the reconstructed signal */
-    uint8_t bitStream[10]; /* binary input for the decoder */
-
-    LOG4CXX_ERROR(LOG.rootLog, CStdString("G729 AudioChunkIn Buffers Created"));
-
-    LOG4CXX_ERROR(LOG.rootLog, CStdString("G729 AudioChunkIn Decoder Initialized"));
-
-     for(int i=0; i < 10 ; i++){
-         bitStream[i] = (uint8_t)atoi(&firstFragment[i]);
-     }
-
-     LOG4CXX_ERROR(LOG.rootLog, CStdString("G729 AudioChunkIn First BitStream Created"));
-
-     bcg729Decoder(decoder,  bitStream, 1, outputChannelABuffer);
-
-     LOG4CXX_ERROR(LOG.rootLog, CStdString("G729 AudioChunkIn First Stream Decoding DONE"));
-
-     for(int i=0; i < 10 ; i++){
-         bitStream[i] = (uint8_t)atoi(&secondFragment[i]);
-     }
-
-     LOG4CXX_ERROR(LOG.rootLog, CStdString("G729 AudioChunkIn Second BitStream Created"));
-
-     bcg729Decoder(decoder,  bitStream, 0, outputChannelBBuffer);
-
-     LOG4CXX_ERROR(LOG.rootLog, CStdString("G729 AudioChunkIn Second Stream Decoding DONE"));
-
-    // if(input_size == 0){
-    //    /* Native PLC interpolation */
-    //    LOG4CXX_INFO(s_log, "G729  zero length frame");
-    // } else {
-    //
-    //   int framesize;
-    //   int x;
-    //   uint32_t new_len = 0;
-    //
-    //   for(x = 0; x < input_size; x += framesize) {
-    //     uint8_t isSID = (input_size - x < 8) ? 1 : 0;
-    //         framesize = (isSID==1) ? 2 : 10;
-    //         bcg729Decoder(decoder, inputBuffer, input_size, 0, isSID, 0, *pcmdata);
-    //       ddp += 80;
-    //       edp += framesize;
-    //       new_len += 160;
-    //     }
-    //
-    //     std::cout << "new_len" << new_len << "\n";
-    //
-    //
-    // }
-    //
-
-//    int j = 0;
-//    for(int i=0; i<input_size; i++)
-//    {
-//        unsigned char inputSample = inputBuffer[i];
-//        unsigned char lower4bits = inputSample & 0xF;
-//        unsigned char upper4bits = (inputSample>>4) & 0xF;
-//        outputSample = g721_decoder(lower4bits, AUDIO_ENCODING_LINEAR, &m_decoderState);
-//        memcpy(pcmdata + j, &outputSample, sizeof(short));
-//        outputSample = g721_decoder(upper4bits, AUDIO_ENCODING_LINEAR, &m_decoderState);
-//        memcpy(pcmdata + j + 1, &outputSample, sizeof(short));
-//        j += 2;
-//    }
-//
     m_outputAudioChunk.reset(new AudioChunk());
     outputDetails.m_rtpPayloadType = -1;
     outputDetails.m_encoding = PcmAudio;
-    outputDetails.m_numBytes = 80 * 2;
-    // outputDetails.m_numBytes = input_size * (L_FRAME / L_FRAME_COMPRESSED) * sizeof(short);
+    outputDetails.m_numBytes = output_size;
 
     LOG4CXX_INFO(s_log, "G729 AudioChunkOut Size : " + toString(outputDetails.m_numBytes));
     short* outputBuffer = (short*)m_outputAudioChunk->CreateBuffer(outputDetails);
-
-   //  for(; byteIndex <= inByteCount - L_FRAME_COMPRESSED; byteIndex += L_FRAME_COMPRESSED) {
-   //    bcg729Decoder(decoder,&inputBuffer[byteIndex], outputBuffer, 0);
-   //    outputBuffer += L_FRAME;
-   // }
-
-
-    //
-    // std::cout << "outputBuffer \n" ;
-    // for(int i = 0 ; i <80 ; i++){
-    //   std::cout << outputBuffer[i] << " ";
-    // }
-    // std::cout << "\n";
-    //
-    int i;
-    for(i = 0; i < 80; i++){
-        pcmdata[i] = outputChannelABuffer[i];
-        pcmdata[i+80] = outputChannelBBuffer[i];
-    }
-
-    // for (int j = i+1 ; j < outputDetails.m_numBytes ;  j++){
-    //   pcmdata[j] = 0;
-    // }
-    //
-    // std::cout << "outputBufferFinal \n" ;
-    // for(int i = 0 ; i <80 ; i++){
-    //   std::cout << outputBufferFinal[i] << " ";
-    // }
-    // std::cout << "\n";
-
-
     memcpy(outputBuffer, pcmdata, outputDetails.m_numBytes);
-
-
 }
 
 void G729CodecDecoder::AudioChunkOut(AudioChunkRef& chunk)
