@@ -72,18 +72,19 @@ void G729CodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 
     LOG4CXX_DEBUG(s_log, "G729 AudioChunkIn Size : " + toString(input_size));
 
+    int16_t *ddp = pcmdata;
+    uint8_t *edp = inputBuffer;
+
     if(input_size == 0){
        /* Native PLC interpolation */
        LOG4CXX_INFO(s_log, "G729  zero length frame");
+       bcg729Decoder(decoder, NULL, 0, 1, 0, 0, ddp);
+       ddp += 80;
+       output_size = 160;
     } else {
         int framesize;
-        int x;
         uint32_t new_len = 0;
-        uint8_t *edp = inputBuffer;
-        int16_t *ddp = pcmdata;
-
-        // PRINT_LOOP(inputBuffer, input_size);
-        for (x = 0; x < input_size; x += framesize) {
+        for (int x = 0; x < input_size; x += framesize) {
             uint8_t isSID = (input_size - x < 8) ? 1 : 0;
             framesize = (isSID == 1) ? 2 : 10;
             bcg729Decoder(decoder, edp, 10, 0, isSID, 0, ddp);
