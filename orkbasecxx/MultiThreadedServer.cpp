@@ -14,7 +14,7 @@
 #include "ace/INET_Addr.h"
 #include "ace/OS_NS_string.h"
 #include <xercesc/parsers/XercesDOMParser.hpp>
-#include <xercesc/dom/DOMWriter.hpp>
+#include <xercesc/dom/DOMLSSerializer.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 
@@ -200,7 +200,7 @@ int HttpServer::svc(void)
                                 {
                                         // detected a char that cannot be part of an URL
                                         LOG4CXX_WARN(s_log, "detected command URL with invalid character(s), ignoring");
-                                        throw (CStdString("Malformed command URL with invalid character(s)"));		
+                                        throw (CStdString("Malformed command URL with invalid character(s)"));
                                 }
                         }
 
