@@ -12,6 +12,8 @@
  */
 
 
+#include <cstdlib>
+#include <iostream>
 #include "stdio.h"
 
 #include "MultiThreadedServer.h"
@@ -357,6 +359,23 @@ void MainThread()
 	OrkLogManager::Instance()->Shutdown();
 }
 
+void atexit_handler()
+{
+	if (isatty(fileno(stdin))){
+		std::cout << "Press any key to continue...." << std::endl;
+		std::cin.ignore();
+		std::cin.get();
+	}
+  else{
+		//TODO: this is bad, figure out a better way to hold the program without tty
+		std::cout << "will sleep forever...." << std::endl;
+		while (1) {
+			sleep(1000 * 60);
+		}
+	}
+
+
+}
 
 int main(int argc, char* argv[])
 {
@@ -408,6 +427,7 @@ int main(int argc, char* argv[])
 	else
 	{
 		// No arguments, launch the daemon
+		std::atexit(atexit_handler);
 		printf("Starting orkaudio daemon ... (type 'orkaudio debug' if you prefer running attached to tty)\n");
 		Daemon::Singleton()->Start();
 	}
