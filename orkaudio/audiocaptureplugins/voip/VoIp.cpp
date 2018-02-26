@@ -1038,6 +1038,19 @@ void UdpListenerThread()
 		return;
 	}
 
+	// use a large socket buffer.
+	size_t bufSize = 8388608;
+	if(updDgram.set_option( SOL_SOCKET, SO_RCVBUF, &bufSize, sizeof(bufSize)) == 0)
+	{
+		logMsg.Format("Setting UDP listener socket buffer size:%d successful", bufSize);
+		LOG4CXX_INFO(s_packetLog, logMsg);
+	}
+	else
+	{
+		logMsg.Format("Setting UDP listener socket buffer size:%d failed", bufSize);
+		LOG4CXX_ERROR(s_packetLog, logMsg);
+	}
+
 	struct pcap_pkthdr pcap_headerPtr ;
 	u_char param;
 	size_t recv_bytes = 0;
