@@ -597,6 +597,12 @@ void BatchProcessing::ThreadHandler(void *args)
 
 				CStdString audioFilePath = audioTapeRef->m_audioOutputPath + "/" + audioTapeRef->GetPath();
 				CStdString audioFileName;
+				CStdString storageFilePath, storageFileName;
+				if(CONFIG.m_audioOutputPathSecondary.length() > 3)
+				{
+					storageFilePath = CONFIG.m_audioOutputPathSecondary + "/" + audioTapeRef->GetPath();
+					storageFileName = storageFilePath + "/" + audioTapeRef->GetIdentifier() + outFileRef->GetExtension();
+				}
 
 				audioFileName = audioFilePath + "/" + audioTapeRef->GetIdentifier() + outFileRef->GetExtension();
 				if(CONFIG.m_audioFilePermissions) {
@@ -607,6 +613,15 @@ void BatchProcessing::ThreadHandler(void *args)
 						logMsg.Format("Error setting permissions of %s to %o: %s", audioFileName.c_str(), CONFIG.m_audioFilePermissions, strerror(errno));
 						LOG4CXX_ERROR(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + logMsg);
 					}
+					if(storageFileName.length() > 5)
+					{
+						if(FileSetPermissions(storageFileName, CONFIG.m_audioFilePermissions))
+						{
+							CStdString logMsg;
+							logMsg.Format("Error setting permissions of %s to %o: %s", storageFileName.c_str(), CONFIG.m_audioFilePermissions, strerror(errno));
+							LOG4CXX_ERROR(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + logMsg);
+						}
+					}
 				}
 
 				if(CONFIG.m_audioFileGroup.size() && CONFIG.m_audioFileOwner.size()) {
@@ -614,6 +629,14 @@ void BatchProcessing::ThreadHandler(void *args)
 					{
 						logMsg.Format("Error setting ownership and group of %s to %s:%s: %s", audioFileName.c_str(), CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, strerror(errno));
 						LOG4CXX_ERROR(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + logMsg);
+					}
+					if(storageFileName.length() > 5)
+					{
+						if(FileSetOwnership(storageFileName, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup))
+						{
+							logMsg.Format("Error setting ownership and group of %s to %s:%s: %s", storageFileName.c_str(), CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, strerror(errno));
+							LOG4CXX_ERROR(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " " + logMsg);
+						}
 					}
 				}
 				
