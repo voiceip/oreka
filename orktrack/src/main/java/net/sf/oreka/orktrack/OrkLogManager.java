@@ -25,37 +25,37 @@ import org.apache.log4j.PropertyConfigurator;
 /**
  * This singleton class manages all application log4j loggers
  */
-public class LogManager {
+public class OrkLogManager {
 
-	static LogManager logManager = null;
+	private static OrkLogManager logManager = null;
+
+	private String ConfigFilename = null;
+
+	private org.apache.log4j.Logger rootLogger = null;
+	private org.apache.log4j.Logger configLogger = null;
+	private org.apache.log4j.Logger contextLogger = null;
+	private org.apache.log4j.Logger portLogger = null;
+	private org.apache.log4j.Logger userLogger = null;
+	private org.apache.log4j.Logger recurrentLogger = null;	// special logger for recurrent messages (annoying to have normally)
 	
-	String ConfigFilename = null;
-	
-	Logger rootLogger = null;
-	Logger configLogger = null;
-	Logger contextLogger = null;
-	Logger portLogger = null;
-	Logger userLogger = null;
-	Logger recurrentLogger = null;	// special logger for recurrent messages (annoying to have normally)
-	
-	private LogManager() 
+	private OrkLogManager()
 	{
-		rootLogger = Logger.getRootLogger();
+		rootLogger = org.apache.log4j.Logger.getRootLogger();
 		rootLogger.setLevel(Level.INFO);
-		configLogger = Logger.getLogger("config");
-		contextLogger = Logger.getLogger("context");
-		portLogger = Logger.getLogger("port");
-		userLogger = Logger.getLogger("user");
-		recurrentLogger = Logger.getLogger("net.sf.oreka.recurrent");
+		configLogger = org.apache.log4j.Logger.getLogger("config");
+		contextLogger = org.apache.log4j.Logger.getLogger("context");
+		portLogger = org.apache.log4j.Logger.getLogger("port");
+		userLogger = org.apache.log4j.Logger.getLogger("user");
+		recurrentLogger = org.apache.log4j.Logger.getLogger("net.sf.oreka.recurrent");
 		
 	    BasicConfigurator.configure();	// in case there is no properties file
 	}
 	
-	public static LogManager getInstance()
+	public static OrkLogManager getInstance()
 	{
 		if (logManager == null)
 		{
-			logManager = new LogManager();
+			logManager = new OrkLogManager();
 		}
 		return logManager;
 	}

@@ -1,11 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" output="target/classes" path="src">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/hibernate-3.2.6.GA"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/hibernate-annotations-3.3.1.GA"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/hsqldb1.8.0.2"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/servlet"/>
 	<classpathentry kind="src" path="/orkbasej"/>
-	<classpathentry kind="output" path="context/WEB-INF/classes"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="output" path="target/classes"/>
 </classpath>

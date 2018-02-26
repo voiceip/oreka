@@ -17,7 +17,7 @@ import net.sf.oreka.OrkException;
 import net.sf.oreka.messages.AsyncMessage;
 import net.sf.oreka.messages.SimpleResponseMessage;
 import net.sf.oreka.messages.SyncMessage;
-import net.sf.oreka.orktrack.LogManager;
+import net.sf.oreka.orktrack.OrkLogManager;
 import net.sf.oreka.orktrack.OrkTrack;
 import net.sf.oreka.orktrack.Port;
 import net.sf.oreka.orktrack.PortManager;
@@ -40,7 +40,7 @@ public class UserStateMessage extends SyncMessage {
 	private String recPort = "";
 	
 	public UserStateMessage() {
-		log = LogManager.getInstance().getPortLogger();
+		log = OrkLogManager.getInstance().getPortLogger();
 	}
 	
 	@Override

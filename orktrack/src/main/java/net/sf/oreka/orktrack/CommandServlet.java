@@ -32,22 +32,22 @@ import org.apache.log4j.Logger;
 public class CommandServlet extends HttpServlet {
 
 	static final long serialVersionUID = 1l;
-	static Logger logger = Logger.getLogger(CommandServlet.class);		
-	
+	static Logger logger = Logger.getLogger(CommandServlet.class);
+
     public void doGet(HttpServletRequest request, HttpServletResponse response)
     throws IOException, ServletException
     {
 		//#####OrkObjectFactory.instance().registerOrkObject(new TestMessage());
 		OrkTrack.refreshInMemoryObjects();
-		
+
 		ServletRequestSerializer ser = new ServletRequestSerializer();
-		
+
 		try {
 			SyncMessage obj = (SyncMessage)ser.deSerialize(request);
 			AsyncMessage rsp = obj.process();
 			SingleLineSerializer ser2 = new SingleLineSerializer();
 			String req = ser2.serialize(obj);
-			logger.debug("Request: " + req);			
+			logger.debug("Request: " + req);
 			PrintWriter out = response.getWriter();
 			String resp = ser2.serialize(rsp);
 			logger.debug("Reponse: " + resp);
