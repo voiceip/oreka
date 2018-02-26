@@ -45,10 +45,14 @@ build
 CMakeLists.txt
 cmake-build-debug/
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
  
 >>>>>>> g729 init filter
+=======
+
+>>>>>>> update gitignore
 ##Makefile##
 Makefile.in
 config.h.in
@@ -104,3 +108,4 @@ libtool-*.tar.xz
 orkaudio/orkaudio
 orkaudio/audiocaptureplugins/*/AudioCapturePluginCommon.cpp
 !orkaudio/audiocaptureplugins/common/*
+
