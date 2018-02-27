@@ -55,6 +55,7 @@ public class TapeManager {
 			recTape.setPortName(tapeMessage.getCapturePort());
 			recTape.setRemoteParty(tapeMessage.getRemoteParty());
 			recTape.setTimestamp(timestamp);
+			recTape.setNativeCallId(tapeMessage.getNativecallid());
 			recTape.setService(srv);
 			hbnSession.save(recTape);
 			logger.info("Written tape:" + tapeMessage.getRecId() + " as " + recTape.getId());
