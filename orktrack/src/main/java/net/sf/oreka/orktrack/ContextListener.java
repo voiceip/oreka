@@ -82,8 +82,12 @@ public class ContextListener implements ServletContextListener {
             }
         }
 
-        //PortManager.instance().initialize();
-        OrkTrack.initialize(log4jConfigFile, hibernateConfigFile, configFile);
+        try{
+            //PortManager.instance().initialize();
+            OrkTrack.initialize(log4jConfigFile, hibernateConfigFile, configFile);
+        } catch (Throwable e){
+            log.error("OrkTrack ContextInitialized() threw exception",e);
+        }
     }
 
 
