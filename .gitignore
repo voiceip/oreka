@@ -44,15 +44,7 @@ CTestTestfile.cmake
 build
 CMakeLists.txt
 cmake-build-debug/
-<<<<<<< HEAD
-<<<<<<< HEAD
 
-=======
- 
->>>>>>> g729 init filter
-=======
-
->>>>>>> update gitignore
 ##Makefile##
 Makefile.in
 config.h.in
