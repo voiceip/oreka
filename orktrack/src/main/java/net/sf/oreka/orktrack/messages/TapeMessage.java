@@ -120,7 +120,7 @@ public class TapeMessage extends SyncMessage {
 		direction = (Direction)serializer.enumValue("direction", direction, false);
 		loginString = serializer.stringValue("loginString", loginString, false);
 		service = serializer.stringValue("service", service, true);
-        nativecallid = serializer.stringValue("nativecallid", nativecallid, false);
+                nativecallid = serializer.stringValue("nativecallid", nativecallid, false);
 	}
 
 	public String getOrkClassName() {
