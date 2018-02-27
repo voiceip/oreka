@@ -29,7 +29,7 @@ public class UserManager {
 	private HashMap<OrkUser, Port> userLocations = new HashMap<OrkUser, Port>();
 	
 	private UserManager() {
-		log = OrkLogManager.getInstance().getUserLogger();
+		log = LogManager.getInstance().getUserLogger();
 	}
 	
 	public static UserManager instance() {

@@ -42,7 +42,7 @@ public class ConfigManager {
 	
 	private ConfigManager() {
 		config = new OrkTrackConfig();
-		log = OrkLogManager.getInstance().getConfigLogger();
+		log = LogManager.getInstance().getConfigLogger();
 	}
 	
 	public static ConfigManager getInstance()

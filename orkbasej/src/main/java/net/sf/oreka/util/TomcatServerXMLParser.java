@@ -26,6 +26,7 @@ import org.w3c.dom.NodeList;
 
 public class TomcatServerXMLParser {
 
+	static Logger logger = Logger.getLogger(TomcatServerXMLParser.class);
 	private static String serverTcpPort = null;
 	private static String audioContextPath = "";
 	private static String audioFilePath = "";
@@ -38,7 +39,7 @@ public class TomcatServerXMLParser {
 	private static String defaultRecordingPath = "";
 	
 	private static final String TOMCAT_RECORDINGS_PATH = "/webapps/ROOT/";
-	
+
 	public static String getOrkTrackTcpPort(){
 
 		// Default to 8080
@@ -132,9 +133,6 @@ public class TomcatServerXMLParser {
 
 	// Parse server.xml file 
 	public static void parseServerXML(String tomcatHome) throws Exception {
-
-		Logger logger = Logger.getLogger(TomcatServerXMLParser.class);
-
 
 		if (tomcatHome == null || tomcatHome.equals("")){
 			if (logger.isDebugEnabled())
@@ -307,9 +305,6 @@ public class TomcatServerXMLParser {
 	// Get the context path for contextNode
 	public static void getContextPath(Node contextNode) {
 
-		Logger logger = Logger.getLogger(TomcatServerXMLParser.class);
-
-
 		if (contextNode == null)
 			return;
 		
@@ -344,5 +339,30 @@ public class TomcatServerXMLParser {
 			}	
 		}
 	}
+
+	// For testing purposes
+	public static void main(String args[]) throws Exception
+	{
+		System.out.println("Entering TomcatServerXML main...");
+
+		// Attempt to configure log4j
+		File file = new File("C:/oreka/logging.properties");
+		if (file.exists())
+			PropertyConfigurator.configure("C:/oreka/logging.properties");
+		else
+			System.out.println("Error Configuration Log4j");
+
+		Logger logger = Logger.getLogger(TomcatServerXMLParser.class);
+		logger.info("Main () ");
+
+		String tomcatHome = "C:/Program Files/Apache Software Foundation/Tomcat 7.0";
+		parseServerXML(tomcatHome);
+
+		System.out.println("OrkWeb port: " + getOrkWebTcpPort() + " - OrkTrack port: " + getOrkTrackTcpPort() + " scheme=" + getScheme());
+		System.out.println("Audio Context: " + getAudioContextPath());
+		System.out.println("Audio Path: " + getAudioFilePath());
+
+	}
+
 
 }

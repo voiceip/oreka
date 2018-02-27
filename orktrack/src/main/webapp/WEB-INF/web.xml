@@ -12,7 +12,7 @@
     </context-param>
     <context-param>
     	<param-name>Log4jConfigFile</param-name>
-    	<param-value>log4j2.properties</param-value>
+    	<param-value>logging.properties</param-value>
     </context-param>
     <context-param>
     	<param-name>ConfigFile</param-name>

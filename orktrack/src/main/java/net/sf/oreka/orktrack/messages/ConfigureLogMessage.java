@@ -17,7 +17,7 @@ import net.sf.oreka.OrkException;
 import net.sf.oreka.messages.AsyncMessage;
 import net.sf.oreka.messages.SimpleResponseMessage;
 import net.sf.oreka.messages.SyncMessage;
-import net.sf.oreka.orktrack.OrkLogManager;
+import net.sf.oreka.orktrack.LogManager;
 import net.sf.oreka.serializers.OrkSerializer;
 
 import org.apache.log4j.Logger;
@@ -35,7 +35,7 @@ public class ConfigureLogMessage extends SyncMessage {
 		
 		SimpleResponseMessage response = new SimpleResponseMessage();
 		try {
-			OrkLogManager.getInstance().configure();
+			LogManager.getInstance().configure();
 			response.setSuccess(true);
 		}
 		catch (OrkException e) {

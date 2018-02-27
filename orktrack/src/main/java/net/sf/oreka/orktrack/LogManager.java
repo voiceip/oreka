@@ -25,37 +25,37 @@ import org.apache.log4j.PropertyConfigurator;
 /**
  * This singleton class manages all application log4j loggers
  */
-public class OrkLogManager {
+public class LogManager {
 
-	private static OrkLogManager logManager = null;
+	private static LogManager logManager = null;
 
 	private String ConfigFilename = null;
 
-	private org.apache.log4j.Logger rootLogger = null;
-	private org.apache.log4j.Logger configLogger = null;
-	private org.apache.log4j.Logger contextLogger = null;
-	private org.apache.log4j.Logger portLogger = null;
-	private org.apache.log4j.Logger userLogger = null;
-	private org.apache.log4j.Logger recurrentLogger = null;	// special logger for recurrent messages (annoying to have normally)
+	private Logger rootLogger = null;
+	private Logger configLogger = null;
+	private Logger contextLogger = null;
+	private Logger portLogger = null;
+	private Logger userLogger = null;
+	private Logger recurrentLogger = null;	// special logger for recurrent messages (annoying to have normally)
 	
-	private OrkLogManager()
+	private LogManager()
 	{
-		rootLogger = org.apache.log4j.Logger.getRootLogger();
+		rootLogger =Logger.getRootLogger();
 		rootLogger.setLevel(Level.INFO);
-		configLogger = org.apache.log4j.Logger.getLogger("config");
-		contextLogger = org.apache.log4j.Logger.getLogger("context");
-		portLogger = org.apache.log4j.Logger.getLogger("port");
-		userLogger = org.apache.log4j.Logger.getLogger("user");
-		recurrentLogger = org.apache.log4j.Logger.getLogger("net.sf.oreka.recurrent");
+		configLogger = Logger.getLogger("config");
+		contextLogger = Logger.getLogger("context");
+		portLogger = Logger.getLogger("port");
+		userLogger = Logger.getLogger("user");
+		recurrentLogger = Logger.getLogger("net.sf.oreka.recurrent");
 		
 	    BasicConfigurator.configure();	// in case there is no properties file
 	}
 	
-	public static OrkLogManager getInstance()
+	public static LogManager getInstance()
 	{
 		if (logManager == null)
 		{
-			logManager = new OrkLogManager();
+			logManager = new LogManager();
 		}
 		return logManager;
 	}

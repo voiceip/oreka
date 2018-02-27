@@ -22,7 +22,7 @@ import org.apache.log4j.Logger;
 
 public class ContextListener implements ServletContextListener {
 
-    Logger log = OrkLogManager.getInstance().getRootLogger();
+    Logger log = LogManager.getInstance().getRootLogger();
 
     public void contextDestroyed(ServletContextEvent arg0) {
 

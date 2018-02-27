@@ -43,13 +43,12 @@ public class OrkTrack {
 
 	public OrkTrack() {
 		
-		//OrkLogManager.getInstance().getConfigLogger().log(Level.INFO, "Entering OrkTrack");
+		LogManager.getInstance().getConfigLogger().log(Level.INFO, "Entering OrkTrack");
 	}
 	
 	public static void initialize(String log4jConfigFile, String hibernateConfigFile, String configFile) {
-        System.out.printf("jeeas");
         try {
-			OrkLogManager.getInstance().configure(log4jConfigFile);
+			LogManager.getInstance().configure(log4jConfigFile);
 
 			logger.info("========================================");
 			logger.info(OrkTrack.APP_NAME + " starting ...");
@@ -90,7 +89,7 @@ public class OrkTrack {
 	public static void refreshInMemoryObjects() {
 		Date now = new Date();
 		if((now.getTime() - lastInMemoryObjectsSync.getTime()) > 5000) {
-			OrkLogManager.getInstance().getRecurrentLogger().debug("Refreshing In-Memory objects");
+			LogManager.getInstance().getRecurrentLogger().debug("Refreshing In-Memory objects");
 			// refresh every 5 seconds
 			lastInMemoryObjectsSync = now;
 			PortManager.instance().initialize();

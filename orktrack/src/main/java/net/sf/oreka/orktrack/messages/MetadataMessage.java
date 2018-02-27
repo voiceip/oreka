@@ -18,11 +18,8 @@ import net.sf.oreka.OrkException;
 import net.sf.oreka.messages.AsyncMessage;
 import net.sf.oreka.messages.SimpleResponseMessage;
 import net.sf.oreka.messages.SyncMessage;
-import net.sf.oreka.orktrack.OrkLogManager;
-import net.sf.oreka.orktrack.OrkTrack;
-import net.sf.oreka.orktrack.Port;
-import net.sf.oreka.orktrack.PortManager;
-import net.sf.oreka.orktrack.ServiceManager;
+import net.sf.oreka.orktrack.*;
+import net.sf.oreka.orktrack.LogManager;
 import net.sf.oreka.orktrack.messages.TapeMessage.CaptureStage;
 import net.sf.oreka.persistent.OrkService;
 import net.sf.oreka.serializers.OrkSerializer;
@@ -48,7 +45,7 @@ public class MetadataMessage  extends SyncMessage {
 	String service = "";
 	
 	public MetadataMessage() {
-		log = OrkLogManager.getInstance().getPortLogger();
+		log = LogManager.getInstance().getPortLogger();
 	}
 	
 	@Override

@@ -19,6 +19,6 @@ public class OrkTest {
 
 	public static void main(String args[]) throws Exception
 	{
-		Logger log = OrkLogManager.getInstance().getContextLogger();
+		Logger log = LogManager.getInstance().getContextLogger();
 	}
 }
