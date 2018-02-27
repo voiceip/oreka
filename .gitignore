@@ -1,0 +1,102 @@
+
+# Created by https://www.gitignore.io/api/c++,cmake,intellij,sublimetext
+
+### C++ ###
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+### CMake ###
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+build
+CMakeLists.txt
+cmake-build-debug/
+
+##Makefile##
+Makefile.in
+config.h.in
+aclocal.m4
+config.h
+
+.deps
+.libs
+#temp
+*~
+*.lock
+*.cache
+
+install-sh
+compile
+depcomp
+ltmain.sh
+missing
+stamp-h1
+
+_libs
+acinclude.m4
+aclocal.m4
+atconfig
+autom4te.cache
+config-h.in
+config.*
+configure
+conftest*
+libtool
+libtool-*.tar.bz2
+libtool-*.tar.gz
+libtool-*.tar.lzma
+libtool-*.tar.xz
+
+### Intellij ###
+
+# User-specific stuff:
+.idea
+
+## File-based project format:
+*.iws
+*.iml
+
+## Plugin-specific files:
+
+# IntelliJ
+/out/
+
+# mpeltonen/sbt-idea plugin
+.idea_modules/
+
+orkaudio/orkaudio
+orkaudio/audiocaptureplugins/*/AudioCapturePluginCommon.cpp
+!orkaudio/audiocaptureplugins/common/*

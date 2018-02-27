@@ -27,20 +27,20 @@ import org.apache.log4j.PropertyConfigurator;
  */
 public class LogManager {
 
-	static LogManager logManager = null;
+	private static LogManager logManager = null;
+
+	private String ConfigFilename = null;
+
+	private Logger rootLogger = null;
+	private Logger configLogger = null;
+	private Logger contextLogger = null;
+	private Logger portLogger = null;
+	private Logger userLogger = null;
+	private Logger recurrentLogger = null;	// special logger for recurrent messages (annoying to have normally)
 	
-	String ConfigFilename = null;
-	
-	Logger rootLogger = null;
-	Logger configLogger = null;
-	Logger contextLogger = null;
-	Logger portLogger = null;
-	Logger userLogger = null;
-	Logger recurrentLogger = null;	// special logger for recurrent messages (annoying to have normally)
-	
-	private LogManager() 
+	private LogManager()
 	{
-		rootLogger = Logger.getRootLogger();
+		rootLogger =Logger.getRootLogger();
 		rootLogger.setLevel(Level.INFO);
 		configLogger = Logger.getLogger("config");
 		contextLogger = Logger.getLogger("context");

@@ -39,7 +39,7 @@ public class TomcatServerXMLParser {
 	private static String defaultRecordingPath = "";
 	
 	private static final String TOMCAT_RECORDINGS_PATH = "/webapps/ROOT/";
-	
+
 	public static String getOrkTrackTcpPort(){
 
 		// Default to 8080
@@ -133,7 +133,7 @@ public class TomcatServerXMLParser {
 
 	// Parse server.xml file 
 	public static void parseServerXML(String tomcatHome) throws Exception {
-		
+
 		if (tomcatHome == null || tomcatHome.equals("")){
 			if (logger.isDebugEnabled())
 				logger.debug("parseServerXML() - no server.xml provided, will use defaults");
@@ -304,7 +304,7 @@ public class TomcatServerXMLParser {
 
 	// Get the context path for contextNode
 	public static void getContextPath(Node contextNode) {
-	
+
 		if (contextNode == null)
 			return;
 		
@@ -339,12 +339,12 @@ public class TomcatServerXMLParser {
 			}	
 		}
 	}
-	
+
 	// For testing purposes
 	public static void main(String args[]) throws Exception
 	{
 		System.out.println("Entering TomcatServerXML main...");
-		
+
 		// Attempt to configure log4j
 		File file = new File("C:/oreka/logging.properties");
 		if (file.exists())
@@ -357,11 +357,12 @@ public class TomcatServerXMLParser {
 
 		String tomcatHome = "C:/Program Files/Apache Software Foundation/Tomcat 7.0";
 		parseServerXML(tomcatHome);
-		
+
 		System.out.println("OrkWeb port: " + getOrkWebTcpPort() + " - OrkTrack port: " + getOrkTrackTcpPort() + " scheme=" + getScheme());
 		System.out.println("Audio Context: " + getAudioContextPath());
 		System.out.println("Audio Path: " + getAudioFilePath());
 
 	}
+
 
 }
