@@ -46,6 +46,7 @@ public class OrkTape implements Serializable {
 	private OrkPort port;
 	private String portName;
 	private Date expiryTimestamp = new Date(0);
+	private String nativeCallId;
 	
 	public OrkTape()
 	{
@@ -259,6 +260,12 @@ public class OrkTape implements Serializable {
 	public void setPortName(String recPortName) {
 		this.portName = recPortName;
 	}
-	
-	
+
+	public String getNativeCallId() {
+		return nativeCallId;
+	}
+
+	public void setNativeCallId(String nativeCallId) {
+		this.nativeCallId = nativeCallId;
+	}
 }
