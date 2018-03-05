@@ -112,7 +112,7 @@ void LoadPlugins(std::list<ACE_DLL>& pluginDlls)
 				ACE_TCHAR* error = dll.error();
 				if(error)
 				{
-					LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load plugin: " + pluginPath + " with errorL " + error));
+					LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load plugin: " + pluginPath + " with error: " + error));
 #ifndef WIN32
 					CStdString logMsg;
 					logMsg.Format("DLL Error: %s", dlerror());
