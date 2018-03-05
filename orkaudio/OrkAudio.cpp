@@ -1,6 +1,6 @@
 /*
  * Oreka -- A media capture and retrieval platform
- * 
+ *
  * Copyright (C) 2005, orecx LLC
  *
  * http://www.orecx.com
@@ -12,6 +12,8 @@
  */
 
 
+#include <cstdlib>
+#include <iostream>
 #include "stdio.h"
 
 #include "MultiThreadedServer.h"
@@ -99,7 +101,7 @@ void LoadPlugins(std::list<ACE_DLL>& pluginDlls)
 	{
 		dirent* dirEntry = NULL;
 		while((dirEntry = ACE_OS::readdir(dir)))
-		{	
+		{
 			CStdString dirEntryFilename = dirEntry->d_name;
 			int extensionPos = dirEntryFilename.Find(pluginExtension);
 
@@ -110,7 +112,7 @@ void LoadPlugins(std::list<ACE_DLL>& pluginDlls)
 				ACE_TCHAR* error = dll.error();
 				if(error)
 				{
-					LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load plugin: ") + pluginPath);
+					LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load plugin: " + pluginPath + " with error: " + error));
 #ifndef WIN32
 					CStdString logMsg;
 					logMsg.Format("DLL Error: %s", dlerror());
@@ -168,7 +170,7 @@ void Transcode(CStdString &file)
 	FilterRegistry::instance()->RegisterFilter(filter);
 	filter.reset(new G721CodecDecoder());
 	FilterRegistry::instance()->RegisterFilter(filter);
-	
+
 	// Register in-built tape processors and build the processing chain
 	BatchProcessing::Initialize();
 	Reporting::Initialize();
@@ -180,14 +182,14 @@ void Transcode(CStdString &file)
 	}
 
 
-	
+
 	// Transmit the tape to the BatchProcessing
 	CStdString ProcessorName("BatchProcessing");
 	TapeProcessorRef bp = TapeProcessorRegistry::instance()->GetNewTapeProcessor(ProcessorName);
 	CStdString portName("SinglePort");
 	AudioTapeRef tape(new AudioTape(portName, file));
 	bp->AddAudioTape(tape);
-	
+
 	// Make sure it stops after processing
 	tape.reset();
 	bp->AddAudioTape(tape);
@@ -267,7 +269,7 @@ void MainThread()
 	FilterRegistry::instance()->RegisterFilter(filter);
 	filter.reset(new G721CodecDecoder());
 	FilterRegistry::instance()->RegisterFilter(filter);
-	
+
 	// Register in-built tape processors and build the processing chain
 	OrkTrack::Initialize(CONFIG.m_trackerHostname, CONFIG.m_trackerServicename, CONFIG.m_trackerTcpPort);
 	BatchProcessing::Initialize();
@@ -283,7 +285,7 @@ void MainThread()
 	}
 	if(CONFIG.m_storageAudioFormat != FfNative)
 	{
-		// storage format is not native, which means we need batch workers to compress to wanted format 
+		// storage format is not native, which means we need batch workers to compress to wanted format
 		if (!ACE_Thread_Manager::instance()->spawn_n(CONFIG.m_numBatchThreads, ACE_THR_FUNC(BatchProcessing::ThreadHandler)))
 		{
 			LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create batch processing thread"));
@@ -344,7 +346,7 @@ void MainThread()
 	// Wait that all ACE threads have returned
 	//ACE_Thread_Manager::instance ()->wait ();
 	ACE_OS::sleep(2);
-	
+
 	//***** This is to avoid an exception when NT service exiting
 	//***** Need to find out the real problem and fix
 #ifdef WIN32
@@ -358,10 +360,11 @@ void MainThread()
 }
 
 
+
 int main(int argc, char* argv[])
 {
 	// the "service name" reported on the tape messages uses CONFIG.m_serviceName
-	// which also defaults to orkaudio-[hostname] but can be different depending on the 
+	// which also defaults to orkaudio-[hostname] but can be different depending on the
 	// value set in config.xml
 	char hostname[40];
 	ACE_OS::hostname(hostname, 40);
@@ -371,7 +374,7 @@ int main(int argc, char* argv[])
 	CStdString argument = argv[1];
 	if (argc>1)
 	{
-		if (argument.CompareNoCase("debug") == 0)
+		if (argument.CompareNoCase("debug") == 0) 
 		{
 			MainThread();
 		}
@@ -409,8 +412,7 @@ int main(int argc, char* argv[])
 	{
 		// No arguments, launch the daemon
 		printf("Starting orkaudio daemon ... (type 'orkaudio debug' if you prefer running attached to tty)\n");
-		Daemon::Singleton()->Start();		
+		Daemon::Singleton()->Start();
 	}
 	return 0;
 }
-

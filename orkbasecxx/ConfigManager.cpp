@@ -1,6 +1,6 @@
 /*
  * Oreka -- A media capture and retrieval platform
- * 
+ *
  * Copyright (C) 2005, orecx LLC
  *
  * http://www.orecx.com
@@ -19,7 +19,7 @@
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/sax/ErrorHandler.hpp>
 #include <xercesc/sax/SAXParseException.hpp>
-#include <xercesc/dom/DOMWriter.hpp>
+#include <xercesc/dom/DOMLSSerializer.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 #include "serializers/DomSerializer.h"
@@ -106,7 +106,7 @@ void ConfigManager::Initialize()
 		//		DOMNode *doc = parser->getDocument();
 		//		...
 		//		parser->adoptDocument();
-		//		doc->release();  
+		//		doc->release();
 		//		...
 		//		delete parser;
 		XercesDOMParser *m_parser = new XercesDOMParser;
@@ -141,7 +141,7 @@ void ConfigManager::Initialize()
 				CStdString toto = DomSerializer::DomNodeToString(myDoc);
 				FILE* file = fopen("zzz.xml", "w");
 				fwrite((PCSTR)toto,1,toto.GetLength(),file);
-				fclose(file);	
+				fclose(file);
 				*/
 			}
 			else
@@ -185,4 +185,3 @@ void ConfigManager::AddConfigureFunction(ConfigureFunction configureFunction)
 	// Cal the external configure callback straight away
 	configureFunction(m_configTopNode);
 }
-
