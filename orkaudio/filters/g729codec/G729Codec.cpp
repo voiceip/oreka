@@ -12,14 +12,8 @@
 #include <iostream>
 #include <string>
 
-# define PRINT_LOOP(x, size) for(uint8_t i = 0; i<size; i++) printf("\t"#x"\t%x\n", x[i])
-# define GET_VAR(x) std::cout<< #x << "\t" << x <<std::endl
-
 static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("codec.g729");
-
-#define L_FRAME 80
-#define L_FRAME_COMPRESSED 10
-
+ 
 template<class T>
 std::string toString(const T &value) {
     std::ostringstream os;
