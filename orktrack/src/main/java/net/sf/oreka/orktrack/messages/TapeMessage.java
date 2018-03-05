@@ -53,7 +53,7 @@ public class TapeMessage extends SyncMessage {
 	int dstTcpPort = 0;
 	String srcMac = "";
 	String dstMac = "";
-	String nativecallid = "";
+	String nativeCallId = "";
 
 	
 	public TapeMessage() {
@@ -120,7 +120,7 @@ public class TapeMessage extends SyncMessage {
 		direction = (Direction)serializer.enumValue("direction", direction, false);
 		loginString = serializer.stringValue("loginString", loginString, false);
 		service = serializer.stringValue("service", service, true);
-        nativecallid = serializer.stringValue("nativecallid", nativecallid, false);
+        nativeCallId = serializer.stringValue("nativecallid", nativeCallId, false);
 	}
 
 	public String getOrkClassName() {
@@ -290,11 +290,11 @@ public class TapeMessage extends SyncMessage {
 		this.recId = recId;
 	}
 
-    public String getNativecallid() {
-        return nativecallid;
+    public String getNativeCallId() {
+        return nativeCallId;
     }
 
-    public void setNativecallid(String nativecallid) {
-        this.nativecallid = nativecallid;
+    public void setNativeCallId(String nativeCallId) {
+        this.nativeCallId = nativeCallId;
     }
 }
