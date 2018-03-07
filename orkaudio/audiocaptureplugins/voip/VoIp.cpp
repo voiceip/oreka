@@ -83,7 +83,10 @@ static unsigned int s_minPacketsPerSecond;
 static unsigned int s_maxPacketsPerSecond;
 unsigned short utf[256];		//UTF-8 encoding table (partial)
 static unsigned int s_udpCounter;
+static unsigned int s_numUdpPacketsInUdpMode;
+static unsigned int s_numUdpPacketsInUdpMode10s;
 static unsigned int s_numLostUdpPacketsInUdpMode;
+static unsigned int s_numLostUdpPacketsInUdpMode10s;
 static unsigned int s_tcpCounter;
 static unsigned int s_numLostTcpPacketsInUdpMode;
 static int s_mtuMaxSize;
@@ -105,7 +108,8 @@ const int pcap_live_snaplen = 65535;
 class PcapHandleData
 {
 public:
-	PcapHandleData(pcap_t* pcaphandle);
+	PcapHandleData(pcap_t* pcaphandle, const char *name);
+	CStdString ifName;
 	pcap_t* m_pcapHandle;
 	time_t m_lastReportTs;
 	unsigned int m_numReceived;
@@ -775,7 +779,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 		s_numPacketsPerSecond = 0;
 	}
 
-	if(s_liveCapture && (now - s_lastPcapStatsReportingTime) > 10)
+	if(s_liveCapture && (now - s_lastPcapStatsReportingTime) >= 10)
 	{
 		MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
 		s_lastPcapStatsReportingTime = now;
@@ -786,9 +790,13 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 		LOG4CXX_INFO(s_packetStatsLog, logMsg);
 		if(DLLCONFIG.m_orekaEncapsulationMode == true)
 		{
-			logMsg.Format("udplistener-dropped:%d tcplistener-dropped:%d", s_numLostUdpPacketsInUdpMode, s_numLostTcpPacketsInUdpMode);
+			logMsg.Format("udplistener-received:%u received10s:%u dropped:%u dropped10s:%u tcplistener-dropped:%d",
+						  s_numUdpPacketsInUdpMode, s_numUdpPacketsInUdpMode10s,
+						  s_numLostUdpPacketsInUdpMode, s_numLostUdpPacketsInUdpMode10s,
+						  s_numLostTcpPacketsInUdpMode);
 			LOG4CXX_INFO(s_packetStatsLog, logMsg);
-			s_numLostUdpPacketsInUdpMode = 0;
+			s_numUdpPacketsInUdpMode10s = 0;
+			s_numLostUdpPacketsInUdpMode10s = 0;
 //			s_numLostTcpPacketsInUdpMode = 0;
 		}
 		s_numPackets = 0;
@@ -1076,8 +1084,11 @@ void UdpListenerThread()
 						unsigned short packetLen = ntohs(orkEncapsulationStruct->totalPacketLength);
 						if(counter > s_udpCounter)
 						{
-							s_numLostUdpPacketsInUdpMode += counter - s_udpCounter - 1;
+							s_numLostUdpPacketsInUdpMode    += counter - s_udpCounter - 1;
+							s_numLostUdpPacketsInUdpMode10s += counter - s_udpCounter - 1;
 						}
+						s_numUdpPacketsInUdpMode++;
+						s_numUdpPacketsInUdpMode10s++;
 						s_udpCounter = counter;
 						pcap_headerPtr.caplen = packetLen;
 
@@ -1113,7 +1124,7 @@ void UdpListenerThread()
 	}
 }
 //=======================================================
-PcapHandleData::PcapHandleData(pcap_t* pcaphandle)
+PcapHandleData::PcapHandleData(pcap_t* pcaphandle ,const char *name): ifName(name)
 {
 	m_pcapHandle = pcaphandle;
 	m_lastReportTs = time(NULL);
@@ -1240,7 +1251,7 @@ void VoIp::OpenPcapFile(CStdString& filename)
 	{
 		logMsg.Format("Successfully opened file. pcap handle:%x", pcapHandle);
 		LOG4CXX_INFO(s_packetLog, logMsg);
-		PcapHandleDataRef pcapHandleData(new PcapHandleData(pcapHandle));
+		PcapHandleDataRef pcapHandleData(new PcapHandleData(pcapHandle, "file"));
 		m_pcapHandles.push_back(pcapHandleData);
 	}
 }
@@ -1552,7 +1563,7 @@ void VoIp::OpenDevices()
 						LOG4CXX_INFO(s_packetLog, logMsg);
 						SetPcapSocketBufferSize(pcapHandle);
 #endif
-						PcapHandleDataRef pcapHandleData(new PcapHandleData(pcapHandle));
+						PcapHandleDataRef pcapHandleData(new PcapHandleData(pcapHandle, device->name));
 						m_pcapHandles.push_back(pcapHandleData);
 						AddPcapDeviceToMap(deviceName, pcapHandle);
 					}
@@ -1601,7 +1612,7 @@ void VoIp::OpenDevices()
 						SetPcapSocketBufferSize(pcapHandle);
 #endif
 
-						PcapHandleDataRef pcapHandleData(new PcapHandleData(pcapHandle));
+						PcapHandleDataRef pcapHandleData(new PcapHandleData(pcapHandle, defaultDevice->name));
 						m_pcapHandles.push_back(pcapHandleData);
 						deviceName = defaultDevice->name;
 						AddPcapDeviceToMap(deviceName, pcapHandle);
@@ -1843,8 +1854,6 @@ void VoIp::ReportPcapStats()
 			PcapHandleDataRef pcapHandleData = *it;
 			pcap_stats(pcapHandleData->m_pcapHandle, &stats);
 			CStdString logMsg;
-			logMsg.Format("handle:%x received:%u dropped:%u", pcapHandleData->m_pcapHandle, stats.ps_recv, stats.ps_drop);
-			LOG4CXX_INFO(s_packetStatsLog, logMsg);
 
 			if((time(NULL) - pcapHandleData->m_lastReportTs) >= 10)
 			{
@@ -1854,10 +1863,13 @@ void VoIp::ReportPcapStats()
 				pcapHandleData->m_numReceived = stats.ps_recv;
 				pcapHandleData->m_numDropped = stats.ps_drop;
 				pcapHandleData->m_numIfDropped = stats.ps_ifdrop;
-				logMsg.Format("handle:%x received:%u received10s:%u dropped:%u dropped10s:%u ifdropped:%u ifdropped10s:%u",
-							   pcapHandleData->m_pcapHandle, stats.ps_recv, pcapHandleData->m_numReceived10s,
+				logMsg.Format("%s: handle:%x received:%u received10s:%u dropped:%u dropped10s:%u ifdropped:%u ifdropped10s:%u",
+							   pcapHandleData->ifName,pcapHandleData->m_pcapHandle, stats.ps_recv, pcapHandleData->m_numReceived10s,
 							   stats.ps_drop, pcapHandleData->m_numDropped10s, pcapHandleData->m_numIfDropped, pcapHandleData->m_numIfDropped10s);
 				 LOG4CXX_INFO(s_packetStatsLog, logMsg);
+			} else {
+				logMsg.Format("handle:%x received:%u dropped:%u", pcapHandleData->m_pcapHandle, stats.ps_recv, stats.ps_drop);
+				LOG4CXX_INFO(s_packetStatsLog, logMsg);
 			}
 		}
 	}
