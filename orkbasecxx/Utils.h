@@ -200,6 +200,16 @@ public:
 private:
 	unsigned int m_counter;
 };
-
+#ifdef WIN32
+void SetThreadName(const char *name) {;}
+#else
+inline void SetThreadName(const char *name)
+{
+	char threadname[17];   //maximum pthread custom name is 16 characters
+	strncpy(threadname,name,16);
+	threadname[16] = '\0'; //make sure string is ASCIIZ
+	pthread_setname_np(pthread_self(),threadname);
+}
+#endif
 #endif
 

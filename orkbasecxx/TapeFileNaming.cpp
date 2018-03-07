@@ -70,6 +70,8 @@ void TapeFileNaming::SetQueueSize(int size)
 
 void TapeFileNaming::ThreadHandler(void *args)
 {
+	SetThreadName("orka:tapename");
+
 	CStdString logMsg;
 
 	CStdString processorName("TapeFileNaming");

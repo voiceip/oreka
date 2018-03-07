@@ -82,6 +82,8 @@ void CommandProcessing::SetQueueSize(int size)
 
 void CommandProcessing::ThreadHandler(void *args)
 {
+	SetThreadName("orka:command");
+
 	CStdString debug;
 	CStdString logMsg;
 

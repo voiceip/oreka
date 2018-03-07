@@ -159,6 +159,8 @@ void DirectionSelector::LoadAreaCodesMap()
 
 void DirectionSelector::ThreadHandler(void *args)
 {
+	SetThreadName("orka:ds");
+
 	CStdString debug;
 	CStdString logMsg;
 
