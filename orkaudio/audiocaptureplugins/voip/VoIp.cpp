@@ -1569,8 +1569,9 @@ void VoIp::OpenDevices()
 					}
 				}
 			}
-			if(m_pcapHandles.size() == 0)
+			if(m_pcapHandles.size() == 0 && DLLCONFIG.m_orekaEncapsulationMode == false)
 			{
+				// only use the default handle if we aren't configured for encapsulated UDP traffic
 				if(DLLCONFIG.m_devices.size() > 0)
 				{
 					LOG4CXX_ERROR(s_packetLog, "Could not find any of the devices listed in config file or error, trying default device...");
@@ -1893,16 +1894,15 @@ void VoIp::Run()
 		}
 #endif
 	}
-	else
+
+	for(std::list<PcapHandleDataRef>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
 	{
-		for(std::list<PcapHandleDataRef>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
+		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(SingleDeviceCaptureThreadHandler), (*it)->m_pcapHandle, THR_DETACHED))
 		{
-			if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(SingleDeviceCaptureThreadHandler), (*it)->m_pcapHandle, THR_DETACHED))
-			{
-				LOG4CXX_INFO(s_packetLog, CStdString("Failed to create pcap capture thread"));
-			}
+			LOG4CXX_INFO(s_packetLog, CStdString("Failed to create pcap capture thread"));
 		}
 	}
+
 }
 
 void VoIp::Shutdown()
