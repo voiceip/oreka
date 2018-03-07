@@ -42,6 +42,8 @@ int CommandLineServer::open (void *void_acceptor)
 // This is run at program initialization
 void CommandLineServer::run(void* args)
 {
+	SetThreadName("orka:cl");
+
 	s_log = log4cxx::Logger::getLogger("interface.commandlineserver");
 
 	unsigned short tcpPort = (unsigned short)(unsigned long)args;
@@ -148,6 +150,8 @@ int HttpServer::open (void *void_acceptor)
 // This is run at program initialization
 void HttpServer::run(void* args)
 {
+	SetThreadName("orka:http");
+
 	s_log = log4cxx::Logger::getLogger("interface.httpserver");
 
 	unsigned short tcpPort = (unsigned short)(unsigned long)args;
@@ -285,6 +289,8 @@ int EventStreamingServer::open(void *void_acceptor)
 
 void EventStreamingServer::run(void* args)
 {
+	SetThreadName("orka:eventstream");
+
 	unsigned short tcpPort = (unsigned short)(ACE_UINT64)args;
 	CStdString tcpPortString = IntToString(tcpPort);
 	EventStreamingAcceptor peer_acceptor;

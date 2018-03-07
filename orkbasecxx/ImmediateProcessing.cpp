@@ -109,6 +109,8 @@ void ImmediateProcessing::Push(AudioTapeRef& audioTapeRef)
 
 void ImmediateProcessing::ThreadHandler(void *args)
 {
+	SetThreadName("orka:imm");
+
 	CStdString logMsg;
 	CStdString lastHandled;
 

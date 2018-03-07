@@ -81,6 +81,7 @@ void Reporting::Initialize()
 
 void Reporting::ReportingThreadEntryPoint(void *args)
 {
+
 	ReportingThreadInfo *rtInfo = (ReportingThreadInfo *)args;
 
 	ReportingThreadInfoRef rtInfoRef(new ReportingThreadInfo());
@@ -266,6 +267,8 @@ bool ReportingThread::IsSkip()
 
 void ReportingThread::Run()
 {
+	SetThreadName("orka:report");
+
 	CStdString logMsg;
 
 	FLOG_INFO(LOG.reporting,"[%s] reporting thread started", m_tracker.ToString());

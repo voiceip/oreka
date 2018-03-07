@@ -206,6 +206,8 @@ bool BatchProcessing::SkipChunk(AudioTapeRef& audioTapeRef, AudioChunkRef& chunk
 
 void BatchProcessing::ThreadHandler(void *args)
 {
+	SetThreadName("orka:batch");
+
 	CStdString debug;
 	CStdString logMsg;
 

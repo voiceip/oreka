@@ -65,6 +65,8 @@ void SocketStreamer::Initialize()
 
 void SocketStreamer::ThreadHandler(void *args)
 {
+	SetThreadName("orka:sockstream");
+
 	TcpAddress* tcpAddress = (TcpAddress*)args;
 	char szIp[16];
 	char buf[1024];

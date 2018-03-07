@@ -927,6 +927,8 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 
 void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 {
+	SetThreadName("orka:v:pcap");
+
 	bool repeat = false;
 	if(!s_liveCapture)
 	{
@@ -1024,6 +1026,8 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 
 void UdpListenerThread()
 {
+	SetThreadName("orka:v:udpl");
+
 	CStdString logMsg;
 	ACE_INET_Addr updPort;
 	if(DLLCONFIG.m_orekaEncapsulationHost.length() > 0)
@@ -2008,6 +2012,8 @@ void VoIp::GetConnectionStatus(CStdString& msg)
 #ifndef WIN32
 void HandleTcpConnection(int clientSock)
 {
+	SetThreadName("orka:v:tcp");
+
 	CStdString logMsg;
 	unsigned char keepAliveBuf[4];
 	time_t keepAliveTimer = time(NULL);
@@ -2158,6 +2164,8 @@ void HandleTcpConnection(int clientSock)
 
 void TcpListenerThread()
 {
+	SetThreadName("orka:v:tcpl");
+
 	static struct sockaddr_in hostTcpAddr;
 	CStdString logMsg;
 	LOG4CXX_INFO(s_packetLog, "TcpListenerThread is initialized successfully");
