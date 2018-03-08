@@ -1810,7 +1810,6 @@ void VoIp::Initialize()
 	s_packetLog = Logger::getLogger("packet");
 	s_packetStatsLog = Logger::getLogger("packet.pcapstats");
 	s_rtpPacketLog = Logger::getLogger("packet.rtp");
-	s_packetLog = Logger::getLogger("packet.skinny");
 	s_rtcpPacketLog = Logger::getLogger("packet.rtcp");
 
 	LOG4CXX_INFO(s_packetLog, "Initializing VoIP plugin");
