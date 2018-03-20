@@ -201,7 +201,7 @@ private:
 	unsigned int m_counter;
 };
 #ifdef WIN32
-void SetThreadName(const char *name) {;}
+inline void SetThreadName(const char *name) {;}
 #else
 inline void SetThreadName(const char *name)
 {
