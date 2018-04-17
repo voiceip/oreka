@@ -27,7 +27,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import net.sf.oreka.OrkException;
 import net.sf.oreka.serializers.DomSerializer;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 
 /**

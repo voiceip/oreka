@@ -18,7 +18,7 @@ import java.util.List;
 
 import net.sf.oreka.persistent.OrkUser;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 
 public class UserManager {

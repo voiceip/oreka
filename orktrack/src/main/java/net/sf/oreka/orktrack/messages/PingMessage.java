@@ -25,7 +25,6 @@ public class PingMessage extends SyncMessage {
 
 	static Logger logger = Logger.getLogger(PingMessage.class);
 	
-	
 	public PingMessage() {
 	}
 	
@@ -34,6 +33,7 @@ public class PingMessage extends SyncMessage {
 		
 		SimpleResponseMessage response = new SimpleResponseMessage();
 		response.setSuccess(true);
+		response.setComment("pong");
 		return response;
 	}
 

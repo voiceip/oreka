@@ -13,7 +13,7 @@
 
 package net.sf.oreka.orktrack;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 public class OrkTest {
 
