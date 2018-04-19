@@ -563,6 +563,10 @@ int FileFormatToEnum(CStdString& format)
 	{
 		formatEnum = FfPcmWav;
 	}
+	else if (format.CompareNoCase(FF_OPUS) == 0)
+	{
+		formatEnum = FfOpus;
+	}
 	return formatEnum;
 }
 
@@ -586,6 +590,9 @@ CStdString FileFormatToString(int formatEnum)
 	case FfPcmWav:
 		formatString = FF_PCMWAV;
 		break;
+	case FfOpus:
+		formatString = FF_OPUS;
+		break;
 	default:
 		formatString = FF_UNKNOWN;
 	}
@@ -602,6 +609,9 @@ CStdString FileFormatGetExtension(FileFormatEnum formatEnum)
 	case FfAlaw:
 	case FfPcmWav:
 		extension = ".wav";
+		break;
+	case FfOpus:
+		extension = "*.opus";
 		break;
 	default:
 		CStdString formatEnumString = IntToString(formatEnum);

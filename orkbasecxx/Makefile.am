@@ -19,6 +19,7 @@ liborkbase_la_SOURCES = Filter.cpp g711.c \
 			OrkTrack.cpp SocketStreamer.cpp	\
 			SizedBuffer.cpp DirectionSelector.cpp
 #INCLUDES = -I/projects/ext/xmlrpc++/xmlrpc++0.7/src
+INCLUDES = -I/opt/opus/include/opus
 SUBDIRS = messages serializers audiofile filters
 liborkbase_la_LIBADD = $(top_builddir)/serializers/libserializers.la \
 	$(top_builddir)/messages/libmessages.la \
