@@ -21,6 +21,7 @@
 #include "BatchProcessing.h"
 #include "ace/OS_NS_unistd.h"
 #include "audiofile/LibSndFileFile.h"
+#include "audiofile/OggOpusFile.h"
 #include "Daemon.h"
 #include "Filter.h"
 #include "Reporting.h"
@@ -293,6 +294,9 @@ void BatchProcessing::ThreadHandler(void *args)
 					break;
 				case FfGsm:
 					outFileRef.reset(new LibSndFileFile(SF_FORMAT_GSM610 | SF_FORMAT_WAV));
+					break;
+				case FfOpus:
+					outFileRef.reset( new OggOpusFile());
 					break;
 				case FfPcmWav:
 				default:
@@ -570,6 +574,7 @@ void BatchProcessing::ThreadHandler(void *args)
 					stopChunk->GetDetails()->m_marker = MEDIA_CHUNK_EOS_MARKER;
 					rtpMixer->AudioChunkIn(stopChunk);
 					rtpMixer->AudioChunkOut(tmpChunkRef);
+					tmpChunkRef->GetDetails()->m_marker = MEDIA_CHUNK_EOS_MARKER;
 					if(rtpMixerSecondary.get() != NULL)
 					{
 						rtpMixerSecondary->AudioChunkOut(tmpChunkSecondaryRef);

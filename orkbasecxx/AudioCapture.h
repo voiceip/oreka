@@ -233,6 +233,7 @@ typedef oreka::shared_ptr<CaptureEvent> CaptureEventRef;
 #define FF_ULAW "ulaw"
 #define FF_ALAW "alaw"
 #define FF_PCMWAV "pcmwav"
+#define FF_OPUS "opus"
 #define FF_UNKNOWN "unknown"
 	typedef enum
 	{
@@ -242,7 +243,8 @@ typedef oreka::shared_ptr<CaptureEvent> CaptureEventRef;
 		FfUlaw = 3,
 		FfAlaw = 4,
 		FfPcmWav = 5,
-		FfInvalid = 6
+		FfOpus = 6,
+		FfInvalid = 7
 	} FileFormatEnum;
 
 int DLL_IMPORT_EXPORT_ORKBASE FileFormatToEnum(CStdString& format);
