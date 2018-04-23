@@ -168,12 +168,3 @@ void OpusCodecDecoder::CaptureEventOut(CaptureEventRef& event)
 	;
 }
 
-extern "C"
-{
-	DLL_EXPORT void __CDECL__ OrkInitialize()
-	{
-		FilterRef filter(new OpusCodecDecoder());
-		FilterRegistry::instance()->RegisterFilter(filter);
-		LOG4CXX_INFO(s_log, "OPUS codec filter initialized.");
-	}
-}

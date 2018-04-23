@@ -220,6 +220,7 @@
     <ClCompile Include="filters\ilbc\ilbc\StateConstructW.c" />
     <ClCompile Include="filters\ilbc\ilbc\StateSearchW.c" />
     <ClCompile Include="filters\ilbc\ilbc\syntFilter.c" />
+    <ClCompile Include="filters\opuscodec\OpusCodec.cpp" />
     <ClCompile Include="filters\speex\SpeexCodec.cpp" />
     <ClCompile Include="g711.c" />
     <ClCompile Include="ImmediateProcessing.cpp" />
@@ -285,6 +286,7 @@
     <ClInclude Include="filters\gsm\gsm610\gsm610_priv.h" />
     <ClInclude Include="filters\gsm\GsmFilters.h" />
     <ClInclude Include="filters\ilbc\IlbcFilters.h" />
+    <ClInclude Include="filters\opuscodec\OpusCodec.h" />
     <ClInclude Include="filters\speex\SpeexCodec.h" />
     <ClInclude Include="g711.h" />
     <ClInclude Include="ImmediateProcessing.h" />
