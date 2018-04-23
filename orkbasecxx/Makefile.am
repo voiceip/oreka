@@ -32,7 +32,8 @@ liborkbase_la_LIBADD = $(top_builddir)/serializers/libserializers.la \
 	$(top_builddir)/filters/g722codec/libg722codec.la \
 	$(top_builddir)/filters/speex/libspeexcodec.la \
 	$(top_builddir)/filters/g726codecs/libg721codec.la \
-	$(top_builddir)/filters/g726codecs/g72x/libg72x.la 	
+	$(top_builddir)/filters/g726codecs/g72x/libg72x.la \
+	$(top_builddir)/filters/opuscodec/libopuscodec.la
 	-lm
 
 AM_CXXFLAGS = -D_REENTRANT

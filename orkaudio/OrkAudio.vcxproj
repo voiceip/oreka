@@ -60,7 +60,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>.;..\OrkBaseCxx;..\OrkBaseCxx\filters\gsm;..\OrkBaseCxx\filters\ilbc;..\OrkBaseCxx\filters\ilbc\ilbc;..\OrkBaseCxx\filters\gsm\gsm610;C:\DevExtVC12\libsndfile\include;C:\DevExtVC12\boost\boost_1_32_0\;C:\DevExtVC12\ACE_wrappers;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\src\main\include;C:\DevExtVC12\xerces\src;..\OrkBaseCxx\filters\g722codec;C:\sfTrunk\orkbasecxx\filters\speex;C:\DevExtVC12\speex\speex-1.2beta3-win32\include;C:\sfTrunk\orkbasecxx\filters\g726codecs;C:\sfTrunk\orkbasecxx\filters\g726codecs\g72x;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..\OrkBaseCxx;..\OrkBaseCxx\filters\gsm;..\OrkBaseCxx\filters\ilbc;..\OrkBaseCxx\filters\ilbc\ilbc;..\OrkBaseCxx\filters\gsm\gsm610;C:\DevExtVC12\libsndfile\include;C:\DevExtVC12\boost\boost_1_32_0\;C:\DevExtVC12\ACE_wrappers;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\src\main\include;C:\DevExtVC12\xerces\src;..\OrkBaseCxx\filters\g722codec;C:\sfTrunk\orkbasecxx\filters\speex;C:\DevExtVC12\speex\speex-1.2beta3-win32\include;C:\sfTrunk\orkbasecxx\filters\g726codecs;C:\sfTrunk\orkbasecxx\filters\g726codecs\g72x;C:\sfTrunk\orkbasecxx\filters\opuscodec;C:\DevExtVC12\opus-1.2.1-dev\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SUPPORTS_CPP11;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
