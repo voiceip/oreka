@@ -592,6 +592,8 @@ void OggOpusFile::SetNumOutputChannels(int numChan)
     chan = numChan;
 }
 
+#ifndef CENTOS_6
+
 void OggOpusFile::EncodeChunks(void* pcmBuf, int numSamples, bool lastChunk)
 {
     int numFrames = numSamples/PCM_SAMPLES_IN_FRAME;
@@ -685,3 +687,10 @@ void OggOpusFile::EncodeChunks(void* pcmBuf, int numSamples, bool lastChunk)
         }
     }
 }
+
+#else
+void OggOpusFile::EncodeChunks(void* pcmBuf, int numSamples, bool lastChunk)
+{
+    ;
+}
+#endif
