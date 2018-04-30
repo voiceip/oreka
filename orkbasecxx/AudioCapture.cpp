@@ -611,7 +611,7 @@ CStdString FileFormatGetExtension(FileFormatEnum formatEnum)
 		extension = ".wav";
 		break;
 	case FfOpus:
-		extension = "*.opus";
+		extension = ".opus";
 		break;
 	default:
 		CStdString formatEnumString = IntToString(formatEnum);
