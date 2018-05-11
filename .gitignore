@@ -1,0 +1,20 @@
+*.o
+*.so
+*.lo
+*.la
+.libs
+.deps
+Makefile*
+-*
+ReleaseVC12
+*sdf
+config*
+aclocal.m4
+autom4te.cache/
+depcomp
+install-sh
+libtool
+ltmain.sh
+missing
+stamp-h1
+nothing added to commit but untracked files present (use "git add" to track)
