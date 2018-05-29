@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Common\AudioCapturePluginCommon.cpp" />
+    <ClCompile Include="..\common\DtmfHandling.cpp" />
     <ClCompile Include="Iax2Parsers.cpp" />
     <ClCompile Include="Iax2Session.cpp" />
     <ClCompile Include="IpFragmentation.cpp" />
@@ -169,6 +170,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Common\AudioCapturePluginCommon.h" />
+    <ClInclude Include="..\common\DtmfHandling.h" />
+    <ClInclude Include="..\common\OrkSession.h" />
     <ClInclude Include="Iax2Parsers.h" />
     <ClInclude Include="Iax2Session.h" />
     <ClInclude Include="PacketHeaderDefs.h" />

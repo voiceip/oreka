@@ -45,20 +45,6 @@ public:
 };
 typedef oreka::shared_ptr<RtpPacketInfo> RtpPacketInfoRef;
 
-class RtpEventInfo
-{
-public:
-	void ToString(CStdString& string);
-
-	unsigned short m_event;
-	unsigned short m_end;
-	unsigned short m_reserved;
-	unsigned short m_volume;
-	unsigned short m_duration;
-	unsigned int m_startTimestamp;
-};
-typedef oreka::shared_ptr<RtpEventInfo> RtpEventInfoRef;
-
 class RtcpSrcDescriptionPacketInfo
 {
 public:

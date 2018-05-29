@@ -44,12 +44,6 @@ void RtpPacketInfo::ToString(CStdString& string)
 		m_timestamp, m_payloadSize, m_payloadType, m_arrivalTimestamp);
 }
 
-void RtpEventInfo::ToString(CStdString& string)
-{
-	string.Format("digit:%d duration:%d end:%d timestamp:%u volume:%d reserved:%d", 
-		m_event, m_duration, m_end, m_startTimestamp, m_volume, m_reserved);
-}
-
 void RtcpSrcDescriptionPacketInfo::ToString(CStdString& string)
 {
 	char sourceIp[16];

@@ -24,6 +24,7 @@
 #include "ace/OS_NS_arpa_inet.h"
 #include "MemUtils.h"
 #include <boost/algorithm/string/predicate.hpp>
+#include "../common/DtmfHandling.h"
 
 extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;
@@ -1001,67 +1002,6 @@ void VoIpSession::ReportMetadata()
 	g_captureEventCallBack(event, m_capturePort);
 }
 
-void VoIpSession::ReportDtmfDigit(int channel, CStdString digitValue,  unsigned int digitDuration, unsigned int digitVolume, unsigned int rtpEventTs, unsigned int rtpEventSeqNo)
-{
-	if(m_dtmfDigitString.length() > 100)
-	{
-		m_dtmfDigitString.clear();
-	}
-	m_dtmfDigitString += digitValue;
-	LOG4CXX_INFO(m_log, "[" + m_trackingId + "] DTMF event [ " + digitValue + " ] new string:" + m_dtmfDigitString);
-	if(DLLCONFIG.m_onDemandViaDtmfDigitsString.length() > 0)
-	{
-		if(m_dtmfDigitString.find(DLLCONFIG.m_onDemandViaDtmfDigitsString) != std::string::npos)
-		{
-			m_keepRtp = true;
-			CStdString side = "both";
-			MarkAsOnDemand(side);
-			m_dtmfDigitString.clear();
-			LOG4CXX_INFO(m_log, "[" + m_trackingId + "] recording started or resumed due to DTMF string pressed");
-		}
-	}
-	if(DLLCONFIG.m_onDemandPauseViaDtmfDigitsString.length() > 0)
-	{
-		if(m_dtmfDigitString.find(DLLCONFIG.m_onDemandPauseViaDtmfDigitsString) != std::string::npos)
-		{
-			m_keepRtp = false;
-			m_dtmfDigitString.clear();
-			LOG4CXX_INFO(m_log, "[" + m_trackingId + "] recording paused due to DTMF string pressed");
-		}
-	}
-
-	int rtpEvent = DtmfDigitToEnum(digitValue);
-	CaptureEventRef event(new CaptureEvent());
-	CStdString dtmfEventString, dtmfEventKey;
-	ACE_Time_Value timeNow;
-	ACE_Time_Value beginTime;
-	ACE_Time_Value timeDiff;
-	int msDiff = 0;
-
-	beginTime.set(m_beginDate, 0);
-	timeNow = ACE_OS::gettimeofday();
-	timeDiff = timeNow - beginTime;
-	msDiff = (timeDiff.sec() * 1000) + (timeDiff.usec() / 1000);
-
-	if(CONFIG.m_dtmfReportingDetailed == true)
-	{
-		dtmfEventString.Format("event:%d timestamp:%u duration:%d volume:%d seqno:%d offsetms:%d channel:%d", rtpEvent, rtpEventTs, digitDuration, digitVolume, rtpEventSeqNo, msDiff, channel);
-		dtmfEventKey.Format("RtpDtmfEvent_%u", rtpEventTs);
-		event->m_type = CaptureEvent::EtKeyValue;
-		event->m_key = dtmfEventKey;
-		event->m_value = dtmfEventString;
-		g_captureEventCallBack(event, m_capturePort);
-		LOG4CXX_INFO(m_log, "[" + m_trackingId + "] RTP DTMF event [ " + dtmfEventString + " ]");
-	}
-
-	event.reset(new CaptureEvent());
-	event->m_type = CaptureEvent::EtKeyValue;
-	event->m_key = "dtmfdigit";
-	event->m_value = digitValue;
-	event->m_offsetMs = msDiff;
-	g_captureEventCallBack(event, m_capturePort);
-}
-
 void VoIpSession::GoOnHold(time_t onHoldTime)
 {
 	if(m_started != true)
@@ -1087,51 +1027,6 @@ void VoIpSession::GoOffHold(time_t offHoldTime)
 		event->m_value.Format("%d", m_holdDuration);
 		g_captureEventCallBack(event,  m_capturePort);
 	}
-}
-
-void VoIpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket, int channel)
-{
-	CStdString logMsg;
-
-	if(rtpPacket->m_payloadSize < sizeof(RtpEventPayloadFormat))
-	{
-		LOG4CXX_WARN(m_log, "[" + m_trackingId + "] Payload size for event packet too small");
-		return;
-	}
-
-	if(DLLCONFIG.m_rtpDtmfOnlyLocal)
-	{
-		if(rtpPacket->m_sourceIp.s_addr != m_localIp.s_addr)
-		{
-			return;
-		}
-	}
-
-	RtpEventPayloadFormat *payloadFormat = (RtpEventPayloadFormat *)rtpPacket->m_payload;
-	RtpEventInfoRef rtpEventInfo(new RtpEventInfo());
-
-	rtpEventInfo->m_event = (unsigned short)payloadFormat->event;
-	rtpEventInfo->m_end = (payloadFormat->er_volume & 0x80) ? 1 : 0;
-	rtpEventInfo->m_reserved = (payloadFormat->er_volume & 0x40) ? 1 : 0;
-	rtpEventInfo->m_volume = (unsigned short)(payloadFormat->er_volume & 0x3F);
-	rtpEventInfo->m_duration = ntohs(payloadFormat->duration);
-	rtpEventInfo->m_startTimestamp = rtpPacket->m_timestamp;
-
-	if(m_log->isDebugEnabled())
-	{
-		CStdString eventString;
-		rtpEventInfo->ToString(eventString);
-		logMsg.Format("[%s] RTP DTMF Event Packet: %s", m_trackingId, eventString);
-		LOG4CXX_DEBUG(m_log, logMsg);
-	}
-
-	if(m_currentRtpEventTs != rtpEventInfo->m_startTimestamp)
-	{
-		m_currentRtpEventTs = rtpEventInfo->m_startTimestamp;
-		ReportDtmfDigit(channel, DtmfDigitToString(rtpEventInfo->m_event), rtpEventInfo->m_duration, rtpEventInfo->m_volume, rtpEventInfo->m_startTimestamp, rtpPacket->m_seqNum);
-	}
-
-	return;
 }
 
 // Returns false if the packet does not belong to the session (RTP timestamp discontinuity)
@@ -1189,8 +1084,11 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 			{
 				if(rtpPacket->m_payloadType == m_telephoneEventPayloadType)
 				{
-					// This is a telephone-event
-					HandleRtpEvent(rtpPacket, channel);
+					if(DLLCONFIG.m_rtpDtmfOnlyLocal && rtpPacket->m_sourceIp.s_addr != m_localIp.s_addr) {
+						return true;
+					}
+
+					HandleRtpEvent(this, channel, (RtpEventPayloadFormat *)rtpPacket->m_payload, rtpPacket->m_payloadSize, rtpPacket->m_timestamp, rtpPacket->m_seqNum);
 					return true;
 				}
 			}
@@ -1810,7 +1708,7 @@ void VoIpSession::ReportSipInfo(SipInfoRef& info)
 	m_lastSipInfo = info;
 	if(info->m_dtmfDigit.length() > 0 && DLLCONFIG.m_sipInfoDtmfRfc2976Detect == true)
 	{
-		ReportDtmfDigit(0, info->m_dtmfDigit, 0, 0, 0, 0);
+		ReportDtmfDigit(this,0, info->m_dtmfDigit, 0, 0, 0, 0);
 	}
 	if((DLLCONFIG.m_sipOnDemandFieldValue.length() > 0) && (info->m_onDemand == true))
 	{

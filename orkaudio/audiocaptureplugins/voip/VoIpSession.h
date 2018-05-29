@@ -30,6 +30,7 @@
 #include "AudioCapturePluginCommon.h"
 #include "SipHeaders.h"
 #include "Utils.h"
+#include "../common/OrkSession.h"
 
 
 #ifdef TESTING
@@ -70,7 +71,7 @@ typedef oreka::shared_ptr<VoIpEndpointInfo> VoIpEndpointInfoRef;
 
 // ============================================================
 
-class VoIpSession
+class VoIpSession : public OrkSession
 {
 public:
 #define PROT_RAW_RTP "RawRtp"
@@ -108,14 +109,11 @@ public:
 	void SkinnyTrackConferencesTransfers(CStdString callId, CStdString capturePort);
 	bool IsMatchedLocalOrRemoteIp(struct in_addr ip);
 
-	CStdString m_capturePort;
-	CStdString m_trackingId;
 	unsigned long long m_ipAndPort;	// IP address and UDP port of one side of the RTP session, serves as a key for session storage and retrieval. Not necessarily the same as the capturePort (capturePort is usually the client (phone) IP+port)
 	struct in_addr m_rtpIp;	// IP address of one side of the RTP session
 	CStdString m_callId;
 	SipInviteInfoRef m_invite;
 	ACE_Time_Value m_creationDate;		// When the session is first created
-	time_t m_beginDate;			// When the session has seen a few RTP packets
 	time_t m_lastUpdated;
 	time_t m_lastKeepAlive;
 	ProtocolEnum m_protocol;
@@ -161,7 +159,6 @@ public:
 	unsigned int m_numAlienRtpPacketsS1;
 	unsigned int m_numAlienRtpPacketsS2;
 	unsigned int m_ssrcCandidate;
-	CStdString m_dtmfDigitString;
 	int m_orekaRtpPayloadType;
 	void ReportMetadataUpdateSkinny();
 	bool m_startWhenReceiveS2;
@@ -176,8 +173,6 @@ private:
 	void ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket);
 	void ReportMetadata();
 	void GenerateOrkUid();
-	void HandleRtpEvent(RtpPacketInfoRef& rtpPacket, int channel);
-	void ReportDtmfDigit(int channel, CStdString digitValue,  unsigned int digitDuration, unsigned int digitVolume, unsigned int rtpEventTs, unsigned int rtpEventSeqNo);
 	bool MatchesSipDomain(CStdString& domain);
 	bool MatchesReferenceAddresses(struct in_addr inAddr);
 	bool IsInSkinnyReportingList(CStdString item);
@@ -205,7 +200,6 @@ private:
 	bool m_sessionTelephoneEventPtDefined;
 	int m_telephoneEventPayloadType;
 
-	unsigned int m_currentRtpEventTs;
 	bool m_mappedS1S2;
 	unsigned int m_ssrcCandidateTimestamp;
 	std::map<unsigned int, int> m_loggedSsrcMap;

@@ -19,6 +19,7 @@
 
 #include "ace/OS_NS_arpa_inet.h"
 #include "StdString.h"
+#include "DtmfHandling.h"
 
 
 // Structure of Ethernet header
@@ -124,15 +125,6 @@ typedef struct
 	unsigned int ssrc;			// synchronization source
 	//unsigned int csrc[1];		// optional CSRC list
 } RtpHeaderStruct;
-
-// Structure of RTP payload format for RTP events (ref RFC 2833, section
-// 3.5)
-typedef struct
-{
-	unsigned char event;
-	unsigned char er_volume;	// Also contains end and error booleans on bit 8 and 7 respectively.
-	unsigned short duration;
-} RtpEventPayloadFormat;
 
 // Structure of common header for RTCP
 typedef struct {
@@ -508,37 +500,6 @@ struct Iax2MetaTrunkEntryTs {
 #define SIP_METHOD_REFER "REFER"
 #define SIP_METHOD_REFER_SIZE 5
 
-#define DTMF_DIGIT_ZERO "0"
-#define DTMF_DIGIT_ONE "1"
-#define DTMF_DIGIT_TWO "2"
-#define DTMF_DIGIT_THREE "3"
-#define DTMF_DIGIT_FOUR "4"
-#define DTMF_DIGIT_FIVE "5"
-#define DTMF_DIGIT_SIX "6"
-#define DTMF_DIGIT_SEVEN "7"
-#define DTMF_DIGIT_EIGHT "8"
-#define DTMF_DIGIT_NINE "9"
-#define DTMF_DIGIT_START "*"
-#define DTMF_DIGIT_SHARP "#"
-#define DTMF_DIGIT_UNKN "unknown"
-typedef enum{
-	DtmfDigitZero = 0,
-	DtmfDigitOne = 1,
-	DtmfDigitTwo = 2,
-	DtmfDigitThree = 3,
-	DtmfDigitFour = 4,
-	DtmfDigitFive = 5,
-	DtmfDigitSix = 6,
-	DtmfDigitSeven = 7,
-	DtmfDigitEight = 8,
-	DtmfDigitNine = 9,
-	DtmfDigitStart = 10,
-	DtmfDigitSharp = 11,
-	DtmfDigitUnknown = 12
-}DtmfDigitEnum;
-
-int DtmfDigitToEnum(CStdString& msg);
-CStdString DtmfDigitToString(int msgEnum);
 //==============================================
 #pragma pack(push,1)	// avoid padded bytes at the end of the struct
 typedef struct {
