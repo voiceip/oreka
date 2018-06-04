@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClCompile Include="..\Common\AudioCapturePluginCommon.cpp" />
     <ClCompile Include="..\common\DtmfHandling.cpp" />
+	<ClCompile Include="..\common\AcpConfig.cpp" />
     <ClCompile Include="Iax2Parsers.cpp" />
     <ClCompile Include="Iax2Session.cpp" />
     <ClCompile Include="IpFragmentation.cpp" />

@@ -14,6 +14,8 @@
 #ifndef __VOIPCONFIG_H__
 #define __VOIPCONFIG_H__
 
+#include "../common/AcpConfig.h"
+
 #include <list>
 #include <map>
 #include "StdString.h"
@@ -26,7 +28,7 @@
 #define DEVICE_PARAM "Device"
 
 /** This class defines various configuration parameters for the generator. */
-class VoIpConfig : public Object
+class VoIpConfig : public AcpConfig
 {
 public:
 	VoIpConfig();	
@@ -77,7 +79,6 @@ public:
 	bool m_rtpDiscontinuityDetect;
 	int  m_rtpDiscontinuityMinSeqDelta;
 	bool m_rtpDetectOnOddPorts;
-	bool m_rtpReportDtmf;
 	IpRanges m_rtpBlockedIpRanges;
 	bool m_rtpTrackByUdpPortOnly;
 	bool m_rtpAllowMultipleMappings;
@@ -173,7 +174,6 @@ public:
 	CStdString m_onDemandTcpMarkerKey;
 	CStdString m_onDemandTcpMarkerValue;
 	bool m_sipInfoDtmfRfc2976Detect;
-	CStdString m_onDemandViaDtmfDigitsString;
 	CStdString m_onDemandPauseViaDtmfDigitsString;
 	bool m_mediaAddressUseSecondRtpAddress;
 	int m_transferTimeOutInSec;

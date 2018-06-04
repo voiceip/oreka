@@ -4826,6 +4826,17 @@ void VoIpSessions::SaveSkinnyGlobalNumbersList(CStdString& number)
 	m_skinnyGlobalNumbersList.insert(std::make_pair(number, 0));
 	LOG4CXX_DEBUG(m_log, "Saved skinny global number:" + number);
 }
+
+AcpConfig const * const VoIpSession::GetConfig() {
+	return &DLLCONFIG;
+}
+
+void VoIpSession::TriggerOnDemandViaDtmf() {
+	m_keepRtp = true;
+	CStdString side = "both";
+	MarkAsOnDemand(side);
+}
+
 //============================================================
 UrlExtractionValue::UrlExtractionValue()
 {

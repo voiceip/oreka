@@ -44,7 +44,6 @@ void VoIpConfig::Reset() {
 	m_rtpSessionWithSignallingTimeoutSec = 10;
 	m_rtpSessionWithSignallingInitialTimeoutSec = 5*60;
 	m_rtpSessionOnHoldTimeOutSec = 1800;
-	m_rtpReportDtmf = false;
 	m_rtpTrackByUdpPortOnly = false;
 	m_rtpAllowMultipleMappings = true;
 	m_rtpSeqGapThreshold = 500;
@@ -173,7 +172,6 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("RtpSessionWithSignallingTimeoutSec", m_rtpSessionWithSignallingTimeoutSec);
 	s->IntValue("RtpSessionWithSignallingInitialTimeoutSec", m_rtpSessionWithSignallingInitialTimeoutSec);
 	s->IntValue("RtpSessionOnHoldTimeOutSec", m_rtpSessionOnHoldTimeOutSec);
-	s->BoolValue("RtpReportDtmf", m_rtpReportDtmf);
 	s->IpRangesValue("RtpBlockedIpRanges", m_rtpBlockedIpRanges);
 	s->BoolValue("RtpTrackByUdpPortOnly", m_rtpTrackByUdpPortOnly);
 	s->BoolValue("RtpAllowMultipleMappings", m_rtpAllowMultipleMappings);
@@ -274,7 +272,6 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("OrekaEncapsulationMode", m_orekaEncapsulationMode);
 	s->StringValue("OnDemandTcpMarkerKey", m_onDemandTcpMarkerKey);
 	s->StringValue("OnDemandTcpMarkerValue", m_onDemandTcpMarkerValue);
-	s->StringValue("OnDemandViaDtmfDigitsString", m_onDemandViaDtmfDigitsString);
 	s->StringValue("OnDemandPauseViaDtmfDigitsString", m_onDemandPauseViaDtmfDigitsString);
 	s->BoolValue("SipInfoDtmfRfc2976Detect", m_sipInfoDtmfRfc2976Detect);
 	s->BoolValue("MediaAddressUseSecondRtpAddress", m_mediaAddressUseSecondRtpAddress);

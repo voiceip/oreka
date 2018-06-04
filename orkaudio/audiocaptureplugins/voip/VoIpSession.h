@@ -164,6 +164,8 @@ public:
 	bool m_startWhenReceiveS2;
 	bool m_hasReceivedCallInfo;
 
+	virtual AcpConfig const * const GetConfig();
+
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
 	void ProcessMetadataSipIncoming();
@@ -176,6 +178,7 @@ private:
 	bool MatchesSipDomain(CStdString& domain);
 	bool MatchesReferenceAddresses(struct in_addr inAddr);
 	bool IsInSkinnyReportingList(CStdString item);
+	virtual void TriggerOnDemandViaDtmf();
 
 	RtpPacketInfoRef m_lastRtpPacket;
 	RtpPacketInfoRef m_lastRtpPacketSide1;

@@ -6,6 +6,7 @@
 #include "OrkSession.h"
 #include "AudioCapturePlugin.h"
 #include "ConfigManager.h"
+#include "AcpConfig.h"
 
 extern CaptureEventCallBackFunction g_captureEventCallBack;
 
@@ -131,18 +132,12 @@ void ReportDtmfDigit(OrkSession* ss, int channel, CStdString digitValue,  unsign
 		ss->m_dtmfDigitString.clear();
 	}
 	ss->m_dtmfDigitString += digitValue;
-	LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "]" +  " DTMF event [ " + digitValue + " ]");
+	LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "]" +  " DTMF event [ " + digitValue + " ] new string:" + ss->m_dtmfDigitString);
 
-	CStdString onDemandViaDtmfDigitsString;
+	CStdString ods = ss->GetConfig()->m_onDemandViaDtmfDigitsString;
 
-	if(onDemandViaDtmfDigitsString.length() > 0)
-	{
-		if(ss->m_dtmfDigitString.find(onDemandViaDtmfDigitsString) != std::string::npos)
-		{
-			/* ss->m_keep = true; */
-			CStdString side = "both";
-			/* MarkAsOnDemand(ss, side); */
-		}
+	if(ods.length() > 0 && ss->m_dtmfDigitString.find(ods) != std::string::npos) {
+		ss->TriggerOnDemandViaDtmf();
 	}
 
 	int rtpEvent = DtmfDigitToEnum(digitValue);
@@ -167,6 +162,15 @@ void ReportDtmfDigit(OrkSession* ss, int channel, CStdString digitValue,  unsign
 		event->m_value = dtmfEventString;
 		g_captureEventCallBack(event, ss->m_capturePort);
 		LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "] RTP DTMF event [ " + dtmfEventString + " ]");
+	}
+
+	if (ss->GetConfig()->m_dtmfReportFullStringAsTag) {
+		event.reset(new CaptureEvent());
+		event->m_type = CaptureEvent::EtKeyValue;
+		event->m_key = "dtmfstring";
+		event->m_value = ss->m_dtmfDigitString;
+		event->m_offsetMs = msDiff;
+		g_captureEventCallBack(event, ss->m_capturePort);
 	}
 
 	event.reset(new CaptureEvent());
