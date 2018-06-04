@@ -30,6 +30,8 @@ VoIpConfig::VoIpConfig()
 }
 
 void VoIpConfig::Reset() {
+	AcpConfig::Reset();
+
 	// Standard LAN internal IP range masks 
 	m_asciiLanMasks.push_back("192.168.255.255");
 	m_asciiLanMasks.push_back("10.255.255.255");
@@ -152,6 +154,8 @@ void VoIpConfig::Reset() {
 
 void VoIpConfig::Define(Serializer* s)
 {
+	AcpConfig::Define(s);
+
 	s->StringValue(DEVICE_PARAM, m_device);
 	s->CsvValue("Devices", m_devices);
 	s->CsvValue("LanMasks", m_asciiLanMasks);
@@ -292,6 +296,8 @@ void VoIpConfig::Define(Serializer* s)
 
 void VoIpConfig::Validate()
 {
+	AcpConfig::Validate();
+
 	// iterate over ascii LAN masks and populate the binary LAN Masks list
 	m_lanMasks.clear();
 	std::list<CStdString>::iterator it;
