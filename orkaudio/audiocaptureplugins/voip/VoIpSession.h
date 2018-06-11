@@ -164,8 +164,6 @@ public:
 	bool m_startWhenReceiveS2;
 	bool m_hasReceivedCallInfo;
 
-	virtual AcpConfig const * const GetConfig();
-
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
 	void ProcessMetadataSipIncoming();
