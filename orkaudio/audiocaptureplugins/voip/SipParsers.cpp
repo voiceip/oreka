@@ -1513,12 +1513,9 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 					 * of the string "telephone-event", 15 characters */
 					if(nextStep && ((sipEnd - nextStep) >= 15))
 					{
-						if(ACE_OS::strncasecmp(nextStep, "telephone-event", 15) == 0)
-						{
-							/* Our DTMF packets are indicated using
-							 * the payload type rtpPayloadType */
-							info->m_telephoneEventPayloadType = rtpPayloadType;
-							info->m_telephoneEventPtDefined = true;
+						if(ACE_OS::strncasecmp(nextStep, "telephone-event", 15) == 0) {
+							/* Our DTMF packets are indicated using * the payload type rtpPayloadType */
+							info->m_telephoneEventPayloadType = StringToInt(rtpPayloadType);
 							break;
 						}
 					}

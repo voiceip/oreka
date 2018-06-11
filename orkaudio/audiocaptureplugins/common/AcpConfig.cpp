@@ -9,6 +9,7 @@ void AcpConfig::Reset() {
 	m_rtpReportDtmf = false;
 	m_dtmfReportFullStringAsTag = false;
 	m_onDemandViaDtmfDigitsString = "";
+	m_rtpEventPayloadTypeDefaultValue = 0;
 }
 
 void AcpConfig::Define(Serializer* s) {
@@ -17,6 +18,7 @@ void AcpConfig::Define(Serializer* s) {
 	s->BoolValue("RtpReportDtmf", m_rtpReportDtmf);
 	s->BoolValue("DtmfReportFullStringAsTag", m_dtmfReportFullStringAsTag);
 	s->StringValue("OnDemandViaDtmfDigitsString", m_onDemandViaDtmfDigitsString);
+	s->IntValue("RtpEventPayloadTypeDefaultValue",m_rtpEventPayloadTypeDefaultValue);
 }
 
 void AcpConfig::Validate() {

@@ -200,8 +200,6 @@ private:
 	TcpAddressList m_rtpAddressList;
 	std::list<SipInviteInfoRef> m_invites;
 	std::map<CStdString, CStdString> m_tags;
-	bool m_sessionTelephoneEventPtDefined;
-	int m_telephoneEventPayloadType;
 
 	bool m_mappedS1S2;
 	unsigned int m_ssrcCandidateTimestamp;

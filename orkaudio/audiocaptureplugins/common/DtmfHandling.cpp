@@ -134,7 +134,7 @@ void ReportDtmfDigit(OrkSession* ss, int channel, CStdString digitValue,  unsign
 	ss->m_dtmfDigitString += digitValue;
 	LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "]" +  " DTMF event [ " + digitValue + " ] new string:" + ss->m_dtmfDigitString);
 
-	CStdString ods = ss->GetConfig()->m_onDemandViaDtmfDigitsString;
+	CStdString ods = ss->m_config->m_onDemandViaDtmfDigitsString;
 
 	if(ods.length() > 0 && ss->m_dtmfDigitString.find(ods) != std::string::npos) {
 		ss->TriggerOnDemandViaDtmf();
@@ -164,7 +164,7 @@ void ReportDtmfDigit(OrkSession* ss, int channel, CStdString digitValue,  unsign
 		LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "] RTP DTMF event [ " + dtmfEventString + " ]");
 	}
 
-	if (ss->GetConfig()->m_dtmfReportFullStringAsTag) {
+	if (ss->m_config->m_dtmfReportFullStringAsTag) {
 		event.reset(new CaptureEvent());
 		event->m_type = CaptureEvent::EtKeyValue;
 		event->m_key = "dtmfstring";

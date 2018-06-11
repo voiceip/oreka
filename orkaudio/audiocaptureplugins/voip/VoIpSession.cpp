@@ -35,7 +35,8 @@ extern CaptureEventCallBackFunction g_captureEventCallBack;
 	VoIpSessions* VoIpSessionsSingleton::voipSessions = NULL;
 #endif
 
-VoIpSession::VoIpSession(CStdString& trackingId) : m_hasReceivedCallInfo(false)
+VoIpSession::VoIpSession(CStdString& trackingId) : OrkSession(&DLLCONFIG),
+	m_hasReceivedCallInfo(false)
 {
 	m_startWhenReceiveS2 = false;
 	m_trackingId = trackingId;
@@ -59,7 +60,6 @@ VoIpSession::VoIpSession(CStdString& trackingId) : m_hasReceivedCallInfo(false)
 		m_keepRtp = false;
 	}
 	m_nonLookBackSessionStarted = false;
-	m_beginDate = 0;
 	m_hasDuplicateRtp = false;
 	m_highestRtpSeqNumDelta = 0;
 	m_minRtpSeqDelta = (double)DLLCONFIG.m_rtpDiscontinuityMinSeqDelta;
@@ -67,12 +67,10 @@ VoIpSession::VoIpSession(CStdString& trackingId) : m_hasReceivedCallInfo(false)
 	m_skinnyPassThruPartyId = 0;
 	memset(m_localMac, 0, sizeof(m_localMac));
 	memset(m_remoteMac, 0, sizeof(m_remoteMac));
-	m_currentRtpEventTs = 0;
 	m_rtcpLocalParty = false;
 	m_rtcpRemoteParty = false;
 	m_remotePartyReported = false;
 	m_localPartyReported = false;
-	m_sessionTelephoneEventPtDefined = false;
 	m_rtpIp.s_addr = 0;
 	m_skinnyLineInstance = 0;
 	m_onDemand = false;
@@ -1075,24 +1073,14 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		m_nonLookBackSessionStarted = true;
 	}
 
-	if(m_protocol == ProtSip)
+	if(m_protocol == ProtSip && DLLCONFIG.m_rtpReportDtmf && m_telephoneEventPayloadType && rtpPacket->m_payloadType == m_telephoneEventPayloadType)
 	{
-		if(DLLCONFIG.m_rtpReportDtmf)
-		{
-			//Check if this is a telephone-event
-			if(m_sessionTelephoneEventPtDefined)
-			{
-				if(rtpPacket->m_payloadType == m_telephoneEventPayloadType)
-				{
-					if(DLLCONFIG.m_rtpDtmfOnlyLocal && rtpPacket->m_sourceIp.s_addr != m_localIp.s_addr) {
-						return true;
-					}
-
-					HandleRtpEvent(this, channel, (RtpEventPayloadFormat *)rtpPacket->m_payload, rtpPacket->m_payloadSize, rtpPacket->m_timestamp, rtpPacket->m_seqNum);
-					return true;
-				}
-			}
+		if(DLLCONFIG.m_rtpDtmfOnlyLocal && rtpPacket->m_sourceIp.s_addr != m_localIp.s_addr) {
+			return true;
 		}
+
+		HandleRtpEvent(this, channel, (RtpEventPayloadFormat *)rtpPacket->m_payload, rtpPacket->m_payloadSize, rtpPacket->m_timestamp, rtpPacket->m_seqNum);
+		return true;
 	}
 
 	if(!m_keepRtp)
@@ -1629,10 +1617,8 @@ void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 		g_captureEventCallBack(event, m_capturePort);
 	}
 	m_invites.push_front(invite);
-	if(invite->m_telephoneEventPtDefined)
-	{
-		m_telephoneEventPayloadType = StringToInt(invite->m_telephoneEventPayloadType);
-		m_sessionTelephoneEventPtDefined = true;
+	if (invite->m_telephoneEventPayloadType) {
+		m_telephoneEventPayloadType = invite->m_telephoneEventPayloadType;
 	}
 
 	//with CUCM hunt pilots in the inbound case, Remote-Party-ID of the first INVITE to the endpoint is reported as the hunt pilot extension.
@@ -4825,10 +4811,6 @@ void VoIpSessions::SaveSkinnyGlobalNumbersList(CStdString& number)
 {
 	m_skinnyGlobalNumbersList.insert(std::make_pair(number, 0));
 	LOG4CXX_DEBUG(m_log, "Saved skinny global number:" + number);
-}
-
-AcpConfig const * const VoIpSession::GetConfig() {
-	return &DLLCONFIG;
 }
 
 void VoIpSession::TriggerOnDemandViaDtmf() {

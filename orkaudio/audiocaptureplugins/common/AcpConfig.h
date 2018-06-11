@@ -18,6 +18,7 @@ public:
 	CStdString m_onDemandViaDtmfDigitsString;
 	bool m_rtpReportDtmf;
 	bool m_dtmfReportFullStringAsTag;
+	int m_rtpEventPayloadTypeDefaultValue;
 };
 
 #endif
