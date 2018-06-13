@@ -574,7 +574,10 @@ void BatchProcessing::ThreadHandler(void *args)
 					stopChunk->GetDetails()->m_marker = MEDIA_CHUNK_EOS_MARKER;
 					rtpMixer->AudioChunkIn(stopChunk);
 					rtpMixer->AudioChunkOut(tmpChunkRef);
-					tmpChunkRef->GetDetails()->m_marker = MEDIA_CHUNK_EOS_MARKER;
+
+					if (tmpChunkRef.get()) {
+						tmpChunkRef->GetDetails()->m_marker = MEDIA_CHUNK_EOS_MARKER;
+					}
 					if(rtpMixerSecondary.get() != NULL)
 					{
 						rtpMixerSecondary->AudioChunkOut(tmpChunkSecondaryRef);
