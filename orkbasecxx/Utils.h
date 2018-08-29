@@ -30,6 +30,8 @@
 #include "OrkBase.h"
 #include "dll.h"
 
+#define NANOSLEEP(sec,nsec) { struct timespec ts; ts.tv_sec = sec; ts.tv_nsec = nsec; ACE_OS::nanosleep(&ts, NULL);}
+
 //============================================
 // String related stuff
 
@@ -76,12 +78,11 @@ inline CStdString IpToString(const struct in_addr& ip) {
 bool DLL_IMPORT_EXPORT_ORKBASE StringIsDigit(CStdString& string);
 bool DLL_IMPORT_EXPORT_ORKBASE StringIsPhoneNumber(CStdString& string);
 bool DLL_IMPORT_EXPORT_ORKBASE MatchesStringList(CStdString& string, std::list<CStdString>& stringList);
-CStdString DLL_IMPORT_EXPORT_ORKBASE GetHostFromAddressPair(CStdString& hostname);
-int DLL_IMPORT_EXPORT_ORKBASE GetPortFromAddressPair(CStdString& hostname);
 CStdString DLL_IMPORT_EXPORT_ORKBASE FormatDataSize(unsigned long int size);
 CStdString DLL_IMPORT_EXPORT_ORKBASE HexToString(const CStdString& hexInput);		//Only return digits
 CStdString DLL_IMPORT_EXPORT_ORKBASE IntUnixTsToString(int ts);
 void DLL_IMPORT_EXPORT_ORKBASE StringTokenizeToList(CStdString input, std::list<CStdString>& output);
+bool DLL_IMPORT_EXPORT_ORKBASE ChopToken(CStdString &token, CStdString separator, CStdString &s);
 
 //========================================================
 // file related stuff

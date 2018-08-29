@@ -336,7 +336,7 @@ void MainThread()
 		CapturePluginProxy::Singleton()->Run();
 	}
 
-	SocketStreamer::Initialize();
+	SocketStreamer::Initialize(CONFIG.m_socketStreamerTargets);
 
 	//ACE_Thread_Manager::instance ()->wait ();
 	while(!Daemon::Singleton()->IsStopping())
