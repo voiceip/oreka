@@ -13,6 +13,8 @@
 #ifndef __SOCKETSTREAMER_H__
 #define __SOCKETSTREAMER_H__ 1
 
+#define _WINSOCKAPI_            // prevents the inclusion of winsock.h
+
 #include "StdString.h"
 #include "OrkBase.h"
 #include "ace/INET_Addr.h"
