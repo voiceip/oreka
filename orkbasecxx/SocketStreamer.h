@@ -20,6 +20,7 @@
 #include "ace/INET_Addr.h"
 #include "ace/SOCK_Stream.h"
 #include <list>
+#include "LogManager.h"
 
 class SocketStreamerFactory;
 
@@ -28,7 +29,7 @@ public:
 	static void Initialize(std::list<CStdString>& targetList, SocketStreamerFactory *factory=NULL);
 
 protected:
-	SocketStreamer() {}
+	SocketStreamer(LoggerPtr log, CStdString threadName);
 	bool Connect();
 	void Close();
 	size_t Recv();
@@ -38,6 +39,8 @@ protected:
 
 	CStdString m_protocol;
 	CStdString m_logMsg;
+	CStdString m_threadName;
+	LoggerPtr m_log;
 
 	in_addr m_ip;
 	unsigned short m_port;
@@ -56,7 +59,7 @@ class SocketStreamerFactory
 {
 protected:
 	SocketStreamerFactory() {}
-    virtual SocketStreamer* Create() { return new SocketStreamer(); } 
+    virtual SocketStreamer* Create();
 	virtual bool Accepts(CStdString protocolName) { return (protocolName == ""); }
 
 	friend class SocketStreamer;

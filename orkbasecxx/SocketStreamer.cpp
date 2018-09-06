@@ -18,17 +18,24 @@
 #include "ace/SOCK_Connector.h"
 #include "ace/OS_NS_unistd.h"
 
-static LoggerPtr getLog() {
-	static LoggerPtr s_log = Logger::getLogger("socketstreamer");
-	return s_log;
+SocketStreamer* SocketStreamerFactory::Create()
+{
+	return new SocketStreamer(Logger::getLogger("socketstreamer"),"orka:sockstream");
+}
+
+SocketStreamer::SocketStreamer(LoggerPtr log, CStdString threadName) :
+	m_log(log),
+	m_threadName(threadName)
+{
+
 }
 
 void SocketStreamer::ThreadHandler(void *args)
 {
-	SetThreadName("orka:sockstream");
+	SocketStreamer* ssc = (SocketStreamer*) args;
+	SetThreadName(ssc->m_threadName);
 
 	CStdString logMsg;
-	SocketStreamer* ssc = (SocketStreamer*) args; 
 
 	CStdString params = ssc->m_logMsg;
 
@@ -43,7 +50,7 @@ void SocketStreamer::ThreadHandler(void *args)
 			lastLogTime = 0;
 			while (!ssc->Connect()) {
 				if (time(NULL) - lastLogTime > 60 ) {
-					FLOG_WARN(getLog(), "Couldn't connect to: %s error: %s", ipPort, CStdString(strerror(errno)));
+					FLOG_WARN(ssc->m_log, "Couldn't connect to: %s error: %s", ipPort, CStdString(strerror(errno)));
 					lastLogTime = time(NULL);
 				}
 				NANOSLEEP(2,0);
@@ -56,7 +63,7 @@ void SocketStreamer::ThreadHandler(void *args)
 		if(bytesRead <= 0)
 		{
 			CStdString errorString(bytesRead==0?"Remote host closed connection":strerror(errno));
-			FLOG_WARN(getLog(), "Connection to: %s closed. error :%s ", ipPort, errorString);
+			FLOG_WARN(ssc->m_log, "Connection to: %s closed. error :%s ", ipPort, errorString);
 			ssc->Close();
 			connected = false;
 			continue;
@@ -64,7 +71,7 @@ void SocketStreamer::ThreadHandler(void *args)
 
 		bytesSoFar += bytesRead;
 		if (time(NULL) - lastLogTime > 60 ) {
-			FLOG_INFO(getLog(),"Read %s from %s so far", FormatDataSize(bytesSoFar), ipPort);
+			FLOG_INFO(ssc->m_log,"Read %s from %s so far", FormatDataSize(bytesSoFar), ipPort);
 			lastLogTime = time(NULL);
 		}
 		NANOSLEEP(0,1);
@@ -155,7 +162,7 @@ void SocketStreamer::Initialize(std::list<CStdString>& targetList, SocketStreame
 			ss->m_logMsg.Format("protocol:%s",protocol);
 
 			if (!ss->Parse(target) || !ss->Spawn()) {
-				FLOG_ERROR(getLog(),"Target:%s - %s", *it, ss->m_logMsg);
+				FLOG_ERROR(ss->m_log,"Target:%s - %s", *it, ss->m_logMsg);
 				delete ss;
 			}
 		}
@@ -172,7 +179,7 @@ bool SocketStreamer::Spawn()
 		return false;
 	}
 #endif
-	FLOG_INFO(getLog(), "Successfully created thread (%s)", m_logMsg);
+	FLOG_INFO(m_log, "Successfully created thread (%s)", m_logMsg);
 	return true;
 }
 
