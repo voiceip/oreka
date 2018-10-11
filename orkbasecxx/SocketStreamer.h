@@ -21,8 +21,31 @@
 #include "ace/SOCK_Stream.h"
 #include <list>
 #include "LogManager.h"
+#include "shared_ptr.h"
 
 class SocketStreamerFactory;
+
+class CdrInfo {
+	public:
+	CdrInfo () :
+		m_duration(0)
+	{}
+
+	CStdString m_localParty;
+	CStdString m_remoteParty;
+	int m_duration;
+
+	virtual bool IsValid() { return false; }
+	virtual void Parse(const char *buf, size_t len) {}
+
+	virtual CStdString ToString() {
+		CStdString s;
+		s.Format("localparty:%s remoteparty:%s duration:%d ", m_localParty, m_remoteParty, m_duration);
+		return s;
+	}
+};
+typedef oreka::shared_ptr<CdrInfo> CdrInfoRef;
+
 
 class DLL_IMPORT_EXPORT_ORKBASE SocketStreamer {
 public:
@@ -64,5 +87,23 @@ protected:
 
 	friend class SocketStreamer;
 };
+
+#define DEFINE_CDR(CdrType,LoggerName) \
+static std::list<CdrType>& getList() { static std::list<CdrType> list; return list; }  \
+static ACE_Thread_Mutex& getMutex() { static ACE_Thread_Mutex m; return m; } \
+static LoggerPtr getLog() { static LoggerPtr s_log = Logger::getLogger(LoggerName); return s_log; } \
+static void SaveCdr(CdrType info) \
+{ \
+	CStdString logMsg; \
+	if ( info->IsValid() ) { \
+		MutexSentinel ms(getMutex()); \
+		getList().push_back(info); \
+		unsigned int sz = getList().size(); \
+		FLOG_INFO(getLog(),"Saving : %s . new list size = %u",info->ToString(),sz); \
+	} \
+	else { \
+		FLOG_INFO(getLog(),"Discarding : %s",info->ToString()); \
+	} \
+}
 
 #endif
