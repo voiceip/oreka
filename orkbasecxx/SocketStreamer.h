@@ -78,7 +78,7 @@ private:
 	bool Spawn();
 };
 
-class SocketStreamerFactory
+class DLL_IMPORT_EXPORT_ORKBASE SocketStreamerFactory
 {
 protected:
 	SocketStreamerFactory() {}
