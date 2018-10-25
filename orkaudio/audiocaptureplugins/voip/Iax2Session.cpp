@@ -21,7 +21,6 @@
 #include <list>
 #include "ConfigManager.h"
 #include "VoIpConfig.h"
-#include "ace/OS_NS_arpa_inet.h"
 
 extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;
@@ -93,16 +92,12 @@ void Iax2Session::Start()
 
 void Iax2Session::GenerateOrkUid()
 {
-	struct tm date = {0};
-	int month, year;
+	apr_time_exp_t texp;
+   	apr_time_exp_lt(&texp, m_beginDate*1000*1000);
+	int month = texp.tm_mon + 1;				// january=0, decembre=11
+	int year = texp.tm_year + 1900;
 
-	ACE_OS::localtime_r(&m_beginDate, &date);
-
-	month = date.tm_mon + 1;
-	year = date.tm_year + 1900;
-
-	m_orkUid.Format("%.4d%.2d%.2d_%.2d%.2d%.2d_%s", year, month, date.tm_mday,
-			date.tm_hour, date.tm_min, date.tm_sec, m_trackingId);
+	m_orkUid.Format("%.4d%.2d%.2d_%.2d%.2d%.2d_%s", year, month, texp.tm_mday,texp.tm_hour, texp.tm_min, texp.tm_sec, m_trackingId);
 }
 
 /* We index with the invitor because the invitor is the first party
@@ -113,7 +108,7 @@ void Iax2Session::ProcessMetadataIax2Incoming()
 {
 	char szNewSrcIp[16];
 
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_invitorIp, szNewSrcIp, sizeof(szNewSrcIp));
+	inet_ntopV4(AF_INET, (void*)&m_invitorIp, szNewSrcIp, sizeof(szNewSrcIp));
 
 	m_remoteParty = m_new->m_caller;
 	m_localParty = (m_new->m_localExtension.size() ? m_new->m_localExtension : m_new->m_callee);
@@ -132,7 +127,7 @@ void Iax2Session::ProcessMetadataIax2Outgoing()
 {
 	char szNewSrcIp[16];
 
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_invitorIp, szNewSrcIp, sizeof(szNewSrcIp));
+	inet_ntopV4(AF_INET, (void*)&m_invitorIp, szNewSrcIp, sizeof(szNewSrcIp));
 	m_remoteParty = m_new->m_callee;
 	m_localParty = (m_new->m_localExtension.size() ? m_new->m_localExtension : m_new->m_caller);
 	m_localEntryPoint = (m_new->m_localExtension.size() ? m_new->m_caller : "");
@@ -210,7 +205,7 @@ void Iax2Session::UpdateMetadataIax2(Iax2PacketInfoRef& iax2Packet, bool sourceI
 
 		// Report Local IP
 		char szLocalIp[16];
-		ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+		inet_ntopV4(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
 		event.reset(new CaptureEvent());
 		event->m_type = CaptureEvent::EtLocalIp;
 		event->m_value = szLocalIp;
@@ -268,8 +263,8 @@ void Iax2Session::ReportMetadata()
 {
 	char szLocalIp[16], szRemoteIp[16];
 
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_remoteIp, szRemoteIp, sizeof(szRemoteIp));
+	inet_ntopV4(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+	inet_ntopV4(AF_INET, (void*)&m_remoteIp, szRemoteIp, sizeof(szRemoteIp));
 
 	// Make sure Local Party is always reported
 	if(m_localParty.IsEmpty()) {
@@ -648,7 +643,7 @@ void Iax2Session::ReportIax2New(Iax2NewInfoRef& invite)
 	if(m_new.get() == NULL) {
 	        char szFromIax2Ip[16];
 
-	        ACE_OS::inet_ntop(AF_INET, (void*)&invite->m_senderIp, szFromIax2Ip, sizeof(szFromIax2Ip));
+	        inet_ntopV4(AF_INET, (void*)&invite->m_senderIp, szFromIax2Ip, sizeof(szFromIax2Ip));
 
 		m_new = invite;
 		m_invitorIp = invite->m_senderIp;
@@ -686,8 +681,8 @@ void Iax2Sessions::ReportIax2Accept(Iax2AcceptInfoRef& acceptinfo)
         Iax2SessionRef session;
 
         /* Assumption is that the receiver is the invitor */
-        ACE_OS::inet_ntop(AF_INET, (void*)&acceptinfo->m_receiverIp, invitor_ip, sizeof(invitor_ip));
-        ACE_OS::inet_ntop(AF_INET, (void*)&acceptinfo->m_senderIp, invitee_ip, sizeof(invitee_ip));
+        inet_ntopV4(AF_INET, (void*)&acceptinfo->m_receiverIp, invitor_ip, sizeof(invitor_ip));
+        inet_ntopV4(AF_INET, (void*)&acceptinfo->m_senderIp, invitee_ip, sizeof(invitee_ip));
         srcIpAndCallNo = CStdString(invitor_ip) + "," + acceptinfo->m_receiver_callno;
         destIpAndCallNo = CStdString(invitee_ip) + "," + acceptinfo->m_sender_callno;
 
@@ -749,8 +744,8 @@ void Iax2Sessions::ReportIax2Authreq(Iax2AuthreqInfoRef& authreq)
 	Iax2SessionRef session;
 
 	/* Assumption is that the receiver is the invitor */
-	ACE_OS::inet_ntop(AF_INET, (void*)&authreq->m_receiverIp, invitor_ip, sizeof(invitor_ip));
-	ACE_OS::inet_ntop(AF_INET, (void*)&authreq->m_senderIp, invitee_ip, sizeof(invitee_ip));
+	inet_ntopV4(AF_INET, (void*)&authreq->m_receiverIp, invitor_ip, sizeof(invitor_ip));
+	inet_ntopV4(AF_INET, (void*)&authreq->m_senderIp, invitee_ip, sizeof(invitee_ip));
 	srcIpAndCallNo = CStdString(invitor_ip) + "," + authreq->m_receiver_callno;
 	destIpAndCallNo = CStdString(invitee_ip) + "," + authreq->m_sender_callno;
 
@@ -787,7 +782,7 @@ void Iax2Sessions::ReportIax2New(Iax2NewInfoRef& invite)
 	char szFromIax2Ip[16];
 	std::map<CStdString, Iax2SessionRef>::iterator pair;
 
-	ACE_OS::inet_ntop(AF_INET, (void*)&invite->m_senderIp, szFromIax2Ip, sizeof(szFromIax2Ip));
+	inet_ntopV4(AF_INET, (void*)&invite->m_senderIp, szFromIax2Ip, sizeof(szFromIax2Ip));
 	CStdString IpAndCallNo = CStdString(szFromIax2Ip) + "," + invite->m_callNo;
 
 	pair = m_bySrcIpAndCallNo.find(IpAndCallNo);
@@ -839,8 +834,8 @@ void Iax2Sessions::ReportIax2Hangup(Iax2HangupInfoRef& bye)
         char sender_ip[16], receiver_ip[16];
         Iax2SessionRef session;
 
-        ACE_OS::inet_ntop(AF_INET, (void*)&bye->m_receiverIp, receiver_ip, sizeof(receiver_ip));
-        ACE_OS::inet_ntop(AF_INET, (void*)&bye->m_senderIp, sender_ip, sizeof(sender_ip));
+        inet_ntopV4(AF_INET, (void*)&bye->m_receiverIp, receiver_ip, sizeof(receiver_ip));
+        inet_ntopV4(AF_INET, (void*)&bye->m_senderIp, sender_ip, sizeof(sender_ip));
         receiverIpAndCallNo = CStdString(receiver_ip) + "," + bye->m_receiver_callno;
         senderIpAndCallNo = CStdString(sender_ip) + "," + bye->m_sender_callno;
 
@@ -925,7 +920,7 @@ bool Iax2Sessions::ReportIax2Packet(Iax2PacketInfoRef& iax2Packet)
 	 * refers to the machine to whom the "NEW" was sent.  There is no chance
 	 * that there could be a duplicate */
 
-	ACE_OS::inet_ntop(AF_INET, (void*)&iax2Packet->m_sourceIp, szSourceIp,
+	inet_ntopV4(AF_INET, (void*)&iax2Packet->m_sourceIp, szSourceIp,
 			  sizeof(szSourceIp));
 	sourcecallno = IntToString(iax2Packet->m_sourcecallno);
 
@@ -1033,8 +1028,8 @@ void Iax2NewInfo::ToString(CStdString& string)
 {
 	char senderIp[16], receiverIp[16];
 
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp,
+	inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+	inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp,
 			sizeof(receiverIp));
 
 	string.Format("sender:%s receiver: %s caller:%s callee:%s srccallno: %s callername:%s localextension:%s",
@@ -1052,8 +1047,8 @@ void Iax2AuthreqInfo::ToString(CStdString& string)
 {
         char senderIp[16], receiverIp[16];
 
-        ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-        ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp,
+        inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+        inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp,
                         sizeof(receiverIp));
 
 	string.Format("sender:%s receiver:%s sender_callno:%s receiver_callno:%s",
@@ -1071,8 +1066,8 @@ void Iax2AcceptInfo::ToString(CStdString& string)
 {
         char senderIp[16], receiverIp[16];
 
-        ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-        ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp,
+        inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+        inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp,
                         sizeof(receiverIp));
 
         string.Format("sender:%s receiver:%s sender_callno:%s receiver_callno:%s",
@@ -1090,8 +1085,8 @@ void Iax2HangupInfo::ToString(CStdString& string)
 {
         char senderIp[16], receiverIp[16];
 
-        ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-        ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp,
+        inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+        inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp,
                         sizeof(receiverIp));
 
         string.Format("sender:%s receiver:%s sender_callno:%s receiver_callno:%s",
@@ -1107,8 +1102,8 @@ void Iax2PacketInfo::ToString(CStdString& string)
 {
 	char senderIp[16], receiverIp[16];
 
-        ACE_OS::inet_ntop(AF_INET, (void*)&m_sourceIp, senderIp, sizeof(senderIp));
-        ACE_OS::inet_ntop(AF_INET, (void*)&m_destIp, receiverIp,
+        inet_ntopV4(AF_INET, (void*)&m_sourceIp, senderIp, sizeof(senderIp));
+        inet_ntopV4(AF_INET, (void*)&m_destIp, receiverIp,
                         sizeof(receiverIp));
 
 	string.Format("sender:%s receiver:%s sender_callno:%d receiver_callno:%d "

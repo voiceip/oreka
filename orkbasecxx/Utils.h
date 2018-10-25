@@ -14,27 +14,188 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
-#include <list>
-#include <sys/stat.h>
+#define APR_DECLARE_STATIC
+#define APU_DECLARE_STATIC
+#define _WINSOCKAPI_ 
+//#define WIN32_LEAN_AND_MEAN
+#ifndef WIN32
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <pwd.h>
+#include <grp.h>
+#include <netdb.h>
+#include <unistd.h>
+#endif 
+#ifdef WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <Windows.h>
+//#include "winsock2.h"
+#endif
 
-#include "ace/Guard_T.h"	// For some reason, this include must always come before the StdString include
-							// otherwise it gives the following compile error:
-							//	error C2039: 'TryEnterCriticalSection' : is not a member of '`global namespace''
-							// If seeing this error somewhere, the remedy is to #include "Utils.h" first
-#include "ace/Thread_Mutex.h"
-#include "ace/OS_NS_stdlib.h"
-#include "ace/OS_NS_time.h"
-#include "ace/OS_NS_arpa_inet.h"
+#include <list>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include "StdString.h"
 
 #include "OrkBase.h"
 #include "dll.h"
 
-#define NANOSLEEP(sec,nsec) { struct timespec ts; ts.tv_sec = sec; ts.tv_nsec = nsec; ACE_OS::nanosleep(&ts, NULL);}
+#include <thread>
+#include <chrono>
+#include <memory>
+#include <mutex>
+#include <atomic>
+#include <condition_variable>
+#include <exception>
+#include <stdexcept>
+#include "apr_network_io.h"
+#include "apr_errno.h"
+#include "apr_general.h"
+#include "apr_file_io.h"
+#include "apr_file_info.h"
+#include "apr_errno.h"
+#include "apr_strings.h"
+#include "apr_dso.h"
+#include "apr_env.h"
+#include "apr_portable.h"
+#include "apr_support.h"
+#include "openssl/ssl.h"
+#include "openssl/bio.h"
+#include "openssl/err.h"
+
+
 
 //============================================
-// String related stuff
 
+template <class T> class OrkSingleton
+{
+public:
+    static T* GetInstance(){
+        if(m_instance.load() == NULL){
+            std::lock_guard<std::mutex> lg(m_singleLock);
+            if(m_instance.load() == NULL){
+                m_instance = new T();
+            }
+        }
+        return m_instance;
+    }
+	//instance() is used to match with old ACE singleton instance() to avoid change everywhere singleton called
+	static T* instance(){return GetInstance();}
+    
+protected:
+    static std::atomic<T*> m_instance;
+	static std::mutex m_singleLock;
+ //   OrkSingleton(){
+    ~OrkSingleton(){};
+    
+};
+template<class T> std::mutex OrkSingleton<T>::m_singleLock;
+template<class T> std::atomic<T*> OrkSingleton<T>::m_instance(NULL);
+
+//============================================
+class DLL_IMPORT_EXPORT_ORKBASE OrkSemaphore {
+public:
+    OrkSemaphore() : m_count(1){}
+	OrkSemaphore(int count) : m_count(count){}
+	inline void release()	
+    {
+		std::unique_lock<std::mutex> lock(m_mtx);
+		m_count++;
+		m_cv.notify_one();
+    }
+    inline void acquire()	
+    {
+		std::unique_lock<std::mutex> lock(m_mtx);
+		m_cv.wait(lock,[&]{return (m_count > 0);});
+		
+		m_count--;   
+    }
+	inline void acquire(int timeoutMs)
+	{
+		auto now = std::chrono::steady_clock::now();
+		std::unique_lock<std::mutex> lock(m_mtx);
+		m_cv.wait_until(lock, now + std::chrono::milliseconds(timeoutMs), [&]{return (m_count > 0);});
+		if(m_count > 0){
+			m_count--;
+		}
+	}	
+private:
+    std::mutex m_mtx;
+    std::condition_variable m_cv;
+    int m_count;
+};
+
+//OrkAprSingleton and OrkOpenSslSingleton need to Initialize() in main thread's main()
+//============================================
+class DLL_IMPORT_EXPORT_ORKBASE OrkAprSingleton
+{
+public:
+	static void Initialize();
+    ~OrkAprSingleton();
+    //static std::shared_ptr<OrkAprSingleton> GetInstance();
+    static OrkAprSingleton* GetInstance();
+    apr_pool_t* GetAprMp();
+private:
+    //static std::shared_ptr<OrkAprSingleton> instance;
+    static OrkAprSingleton* m_instance;
+    OrkAprSingleton();
+    static apr_pool_t* m_aprMp;
+	static std::mutex aprLock;    
+};
+
+class OrkAprSubPool
+{
+public:
+	// N.B. this transfers ownership of the pool
+	// when OrkAprSubPool passes out of scope, everything on it
+	// will be destroyed, so make sure that nothing on it has a lifetime
+	// exceeding OrkAprSubPool
+	OrkAprSubPool(apr_pool_t *pool)
+	{
+		m_aprPool = pool;
+	}
+	OrkAprSubPool()
+	{
+		apr_status_t rc = apr_pool_create(&m_aprPool, OrkAprSingleton::GetInstance()->GetAprMp());
+		assert(rc == APR_SUCCESS);
+	}
+	~OrkAprSubPool() { apr_pool_destroy(m_aprPool);}
+	apr_pool_t *GetAprPool() { return m_aprPool; }
+private:
+	apr_pool_t *m_aprPool;
+};
+#define AprLp locPool.GetAprPool()
+
+//==========================================================
+class DLL_IMPORT_EXPORT_ORKBASE OrkOpenSslSingleton : public OrkSingleton<OrkOpenSslSingleton>
+{
+public:
+	OrkOpenSslSingleton();
+	~OrkOpenSslSingleton();
+	SSL_CTX* GetServerCtx();
+	SSL_CTX* GetClientCtx();
+private:
+	void SslInitialize();
+	void CreateCTXServer();
+	void CreateCTXClient();
+	void ConfigureServerCtx();
+	void ConfigureClientCtx();
+	SSL_CTX* m_serverCtx;
+	SSL_CTX* m_clientCtx;	
+};
+
+DLL_IMPORT_EXPORT_ORKBASE const char* inet_ntopV4(int inet, void *srcAddr, char *dst, size_t size);  //AF_INET
+int DLL_IMPORT_EXPORT_ORKBASE inet_pton4(const char *src, struct in_addr* dstAddr);
+//============================================
+// String related stuff
+#if defined (WIN32) || defined(WIN64)
+#define strncasecmp _strnicmp
+#define getpid _getpid
+#endif 
 inline  CStdString IntToString(int integer)
 {
 	CStdString ret;
@@ -71,7 +232,7 @@ inline double StringToDouble(CStdString& value)
 
 inline CStdString IpToString(const struct in_addr& ip) {
 	char s[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&ip, s, sizeof(s));
+	inet_ntopV4(AF_INET, (void*)&ip, s, sizeof(s));
 	return CStdString(s);
 }
 
@@ -83,6 +244,13 @@ CStdString DLL_IMPORT_EXPORT_ORKBASE HexToString(const CStdString& hexInput);		/
 CStdString DLL_IMPORT_EXPORT_ORKBASE IntUnixTsToString(int ts);
 void DLL_IMPORT_EXPORT_ORKBASE StringTokenizeToList(CStdString input, std::list<CStdString>& output);
 bool DLL_IMPORT_EXPORT_ORKBASE ChopToken(CStdString &token, CStdString separator, CStdString &s);
+
+void DLL_IMPORT_EXPORT_ORKBASE OrkSleepSec(unsigned int sec);
+void DLL_IMPORT_EXPORT_ORKBASE OrkSleepMs(unsigned int msec);
+void DLL_IMPORT_EXPORT_ORKBASE OrkSleepMicrSec(unsigned int microsec);
+void DLL_IMPORT_EXPORT_ORKBASE OrkSleepNs(unsigned int nsec);
+int DLL_IMPORT_EXPORT_ORKBASE ork_vsnprintf(char *buf, apr_size_t len, const char *format, ...);
+CStdString DLL_IMPORT_EXPORT_ORKBASE AprGetErrorMsg(apr_status_t ret);
 
 //========================================================
 // file related stuff
@@ -101,14 +269,27 @@ int DLL_IMPORT_EXPORT_ORKBASE FileSizeInKb(CStdString fileName);	//return file's
 //===========================================================
 int DLL_IMPORT_EXPORT_ORKBASE GetOrekaRtpPayloadTypeForSdpRtpMap(CStdString sdp);
 
-//=====================================================
 // threading related stuff
-
-typedef ACE_Guard<ACE_Thread_Mutex> MutexSentinel;
-
+typedef std::lock_guard<std::mutex> MutexSentinel;
 
 //=====================================================
 // Network related stuff
+
+//We should set the apr_socket_t timeout to minimum, i.e 100ms before using OrkRecv_n or OrkSend_n
+//The small socket timeout will minimize the delay of Ork's timeout, i.e max at timeoutMs + 100ms
+
+int DLL_IMPORT_EXPORT_ORKBASE OrkAprSocketWait(apr_socket_t *sock, int direction); 	//1:read 0:write
+int DLL_IMPORT_EXPORT_ORKBASE OrkRecv_n(apr_socket_t* socket, char* buf, int len, int64_t timeoutMs, int &lenRead);
+int DLL_IMPORT_EXPORT_ORKBASE OrkSend_n(apr_socket_t* socket, const char* buf, int len, int64_t timeoutMs, int &lenSent);
+int DLL_IMPORT_EXPORT_ORKBASE SSL_writev (SSL *ssl, const struct iovec *vector, int count);
+int DLL_IMPORT_EXPORT_ORKBASE OrkSsl_Accept(SSL* ssl, int timeoutMs, CStdString &errstr);
+int DLL_IMPORT_EXPORT_ORKBASE OrkSsl_Connect(SSL* ssl, int timeoutMs, CStdString &errstr);
+int DLL_IMPORT_EXPORT_ORKBASE OrkSslRead(apr_socket_t* sock, SSL* ssl, char* buf, int len);
+void DLL_IMPORT_EXPORT_ORKBASE OrkSslRead_n(apr_socket_t* sock, SSL* ssl, char* buf, int len, int64_t timeoutMs, int &lenRead);
+int DLL_IMPORT_EXPORT_ORKBASE OrkSslWrite(apr_socket_t* sock, SSL* ssl, const char* buf, int len);
+void DLL_IMPORT_EXPORT_ORKBASE OrkSslWrite_n(apr_socket_t* sock, SSL* ssl, const char* buf, int len, int64_t timeoutMs, int &lenWritten);
+int DLL_IMPORT_EXPORT_ORKBASE OrkGetHostname(char *name, int len);
+#define ORKMAXHOSTLEN 256
 typedef struct 
 {
 	void ToString(CStdString& string);
@@ -162,7 +343,7 @@ public:
 		else
 		{
 			// Generate pseudo-random number from high resolution time least significant two bytes
-			ACE_hrtime_t hrtime = ACE_OS::gethrtime();
+			apr_time_t hrtime = apr_time_now();
 			unsigned short srandom = (short)hrtime;
 			double drandom = (double)srandom/65536.0; 	// 0 <= random < 1 
 
@@ -212,5 +393,74 @@ inline void SetThreadName(const char *name)
 	pthread_setname_np(pthread_self(),threadname);
 }
 #endif
+class DLL_IMPORT_EXPORT_ORKBASE OrkTimeValue
+{
+public:
+	OrkTimeValue(){
+		timeVal = apr_time_now();
+	}
+	OrkTimeValue(apr_time_t sec, apr_time_t usec){
+        timeVal = sec*1000*1000 + usec;
+    }
+	OrkTimeValue(apr_time_t us){
+        timeVal = us;
+    }
+    OrkTimeValue operator=(const OrkTimeValue other){
+        timeVal = other.timeVal;
+		return OrkTimeValue(timeVal);
+    }
+    OrkTimeValue operator+(const OrkTimeValue other){
+        apr_time_t timeV = timeVal + other.timeVal;
+        return OrkTimeValue(timeV);
+    }
+    OrkTimeValue operator-(const OrkTimeValue other){
+        apr_time_t timeV = timeVal - other.timeVal;
+        return OrkTimeValue(timeV);
+    }
+    bool operator<(const OrkTimeValue other){
+        if(other.timeVal < timeVal) return false;
+        else return true;
+    }
+    bool operator>(const OrkTimeValue other){
+        if(other.timeVal < timeVal) return true;
+        else return false;
+    }
+    bool operator==(const OrkTimeValue other){
+        if(other.timeVal == timeVal) return true;
+        else return false;
+    }
+    bool operator!=(const OrkTimeValue other){
+        if(other.timeVal != timeVal) return true;
+        else return false;
+    }
+    bool operator>=(const OrkTimeValue other){
+        if(other.timeVal <= timeVal) return true;
+        else return false;
+    }
+    bool operator<=(const OrkTimeValue other){
+        if(other.timeVal >= timeVal) return true;
+        else return false;
+    }
+    void SetTimeValue(apr_time_t sec, apr_time_t usec){
+        timeVal = sec*1000*1000 + usec;
+    }
+	apr_time_t sec(){
+		return timeVal/(1000*1000);
+	}
+	apr_time_t usec(){
+		return timeVal;
+	}
+	apr_time_t msec(){
+		return timeVal/1000;
+	}
+	void GetTimeNow(){
+		timeVal = apr_time_now();
+
+	}
+private:
+	apr_time_t timeVal;
+
+};
+
 #endif
 

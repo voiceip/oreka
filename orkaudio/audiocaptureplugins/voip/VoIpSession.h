@@ -17,8 +17,6 @@
 #include <log4cxx/logger.h>
 #include "Rtp.h"
 #include <map>
-#include "ace/OS_NS_sys_time.h"
-#include "ace/Singleton.h"
 #include "PacketHeaderDefs.h"
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -113,7 +111,7 @@ public:
 	struct in_addr m_rtpIp;	// IP address of one side of the RTP session
 	CStdString m_callId;
 	SipInviteInfoRef m_invite;
-	ACE_Time_Value m_creationDate;		// When the session is first created
+	OrkTimeValue m_creationDate;		// When the session is first created
 	time_t m_lastUpdated;
 	time_t m_lastKeepAlive;
 	ProtocolEnum m_protocol;
@@ -142,8 +140,8 @@ public:
 	struct in_addr m_endPointIp;		// only used for Skinny
 	unsigned short m_endPointSignallingPort;	// so far only used for Skinny
 	int m_skinnyPassThruPartyId;
-	ACE_Time_Value m_sipLastInvite;
-	ACE_Time_Value m_skinnyLastCallInfoTime;
+	OrkTimeValue m_sipLastInvite;
+	OrkTimeValue m_skinnyLastCallInfoTime;
 	int m_skinnyLineInstance;
 	bool m_onHold;
 	bool m_keepRtp;
@@ -207,7 +205,7 @@ private:
 typedef oreka::shared_ptr<VoIpSession> VoIpSessionRef;
 
 //===================================================================
-class VoIpSessions
+class VoIpSessions: public OrkSingleton<VoIpSessions>
 {
 public:
 	VoIpSessions();
@@ -293,7 +291,7 @@ private:
 };
 
 #ifdef TESTING
-	typedef ACE_Singleton<VoIpSessions, ACE_Thread_Mutex> TestVoIpSessionsSingleton;
+	#define TestVoIpSessionsSingleton VoIpSessions
 	class VoIpSessionsSingleton {
 		static VoIpSessions* voipSessions;
 		public:
@@ -303,7 +301,7 @@ private:
 		}
 	};
 #else
-	typedef ACE_Singleton<VoIpSessions, ACE_Thread_Mutex> VoIpSessionsSingleton;
+	#define VoIpSessionsSingleton VoIpSessions
 #endif
 
 #endif

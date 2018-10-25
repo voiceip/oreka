@@ -14,7 +14,6 @@
 #ifndef __AUDIOTAPE_H__
 #define __AUDIOTAPE_H__
 
-#include "ace/Thread_Mutex.h"
 #include "time.h"
 #include "StdString.h"
 #include "shared_ptr.h"
@@ -23,6 +22,7 @@
 #include "AudioCapture.h"
 #include "audiofile/AudioFile.h"
 #include "messages/TapeMsg.h"
+#include <mutex>
 
 class AudioDirectionMarks
 {
@@ -179,7 +179,7 @@ private:
 	std::queue<CaptureEventRef> m_toSendEventQueue;
 
 	AudioFileRef m_audioFileRef;
-	ACE_Thread_Mutex m_mutex;
+	std::mutex m_mutex;
 	bool m_shouldStop;
 	bool m_readyForBatchProcessing;
 	CStdString m_orkUid;

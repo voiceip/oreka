@@ -1,3 +1,10 @@
+
+#ifdef WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <Windows.h>
+//#include "winsock2.h"
+#endif
 #include "Win1251.h"
 
 #define D0_CYR_UTF_HEX 0xD090		// utf-8 hex correspond to first cyrillic char which has D0

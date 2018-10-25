@@ -10,9 +10,14 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
-
+#ifdef WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <Windows.h>
+//#include "winsock2.h"
+#endif
 #include "AudioFile.h"
-#include "ace/OS_NS_unistd.h"
+#include "Utils.h"
 
 AudioFile::AudioFile()
 {
@@ -27,7 +32,7 @@ void AudioFile::Open(fileOpenModeEnum mode, bool stereo , int sampleRate)
 void AudioFile::MoveOrig()
 {
 	CStdString newName = m_filename + ".orig";
-	if (ACE_OS::rename((PCSTR)m_filename, (PCSTR)newName) == 0)
+	if(std::rename((PCSTR)m_filename.c_str(), (PCSTR)newName.c_str()) == 0)
 	{
 		m_filename = newName;
 	}
@@ -39,7 +44,7 @@ void AudioFile::MoveOrig()
 
 void AudioFile::Delete()
 {
-	ACE_OS::unlink((PCSTR)m_filename);
+	std::remove((PCSTR)m_filename.c_str());
 }
 
 void AudioFile::SetFilename(CStdString& filename)

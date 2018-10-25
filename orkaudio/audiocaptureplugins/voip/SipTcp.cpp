@@ -1,15 +1,11 @@
+
+#ifdef WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <Windows.h>
+//#include "winsock2.h"
+#endif
 #include <list>
-#include "ace/OS_NS_unistd.h"
-#include "ace/OS_NS_string.h"
-#include "ace/OS_NS_strings.h"
-#include "ace/OS_NS_dirent.h"
-#include "ace/Singleton.h"
-#include "ace/Min_Max.h"
-#include "ace/OS_NS_arpa_inet.h"
-#include "ace/OS_NS_ctype.h"
-#include "ace/Thread_Manager.h"
-#include "ace/Thread_Mutex.h"
-#include "ace/Thread_Semaphore.h"
 #include "AudioCapturePlugin.h"
 #include "AudioCapturePluginCommon.h"
 #include "Utils.h"
@@ -106,7 +102,7 @@ static char* memFindAfter(const char* toFind, char* start, char* stop)
 {
         for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop - ptr - 1)))
         {
-                if(ACE_OS::strncasecmp(toFind, ptr, strlen(toFind)) == 0)
+                if(strncasecmp(toFind, ptr, strlen(toFind)) == 0)
                 {
                         return (ptr+strlen(toFind));
                 }
@@ -137,7 +133,7 @@ char* memFindStr(const char* toFind, char* start, char* stop)
 {
         for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memnchr(ptr+1, toFind[0],(stop - ptr - 1)))
         {
-                if(ACE_OS::strncasecmp(toFind, ptr, strlen(toFind)) == 0)
+                if(strncasecmp(toFind, ptr, strlen(toFind)) == 0)
                 {
                         return (ptr);
                 }
@@ -192,8 +188,8 @@ void SipTcpStream::ToString(CStdString& string)
 	memToHex((unsigned char *)&m_expectingSeqNo, sizeof(m_expectingSeqNo), expSeq);
 	memToHex((unsigned char *)&m_lastSeqNo, sizeof(m_lastSeqNo), lastSeq);
 
-        ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-        ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+        inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+        inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
 	//string.Format("sender:%s receiver:%s sender-port:%d receiver-port:%d entry-time:%d expecting-seq-no:%s total-bytes:%d last-seqno:%s [[[%s]]]", senderIp, receiverIp, m_senderPort, m_receiverPort, m_entryTime, expSeq, m_tcpBuffer->Size(), lastSeq, m_tcpBuffer->GetBuffer());
 	string.Format("sender:%s receiver:%s sender-port:%d receiver-port:%d entry-time:%d expecting-seq-no:%s total-bytes:%d last-seqno:%s", senderIp, receiverIp, m_senderPort, m_receiverPort, m_entryTime, expSeq, m_tcpBuffer->Size(), lastSeq);

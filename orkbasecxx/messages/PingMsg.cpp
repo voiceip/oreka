@@ -11,9 +11,7 @@
  *
  */
 
-#include "ace/INET_Addr.h"
-#include "ace/SOCK_Connector.h"
-#include "ace/SOCK_Stream.h"
+#include "Utils.h"
 #include "PingMsg.h"
 
 #define PING_CLASS "ping"
@@ -67,6 +65,8 @@ ObjectRef PingMsg::Process()
 TcpPingMsg::TcpPingMsg()
 {
 	m_port = 0;
+	apr_pool_create(&m_loc_pool, OrkAprSingleton::GetInstance()->GetAprMp());
+
 }
 
 
@@ -91,26 +91,34 @@ ObjectRef TcpPingMsg::NewInstance()
 
 ObjectRef TcpPingMsg::Process()
 {
+
 	bool success = true;
 	CStdString logMsg;
-	ACE_SOCK_Connector  connector;
-	ACE_SOCK_Stream peer;
-	ACE_INET_Addr peer_addr;
-	ACE_Time_Value aceTimeout (5);
-
-	if (peer_addr.set (m_port, (PCSTR)m_hostname) == -1)
+	apr_status_t rt;
+	apr_sockaddr_t* sa;
+	apr_socket_t* socket;
+	if ((rt = apr_sockaddr_info_get(&sa, (PCSTR)m_hostname, APR_INET, m_port, 0, m_loc_pool)) != APR_SUCCESS)
 	{
-		logMsg.Format("peer_addr.set()  errno=%d", errno);
-		success = false;
-	}
-	else if (connector.connect (peer, peer_addr, &aceTimeout) == -1)
-	{
-		if (errno == ETIME)
-		{
-		}
-		logMsg.Format("connector.connect()  errno=%d", errno);
+		logMsg.Format("apr_sockaddr_info_get failed: %s", AprGetErrorMsg(rt));
 		success =  false;
 	}
+	else if ((rt = apr_socket_create(&socket, sa->family, SOCK_STREAM, APR_PROTO_TCP, m_loc_pool)) != APR_SUCCESS)
+	{
+		logMsg.Format("apr_socket_create failed: %s", AprGetErrorMsg(rt));
+		success =  false;
+	}
+	else
+	{
+		apr_socket_opt_set(socket, APR_SO_NONBLOCK, 0);
+		apr_interval_time_t to = 5*1000*1000;
+		apr_socket_timeout_set(socket, to);
+		if((rt = apr_socket_connect(socket, sa)) != APR_SUCCESS)
+		{
+			logMsg.Format("apr_socket_connect failed: %s", AprGetErrorMsg(rt));
+			success =  false;
+		}
+	}
+
 
 	SimpleResponseMsg* msg = new SimpleResponseMsg;
 	ObjectRef ref(msg);

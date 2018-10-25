@@ -19,7 +19,6 @@
 
 #include "ConfigManager.h"
 #include "DirectionSelector.h"
-#include "ace/OS_NS_unistd.h"
 #include "audiofile/LibSndFileFile.h"
 #include "Daemon.h"
 #include "Filter.h"
@@ -47,10 +46,10 @@ void DirectionSelector::Initialize()
 DirectionSelector::DirectionSelector()
 {
 	m_threadCount = 0;
-	struct tm date = {0};
-	time_t now = time(NULL);
-	ACE_OS::localtime_r(&now, &date);
-	m_currentDay = date.tm_mday;
+	apr_time_t tn = apr_time_now();
+	apr_time_exp_t texp;
+   	apr_time_exp_lt(&texp, tn);
+	m_currentDay = texp.tm_mday;
 }
 
 CStdString __CDECL__ DirectionSelector::GetName()
@@ -157,13 +156,13 @@ void DirectionSelector::LoadAreaCodesMap()
 	return;
 }
 
-void DirectionSelector::ThreadHandler(void *args)
+void DirectionSelector::ThreadHandler()
 {
 	SetThreadName("orka:ds");
 
 	CStdString debug;
 	CStdString logMsg;
-
+	apr_status_t ret;
 	CStdString processorName("DirectionSelector");
 	TapeProcessorRef directionSelector = TapeProcessorRegistry::instance()->GetNewTapeProcessor(processorName);
 	if(directionSelector.get() == NULL)
@@ -265,8 +264,7 @@ void DirectionSelector::ThreadHandler(void *args)
 				//copy a temporary file for processing
 				audioTapeRef->SetExtension(tmpExt);
 				tmpFileName = audioTapeRef->m_audioOutputPath + "/"+ audioTapeRef->GetFilename();
-
-				if(ACE_OS::rename((PCSTR)origFileName, (PCSTR)tmpFileName) != 0){
+				if(std::rename((PCSTR)origFileName.c_str(), (PCSTR)tmpFileName.c_str()) != 0){
 					LOG4CXX_ERROR(LOG.directionSelectorLog, "Can not rename audio file for processing");
 				}
 
@@ -322,7 +320,7 @@ void DirectionSelector::ThreadHandler(void *args)
 				}
 				outFile->Close();
 
-				ACE_OS::unlink((PCSTR)tmpFileName);
+				std::remove((PCSTR)tmpFileName.c_str());
 				fileRef->Close();
 
 				audioTapeRef->SetExtension(mcfExt);		//return back to mcf ext

@@ -15,7 +15,7 @@
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
 #include "G721Codec.h"
-
+#include <cstring>
 G721CodecDecoder::G721CodecDecoder()
 {
 	// Initialize decoder

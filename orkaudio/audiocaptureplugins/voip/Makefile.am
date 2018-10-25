@@ -5,7 +5,7 @@ libvoip_la_SOURCES = VoIpConfig.cpp VoIp.cpp Rtp.cpp Iax2Session.cpp VoIpSession
 	SipParsers.cpp SkinnyParsers.cpp Iax2Parsers.cpp SipHeaders.cpp IpFragmentation.cpp ../common/DtmfHandling.cpp ../common/AcpConfig.cpp
 libvoip_la_LDFLAGS = -module
 AM_CPPFLAGS = -D_REENTRANT
-libvoip_la_LIBADD = -lACE -lxerces-c -llog4cxx -lorkbase -lpcap
-INCLUDES = -I@top_srcdir@ -I../../../orkbasecxx -I../common
+libvoip_la_LIBADD = -lxerces-c -llog4cxx -lorkbase -lpcap
+INCLUDES = -I@top_srcdir@ -I../../../orkbasecxx -I../common -I/usr/include/apr-1 -I/usr/include/apr-1.0
 AudioCapturePluginCommon.cpp:
 	ln -s ../common/AudioCapturePluginCommon.cpp AudioCapturePluginCommon.cpp

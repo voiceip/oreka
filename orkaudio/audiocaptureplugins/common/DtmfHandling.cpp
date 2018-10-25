@@ -143,15 +143,13 @@ void ReportDtmfDigit(OrkSession* ss, int channel, CStdString digitValue,  unsign
 	int rtpEvent = DtmfDigitToEnum(digitValue);
 	CStdString dtmfEventString, dtmfEventKey;
 
-	ACE_Time_Value timeNow;
-	ACE_Time_Value beginTime;
-	ACE_Time_Value timeDiff;
+	OrkTimeValue timeNow;
+	OrkTimeValue beginTime(ss->m_beginDate, 0);
+	OrkTimeValue timeDiff;
 	int msDiff = 0;
 
-	beginTime.set(ss->m_beginDate, 0);
-	timeNow = ACE_OS::gettimeofday();
 	timeDiff = timeNow - beginTime;
-	msDiff = (timeDiff.sec() * 1000) + (timeDiff.usec() / 1000);
+	msDiff = timeDiff.sec() * 1000;
 
 	if(CONFIG.m_dtmfReportingDetailed == true)
 	{

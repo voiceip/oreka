@@ -12,13 +12,6 @@
 #include <list>
 #include "Utils.h"
 #include <map>
-#include "ace/OS_NS_unistd.h"
-#include "ace/OS_NS_string.h"
-#include "ace/OS_NS_strings.h"
-#include "ace/OS_NS_dirent.h"
-#include "ace/Min_Max.h"
-#include "ace/OS_NS_arpa_inet.h"
-#include "ace/OS_NS_ctype.h"
 #include "PacketHeaderDefs.h"
 #include "Rtp.h"
 #include "VoIpSession.h"

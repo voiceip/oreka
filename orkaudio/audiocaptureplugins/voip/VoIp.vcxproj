@@ -114,7 +114,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>C:\DevExtVC12\winpcap\WpdPack\Include;../..;../../../OrkBaseCxx;C:\DevExtVC12\boost\boost_1_32_0;C:\DevExtVC12\ACE_wrappers;C:\DevExtVC12\xerces\src;../Common;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\src\main\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\DevExtVC12\winpcap\WpdPack\Include;../..;../../../OrkBaseCxx;C:\DevExtVC12\boost\boost_1_32_0;C:\DevExtVC12\ACE_wrappers;C:\DevExtVC12\xerces\src;../Common;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\src\main\include;C:\DevExtVC12\apr-1.6.3\apr\include;C:\DevExtVC12\apr-1.6.3\apr-util\include;C:\DevExtVC12\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SUPPORTS_CPP11;WIN32;NDEBUG;_WINDOWS;_USRDLL;VoIp_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -132,10 +132,10 @@
       <Culture>0x0809</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>packet.lib;wpcap.lib;wininet.lib;OrkBase.lib;ace.lib;log4cxx.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>packet.lib;wpcap.lib;wininet.lib;OrkBase.lib;log4cxx.lib;odbc32.lib;odbccp32.lib;aprutil-1.lib;apr-1.lib;Rpcrt4.lib;mswsock.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>.\ReleaseVC12\VoIp.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>C:\DevExtVC12\winpcap\WpdPack\Lib;../../../OrkBaseCxx/ReleaseVC12;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\projects\Release;C:\DevExtVC12\ACE_wrappers\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\DevExtVC12\winpcap\WpdPack\Lib;../../../OrkBaseCxx/ReleaseVC12;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\projects\Release;C:\DevExtVC12\apr-1.6.3\apr\LibR;C:\DevExtVC12\apr-1.6.3\apr-util\LibR;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>.\ReleaseVC12\VoIp.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
@@ -153,7 +153,7 @@
   <ItemGroup>
     <ClCompile Include="..\Common\AudioCapturePluginCommon.cpp" />
     <ClCompile Include="..\common\DtmfHandling.cpp" />
-	<ClCompile Include="..\common\AcpConfig.cpp" />
+    <ClCompile Include="..\common\AcpConfig.cpp" />
     <ClCompile Include="Iax2Parsers.cpp" />
     <ClCompile Include="Iax2Session.cpp" />
     <ClCompile Include="IpFragmentation.cpp" />

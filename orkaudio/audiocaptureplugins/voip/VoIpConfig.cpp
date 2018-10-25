@@ -16,7 +16,6 @@
 #include "Utils.h"
 #include "serializers/Serializer.h"
 #include "VoIpConfig.h"
-#include "ace/OS_NS_arpa_inet.h"
 
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 
@@ -304,7 +303,7 @@ void VoIpConfig::Validate()
 	for(it = m_asciiLanMasks.begin(); it != m_asciiLanMasks.end(); it++)
 	{
 		struct in_addr a;
-		if(ACE_OS::inet_aton((PCSTR)*it, &a))
+		if(inet_pton4((PCSTR)*it, &a))
 		{
 			m_lanMasks.push_back((unsigned int)a.s_addr);
 		}
@@ -319,7 +318,7 @@ void VoIpConfig::Validate()
 	for(it = m_asciiMediaGateways.begin(); it != m_asciiMediaGateways.end(); it++)
 	{
 		struct in_addr a;
-		if(ACE_OS::inet_aton((PCSTR)*it, &a))
+		if(inet_pton4((PCSTR)*it, &a))
 		{
 			m_mediaGateways.push_back((unsigned int)a.s_addr);
 		}
@@ -334,7 +333,7 @@ void VoIpConfig::Validate()
 	for(it = m_asciiRtpTrackUsingIpAddresses.begin(); it != m_asciiRtpTrackUsingIpAddresses.end(); it++)
 	{
 		struct in_addr a;
-		if(ACE_OS::inet_aton((PCSTR)*it, &a))
+		if(inet_pton4((PCSTR)*it, &a))
 		{
 			m_rtpTrackUsingIpAddresses.push_back((unsigned int)a.s_addr);
 		}
@@ -377,7 +376,7 @@ void VoIpConfig::Validate()
 			cidrIpAddressString = entry;
 		}
 
-		if(ACE_OS::inet_aton((PCSTR)cidrIpAddressString, &cidrIpAddress))
+		if(inet_pton4((PCSTR)cidrIpAddressString, &cidrIpAddress))
 		{
 			unsigned int rangeBitWidth = 32-cidrPrefixLength;
 			unsigned int prefix = ntohl((unsigned int)cidrIpAddress.s_addr) >> (rangeBitWidth);
@@ -424,7 +423,7 @@ void VoIpConfig::Validate()
 			cidrIpAddressString = entry;
 		}
 
-		if(ACE_OS::inet_aton((PCSTR)cidrIpAddressString, &cidrIpAddress))
+		if(inet_pton4((PCSTR)cidrIpAddressString, &cidrIpAddress))
 		{
 			unsigned int rangeBitWidth = 32-cidrPrefixLength;
 			unsigned int prefix = ntohl((unsigned int)cidrIpAddress.s_addr) >> (rangeBitWidth);

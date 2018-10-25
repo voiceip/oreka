@@ -13,6 +13,7 @@
 
 #include "DeleteTapeMsg.h"
 #include "messages/AsyncMessage.h"
+#include "Utils.h"
 
 #define DELETE_TAPE_CLASS "deletetape"
 
@@ -42,7 +43,7 @@ ObjectRef DeleteTapeMsg::Process()
 	// Check that the audio file to delete is actually an audio file
 	if(m_filename.Find('/') != -1 && (m_filename.Find(".pcm") != -1 || m_filename.Find(".wav") != -1 ))
 	{
-		if (ACE_OS::unlink((PCSTR)m_filename) == -1)
+		if(std::remove((PCSTR)m_filename.c_str()) != 0)
 		{
 			msg->m_success = false;
 			msg->m_comment = "could not delete file";

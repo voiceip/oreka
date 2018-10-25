@@ -13,12 +13,10 @@
 #ifndef __SOCKETSTREAMER_H__
 #define __SOCKETSTREAMER_H__ 1
 
-#define _WINSOCKAPI_            // prevents the inclusion of winsock.h
 
 #include "StdString.h"
 #include "OrkBase.h"
-#include "ace/INET_Addr.h"
-#include "ace/SOCK_Stream.h"
+#include "Utils.h"
 #include <list>
 #include "LogManager.h"
 #include "shared_ptr.h"
@@ -67,7 +65,6 @@ protected:
 
 	in_addr m_ip;
 	unsigned short m_port;
-	ACE_SOCK_Stream m_peer;
 	unsigned char m_buf[1024];
 	size_t m_bytesRead;
 	static void ThreadHandler(void *args);
@@ -75,6 +72,8 @@ protected:
 	friend class SocketStreamerFactory;
 
 private:
+	apr_pool_t* m_mp;
+	apr_socket_t* m_socket;
 	bool Spawn();
 };
 

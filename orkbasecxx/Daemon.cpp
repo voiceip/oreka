@@ -13,21 +13,22 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
-#include "ace/OS_NS_dirent.h"
 #include "Utils.h"
 #ifdef WIN32
 #include <windows.h>
 #include <tchar.h>
+#include <direct.h> 
 SERVICE_STATUS serviceStatus;
 SERVICE_STATUS_HANDLE serviceStatusHandle = 0;
 HANDLE stopServiceEvent = 0;
 #endif
-#include "ace/OS_NS_signal.h"
 #include "Daemon.h"
 
 void handle_signal(int sig_num)
 {
-        signal(SIGUSR1, handle_signal);
+#ifndef WIN32
+    signal(SIGUSR1, handle_signal);
+#endif
 	Daemon::Singleton()->Stop();
 }
 
@@ -120,6 +121,7 @@ void WINAPI Daemon::Run( DWORD /*argc*/, TCHAR* /*argv*/[] )
 void Daemon::Run()
 #endif
 {
+	OrkAprSubPool locPool;
 #ifdef WIN32
 	// initialise service status
 	serviceStatus.dwServiceType = SERVICE_WIN32;
@@ -158,12 +160,14 @@ void Daemon::Run()
 
 	char *loggingPath = NULL;
 	CStdString lockFile = CStdString("");
-
-	loggingPath = ACE_OS::getenv("ORKAUDIO_LOGGING_PATH");
-	if(loggingPath) {
-                ACE_DIR* dir = ACE_OS::opendir(loggingPath);
-                if(dir) {
-			ACE_OS::closedir(dir);
+	apr_status_t ret;
+	ret = apr_env_get(&loggingPath, "ORKAUDIO_LOGGING_PATH", AprLp);
+	if(ret == APR_SUCCESS) {
+		apr_dir_t* dir;
+		ret = apr_dir_open(&dir, loggingPath, AprLp);
+		if(ret == APR_SUCCESS)
+		{
+			apr_dir_close(dir);
 			lockFile.Format("%s/orkaudio.lock", loggingPath);
 		}
 	}

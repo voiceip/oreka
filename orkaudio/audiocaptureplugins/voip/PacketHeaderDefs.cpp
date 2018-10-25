@@ -1,3 +1,10 @@
+
+#ifdef WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <Windows.h>
+//#include "winsock2.h"
+#endif
 #include "PacketHeaderDefs.h"
 
 int SkinnyMessageToEnum(CStdString& msg)

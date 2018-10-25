@@ -11,7 +11,6 @@
  *
  */
 
-#include "ace/OS_NS_ctype.h"
 #include "Utils.h"
 #include "SingleLineSerializer.h"
 
@@ -56,7 +55,7 @@ void SingleLineSerializer::DeSerialize(CStdString& input)
 			{
 				;	// ignore spaces
 			}
-			else if ( ACE_OS::ace_isalnum(character) )
+			else if (isalnum(character) )
 			{
 				state = SingleLineKeyState;
 				key = character;
@@ -68,7 +67,7 @@ void SingleLineSerializer::DeSerialize(CStdString& input)
 			}
 			break;
 		case SingleLineKeyState:
-			if( ACE_OS::ace_isalnum(character) )
+			if(isalnum(character) )
 			{
 				key += character;
 			}

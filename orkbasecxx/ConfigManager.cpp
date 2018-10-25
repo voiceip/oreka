@@ -14,7 +14,6 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
-#include "ace/OS_NS_dirent.h"
 #include "Utils.h"
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/sax/ErrorHandler.hpp>
@@ -24,6 +23,7 @@
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 #include "serializers/DomSerializer.h"
 #include "ConfigManager.h"
+#include <fstream>
 
 #define CONFIG_FILE_NAME "config.xml"
 #define ETC_CONFIG_FILE_NAME "/etc/orkaudio/config.xml"
@@ -57,25 +57,26 @@ public:
 
 void ConfigManager::Initialize()
 {
+	OrkAprSubPool locPool;
+
 	bool failed = false;
 	m_configTopNode = NULL;
-
+	apr_status_t ret;
 	try
 	{
 		char* cfgFilename = NULL;
 		char* cfgEnvPath = "";
-		int cfgAlloc = 0;
-
-		cfgEnvPath = ACE_OS::getenv("ORKAUDIO_CONFIG_PATH");
-		if(cfgEnvPath) {
-			ACE_DIR* dir = ACE_OS::opendir(cfgEnvPath);
-			if(dir) {
+		int cfgAlloc = 0;		
+		ret = apr_env_get(&cfgEnvPath, "ORKAUDIO_CONFIG_PATH", AprLp);
+		if(ret == APR_SUCCESS) {
+			apr_dir_t* dir;
+			ret = apr_dir_open(&dir, cfgEnvPath, AprLp);
+			if(ret == APR_SUCCESS)
+			{
 				int len = 0;
-
-				ACE_OS::closedir(dir);
+				apr_dir_close(dir);
 				len = strlen(cfgEnvPath)+1+strlen(CONFIG_FILE_NAME)+1;
 				cfgFilename = (char*)malloc(len);
-
 				if(cfgFilename) {
 					cfgAlloc = 1;
 					snprintf(cfgFilename, len, "%s/%s", cfgEnvPath, CONFIG_FILE_NAME);
@@ -84,12 +85,13 @@ void ConfigManager::Initialize()
 		}
 
 		if(!cfgFilename) {
-			FILE* file = ACE_OS::fopen(CONFIG_FILE_NAME, "r");
-			if(file)
-			{
+			std::fstream file;
+			file.open(CONFIG_FILE_NAME, std::fstream::in);
+
+			if(file.is_open()){
 				// config.xml exists in the current directory
 				cfgFilename = (char*)CONFIG_FILE_NAME;
-				fclose(file);
+				file.close();
 			}
 			else
 			{

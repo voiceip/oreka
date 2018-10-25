@@ -10,12 +10,7 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
-
-#include "ace/OS_NS_stdio.h"
-#include "ace/OS_NS_stdlib.h"
-#include "ace/OS_NS_strings.h"
-#include "ace/OS_NS_ctype.h"
-
+#include "Utils.h"
 #include "MemUtils.h"
 
 // Convert a piece of memory to hex string
@@ -34,7 +29,7 @@ char* MemFindAfter(char* toFind, char* start, char* stop)
 {
 	for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop - start)))
 	{
-		if(ACE_OS::strncasecmp(toFind, ptr, strlen(toFind)) == 0)
+		if(strncasecmp(toFind, ptr, strlen(toFind)) == 0)
 		{
 			return (ptr+strlen(toFind));
 		}
@@ -69,14 +64,14 @@ void MemGrabAlphaNumToken(char * in, char* limit, CStdString& out)
 {
 	// Look for first alphanum character
 	char* start = in;
-	while (!ACE_OS::ace_isalnum(*start) && start<limit)
+	while (!isalnum(*start) && start<limit)
 	{
 		start++;
 	}
 
 	if(start != (limit -1))
 	{
-		for(char* c = start; ACE_OS::ace_isalnum(*c); c = c+1)
+		for(char* c = start; isalnum(*c); c = c+1)
 		{
 			out += *c;
 		}
@@ -110,7 +105,7 @@ void MemMacToHumanReadable(unsigned char* macAddress, CStdString&output)
 
 	for(int i=0; i<6; i++)
 	{
-		ACE_OS::snprintf(byteAsHex, sizeof(byteAsHex), "%.2x", macAddress[i]);
+		apr_snprintf(byteAsHex, sizeof(byteAsHex), "%.2x", macAddress[i]);
 		if(output.size())
 		{
 			output += ":";
@@ -124,14 +119,14 @@ char* MemGrabAlphaNumSpace(char* in, char* limit, CStdString& out)
 	// Look for first printable character
 	char* start = in;
 	char* c = NULL;
-	while (!ACE_OS::ace_isalnum(*start) && start<limit)
+	while (!isalnum(*start) && start<limit)
 	{
 		start++;
 	}
 
 	if(start < (limit -1))
 	{
-		for(c = start; (ACE_OS::ace_isalnum(*c) || ACE_OS::ace_isspace(*c)) && c<limit; c = c+1)
+		for(c = start; (isalnum(*c) || isspace(*c)) && c<limit; c = c+1)
 		{
 			out += *c;
 		}
@@ -147,14 +142,14 @@ char* MemGrabDigits(char* in, char* limit, CStdString& out)
 	// Look for first printable character
 	char* start = in;
 	char* c = NULL;
-	while (!ACE_OS::ace_isdigit(*start) && start<limit)
+	while (!isdigit(*start) && start<limit)
 	{
 		start++;
 	}
 
 	if(start < (limit -1))
 	{
-		for(c = start; ACE_OS::ace_isdigit(*c) && c<limit; c = c+1)
+		for(c = start; isdigit(*c) && c<limit; c = c+1)
 		{
 			out += *c;
 		}

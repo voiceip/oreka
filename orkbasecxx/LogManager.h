@@ -15,11 +15,11 @@
 #define __LOGMANAGER_H__
 
 #include <log4cxx/logger.h>
-#include "ace/Singleton.h"
 #include "dll.h"
 #include "OrkBase.h"
+#ifdef UNIT_TESTING
 #include "StdString.h"
-
+#endif
 using namespace log4cxx;
 
 

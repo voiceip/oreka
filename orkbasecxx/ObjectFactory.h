@@ -14,11 +14,10 @@
 #ifndef __OBJECTFACTORY_H__
 #define __OBJECTFACTORY_H__
 
-#include "ace/Thread_Mutex.h"
-#include "ace/Singleton.h"
 #include <map>
 #include "StdString.h"
 #include "Object.h"
+#include <mutex>
 
 /** The ObjectFactory can be used to instanciate Objects based on class name.
     All existing Objects must be registered to the ObjectFactory at startup.
@@ -38,7 +37,7 @@ private:
 	ObjectFactory();
 	static ObjectFactory* m_singleton;
 	std::map<CStdString, ObjectRef> m_classes;
-	ACE_Thread_Mutex m_mutex;
+	std::mutex m_mutex;
 };
 
 #endif

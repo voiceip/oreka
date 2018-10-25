@@ -19,7 +19,6 @@
 
 #include "ConfigManager.h"
 #include "CommandProcessing.h"
-#include "ace/OS_NS_unistd.h"
 #include "audiofile/LibSndFileFile.h"
 #include "Daemon.h"
 #include "Filter.h"
@@ -51,7 +50,6 @@ CommandProcessing::CommandProcessing()
 
 	struct tm date = {0};
 	time_t now = time(NULL);
-	ACE_OS::localtime_r(&now, &date);
 }
 
 CStdString __CDECL__ CommandProcessing::GetName()
@@ -80,13 +78,13 @@ void CommandProcessing::SetQueueSize(int size)
 
 #define QUEUE_SIZE 10000
 
-void CommandProcessing::ThreadHandler(void *args)
+void CommandProcessing::ThreadHandler()
 {
 	SetThreadName("orka:command");
 
 	CStdString debug;
 	CStdString logMsg;
-
+	apr_status_t ret;
 	
 	TapeProcessorRef commandProcessing = TapeProcessorRegistry::instance()->GetNewTapeProcessor(processorName);
 	if(commandProcessing.get() == NULL)
@@ -163,7 +161,7 @@ void CommandProcessing::ThreadHandler(void *args)
 				}
 #else
 				CStdString tmpName = audioFileName + ".tmp";
-				if(ACE_OS::rename((PCSTR)audioFileName, (PCSTR)tmpName) != 0)
+				if(std::rename((PCSTR)audioFileName.c_str(), (PCSTR)tmpName.c_str()) != 0)
 				{
 					logMsg.Format("Can not rename the audio file name for CommandProcessing");
 					audioTapeRef->m_isSuccessfulImported = false;
@@ -211,7 +209,7 @@ void CommandProcessing::ThreadHandler(void *args)
 						LOG4CXX_INFO(LOG.batchProcessingLog, command);
 					}
 					system(command);
-					ACE_OS::unlink((PCSTR)tmpName);
+					std::remove((PCSTR)tmpName.c_str());
 
 					CStdString fileNameWoExt, newFileName;
 					int lastDotPos;
@@ -222,7 +220,7 @@ void CommandProcessing::ThreadHandler(void *args)
 					}
 
 					newFileName = fileNameWoExt + "gsm.wav";		//This is final name of audiofile = convetional orkaudio name + original name + .gsm.wav ext
-					if(ACE_OS::rename((PCSTR)audioFileName, (PCSTR)newFileName) != 0)
+					if(std::rename((PCSTR)audioFileName.c_str(), (PCSTR)newFileName.c_str()) != 0)
 					{
 						audioTapeRef->m_isSuccessfulImported = false;
 						audioTapeRef->m_isDoneProcessed = true;

@@ -17,8 +17,8 @@
 #include "ThreadSafeQueue.h"
 #include "TapeProcessor.h"
 #include "AudioTape.h"
-#include "ace/Thread_Mutex.h"
 #include <map>
+#include <mutex>
 
 class  BatchProcessing;
 typedef oreka::shared_ptr<BatchProcessing> BatchProcessingRef;
@@ -36,7 +36,7 @@ public:
 	void __CDECL__ AddAudioTape(AudioTapeRef& audioTapeRef);
 
 
-	static void ThreadHandler(void *args);
+	static void ThreadHandler();
 	static bool SkipChunk(AudioTapeRef& audioTapeRef, AudioChunkRef& chunkRef, int& channelToSkip);
 
 	void SetQueueSize(int size);
@@ -48,7 +48,7 @@ private:
 	ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
 
 	size_t m_threadCount;
-	ACE_Thread_Mutex m_mutex;
+	std::mutex m_mutex;
 	int m_currentDay;
 };
 

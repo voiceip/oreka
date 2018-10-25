@@ -10,9 +10,12 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
-
-#include "ace/INET_Addr.h"
-#include "ace/OS_NS_string.h"
+#ifdef WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <Windows.h>
+//#include "winsock2.h"
+#endif
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/dom/DOMWriter.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
@@ -22,72 +25,114 @@
 #include "serializers/SingleLineSerializer.h"
 #include "serializers/DomSerializer.h"
 #include "serializers/UrlSerializer.h"
-#include "Utils.h"
 #include "MultiThreadedServer.h"
 #include "EventStreaming.h"
+#include "apr_portable.h"
 
 #if !defined(MSG_NOSIGNAL)
 #define MSG_NOSIGNAL 0
 #endif
 
 log4cxx::LoggerPtr CommandLineServer::s_log;
+log4cxx::LoggerPtr HttpServer::s_log;
 
-// This is run at the start of each connection
-int CommandLineServer::open (void *void_acceptor)
+CommandLineServer::CommandLineServer(int port)
 {
-	LOG4CXX_INFO(s_log, "new connection");
-	return this->activate (THR_DETACHED);
+	s_log = log4cxx::Logger::getLogger("interface.commandlineserver");
+	m_port = port;
+	OrkAprSingleton* orkAprsingle = OrkAprSingleton::GetInstance();
+	m_mp = orkAprsingle->GetAprMp();
+	
 }
 
-// This is run at program initialization
-void CommandLineServer::run(void* args)
+bool CommandLineServer::Initialize()
 {
-	SetThreadName("orka:cl");
+	apr_status_t ret;
 
-	s_log = log4cxx::Logger::getLogger("interface.commandlineserver");
 
-	unsigned short tcpPort = (unsigned short)(unsigned long)args;
-	//unsigned short tcpPort = (unsigned short)*(int*)args;
-
-	CommandLineAcceptor peer_acceptor;
-	ACE_INET_Addr addr (tcpPort);
-	ACE_Reactor reactor;
-	CStdString tcpPortString = IntToString(tcpPort);
-
-	if (peer_acceptor.open (addr, &reactor) == -1)
+    ret = apr_sockaddr_info_get(&m_sockAddr, NULL, APR_INET, m_port, 0, m_mp);
+    if(ret != APR_SUCCESS)
 	{
-		LOG4CXX_ERROR(s_log, CStdString("Failed to start command line server on port:") + tcpPortString + CStdString(" do you have another instance of orkaudio running?"));
+		LOG4CXX_ERROR(s_log, "Failed to get sockaddr for commandlineserver");
+		return false;
 	}
-	else
+    ret = apr_socket_create(&m_socket, m_sockAddr->family, SOCK_STREAM,APR_PROTO_TCP, m_mp);
+    if(ret != APR_SUCCESS)
 	{
-		LOG4CXX_INFO(s_log, CStdString("Started command line server on port:")+tcpPortString);
-		for(;;)
-		{
-			reactor.handle_events();
+		LOG4CXX_ERROR(s_log, "Failed to create a socket commandlineserver");
+		return false;
+	}
+    apr_socket_opt_set(m_socket, APR_SO_REUSEADDR, 1);
+	apr_socket_opt_set(m_socket, APR_SO_NONBLOCK, 0);
+	apr_socket_timeout_set(m_socket, -1);
+
+    ret = apr_socket_bind(m_socket, m_sockAddr);
+	if(ret != APR_SUCCESS)
+	{
+		LOG4CXX_ERROR(s_log, "Failed to bind commandlineserver socket");
+		return false;
+	}
+    ret = apr_socket_listen(m_socket, SOMAXCONN);
+	if(ret != APR_SUCCESS)
+	{
+		LOG4CXX_ERROR(s_log, "Failed to have a listening socket for commandlineserver");
+		return false;
+	}
+	CStdString tcpPortString = IntToString(m_port);
+    LOG4CXX_INFO(s_log, CStdString("Started CommandlineServer on port:")+tcpPortString);
+	return true;
+}
+
+void CommandLineServer::Run()
+{
+	while(true)
+	{
+		apr_status_t ret;
+		apr_socket_t* incomingSocket;
+        ret = apr_socket_accept(&incomingSocket, m_socket,m_mp);
+        if (ret != APR_SUCCESS) {
+            continue;
+        }
+ 		apr_socket_opt_set(incomingSocket, APR_SO_NONBLOCK, 0);
+        apr_interval_time_t timeout =  apr_time_from_sec(5);
+        apr_socket_timeout_set(incomingSocket, timeout);
+		try{
+        	std::thread handler(RoutineSvc, incomingSocket);
+        	handler.detach();
+		} catch(const std::exception &ex){
+			CStdString logMsg;
+			logMsg.Format("Failed to start CommandLineServer thread reason:%s",  ex.what());
+			LOG4CXX_ERROR(s_log, logMsg);
+			continue;
 		}
 	}
+
 }
 
-int CommandLineServer::svc(void)
+void CommandLineServer::RoutineSvc(apr_socket_t* sock)
 {
 	for (bool active = true;active == true;)
 	{
 		char buf[2048];
-		ACE_Time_Value timeout;
-		timeout.sec(3600);
 		int i = 0;
+		apr_status_t ret;
+		apr_size_t sentLen = 3;
 
 		// Display prompt
 		char prompt[] = "\r\n>";
-		peer().send(prompt, 3, MSG_NOSIGNAL);
-
+		ret = apr_socket_send(sock, prompt, &sentLen);
+		if(ret != APR_SUCCESS)
+		{
+			LOG4CXX_ERROR(s_log, "failed to send line terminated");
+			break;
+		}
 		// Get one command line
 		bool foundCRLF = false;
 		while(active && !foundCRLF && i<2040)
 		{
-			ssize_t size = peer().recv(buf+i, 2040-i, &timeout);
-
-			if (size == 0 || size == -1)
+			apr_size_t size = 2040-i;
+			ret = apr_socket_recv(sock, buf+i, &size);
+			if (size == 0 || size == -1 || ret != APR_SUCCESS)
 			{
 				active = false;
 			}
@@ -95,12 +140,13 @@ int CommandLineServer::svc(void)
 			{
 				for(int j=0; j<size && !foundCRLF;j++)
 				{
-                                        if (buf[i+j] < 32 || buf[i+j] > 126)
-                                        {
-                                                // detected a char that cannot be part of an URL
-                                                LOG4CXX_WARN(s_log, "detected command URL with invalid character(s), ignoring");
-                                                return 0;
-                                        }
+					if (buf[i+j] < 32 || buf[i+j] > 126)
+					{
+							// detected a char that cannot be part of an URL
+							LOG4CXX_WARN(s_log, "detected command URL with invalid character(s), ignoring");
+							apr_socket_close(sock);
+							return;
+					}
 					else if(buf[i+j] == '\r' || buf[i+j] == '\n')
 					{
 						foundCRLF = true;
@@ -115,17 +161,20 @@ int CommandLineServer::svc(void)
 								objRef->DeSerializeSingleLine(command);
 								ObjectRef response = objRef->Process();
 								CStdString responseString = response->SerializeSingleLine();
-								peer().send((PCSTR)responseString, responseString.GetLength(), MSG_NOSIGNAL);
+								apr_size_t leng = responseString.GetLength();
+								ret = apr_socket_send(sock, responseString, &leng);
 							}
 							else
 							{
 								CStdString error = "Unrecognized command";
-								peer().send(error, error.GetLength(), MSG_NOSIGNAL);							;
+								apr_size_t leng = error.GetLength();
+								ret = apr_socket_send(sock, error, &leng);							;
 							}
 						}
 						catch (CStdString& e)
-						{
-							peer().send(e, e.GetLength(), MSG_NOSIGNAL);							;
+						{	
+							apr_size_t leng = e.GetLength();
+							ret = apr_socket_send(sock, e, &leng);						;
 						}
 					}
 				}
@@ -133,274 +182,634 @@ int CommandLineServer::svc(void)
 			}
 		}
 	}
-	return 0;
+
+    apr_socket_close(sock);
 }
 
 
 //==============================================================
-
-log4cxx::LoggerPtr HttpServer::s_log;
-
-// This is run at the start of each connection
-int HttpServer::open (void *void_acceptor)
+#define HTTP_MAX_SESSIONS 200
+static int s_httpSessions = 0;
+static std::mutex s_httpMutex;
+SSL_CTX* HttpServer::m_ctx;
+HttpServer::HttpServer(int port)
 {
-	return this->activate (THR_DETACHED);
+	s_log = log4cxx::Logger::getLogger("interface.httpserver");
+	m_port = port;
+	m_sslPort = port +1;
+	OrkAprSingleton* orkAprsingle = OrkAprSingleton::GetInstance();
+	m_mp = orkAprsingle->GetAprMp();
 }
 
-// This is run at program initialization
-void HttpServer::run(void* args)
+bool HttpServer::Initialize()
 {
-	SetThreadName("orka:http");
+	apr_status_t ret;
 
-	s_log = log4cxx::Logger::getLogger("interface.httpserver");
-
-	unsigned short tcpPort = (unsigned short)(unsigned long)args;
-	//unsigned short tcpPort = (unsigned short)*(int*)args;
-
-	HttpAcceptor peer_acceptor;
-	ACE_INET_Addr addr (tcpPort);
-	ACE_Reactor reactor;
-	CStdString tcpPortString = IntToString(tcpPort);
-
-	if (peer_acceptor.open (addr, &reactor) == -1)
+    ret = apr_sockaddr_info_get(&m_sockAddr, NULL, APR_INET, m_port, 0, m_mp);
+    if(ret != APR_SUCCESS)
 	{
-		LOG4CXX_ERROR(s_log, CStdString("Failed to start http server on port:") + tcpPortString  + CStdString(" do you have another instance of orkaudio running?"));
+		LOG4CXX_ERROR(s_log, "Failed to get sockaddr for http server");
+		return false;
 	}
-	else
+    ret = apr_socket_create(&m_socket, m_sockAddr->family, SOCK_STREAM,APR_PROTO_TCP, m_mp);
+    if(ret != APR_SUCCESS)
 	{
-		LOG4CXX_INFO(s_log, CStdString("Started HTTP server on port:")+tcpPortString);
-		for(;;)
-		{
-			reactor.handle_events();
+		LOG4CXX_ERROR(s_log, "Failed to create a socket http server");
+		return false;
+	}
+    apr_socket_opt_set(m_socket, APR_SO_REUSEADDR, 1);
+	apr_socket_timeout_set(m_socket, -1);
+
+    ret = apr_socket_bind(m_socket, m_sockAddr);
+	if(ret != APR_SUCCESS)
+	{
+		LOG4CXX_ERROR(s_log, "Failed to bind http server socket");
+		return false;
+	}
+    ret = apr_socket_listen(m_socket, SOMAXCONN);
+	if(ret != APR_SUCCESS)
+	{
+		LOG4CXX_ERROR(s_log, "Failed to have a listening socket for http server");
+		return false;
+	}
+	CStdString tcpPortString = IntToString(m_port);
+    LOG4CXX_INFO(s_log, CStdString("Started HttpServer on port:")+tcpPortString);
+
+	//===============SSL====================
+
+	// ret = apr_sockaddr_info_get(&m_sslSockAddr, NULL, APR_INET, m_sslPort, 0, m_mp);
+    // if(ret != APR_SUCCESS)
+	// {
+	// 	LOG4CXX_ERROR(s_log, "Failed to get sockaddr for https server");
+	// 	return false;
+	// }
+    // ret = apr_socket_create(&m_sslSocket, m_sslSockAddr->family, SOCK_STREAM,APR_PROTO_TCP, m_mp);
+    // if(ret != APR_SUCCESS)
+	// {
+	// 	LOG4CXX_ERROR(s_log, "Failed to create a socket https server");
+	// 	return false;
+	// }
+    // apr_socket_opt_set(m_sslSocket, APR_SO_REUSEADDR, 1);
+	// apr_socket_timeout_set(m_sslSocket, -1);
+
+    // ret = apr_socket_bind(m_sslSocket, m_sslSockAddr);
+	// if(ret != APR_SUCCESS)
+	// {
+	// 	LOG4CXX_ERROR(s_log, "Failed to bind https server socket");
+	// 	return false;
+	// }
+    // ret = apr_socket_listen(m_sslSocket, SOMAXCONN);
+	// if(ret != APR_SUCCESS)
+	// {
+	// 	LOG4CXX_ERROR(s_log, "Failed to have a listening socket for http server");
+	// 	return false;
+	// }
+	// CStdString sslTcpPortString = IntToString(m_sslPort);
+    // LOG4CXX_INFO(s_log, CStdString("Started HttpsServer on port:")+sslTcpPortString);
+
+	// //We will need a config param enable to activate ssl connection
+	// m_ctx = OrkOpenSslSingleton::GetInstance()->GetServerCtx();
+	// if(!m_ctx){
+	// 	LOG4CXX_ERROR(s_log, "Failed to create CTX for http server");
+	// 	return false;
+	// }
+	//=========================
+	return true;
+}
+
+void HttpServer::Run()
+{
+	try{
+		std::thread httpHandler(&HttpServer::RunHttpServer, this);
+		httpHandler.detach();
+	} catch(const std::exception &ex){
+		CStdString logMsg;
+		logMsg.Format("Failed to start RunHttpServer thread reason:%s",  ex.what());
+		LOG4CXX_ERROR(s_log, logMsg);
+	}
+
+	// try{
+	// 	std::thread httpsHandler(&HttpServer::RunHttpsServer, this);
+	// 	httpsHandler.detach();
+	// } catch(const std::exception &ex){
+	// 	CStdString logMsg;
+	// 	logMsg.Format("Failed to start RunHttpsServer thread reason:%s",  ex.what());
+	// 	LOG4CXX_ERROR(s_log, logMsg);
+	// }
+}
+
+void HttpServer::RunHttpServer()
+{
+	SetThreadName("orka:httpsrv");
+	while(true)
+	{
+		apr_status_t ret;
+		apr_socket_t* incomingSocket;
+
+		apr_pool_t* request_pool;
+		apr_pool_create(&request_pool, m_mp);
+		ret = apr_socket_accept(&incomingSocket, m_socket,request_pool);
+		if (ret != APR_SUCCESS) {
+			continue;
+		}
+		apr_interval_time_t timeout =  apr_time_from_sec(2);
+		apr_socket_timeout_set(incomingSocket, timeout);
+		try{
+			std::lock_guard<std::mutex> lk(s_httpMutex);
+			if(s_httpSessions > HTTP_MAX_SESSIONS){
+				LOG4CXX_WARN(s_log, "Closing incoming HTTP request: session limit exceeded.");
+				apr_socket_close(incomingSocket);
+				apr_pool_destroy(request_pool);
+				continue;
+			}
+			std::thread handler(HandleHttpMessage, incomingSocket, request_pool);
+			handler.detach();
+			s_httpSessions++;
+		} catch(const std::exception &ex){
+			CStdString logMsg;
+			logMsg.Format("Failed to start HttpServer thread reason:%s",  ex.what());
+			LOG4CXX_ERROR(s_log, logMsg);
+			apr_socket_close(incomingSocket);
+			apr_pool_destroy(request_pool);
+			continue;
 		}
 	}
 }
 
-int HttpServer::svc(void)
+void HttpServer::RunHttpsServer()
 {
+	while(true)
+	{
+		apr_status_t ret;
+		apr_socket_t* incomingSocket;
+        ret = apr_socket_accept(&incomingSocket, m_sslSocket,m_mp);
+        if (ret != APR_SUCCESS) {
+            continue;
+        }
+        apr_interval_time_t timeout =  apr_time_from_sec(2);
+        apr_socket_timeout_set(incomingSocket, timeout);	//maybe not neccessary here, since sslread is blocking&timeout=0, we have our own timeout mechanism
+		try{
+			std::lock_guard<std::mutex> lk(s_httpMutex);
+			if(s_httpSessions > HTTP_MAX_SESSIONS){
+				continue;
+			}
+			std::thread handler(HandleSslHttpMessage, incomingSocket);
+			handler.detach();		
+			s_httpSessions++;
+		} catch(const std::exception &ex){
+			CStdString logMsg;
+			logMsg.Format("Failed to start HttpsServer thread reason:%s",  ex.what());
+			LOG4CXX_ERROR(s_log, logMsg);
+			continue;
+		}
+	}
+}
+
+void HttpServer::HandleHttpMessage(apr_socket_t* sock, apr_pool_t* pool)
+{
+	OrkAprSubPool subPool(pool); // fix scope of pool to this thread
 	char buf[2048];
 	buf[2047] = '\0';	// security
-	ACE_Time_Value timeout;
-	timeout.sec(5);
+	SetThreadName("orka:httpreq");
 
-	ssize_t size = peer().recv(buf, 2040, &timeout);
-
-	if (size > 5)
-	{
-		try
+    while(true)
+    { 
+        apr_size_t size = 2048;
+        apr_status_t ret = apr_socket_recv(sock, buf, &size);
+		if (size > 5)
 		{
-			int startUrlOffset = 5;		// get rid of "GET /" from Http request, so skip 5 chars
-			char* stopUrl = ACE_OS::strstr(buf+startUrlOffset, " HTTP");	// detect location of post-URL trailing stuff
-			if(!stopUrl)
+			try
 			{
-                                LOG4CXX_WARN(s_log, "Malformed http request");
-				throw (CStdString("Malformed http request"));							;
-			}
-			*stopUrl = '\0';									// Remove post-URL trailing stuff
-                        int urlLen = stopUrl - buf;
-                        for(int i = startUrlOffset; i< urlLen; i++)
-                        {
-                                if(buf[i] < 33 || buf[i] > 126)
-                                {
-                                        // detected a char that cannot be part of an URL
-                                        LOG4CXX_WARN(s_log, "detected command URL with invalid character(s), ignoring");
-                                        throw (CStdString("Malformed command URL with invalid character(s)"));		
-                                }
-                        }
-
-			CStdString url(buf+startUrlOffset);
-			int queryOffset = url.Find("?");
-			if (queryOffset	 > 0)
-			{
-				// Strip beginning of URL in case the command is received as an URL "query" of the form:
-				// http://hostname/service/command?type=ping
-				url = url.Right(url.size() - queryOffset - 1);
-			}
-
-
-			CStdString className = UrlSerializer::FindClass(url);
-			ObjectRef objRef = ObjectFactory::GetSingleton()->NewInstance(className);
-			if (objRef.get())
-			{
-                                LOG4CXX_INFO(s_log, "command: " + url);
-				objRef->DeSerializeUrl(url);
-				ObjectRef response = objRef->Process();
-
-				if(response.get() == NULL)
+				int startUrlOffset = 5;		// get rid of "GET /" from Http request, so skip 5 chars
+				char* stopUrl = strstr(buf+startUrlOffset, " HTTP");	// detect location of post-URL trailing stuff
+				if(!stopUrl)
 				{
-                                        LOG4CXX_WARN(s_log, "Command does not return a response:" + className);
-					throw (CStdString("Command does not return a response:") + className);
+					LOG4CXX_WARN(s_log, "Malformed http request");
+					throw (CStdString("Malformed http request"));							;
+				}
+				*stopUrl = '\0';									// Remove post-URL trailing stuff
+				int urlLen = stopUrl - buf;
+				for(int i = startUrlOffset; i< urlLen; i++)
+				{
+					if(buf[i] < 33 || buf[i] > 126)
+					{
+						// detected a char that cannot be part of an URL
+						LOG4CXX_WARN(s_log, "detected command URL with invalid character(s), ignoring");
+						throw (CStdString("Malformed command URL with invalid character(s)"));		
+					}
+				}
+
+				CStdString url(buf+startUrlOffset);
+				int queryOffset = url.Find("?");
+				if (queryOffset	 > 0)
+				{
+					// Strip beginning of URL in case the command is received as an URL "query" of the form:
+					// http://hostname/service/command?type=ping
+					url = url.Right(url.size() - queryOffset - 1);
+				}
+
+				CStdString className = UrlSerializer::FindClass(url);
+				ObjectRef objRef = ObjectFactory::GetSingleton()->NewInstance(className);
+				if (objRef.get())
+				{
+					LOG4CXX_INFO(s_log, "command: " + url);
+					objRef->DeSerializeUrl(url);
+					ObjectRef response = objRef->Process();
+
+					if(response.get() == NULL)
+					{
+						LOG4CXX_WARN(s_log, "Command does not return a response:" + className);
+						throw (CStdString("Command does not return a response:") + className);
+					}
+					else
+					{
+						DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(XStr("Core").unicodeForm());
+						XERCES_CPP_NAMESPACE::DOMDocument* myDoc;
+						myDoc = impl->createDocument(
+									0,			 // root element namespace URI.
+									XStr("response").unicodeForm(),	   // root element name
+									0);			 // document type object (DTD).
+						response->SerializeDom(myDoc);
+						CStdString pingResponse = DomSerializer::DomNodeToString(myDoc);
+
+						CStdString httpOk("HTTP/1.0 200 OK\r\nContent-type: text/xml\r\n\r\n");
+											CStdString singleLineResponseString = response->SerializeSingleLine();
+											LOG4CXX_INFO(s_log, "response: " + singleLineResponseString);
+						apr_size_t leng = httpOk.GetLength();
+						ret = apr_socket_send(sock, httpOk, &leng);
+						leng = pingResponse.GetLength();
+						ret = apr_socket_send(sock, pingResponse, &leng);
+
+						myDoc->release(); 
+					}
 				}
 				else
 				{
-					DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(XStr("Core").unicodeForm());
-					XERCES_CPP_NAMESPACE::DOMDocument* myDoc;
-					   myDoc = impl->createDocument(
-								   0,			 // root element namespace URI.
-								   XStr("response").unicodeForm(),	   // root element name
-								   0);			 // document type object (DTD).
-					response->SerializeDom(myDoc);
-					CStdString pingResponse = DomSerializer::DomNodeToString(myDoc);
-
-					CStdString httpOk("HTTP/1.0 200 OK\r\nContent-type: text/xml\r\n\r\n");
-                                        CStdString singleLineResponseString = response->SerializeSingleLine();
-                                        LOG4CXX_INFO(s_log, "response: " + singleLineResponseString);
-					peer().send(httpOk, httpOk.GetLength(), MSG_NOSIGNAL);
-					peer().send(pingResponse, pingResponse.GetLength(), MSG_NOSIGNAL);
-
-					myDoc->release();
+					LOG4CXX_WARN(s_log, "Command not found:" + className);
+					throw (CStdString("Command not found:") + className);							;
 				}
-			}
-			else
-			{
-                                LOG4CXX_WARN(s_log, "Command not found:" + className);
-				throw (CStdString("Command not found:") + className);							;
-			}
 
+			}
+			catch (CStdString &e)
+			{
+				CStdString error("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nError\r\n");
+				error = error + e + "\r\n";
+				apr_size_t leng = error.GetLength();
+				ret = apr_socket_send(sock, error, &leng);
+			}
+			catch(const XMLException& e)
+			{
+				CStdString error("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nXML Error\r\n");
+				apr_size_t leng = error.GetLength();
+				ret = apr_socket_send(sock, error, &leng);
+			}
 		}
-		catch (CStdString &e)
+		else
 		{
-			CStdString error("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nError\r\n");
-			error = error + e + "\r\n";
-			peer().send(error, error.GetLength(), MSG_NOSIGNAL);
+			CStdString notFound("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nNot found\r\n");
+			apr_size_t leng = notFound.GetLength();
+			ret = apr_socket_send(sock, notFound, &leng);
 		}
-		catch(const XMLException& e)
-		{
-			CStdString error("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nXML Error\r\n");
-			peer().send(error, error.GetLength(), MSG_NOSIGNAL);
-		}
+        break;
+    }
+
+    apr_socket_close(sock);
+	std::lock_guard<std::mutex> lk(s_httpMutex);
+	s_httpSessions--;
+}
+
+void HttpServer::HandleSslHttpMessage(apr_socket_t* sock)
+{
+	apr_status_t ret;
+	SSL *ssl;
+    ssl = SSL_new(m_ctx);
+	CStdString logMsg;
+	//need to to explicitly set the socket here again to obtain the stage NONBLOCK=0
+    apr_socket_timeout_set(sock, -1);
+
+	apr_os_sock_t nativeSock;
+    ret = apr_os_sock_get(&nativeSock, sock);
+	if(ret != APR_SUCCESS){
+		LOG4CXX_ERROR(s_log, "Unable to obtain native socket");
 	}
-	else
+
+	SSL_set_fd(ssl, nativeSock);
+	CStdString errstr;
+	int timeoutMs = 5000;
+	if(OrkSsl_Accept(ssl, timeoutMs, errstr) <= 0)
 	{
-		CStdString notFound("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nNot found\r\n");
-		peer().send(notFound, notFound.GetLength(), MSG_NOSIGNAL);
+		logMsg.Format("SSL_accept failed. %s", errstr);
+		LOG4CXX_WARN(s_log, logMsg);
+		SSL_shutdown(ssl);
+		SSL_free(ssl);
+		apr_socket_close(sock);
+		return;
 	}
-	return 0;
+	//In order to have SslRead/ssl_read blocking with timeout, we need to explicitly set timeout here
+	//if having socket blocking,  ssl_read blocking forever, and as the result SslRead blocking forever too
+	//set timeout for socket here will NOT have ssl_read blocking with timeout, it made ssl_read return right away, but our SslRead has its own timeout mechanism
+
+    apr_socket_timeout_set(sock, apr_time_from_sec(2));
+	char buf[2048];
+	buf[2047] = '\0';	// security
+	int lenSent;
+    while(true)
+    { 
+        int size;
+        size = OrkSslRead(sock, ssl, buf, 2048);
+		if (size > 5)
+		{
+			try
+			{
+				int startUrlOffset = 5;		// get rid of "GET /" from Http request, so skip 5 chars
+				char* stopUrl = strstr(buf+startUrlOffset, " HTTP");	// detect location of post-URL trailing stuff
+				if(!stopUrl)
+				{
+					LOG4CXX_WARN(s_log, "Malformed http request");
+					throw (CStdString("Malformed http request"));							;
+				}
+				*stopUrl = '\0';									// Remove post-URL trailing stuff
+				int urlLen = stopUrl - buf;
+				for(int i = startUrlOffset; i< urlLen; i++)
+				{
+					if(buf[i] < 33 || buf[i] > 126)
+					{
+						// detected a char that cannot be part of an URL
+						LOG4CXX_WARN(s_log, "detected command URL with invalid character(s), ignoring");
+						throw (CStdString("Malformed command URL with invalid character(s)"));		
+					}
+				}
+
+				CStdString url(buf+startUrlOffset);
+				int queryOffset = url.Find("?");
+				if (queryOffset	 > 0)
+				{
+					// Strip beginning of URL in case the command is received as an URL "query" of the form:
+					// http://hostname/service/command?type=ping
+					url = url.Right(url.size() - queryOffset - 1);
+				}
+
+				CStdString className = UrlSerializer::FindClass(url);
+				ObjectRef objRef = ObjectFactory::GetSingleton()->NewInstance(className);
+				if (objRef.get())
+				{
+					LOG4CXX_INFO(s_log, "command: " + url);
+					objRef->DeSerializeUrl(url);
+					ObjectRef response = objRef->Process();
+
+					if(response.get() == NULL)
+					{
+						LOG4CXX_WARN(s_log, "Command does not return a response:" + className);
+						throw (CStdString("Command does not return a response:") + className);
+					}
+					else
+					{
+						DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(XStr("Core").unicodeForm());
+						XERCES_CPP_NAMESPACE::DOMDocument* myDoc;
+						myDoc = impl->createDocument(
+									0,			 // root element namespace URI.
+									XStr("response").unicodeForm(),	   // root element name
+									0);			 // document type object (DTD).
+						response->SerializeDom(myDoc);
+						CStdString pingResponse = DomSerializer::DomNodeToString(myDoc);
+
+						CStdString httpOk("HTTPS/1.0 200 OK\r\nContent-type: text/xml\r\n\r\n");
+											CStdString singleLineResponseString = response->SerializeSingleLine();
+											LOG4CXX_INFO(s_log, "response: " + singleLineResponseString);
+						int leng = httpOk.GetLength();
+						OrkSslWrite(sock, ssl, httpOk, leng);
+						leng = pingResponse.GetLength();
+						OrkSslWrite(sock, ssl, pingResponse, leng);
+
+						myDoc->release(); 
+					}
+				}
+				else
+				{
+					LOG4CXX_WARN(s_log, "Command not found:" + className);
+					throw (CStdString("Command not found:") + className);							;
+				}
+
+			}
+			catch (CStdString &e)
+			{
+				CStdString error("HTTPS/1.0 404 not found\r\nContent-type: text/html\r\n\r\nError\r\n");
+				error = error + e + "\r\n";
+				int leng = error.GetLength();
+				OrkSslWrite(sock, ssl, error, leng);
+			}
+			catch(const XMLException& e)
+			{
+				CStdString error("HTTPS/1.0 404 not found\r\nContent-type: text/html\r\n\r\nXML Error\r\n");
+				int leng = error.GetLength();
+				OrkSslWrite(sock, ssl, error, leng);
+			}
+		}
+		else
+		{
+			CStdString notFound("HTTPS/1.0 404 not found\r\nContent-type: text/html\r\n\r\nNot found\r\n");
+			int leng = notFound.GetLength();
+			OrkSslWrite(sock, ssl, notFound, leng);
+		}
+        break;
+    }
+	SSL_shutdown(ssl);
+	SSL_free(ssl);
+    apr_socket_close(sock);
+//	std::lock_guard<std::mutex> lk(s_httpMutex);
+	s_httpSessions--;
 }
 
 //==============================================
 
 log4cxx::LoggerPtr EventStreamingServer::s_log;
 
-int EventStreamingServer::open(void *void_acceptor)
+EventStreamingServer::EventStreamingServer(int port)
 {
-	return this->activate (THR_DETACHED);
+	s_log = log4cxx::Logger::getLogger("interface.eventstreamingserver");
+	m_port = port;
+	OrkAprSingleton* orkAprsingle = OrkAprSingleton::GetInstance();
+	apr_pool_create(&m_mp,orkAprsingle->GetAprMp());
+	
 }
 
-void EventStreamingServer::run(void* args)
+bool EventStreamingServer::Initialize()
 {
-	SetThreadName("orka:eventstream");
+	apr_status_t ret;
 
-	unsigned short tcpPort = (unsigned short)(ACE_UINT64)args;
-	CStdString tcpPortString = IntToString(tcpPort);
-	EventStreamingAcceptor peer_acceptor;
-	ACE_INET_Addr addr (tcpPort);
-	ACE_Reactor reactor;
-
-	s_log = log4cxx::Logger::getLogger("interface.eventstreamingserver");
-
-	if (peer_acceptor.open (addr, &reactor) == -1)
+    ret = apr_sockaddr_info_get(&m_sockAddr, NULL, APR_INET, m_port, 0, m_mp);
+    if(ret != APR_SUCCESS)
 	{
-		LOG4CXX_ERROR(s_log, CStdString("Failed to start event streaming server on port:") + tcpPortString + CStdString(" do you have another instance of orkaudio running?"));
+		LOG4CXX_ERROR(s_log, "Failed to get sockaddr for eventstreamingserver");
+		return false;
 	}
-	else
+    ret = apr_socket_create(&m_socket, m_sockAddr->family, SOCK_STREAM,APR_PROTO_TCP, m_mp);
+    if(ret != APR_SUCCESS)
 	{
-		LOG4CXX_INFO(s_log, CStdString("Started event streaming server on port:")+tcpPortString);
-		for(;;)
-		{
-			reactor.handle_events();
+		LOG4CXX_ERROR(s_log, "Failed to create a socket eventstreamingserver");
+		return false;
+	}
+    apr_socket_opt_set(m_socket, APR_SO_REUSEADDR, 1);
+	apr_socket_opt_set(m_socket, APR_SO_NONBLOCK, 0);
+	apr_socket_timeout_set(m_socket, -1);
+
+    ret = apr_socket_bind(m_socket, m_sockAddr);
+	if(ret != APR_SUCCESS)
+	{
+		LOG4CXX_ERROR(s_log, "Failed to bind eventstreaming server socket");
+		return false;
+	}
+    ret = apr_socket_listen(m_socket, SOMAXCONN);
+	if(ret != APR_SUCCESS)
+	{
+		LOG4CXX_ERROR(s_log, "Failed to have a listening socket for eventstreamingserver");
+		return false;
+	}
+	CStdString tcpPortString = IntToString(m_port);
+    LOG4CXX_INFO(s_log, CStdString("Started EventstreamingServer on port:")+tcpPortString);
+	return true;
+}
+
+void EventStreamingServer::Run()
+{
+	SetThreadName("orka:eventsrv");
+	while(true)
+	{
+		apr_status_t ret;
+		apr_socket_t* incomingSocket;
+		apr_pool_t* request_pool;
+		apr_pool_create(&request_pool, m_mp);
+		ret = apr_socket_accept(&incomingSocket, m_socket, request_pool);
+		if (ret != APR_SUCCESS) {
+			apr_pool_destroy(request_pool);
+			continue;
+		}
+		apr_socket_opt_set(incomingSocket, APR_SO_NONBLOCK, 0);
+		apr_socket_timeout_set(incomingSocket, -1);
+		try{
+			std::thread handler(StreamingSvc, incomingSocket, request_pool);
+			handler.detach();
+		} catch(const std::exception &ex){
+			CStdString logMsg;
+			logMsg.Format("Failed to start StreamingSvc thread reason:%s",  ex.what());
+			LOG4CXX_ERROR(s_log, logMsg);
+			apr_pool_destroy(request_pool);
+			continue;
 		}
 	}
+
 }
 
-int EventStreamingServer::svc(void)
+void EventStreamingServer::StreamingSvc(apr_socket_t* sock, apr_pool_t* pool)
 {
-	ACE_Time_Value timeout;
 	char buf[2048];
 	CStdString logMsg;
 	CStdString sessionId;
 	int messagesSent = 0;
+	SetThreadName("orka:event");
+	OrkAprSubPool subPool(pool); //change lifetime of pool to this request.
 
-	ssize_t size = peer().recv(buf, 2040);
-
-	if(size <= 5)
+	while(true)
 	{
-		CStdString notFound("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nNot found\r\n");
-		peer().send(notFound, notFound.GetLength(), MSG_NOSIGNAL);
-		return 0;
-	}
-
-	try
-	{
-		int startUrlOffset = 5;
-		char* stopUrl = ACE_OS::strstr(buf+startUrlOffset, " HTTP");
-
-		if(!stopUrl)
+		apr_size_t size = 2048;
+		apr_status_t ret = apr_socket_recv(sock, buf, &size);
+		if(size <= 5)
 		{
-			throw (CStdString("Malformed http request"));
+			CStdString notFound("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nNot found\r\n");
+			apr_size_t leng = notFound.GetLength();
+			ret = apr_socket_send(sock, notFound, &leng);
+			break;
 		}
 
-		CStdString header;
-		struct tm date = {0};
-		time_t now = time(NULL);
-		CStdString rfc822Date;
-
-		ACE_OS::gmtime_r(&now, &date);
-		rfc822Date.Format("Tue, %.2d Nov %.4d %.2d:%.2d:%.2d GMT", date.tm_mday, (date.tm_year+1900), date.tm_hour, date.tm_min, date.tm_sec);
-		header.Format("HTTP/1.1 200 OK\r\nLast-Modified:%s\r\nContent-Type:text/plain\r\n\r\n", rfc822Date);
-		peer().send(header, header.GetLength(), MSG_NOSIGNAL);
-
-		time_t startTime = time(NULL);
-
-		sessionId = EventStreamingSingleton::instance()->GetNewSessionId() + " -";
-		logMsg.Format("%s Event streaming start", sessionId);
-		LOG4CXX_INFO(s_log, logMsg);
-
-		EventStreamingSessionRef session(new EventStreamingSession());
-		EventStreamingSingleton::instance()->AddSession(session);
-		if(EventStreamingSingleton::instance()->GetNumSessions() > 100)
+		try
 		{
-			EventStreamingSingleton::instance()->RemoveSession(session);
-			logMsg.Format("Event streaming number of session exceeds 100. Stopping %s", sessionId);
-			LOG4CXX_ERROR(s_log, logMsg);
-			return 0;
-		}
+			int startUrlOffset = 5;
+			char* stopUrl = strstr(buf+startUrlOffset, " HTTP");
 
-		int sendRes = 0;
-		while(sendRes >= 0)
-		{
-			session->WaitForMessages();
-
-			while(session->GetNumMessages() && sendRes >= 0)
+			if(!stopUrl)
 			{
-				MessageRef message;
+				throw (CStdString("Malformed http request"));
+			}
 
-				session->GetTapeMessage(message);
-				if(message.get())
+			CStdString header;
+			struct tm date = {0};
+			time_t now = time(NULL);
+			CStdString rfc822Date;
+
+			apr_time_t tn = apr_time_now();
+			apr_time_exp_t texp;
+			apr_time_exp_gmt(&texp, tn);
+			rfc822Date.Format("Tue, %.2d Nov %.4d %.2d:%.2d:%.2d GMT", texp.tm_mday, (texp.tm_year+1900), texp.tm_hour, texp.tm_min, texp.tm_sec);
+			header.Format("HTTP/1.1 200 OK\r\nLast-Modified:%s\r\nContent-Type:text/plain\r\n\r\n", rfc822Date);
+
+			apr_size_t leng = header.GetLength();
+			ret = apr_socket_send(sock, header, &leng);
+
+			time_t startTime = time(NULL);
+
+			sessionId = EventStreamingSingleton::instance()->GetNewSessionId() + " -";
+			logMsg.Format("%s Event streaming start", sessionId);
+			LOG4CXX_INFO(s_log, logMsg);
+
+			EventStreamingSessionRef session(new EventStreamingSession());
+			EventStreamingSingleton::instance()->AddSession(session);
+			if(EventStreamingSingleton::instance()->GetNumSessions() > 100)
+			{
+				EventStreamingSingleton::instance()->RemoveSession(session);
+				logMsg.Format("Event streaming number of session exceeds 100. Stopping %s", sessionId);
+				LOG4CXX_ERROR(s_log, logMsg);
+				break;
+			}
+
+			ret=APR_SUCCESS;
+			while(ret == APR_SUCCESS)
+			{
+				session->WaitForMessages();
+
+				while(session->GetNumMessages() && ret == APR_SUCCESS)
 				{
-					CStdString msgAsSingleLineString;
-					msgAsSingleLineString = message->SerializeUrl() + "\r\n";
+					MessageRef message;
 
-					sendRes = peer().send(msgAsSingleLineString, msgAsSingleLineString.GetLength(), MSG_NOSIGNAL);
-					if(sendRes >= 0)
+					session->GetTapeMessage(message);
+					if(message.get())
 					{
-						messagesSent += 1;
+						CStdString msgAsSingleLineString;
+						msgAsSingleLineString = message->SerializeUrl() + "\r\n";
+
+						apr_size_t leng = msgAsSingleLineString.GetLength();
+						ret = apr_socket_send(sock, msgAsSingleLineString, &leng);
+						if (ret == APR_SUCCESS)
+						{
+							messagesSent += 1;
+						}
+						else
+						{
+							char errstr[256];
+							apr_strerror(ret, errstr, sizeof(errstr));
+
+							logMsg.Format("%s Event streaming session error %d: %s", sessionId, ret, errstr);
+							LOG4CXX_WARN(s_log, logMsg);
+						}
 					}
 				}
 			}
+
+			EventStreamingSingleton::instance()->RemoveSession(session);
+			logMsg.Format("%s Stream client stop - sent %d messages in %d sec", sessionId, messagesSent, (time(NULL) - startTime));
+			LOG4CXX_INFO(s_log, logMsg);
 		}
+		catch (CStdString& e)
+		{
+			CStdString error("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nError\r\n");
+			error = error + e + "\r\n";
+			LOG4CXX_ERROR(s_log, e);
+			apr_size_t leng = error.GetLength();
+			ret = apr_socket_send(sock, error, &leng);
+		}
+        break;
+    }
 
-		EventStreamingSingleton::instance()->RemoveSession(session);
-		logMsg.Format("%s Stream client stop - sent %d messages in %d sec", sessionId, messagesSent, (time(NULL) - startTime));
-		LOG4CXX_INFO(s_log, logMsg);
-	}
-	catch (CStdString& e)
-	{
-		CStdString error("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nError\r\n");
-		error = error + e + "\r\n";
-		LOG4CXX_ERROR(s_log, e);
-		peer().send(error, error.GetLength(), MSG_NOSIGNAL);
-	}
-
-	return 0;
+    apr_socket_close(sock);
 }
+
+

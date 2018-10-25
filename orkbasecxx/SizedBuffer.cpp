@@ -15,7 +15,7 @@
 
 #include "SizedBuffer.h"
 #include "StdString.h"
-#include "ace/OS_NS_string.h"
+#include <cstring>
 
 SizedBuffer::SizedBuffer(unsigned char* buf, size_t len) : m_buffer(NULL), m_size(0) {
 	reset(buf,len);

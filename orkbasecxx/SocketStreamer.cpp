@@ -10,13 +10,9 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
+#define _WINSOCKAPI_            // prevents the inclusion of winsock.h
 
 #include "SocketStreamer.h"
-#include "ace/Thread_Manager.h"
-#include "LogManager.h"
-#include "Utils.h"
-#include "ace/SOCK_Connector.h"
-#include "ace/OS_NS_unistd.h"
 
 SocketStreamer* SocketStreamerFactory::Create()
 {
@@ -27,7 +23,8 @@ SocketStreamer::SocketStreamer(LoggerPtr log, CStdString threadName) :
 	m_log(log),
 	m_threadName(threadName)
 {
-
+	OrkAprSingleton* orkAprsingle = OrkAprSingleton::GetInstance();
+	apr_pool_create(&m_mp, orkAprsingle->GetAprMp());
 }
 
 void SocketStreamer::ThreadHandler(void *args)
@@ -53,7 +50,7 @@ void SocketStreamer::ThreadHandler(void *args)
 					FLOG_WARN(ssc->m_log, "Couldn't connect to: %s error: %s", ipPort, CStdString(strerror(errno)));
 					lastLogTime = time(NULL);
 				}
-				NANOSLEEP(2,0);
+				OrkSleepSec(2);
 			}
 			connected=true;
 			lastLogTime = 0;
@@ -62,8 +59,7 @@ void SocketStreamer::ThreadHandler(void *args)
 		bytesRead = ssc->Recv();
 		if(bytesRead <= 0)
 		{
-			CStdString errorString(bytesRead==0?"Remote host closed connection":strerror(errno));
-			FLOG_WARN(ssc->m_log, "Connection to: %s closed. error :%s ", ipPort, errorString);
+			FLOG_WARN(ssc->m_log, "Connection to: %s closed", ipPort);
 			ssc->Close();
 			connected = false;
 			continue;
@@ -74,7 +70,7 @@ void SocketStreamer::ThreadHandler(void *args)
 			FLOG_INFO(ssc->m_log,"Read %s from %s so far", FormatDataSize(bytesSoFar), ipPort);
 			lastLogTime = time(NULL);
 		}
-		NANOSLEEP(0,1);
+		OrkSleepMs(2);
 	}
 }
 
@@ -83,7 +79,7 @@ bool SocketStreamer::Parse(CStdString target)
 	CStdString ip;
 	ChopToken(ip,":",target);
 
-	if (!ACE_OS::inet_aton((PCSTR)ip, &m_ip)) {
+	if (!inet_pton4((PCSTR)ip, &m_ip)) {
 		m_logMsg.Format("Invalid host:%s", ip);
 		return false;
 	}
@@ -102,28 +98,35 @@ bool SocketStreamer::Parse(CStdString target)
 bool SocketStreamer::Connect()
 {
 	char szIp[16];
-	ACE_INET_Addr server;
-	ACE_SOCK_Connector connector;
-
 	memset(m_buf, 0, sizeof(m_buf));
-
 	memset(&szIp, 0, sizeof(szIp));
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_ip, szIp, sizeof(szIp));
+	inet_ntopV4(AF_INET, (void*)&m_ip, szIp, sizeof(szIp));
 
-	server.set(m_port, szIp);
-	if(connector.connect(m_peer, server) == -1) {
+	apr_status_t ret;
+	apr_sockaddr_t* serverAddr;
+	apr_sockaddr_info_get(&serverAddr, szIp, APR_INET, m_port, 0, m_mp);
+	apr_socket_create(&m_socket, serverAddr->family, SOCK_STREAM, APR_PROTO_TCP, m_mp);
+	apr_socket_opt_set(m_socket, APR_SO_NONBLOCK, 0);
+	ret = apr_socket_connect(m_socket, serverAddr);
+	if(ret != APR_SUCCESS){
 		return false;
 	}
 	return Handshake();
+
 }
 
 void SocketStreamer::Close() {
-	m_peer.close();
+	apr_socket_close(m_socket);
+	apr_pool_clear(m_mp);
 }
 
 size_t SocketStreamer::Recv() {
 	CStdString logMsg;
-	m_bytesRead = m_peer.recv(m_buf, sizeof(m_buf));
+	m_bytesRead = sizeof(m_buf);
+	apr_status_t ret = apr_socket_recv(m_socket, (char*)m_buf, &m_bytesRead);
+	if(ret == APR_EOF){
+		return -1;
+	}
 
 	if (m_bytesRead>0) {
 		ProcessData();
@@ -174,8 +177,11 @@ bool SocketStreamer::Spawn()
 	CStdString logMsg;
 
 #ifndef UNIT_TESTING //disable if unit testing
-	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(ThreadHandler), (void*)this)) {
-		m_logMsg = "Failed to start thread";
+	try{
+		std::thread httpHandler(ThreadHandler, this);
+		httpHandler.detach();
+	} catch(const std::exception &ex){
+		m_logMsg.Format("Failed to start RunHttpServer thread reason:%s",  ex.what());
 		return false;
 	}
 #endif

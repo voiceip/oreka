@@ -15,9 +15,6 @@
 #define __DAEMON_H__
 
 #include "StdString.h"
-#include "ace/Singleton.h"
-#include "ace/Thread_Mutex.h"
-
 typedef void (*DaemonHandler)(void);
 
 class DLL_IMPORT_EXPORT_ORKBASE Daemon
@@ -51,8 +48,6 @@ private:
 	bool m_stopping;
 	bool m_shortLived;
 };
-
-//typedef ACE_Singleton<Daemon, ACE_Thread_Mutex> DaemonSingleton;
 
 #endif
 

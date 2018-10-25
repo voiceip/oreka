@@ -22,7 +22,6 @@
 #include "OrkClient.h"
 #include "Daemon.h"
 #include "CapturePluginProxy.h"
-#include "ace/Thread_Manager.h"
 #include "EventStreaming.h"
 #include "messages/InitMsg.h"
 #include "OrkTrack.h"
@@ -34,7 +33,7 @@ struct ReportingThreadInfo
 	CStdString m_threadId;
 	//ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
 	ThreadSafeQueue<MessageRef> m_messageQueue;
-	ACE_Thread_Mutex m_mutex;
+	std::mutex m_mutex;
 	OrkTrack m_tracker;
 };
 typedef oreka::shared_ptr<ReportingThreadInfo> ReportingThreadInfoRef;
@@ -67,10 +66,11 @@ void Reporting::Initialize()
 		for (std::vector<OrkTrack>::const_iterator it = OrkTrack::getTrackers().begin(); it != OrkTrack::getTrackers().end(); it++) {
 			ReportingThreadInfo *rtInfo = new ReportingThreadInfo();
 			rtInfo->m_tracker = *it;
-
-			if(!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(ReportingThreadEntryPoint), (void *)rtInfo))
-			{
-				FLOG_WARN(LOG.reporting,"[%s] failed to start reporting thread", rtInfo->m_tracker.ToString());
+			try{
+				std::thread reportingThread(ReportingThreadEntryPoint, (void *)rtInfo);
+				reportingThread.detach();
+			} catch(const std::exception &ex){
+				FLOG_ERROR(LOG.reporting,"[%s] failed to start reporting thread reason:%s", rtInfo->m_tracker.ToString(), ex.what());
 				delete rtInfo;
 			}
 		}
@@ -199,7 +199,7 @@ void Reporting::AddAudioTape(AudioTapeRef& audioTapeRef)
 	AddMessage(msgRef);
 }
 
-void Reporting::ThreadHandler(void *args)
+void Reporting::ThreadHandler()
 {
 	return;
 }
@@ -282,7 +282,7 @@ void ReportingThread::Run()
 	if(CONFIG.m_hostnameReportFqdn == false)
 	{
 		char szLocalHostname[255];
-		ACE_OS::hostname(szLocalHostname, sizeof(szLocalHostname));
+		OrkGetHostname(szLocalHostname, sizeof(szLocalHostname));
 		initMsgRef->m_hostname = szLocalHostname;
 	}
 	else
@@ -311,7 +311,7 @@ void ReportingThread::Run()
 				FLOG_WARN(LOG.reporting,"[%s] init connection:%s success:false comment:%s ", m_tracker.ToString(), conn?"true":"false", response.m_comment);
 				reportErrorLastTime = time(NULL);
 			}
-			ACE_OS::sleep(CONFIG.m_clientTimeout + 10);
+			OrkSleepSec(CONFIG.m_clientTimeout + 10);
 		}
 	} while (!response.m_success);
 
@@ -384,7 +384,7 @@ void ReportingThread::Run()
 							}
 							else
 							{
-								ACE_OS::sleep(CONFIG.m_clientRetryPeriodSec);	// Make sure orktrack is not flooded in case of a problem
+								OrkSleepSec(CONFIG.m_clientRetryPeriodSec);	// Make sure orktrack is not flooded in case of a problem
 							}
 						}
 					}

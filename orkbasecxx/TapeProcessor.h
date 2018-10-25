@@ -14,7 +14,6 @@
 #define __TAPEPROCESSOR_H__
 
 //#include <list>
-//#include "ace/Singleton.h"
 #include "AudioCapture.h"
 #include "AudioTape.h"
 #include "dll.h"

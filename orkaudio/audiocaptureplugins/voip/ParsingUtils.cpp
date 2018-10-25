@@ -39,7 +39,7 @@ static char* memFindStr(const char* toFind, char* start, char* stop)
 {
 	for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memchr(ptr+1, toFind[0],(stop - ptr - 1)))
 	{
-		if(ACE_OS::strncasecmp(toFind, ptr, ((int)strlen(toFind) > (stop-ptr) ? (stop-ptr) : strlen(toFind))) == 0)
+		if(strncasecmp(toFind, ptr, ((int)strlen(toFind) > (stop-ptr) ? (stop-ptr) : strlen(toFind))) == 0)
 		{
 			return (ptr);
 		}
@@ -52,7 +52,7 @@ char* memFindAfter(const char* toFind, char* start, char* stop)
 {
 	for(char * ptr = start; (ptr<stop) && (ptr != NULL); ptr = (char *)memnchr(ptr+1, toFind[0],(stop - ptr - 1)))
 	{
-		if(ACE_OS::strncasecmp(toFind, ptr, strlen(toFind)) == 0)
+		if(strncasecmp(toFind, ptr, strlen(toFind)) == 0)
 		{
 			return (ptr+strlen(toFind));
 		}
@@ -108,14 +108,14 @@ void GrabAlphaNumToken(char * in, char* limit, CStdString& out)
 {
 	// Look for first alphanum character
 	char* start = in;
-	while (!ACE_OS::ace_isalnum(*start) && start<limit)
+	while (!isalnum(*start) && start<limit)
 	{
 		start++;
 	}
 
 	if(start != (limit -1))
 	{
-		for(char* c = start; ACE_OS::ace_isalnum(*c); c = c+1)
+		for(char* c = start; isalnum(*c); c = c+1)
 		{
 			out += *c;
 		}
@@ -163,7 +163,7 @@ void GrabSipUriDomain(char* in, char* limit, CStdString& out)
 		return;
 	}
 
-	for(char *c = domainStart; (ACE_OS::ace_isalnum(*c) || *c == '.' || *c == '-' || *c == '_') && (c < limit); c = c+1)
+	for(char *c = domainStart; (isalnum(*c) || *c == '.' || *c == '-' || *c == '_') && (c < limit); c = c+1)
 	{
 		out += *c;
 	}
@@ -174,14 +174,14 @@ char* GrabDisplayableToken(char* in, char* limit, CStdString& out)
 	// Look for first printable character
 	char* start = in;
 	char* c = NULL;
-	while (!ACE_OS::ace_isgraph(*start) && start<limit)
+	while (!isgraph(*start) && start<limit)
 	{
 		start++;
 	}
 
 	if(start != (limit -1))
 	{
-		for(c = start; ACE_OS::ace_isgraph(*c) && c<limit; c = c+1)
+		for(c = start; isgraph(*c) && c<limit; c = c+1)
 		{
 			out += *c;
 		}
@@ -243,7 +243,7 @@ void GrabSipUserAddress(char* in, char* limit, CStdString& out)
 	/* Taken from RFC 1035, section 2.3.1 recommendation for
 	 * domain names, we will add checks for '.' and '@' to allow
 	 * the host part */
-	for(char* c = userStart; (ACE_OS::ace_isalnum(*c) || *c == '#' || *c == '*' || *c == '.' || *c == '+' || *c == '-' || *c == '_' || *c == ':' || *c == '@' ) && c < limit ; c = c+1)
+	for(char* c = userStart; (isalnum(*c) || *c == '#' || *c == '*' || *c == '.' || *c == '+' || *c == '-' || *c == '_' || *c == ':' || *c == '@' ) && c < limit ; c = c+1)
 	{
 		if(*c == '@' && !passedUserPart)
 		{
@@ -268,7 +268,7 @@ void GrabSipUriUser(char* in, char* limit, CStdString& out)
 	}
 	// What stops a SIP URI user is a ':' (separating user from pwd) or an '@' (separating user from hostname)
 	// but no need to test for these as we only allow alphanums and a few other chars
-	for(char* c = userStart; (ACE_OS::ace_isalnum(*c) || *c == '#' || *c == '*' || *c == '.' || *c == '+' || *c == '-' || *c == '_' || *c == '%') && c < limit ; c = c+1)
+	for(char* c = userStart; (isalnum(*c) || *c == '#' || *c == '*' || *c == '.' || *c == '+' || *c == '-' || *c == '_' || *c == '%') && c < limit ; c = c+1)
 	{
 		out += *c;
 	}

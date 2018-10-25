@@ -17,10 +17,9 @@
 
 #pragma warning( disable: 4200 ) // disables warning C4200: nonstandard extension used : zero-sized array in struct/union
 
-#include "ace/OS_NS_arpa_inet.h"
 #include "StdString.h"
 #include "DtmfHandling.h"
-
+#include "Utils.h"
 
 // Structure of Ethernet header
 typedef struct

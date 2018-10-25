@@ -13,8 +13,8 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
-#include "ace/OS_NS_arpa_inet.h"
 #include "Rtp.h"
+#include "Utils.h"
 
 RtpPacketInfo::RtpPacketInfo()
 {
@@ -36,9 +36,9 @@ RtpPacketInfo::RtpPacketInfo()
 void RtpPacketInfo::ToString(CStdString& string)
 {
 	char sourceIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_sourceIp, sourceIp, sizeof(sourceIp));
+	inet_ntopV4(AF_INET, (void*)&m_sourceIp, sourceIp, sizeof(sourceIp));
 	char destIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_destIp, destIp, sizeof(destIp));
+	inet_ntopV4(AF_INET, (void*)&m_destIp, destIp, sizeof(destIp));
 	string.Format("%s,%d %s,%d ssrc:0x%x seq:%u ts:%u len:%d type:%d ats:%u",
 		sourceIp, m_sourcePort, destIp, m_destPort, m_ssrc, m_seqNum,
 		m_timestamp, m_payloadSize, m_payloadType, m_arrivalTimestamp);
@@ -49,8 +49,8 @@ void RtcpSrcDescriptionPacketInfo::ToString(CStdString& string)
 	char sourceIp[16];
 	char destIp[16];
 
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_sourceIp, sourceIp, sizeof(sourceIp));
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_destIp, destIp, sizeof(destIp));
+	inet_ntopV4(AF_INET, (void*)&m_sourceIp, sourceIp, sizeof(sourceIp));
+	inet_ntopV4(AF_INET, (void*)&m_destIp, destIp, sizeof(destIp));
 
 	string.Format("%s,%d %s,%d username:%s domain:%s port:%s", sourceIp, m_sourcePort, destIp, m_destPort, m_cnameUsername, m_cnameDomain, m_cnamePort);
 }

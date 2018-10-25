@@ -14,10 +14,9 @@
 #ifndef __RTP_H__
 #define __RTP_H__
 
-#include "ace/OS_NS_arpa_inet.h"
 #include "shared_ptr.h"
 #include "StdString.h"
-
+#include "Utils.h"
 
 // useful info we extract from an RTP packet
 class RtpPacketInfo
