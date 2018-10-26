@@ -174,6 +174,7 @@ bool OrkHttpClient::ExecuteUrl(const CStdString& request, CStdString& response, 
 	return true;
 }
 
+#ifndef CENTOS_6
 bool OrkHttpClient::ExecuteHttpsUrl(const CStdString& request, CStdString& response, const CStdString& hostname, const int tcpPort, int timeout)
 {
 	OrkAprSubPool locPool;
@@ -350,6 +351,7 @@ bool OrkHttpClient::ExecuteHttpsUrl(const CStdString& request, CStdString& respo
 
 	return true;
 }
+#endif
 
 bool OrkHttpSingleLineClient::Execute(SyncMessage& request, AsyncMessage& response, const CStdString& hostname,const int tcpPort, const CStdString& serviceName, const int timeout)
 {

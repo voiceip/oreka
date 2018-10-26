@@ -63,10 +63,11 @@
 #include "apr_env.h"
 #include "apr_portable.h"
 #include "apr_support.h"
+#ifndef CENTOS_6
 #include "openssl/ssl.h"
 #include "openssl/bio.h"
 #include "openssl/err.h"
-
+#endif
 
 
 //============================================
@@ -170,6 +171,8 @@ private:
 };
 #define AprLp locPool.GetAprPool()
 
+
+#ifndef CENTOS_6
 //==========================================================
 class DLL_IMPORT_EXPORT_ORKBASE OrkOpenSslSingleton : public OrkSingleton<OrkOpenSslSingleton>
 {
@@ -187,6 +190,7 @@ private:
 	SSL_CTX* m_serverCtx;
 	SSL_CTX* m_clientCtx;	
 };
+#endif
 
 DLL_IMPORT_EXPORT_ORKBASE const char* inet_ntopV4(int inet, void *srcAddr, char *dst, size_t size);  //AF_INET
 int DLL_IMPORT_EXPORT_ORKBASE inet_pton4(const char *src, struct in_addr* dstAddr);
@@ -281,6 +285,7 @@ typedef std::lock_guard<std::mutex> MutexSentinel;
 int DLL_IMPORT_EXPORT_ORKBASE OrkAprSocketWait(apr_socket_t *sock, int direction); 	//1:read 0:write
 int DLL_IMPORT_EXPORT_ORKBASE OrkRecv_n(apr_socket_t* socket, char* buf, int len, int64_t timeoutMs, int &lenRead);
 int DLL_IMPORT_EXPORT_ORKBASE OrkSend_n(apr_socket_t* socket, const char* buf, int len, int64_t timeoutMs, int &lenSent);
+#ifndef CENTOS_6
 int DLL_IMPORT_EXPORT_ORKBASE SSL_writev (SSL *ssl, const struct iovec *vector, int count);
 int DLL_IMPORT_EXPORT_ORKBASE OrkSsl_Accept(SSL* ssl, int timeoutMs, CStdString &errstr);
 int DLL_IMPORT_EXPORT_ORKBASE OrkSsl_Connect(SSL* ssl, int timeoutMs, CStdString &errstr);
@@ -288,6 +293,7 @@ int DLL_IMPORT_EXPORT_ORKBASE OrkSslRead(apr_socket_t* sock, SSL* ssl, char* buf
 void DLL_IMPORT_EXPORT_ORKBASE OrkSslRead_n(apr_socket_t* sock, SSL* ssl, char* buf, int len, int64_t timeoutMs, int &lenRead);
 int DLL_IMPORT_EXPORT_ORKBASE OrkSslWrite(apr_socket_t* sock, SSL* ssl, const char* buf, int len);
 void DLL_IMPORT_EXPORT_ORKBASE OrkSslWrite_n(apr_socket_t* sock, SSL* ssl, const char* buf, int len, int64_t timeoutMs, int &lenWritten);
+#endif
 int DLL_IMPORT_EXPORT_ORKBASE OrkGetHostname(char *name, int len);
 #define ORKMAXHOSTLEN 256
 typedef struct 

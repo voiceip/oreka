@@ -56,7 +56,9 @@ public:
 	bool Initialize();
 	void Run();
 	void RunHttpServer();
+#ifndef CENTOS_6
 	void RunHttpsServer();
+#endif
 
 private:
 	apr_pool_t* m_mp;
@@ -66,10 +68,14 @@ private:
     apr_sockaddr_t* m_sockAddr;
 	int m_sslPort;
     apr_sockaddr_t* m_sslSockAddr;
+#ifndef CENTOS_6
 	static SSL_CTX* m_ctx;
+#endif
 	static log4cxx::LoggerPtr s_log;
 	static void HandleHttpMessage(apr_socket_t* sock, apr_pool_t* pool);
+#ifndef CENTOS_6
 	static void HandleSslHttpMessage(apr_socket_t* sock);
+#endif
 };
 
 //==========================================================

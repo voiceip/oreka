@@ -191,7 +191,10 @@ void CommandLineServer::RoutineSvc(apr_socket_t* sock)
 #define HTTP_MAX_SESSIONS 200
 static int s_httpSessions = 0;
 static std::mutex s_httpMutex;
+
+#ifndef CENTOS_6
 SSL_CTX* HttpServer::m_ctx;
+#endif
 HttpServer::HttpServer(int port)
 {
 	s_log = log4cxx::Logger::getLogger("interface.httpserver");
@@ -235,6 +238,7 @@ bool HttpServer::Initialize()
 	CStdString tcpPortString = IntToString(m_port);
     LOG4CXX_INFO(s_log, CStdString("Started HttpServer on port:")+tcpPortString);
 
+#ifndef CENTOS_6
 	//===============SSL====================
 
 	// ret = apr_sockaddr_info_get(&m_sslSockAddr, NULL, APR_INET, m_sslPort, 0, m_mp);
@@ -274,6 +278,7 @@ bool HttpServer::Initialize()
 	// 	return false;
 	// }
 	//=========================
+#endif
 	return true;
 }
 
@@ -336,6 +341,7 @@ void HttpServer::RunHttpServer()
 	}
 }
 
+#ifndef CENTOS_6
 void HttpServer::RunHttpsServer()
 {
 	while(true)
@@ -364,6 +370,7 @@ void HttpServer::RunHttpsServer()
 		}
 	}
 }
+#endif
 
 void HttpServer::HandleHttpMessage(apr_socket_t* sock, apr_pool_t* pool)
 {
@@ -478,6 +485,7 @@ void HttpServer::HandleHttpMessage(apr_socket_t* sock, apr_pool_t* pool)
 	s_httpSessions--;
 }
 
+#ifndef CENTOS_6
 void HttpServer::HandleSslHttpMessage(apr_socket_t* sock)
 {
 	apr_status_t ret;
@@ -619,7 +627,7 @@ void HttpServer::HandleSslHttpMessage(apr_socket_t* sock)
 //	std::lock_guard<std::mutex> lk(s_httpMutex);
 	s_httpSessions--;
 }
-
+#endif
 //==============================================
 
 log4cxx::LoggerPtr EventStreamingServer::s_log;

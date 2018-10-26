@@ -56,7 +56,7 @@ apr_pool_t* OrkAprSingleton::GetAprMp()
 }
 
 //========================================================
-
+#ifndef CENTOS_6
 OrkOpenSslSingleton::OrkOpenSslSingleton()
 {
 	SslInitialize();
@@ -90,6 +90,7 @@ void OrkOpenSslSingleton::CreateCTXServer()
 		throw (CStdString("Unable to create SSL server context\n"));
     }
 }
+
 //Suggest to change to have proper method to locate cert/key
 void OrkOpenSslSingleton::ConfigureClientCtx()
 {
@@ -139,6 +140,7 @@ SSL_CTX* OrkOpenSslSingleton::GetServerCtx()
 {
 	return m_serverCtx;
 }
+#endif
 //========================================================
 // String related stuff
 
@@ -675,6 +677,7 @@ int OrkAprSocketWait(apr_socket_t *sock, int direction)
 #endif
 }
 
+#ifndef CENTOS_6
 //Note: OrkAprSocketWait use socket timeout, so we need to set it to desire value before invoke this
 int OrkSslRead(apr_socket_t* sock, SSL* ssl, char* buf, int len)
 {
@@ -746,6 +749,7 @@ void OrkSslWrite_n(apr_socket_t* sock, SSL* ssl, const char* buf, int len, int64
 	}
 
 }
+#endif
 
 //we should set apr_socket timeout very small explicitly before, otherwise timeout would be higher
 int OrkRecv_n(apr_socket_t* socket, char* buf, int len, int64_t timeoutMs, int &lenRead)
@@ -816,6 +820,7 @@ int OrkSend_n(apr_socket_t* socket, const char* buf, int len, int64_t timeoutMs,
 #if defined (WIN32) || defined(WIN64)
 #define alloca _alloca
 #endif 
+#ifndef CENTOS_6
 int SSL_writev (SSL *ssl, const struct iovec *vector, int count)
 {
 	char *buffer;
@@ -917,7 +922,7 @@ int OrkSsl_Accept(SSL* ssl, int timeoutMs, CStdString &errstr)
 	}
 	return r;
 }
-
+#endif
 
 // TcpAddress
 
