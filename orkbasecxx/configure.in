@@ -15,7 +15,7 @@ fi
 
 # Check if gcc supports cpp11 
 if [echo "main(){}" | $CXX -std=c++11 -xc++ -S -  &>/dev/null]; then 
-	CXXFLAGS+=" -g -O2 -std=c++11 -DSUPPORTS_CPP11 $CXXFLAGS"
+	CXXFLAGS+=" -g -O2 -std=c++11 -DSUPPORTS_CPP11 -fPIC $CXXFLAGS"
 else	
 	CXXFLAGS+=" -g -O2"
 fi
