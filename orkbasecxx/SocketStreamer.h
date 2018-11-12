@@ -71,9 +71,9 @@ protected:
 
 	friend class SocketStreamerFactory;
 
-private:
-	apr_pool_t* m_mp;
+	apr_pool_t* m_peer;
 	apr_socket_t* m_socket;
+private:
 	bool Spawn();
 };
 
@@ -89,7 +89,7 @@ protected:
 
 #define DEFINE_CDR(CdrType,LoggerName) \
 static std::list<CdrType>& getList() { static std::list<CdrType> list; return list; }  \
-static ACE_Thread_Mutex& getMutex() { static ACE_Thread_Mutex m; return m; } \
+static std::mutex& getMutex() { static std::mutex m; return m; } \
 static LoggerPtr getLog() { static LoggerPtr s_log = Logger::getLogger(LoggerName); return s_log; } \
 static void SaveCdr(CdrType info) \
 { \

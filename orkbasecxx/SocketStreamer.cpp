@@ -24,7 +24,7 @@ SocketStreamer::SocketStreamer(LoggerPtr log, CStdString threadName) :
 	m_threadName(threadName)
 {
 	OrkAprSingleton* orkAprsingle = OrkAprSingleton::GetInstance();
-	apr_pool_create(&m_mp, orkAprsingle->GetAprMp());
+	apr_pool_create(&m_peer, orkAprsingle->GetAprMp());
 }
 
 void SocketStreamer::ThreadHandler(void *args)
@@ -104,8 +104,8 @@ bool SocketStreamer::Connect()
 
 	apr_status_t ret;
 	apr_sockaddr_t* serverAddr;
-	apr_sockaddr_info_get(&serverAddr, szIp, APR_INET, m_port, 0, m_mp);
-	apr_socket_create(&m_socket, serverAddr->family, SOCK_STREAM, APR_PROTO_TCP, m_mp);
+	apr_sockaddr_info_get(&serverAddr, szIp, APR_INET, m_port, 0, m_peer);
+	apr_socket_create(&m_socket, serverAddr->family, SOCK_STREAM, APR_PROTO_TCP, m_peer);
 	apr_socket_opt_set(m_socket, APR_SO_NONBLOCK, 0);
 	ret = apr_socket_connect(m_socket, serverAddr);
 	if(ret != APR_SUCCESS){
@@ -117,7 +117,7 @@ bool SocketStreamer::Connect()
 
 void SocketStreamer::Close() {
 	apr_socket_close(m_socket);
-	apr_pool_clear(m_mp);
+	apr_pool_clear(m_peer);
 }
 
 size_t SocketStreamer::Recv() {
