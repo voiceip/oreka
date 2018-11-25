@@ -1311,6 +1311,10 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			GrabSipName(toField, toFieldEnd, info->m_toName);
 
 			char* sipUser = memFindAfter("sip:", toField, toFieldEnd);
+			if(!sipUser)
+			{
+				sipUser = memFindAfter("tel:", toField, toFieldEnd);
+			}
 			if(sipUser)
 			{
 				if(DLLCONFIG.m_sipReportFullAddress)
