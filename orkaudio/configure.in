@@ -10,6 +10,11 @@ if [cat /etc/issue | grep Ubuntu]; then
 	CXXFLAGS+="-std=c++11"
 fi
 
+if [ grep -i opensuse /etc/os-release ]; then
+	speex_lib=speex
+	CXXFLAGS+="-std=c++11"
+fi
+
 if [grep "release 5" /etc/redhat-release]; then
     CXXFLAGS+="-DCENTOS_5"
 fi

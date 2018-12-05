@@ -17,7 +17,11 @@
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMImplementationLS.hpp>
+#ifdef XERCES_3
+#include <xercesc/dom/DOMLSSerializer.hpp>
+#else
 #include <xercesc/dom/DOMWriter.hpp>
+#endif
 #include <xercesc/framework/MemBufFormatTarget.hpp>
 
 #include "DomSerializer.h"
@@ -187,6 +191,31 @@ DOMNode* DomSerializer::FindElementByName(DOMNode *node, CStdString name)
 	return NULL;
 }
 
+#ifdef XERCES_3
+CStdString DomSerializer::DomNodeToString(DOMNode* node)
+{
+	CStdString output;
+	DOMImplementation *impl          = DOMImplementationRegistry::getDOMImplementation(XStr("LS").unicodeForm());
+	DOMLSSerializer* theSerializer = ((DOMImplementationLS*)impl)->createLSSerializer();
+
+	XMLFormatTarget *myFormTarget;
+	myFormTarget = new MemBufFormatTarget ();
+	DOMLSOutput* theOutput = ((DOMImplementationLS*)impl)->createLSOutput();
+	theOutput->setByteStream(myFormTarget);
+
+	// do the serialization through DOMLSSerializer::write();
+	theSerializer->write(node, theOutput);
+
+	output = (char *)((MemBufFormatTarget*)myFormTarget)->getRawBuffer();
+
+	// clean up
+	theOutput->release();
+	theSerializer->release();
+	delete myFormTarget;
+
+	return output;
+}
+#else
 CStdString DomSerializer::DomNodeToString(DOMNode* node)
 {
 	CStdString output;
@@ -212,3 +241,4 @@ CStdString DomSerializer::DomNodeToString(DOMNode* node)
 
 	return output;
 }
+#endif

@@ -17,7 +17,6 @@
 //#include "winsock2.h"
 #endif
 #include <xercesc/parsers/XercesDOMParser.hpp>
-#include <xercesc/dom/DOMWriter.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 

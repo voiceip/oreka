@@ -9,8 +9,12 @@ if [cat /etc/redhat-release | grep "release 6"]; then
     CXXFLAGS+="-DCENTOS_6 -D__STDC_CONSTANT_MACROS"
 fi
 
+if [grep -i "opensuse" /etc/os-release]; then
+    CXXFLAGS+="-std=c++11 -DXERCES_3"
+fi
+
 if [cat /etc/issue | grep "Ubuntu"]; then
-    CXXFLAGS+="-std=c++11"
+    CXXFLAGS+="-std=c++11 -DXERCES_3"
 fi
 
 # Check if gcc supports cpp11 
