@@ -14,7 +14,11 @@ if [grep -i "opensuse" /etc/os-release]; then
 fi
 
 if [cat /etc/issue | grep "Ubuntu"]; then
-    CXXFLAGS+="-std=c++11 -DXERCES_3"
+    CXXFLAGS+="-std=c++11"
+fi
+
+if [cat /etc/issue | grep "Ubuntu 18"]; then
+    CXXFLAGS+=" -DXERCES_3"
 fi
 
 # Check if gcc supports cpp11 
