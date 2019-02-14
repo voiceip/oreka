@@ -68,7 +68,7 @@
 #include "openssl/bio.h"
 #include "openssl/err.h"
 #endif
-
+#include <log4cxx/logger.h>
 
 //============================================
 
@@ -469,4 +469,6 @@ private:
 };
 
 #endif
+
+void DLL_IMPORT_EXPORT_ORKBASE set_socket_buffer_size(log4cxx::LoggerPtr log, const char *msg, apr_socket_t *sock, int size);
 

@@ -1105,3 +1105,35 @@ int OrkGetHostname(char *name, int len)
 	return apr_gethostname(name,len,AprLp);
 }
 
+//
+// apr routines to set socket option do not support SO_RCVBUFFORCE, so we
+// need our own helper funtion.
+void set_socket_buffer_size(log4cxx::LoggerPtr log, const char *msg, apr_socket_t *sock, int size)
+{
+	CStdString logMsg;
+	apr_os_sock_t socket;
+	apr_os_sock_get(&socket, sock); //always returns success
+
+	if (socket == -1)
+	{
+		logMsg.Format("Error trying to get OS socket[%s]", msg);
+		LOG4CXX_ERROR(log, logMsg);
+		return;
+	}
+#ifndef WIN32
+	int rc = setsockopt(socket, SOL_SOCKET, SO_RCVBUFFORCE, (const char *)&size, sizeof(size));
+#else
+	int rc = setsockopt(socket, SOL_SOCKET, SO_RCVBUF, (const char *)&size, sizeof(size));
+#endif
+	if (rc < 0)
+	{
+		logMsg.Format("[%s]: Error setting socket buffer size to %d: %s",
+				msg, size, strerror(errno));
+		LOG4CXX_ERROR(log, logMsg);
+	}
+	int socketsize;
+	socklen_t len = sizeof(socketsize);
+	getsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char *)&socketsize, &len);
+	logMsg.Format("[%s] Request socket buffer size of %d; actual size = %d", msg, size, socketsize);
+	LOG4CXX_INFO(log, logMsg);
+}
