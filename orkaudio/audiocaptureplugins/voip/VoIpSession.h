@@ -144,7 +144,6 @@ public:
 	OrkTimeValue m_skinnyLastCallInfoTime;
 	int m_skinnyLineInstance;
 	bool m_onHold;
-	bool m_keepRtp;
 	bool m_nonLookBackSessionStarted;
 	bool m_onDemand;
 	std::list<unsigned long long> m_mediaAddresses;

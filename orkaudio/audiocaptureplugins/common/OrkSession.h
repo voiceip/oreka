@@ -13,6 +13,8 @@ class OrkSession {
 			m_beginDate(0),
 			m_config(config),
 
+			m_keepRtp(true),
+
 			// DTMF related
 			m_dtmfDigitString(""),
 			m_currentRtpEventTs(0),
@@ -31,6 +33,8 @@ class OrkSession {
 		virtual void TriggerOnDemandViaDtmf()=0;
 
 		AcpConfig const * const m_config;
+
+		bool m_keepRtp;
 };
 typedef oreka::shared_ptr<OrkSession> OrkSessionRef;
 
