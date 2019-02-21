@@ -176,10 +176,7 @@ private:
 	virtual void TriggerOnDemandViaDtmf();
 
 	RtpPacketInfoRef m_lastRtpPacket;
-	RtpPacketInfoRef m_lastRtpPacketSide1;
-	RtpPacketInfoRef m_lastRtpPacketSide2;
 	//RtpRingBuffer m_rtpRingBuffer;
-	struct in_addr m_localIp;
 	struct in_addr m_remoteIp;
 	char m_localMac[6];
 	char m_remoteMac[6];
@@ -196,7 +193,6 @@ private:
 	std::list<SipInviteInfoRef> m_invites;
 	std::map<CStdString, CStdString> m_tags;
 
-	bool m_mappedS1S2;
 	unsigned int m_ssrcCandidateTimestamp;
 	std::map<unsigned int, int> m_loggedSsrcMap;
 	SipInfoRef m_lastSipInfo;

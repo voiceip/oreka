@@ -124,7 +124,6 @@ void VoIpConfig::Reset() {
 	m_urlExtractorEndpointIsSender =  true;
 	m_rtpMinAmountOfPacketsBeforeStart = 50;
 	m_rtpBreakupOnStreamPause = false;
-	m_rtpS1S2MappingDeterministic = false;
 	m_localPartyAddLocalIp = false;
 	m_rtpLogAllSsrc = false;
 	m_orekaEncapsulationMode = false;
@@ -136,7 +135,6 @@ void VoIpConfig::Reset() {
 	m_udpMinPort = 1024;
 	m_localPartyNameMapEnable = false;
 	m_ipFragmentsReassemble = false;
-	m_rtpS1S2MappingDeterministicS1IsLocal = true;
 	m_necNotifyDispLine = "Ind-DispLineN=3:Dsp:";
 
 	m_necVoipGatewayNames.push_back("sipphd");
@@ -158,7 +156,6 @@ void VoIpConfig::Define(Serializer* s)
 	s->StringValue(DEVICE_PARAM, m_device);
 	s->CsvValue("Devices", m_devices);
 	s->CsvValue("LanMasks", m_asciiLanMasks);
-	s->CsvValue("MediaGateways", m_asciiMediaGateways);
 	s->CsvValue("RtpTrackUsingIpAddresses", m_asciiRtpTrackUsingIpAddresses);
 
 	s->CsvValue("BlockedIpRanges", m_asciiBlockedIpRanges);
@@ -267,7 +264,6 @@ void VoIpConfig::Define(Serializer* s)
 	s->StringValue("RemotePartyUseExtractedKey", m_remotePartyUseExtractedKey);
 	s->IntValue("RtpMinAmountOfPacketsBeforeStart", m_rtpMinAmountOfPacketsBeforeStart);
 	s->BoolValue("RtpBreakupOnStreamPause", m_rtpBreakupOnStreamPause);
-	s->BoolValue("RtpS1S2MappingDeterministic", m_rtpS1S2MappingDeterministic);
 	s->BoolValue("LocalPartyAddLocalIp", m_localPartyAddLocalIp);
 	s->BoolValue("RtpLogAllSsrc", m_rtpLogAllSsrc);
 	s->IntValue("OrekaEncapsulationPort", m_orekaEncapsulationPort);
@@ -282,7 +278,6 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("UdpMinPort", m_udpMinPort);
 	s->BoolValue("LocalPartyNameMapEnable",m_localPartyNameMapEnable);
 	s->BoolValue("IpFragmentsReassemble", m_ipFragmentsReassemble);
-	s->BoolValue("RtpS1S2MappingDeterministicS1IsLocal", m_rtpS1S2MappingDeterministicS1IsLocal);
 	s->StringValue("NecNotifyDispLine", m_necNotifyDispLine);
 	s->CsvValue("NecGatewayNames",m_necVoipGatewayNames);
 	s->BoolValue("SipMetadataUseLastInvite", m_sipMetadataUseLastInvite);
@@ -312,20 +307,6 @@ void VoIpConfig::Validate()
 		}
 	}
 
-	// iterate over ascii Media gateway IP addresses and populate the binary Media gateway IP addresses list
-	m_mediaGateways.clear();
-	for(it = m_asciiMediaGateways.begin(); it != m_asciiMediaGateways.end(); it++)
-	{
-		struct in_addr a;
-		if(inet_pton4((PCSTR)*it, &a))
-		{
-			m_mediaGateways.push_back((unsigned int)a.s_addr);
-		}
-		else
-		{
-			throw (CStdString("VoIpConfig: invalid IP address in MediaGateways:" + *it));
-		}
-	}
 
 	// iterate over ascii RTP tracking IP addresses and populate the binary IP addresses list
 	m_rtpTrackUsingIpAddresses.clear();
@@ -554,18 +535,6 @@ bool VoIpConfig::IsPartOfLan(struct in_addr addr)
 	for(std::list<unsigned int>::iterator it = m_lanMasks.begin(); it != m_lanMasks.end(); it++)
 	{
 		if(((unsigned int)addr.s_addr & *it) == (unsigned int)addr.s_addr)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-bool VoIpConfig::IsMediaGateway(struct in_addr addr)
-{
-	for(std::list<unsigned int>::iterator it = m_mediaGateways.begin(); it != m_mediaGateways.end(); it++)
-	{
-		if((unsigned int)addr.s_addr == *it)
 		{
 			return true;
 		}

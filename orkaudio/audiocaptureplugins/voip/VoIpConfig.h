@@ -41,7 +41,6 @@ public:
 	inline ObjectRef Process() {return ObjectRef();};
 
 	bool IsPartOfLan(struct in_addr);
-	bool IsMediaGateway(struct in_addr);
 	bool IsRtpTrackingIpAddress(struct in_addr addr);
 	bool IsDeviceWanted(CStdString device);
 	bool IsPacketWanted(IpHeaderStruct* ipHeader);
@@ -49,8 +48,6 @@ public:
 
 	CStdString m_device;				// old style but can still be used for specifying single device
 	std::list<CStdString> m_devices;	// new style devices csv
-	std::list<unsigned int> m_mediaGateways;
-	std::list<CStdString> m_asciiMediaGateways;
 	std::list<unsigned int> m_lanMasks;
 	std::list<CStdString> m_asciiLanMasks;
 	std::list<unsigned int> m_rtpTrackUsingIpAddresses;
@@ -165,7 +162,6 @@ public:
 	CStdString m_remotePartyUseExtractedKey;
 	int m_rtpMinAmountOfPacketsBeforeStart;
 	bool m_rtpBreakupOnStreamPause;
-	bool m_rtpS1S2MappingDeterministic;
 	bool m_localPartyAddLocalIp;
 	bool m_rtpLogAllSsrc;
 	bool m_orekaEncapsulationMode;
@@ -181,7 +177,6 @@ public:
 	int m_udpMinPort;
 	bool m_localPartyNameMapEnable;
 	bool m_ipFragmentsReassemble;
-	bool m_rtpS1S2MappingDeterministicS1IsLocal;
 	CStdString m_necNotifyDispLine;
 	std::list<CStdString> m_necVoipGatewayNames;	// new style devices csv
 	bool m_sipMetadataUseLastInvite;

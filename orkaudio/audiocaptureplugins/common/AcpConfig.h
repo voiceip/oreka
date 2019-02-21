@@ -20,6 +20,12 @@ public:
 	bool m_rtpReportDtmf;
 	bool m_dtmfReportFullStringAsTag;
 	int m_rtpEventPayloadTypeDefaultValue;
+
+	bool m_rtpS1S2MappingDeterministic;
+	bool m_rtpS1S2MappingDeterministicS1IsLocal;
+
+	bool IsMediaGateway(struct in_addr);
+	std::list<unsigned int> m_mediaGateways;
 };
 
 #endif
