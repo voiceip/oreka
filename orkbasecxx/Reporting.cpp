@@ -291,8 +291,8 @@ void ReportingThread::Run()
 	}
 	initMsgRef->m_name = CONFIG.m_serviceName;	
 	initMsgRef->m_type = "A";
-	initMsgRef->m_tcpPort = 59140;
-	initMsgRef->m_contextPath = "/audio";
+	initMsgRef->m_tcpPort = CONFIG.m_httpServerPort;
+	initMsgRef->m_streamingPort = CONFIG.m_liveStreamingServerPortStr;
 	initMsgRef->m_absolutePath = CONFIG.m_audioOutputPath;
 
 	OrkHttpSingleLineClient c;
