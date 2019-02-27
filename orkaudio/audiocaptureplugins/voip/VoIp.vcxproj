@@ -154,12 +154,13 @@
     <ClCompile Include="..\Common\AudioCapturePluginCommon.cpp" />
     <ClCompile Include="..\common\DtmfHandling.cpp" />
     <ClCompile Include="..\common\AcpConfig.cpp" />
+    <ClCompile Include="..\common\OrkSession.cpp" />
+    <ClCompile Include="..\common\Rtp.cpp" />
     <ClCompile Include="Iax2Parsers.cpp" />
     <ClCompile Include="Iax2Session.cpp" />
     <ClCompile Include="IpFragmentation.cpp" />
     <ClCompile Include="PacketHeaderDefs.cpp" />
     <ClCompile Include="ParsingUtils.cpp" />
-    <ClCompile Include="Rtp.cpp" />
     <ClCompile Include="SipHeaders.cpp" />
     <ClCompile Include="SipParsers.cpp" />
     <ClCompile Include="SipTcp.cpp" />
@@ -173,11 +174,11 @@
     <ClInclude Include="..\Common\AudioCapturePluginCommon.h" />
     <ClInclude Include="..\common\DtmfHandling.h" />
     <ClInclude Include="..\common\OrkSession.h" />
+    <ClInclude Include="..\common\Rtp.h" />
     <ClInclude Include="Iax2Parsers.h" />
     <ClInclude Include="Iax2Session.h" />
     <ClInclude Include="PacketHeaderDefs.h" />
     <ClInclude Include="ParsingUtils.h" />
-    <ClInclude Include="Rtp.h" />
     <ClInclude Include="SipHeaders.h" />
     <ClInclude Include="SipParsers.h" />
     <ClInclude Include="SipTcp.h" />
