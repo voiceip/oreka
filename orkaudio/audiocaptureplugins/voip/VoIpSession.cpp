@@ -1424,7 +1424,7 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	if(		(m_protocol == ProtRawRtp && m_numRtpPackets == DLLCONFIG.m_rtpMinAmountOfPacketsBeforeStart)	||
 			(m_protocol == ProtSkinny && m_numRtpPackets == 2)	||
-			(m_protocol == ProtSip    && m_numRtpPackets == CONFIG.m_discardUnidirectionalCalls?1:2) )
+			(m_protocol == ProtSip    && m_numRtpPackets == (CONFIG.m_discardUnidirectionalCalls?1:2)) )
 	{
 		// We've got enough packets to start the session.
 		// For Raw RTP, the high number is to make sure we have a "real" raw RTP session, not a leftover from a SIP/Skinny session
