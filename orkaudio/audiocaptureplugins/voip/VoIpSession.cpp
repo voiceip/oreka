@@ -1062,14 +1062,16 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	if(CONFIG.m_lookBackRecording == false && m_nonLookBackSessionStarted == false && (m_protocol != ProtRawRtp || (DLLCONFIG.m_trackRawRtpSessionInNonLookBackMode == true && m_numIgnoredRtpPackets == DLLCONFIG.m_rtpMinAmountOfPacketsBeforeStart))  )
 	{
-		if(CONFIG.m_discardUnidirectionalCalls) {
+		if(CONFIG.m_discardUnidirectionalCalls)
+		{
 			m_startWhenReceiveS2 = true;
 		}
-		else {
+		else
+		{
 			Start();
 			ReportMetadata();
+			m_nonLookBackSessionStarted = true;
 		}
-		m_nonLookBackSessionStarted = true;
 	}
 
 	if(m_protocol == ProtSip && DLLCONFIG.m_rtpReportDtmf && m_telephoneEventPayloadType && rtpPacket->m_payloadType == m_telephoneEventPayloadType)
@@ -1084,15 +1086,23 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	if(!m_keepRtp)
 	{
-		if(m_nonLookBackSessionStarted == true && (time(NULL) - m_lastKeepAlive > 1) )
+		if(m_nonLookBackSessionStarted == true)
 		{
-			// In case of non-lookback send a keep-alive every second
-			CaptureEventRef event(new CaptureEvent());
-			event->m_type = CaptureEvent::EtUnknown;
-			event->m_value = "";
+			if ((time(NULL) - m_lastKeepAlive > 1) )
+			{
+				// In case of non-lookback send a keep-alive every second
+				CaptureEventRef event(new CaptureEvent());
+				event->m_type = CaptureEvent::EtUnknown;
+				event->m_value = "";
 
-			m_lastKeepAlive = time(NULL);
-			g_captureEventCallBack(event,m_capturePort);
+				m_lastKeepAlive = time(NULL);
+				g_captureEventCallBack(event,m_capturePort);
+			}
+		}
+		else
+		{
+			// The reason we are calling DetectChannel here is to trigger session Start, not really detect the channel
+			DetectChannel(rtpPacket);
 		}
 
 		m_lastUpdated = rtpPacket->m_arrivalTimestamp;
@@ -1146,237 +1156,197 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	m_lastRtpPacket = rtpPacket;
 
-	if(m_lastRtpPacketSide1.get() == NULL)
+	channel = DetectChannel(rtpPacket);
+	if (channel == 1)
 	{
-		// First RTP packet for side 1
-		m_lastRtpPacketSide1 = rtpPacket;
-		channel = 1;
-
-		if(m_log->isInfoEnabled())
+		// Subsequent RTP packet for side 1
+		if(rtpPacket->m_timestamp == m_lastRtpPacketSide1->m_timestamp)
 		{
-			rtpPacket->ToString(logMsg);
-			logMsg =  "[" + m_trackingId + "] 1st packet s1: " + logMsg;
-			LOG4CXX_INFO(m_log, logMsg);
-		}
-	}
-	else
-	{
-		if( rtpPacket->m_ssrc == m_lastRtpPacketSide1->m_ssrc && m_lastRtpPacketSide1->m_destIp.s_addr == rtpPacket->m_destIp.s_addr )
-		{
-			// Subsequent RTP packet for side 1
-			if(rtpPacket->m_timestamp == m_lastRtpPacketSide1->m_timestamp)
-			{
-				m_hasDuplicateRtp = true;
-				return true;	// dismiss duplicate RTP packet
-			}
-			else
-			{
-				double seqNumDelta = (double)rtpPacket->m_seqNum - (double)m_lastRtpPacketSide1->m_seqNum;
-				if(DLLCONFIG.m_rtpDiscontinuityDetect)
-				{
-					double timestampDelta = (double)rtpPacket->m_timestamp - (double)m_lastRtpPacketSide1->m_timestamp;
-					if(	abs(seqNumDelta) > m_minRtpSeqDelta  &&
-						abs(timestampDelta) > m_minRtpTimestampDelta)	
-					{
-						logMsg.Format("[%s] RTP discontinuity s1: before: seq:%u ts:%u after: seq:%u ts:%u", 
-							m_trackingId, m_lastRtpPacketSide1->m_seqNum, m_lastRtpPacketSide1->m_timestamp, 
-							rtpPacket->m_seqNum, rtpPacket->m_timestamp);
-						LOG4CXX_INFO(m_log, logMsg);
-						return false;
-					}
-				}
-				//In case of dialer session, rtp keeps on going even when the call is done
-				//If we detect the pausing in rtp, we break the session
-				int deltaTimestamp = rtpPacket->m_timestamp - m_lastRtpPacketSide1->m_timestamp;
-				if(DLLCONFIG.m_rtpBreakupOnStreamPause == true && (abs(seqNumDelta) * 160) < deltaTimestamp)
-				{
-					if((double)rtpPacket->m_seqNum < (double)m_lastRtpPacketSide1->m_seqNum)	//seq reset
-					{
-						seqNumDelta = 65536 - (double)m_lastRtpPacketSide1->m_seqNum + (double)rtpPacket->m_seqNum;
-					}
-					if((seqNumDelta * 160) < deltaTimestamp)
-					{
-						logMsg.Format("[%s] RTP stream pause detected, breaking up s1: before: seq:%u ts:%u after: seq:%u ts:%u",
-									m_trackingId, m_lastRtpPacketSide1->m_seqNum, m_lastRtpPacketSide1->m_timestamp,
-									rtpPacket->m_seqNum, rtpPacket->m_timestamp);
-						LOG4CXX_INFO(m_log, logMsg);
-						return false;
-					}
-				}
-
-				if(seqNumDelta > (double)m_highestRtpSeqNumDelta)
-				{
-					m_highestRtpSeqNumDelta = (unsigned int)seqNumDelta;
-				}
-
-				if(seqNumDelta > 1)
-				{
-					if(seqNumDelta <= DLLCONFIG.m_rtpSeqGapThreshold)
-					{
-						m_rtpNumSeqGaps += 1;
-						m_rtpNumMissingPkts += ((unsigned int)seqNumDelta - 1);
-					}
-				}
-			}
-			m_lastRtpPacketSide1 = rtpPacket;
-			channel = 1;
-			m_numAlienRtpPacketsS1 = 0;
+			m_hasDuplicateRtp = true;
+			return true;	// dismiss duplicate RTP packet
 		}
 		else
 		{
-			if(m_lastRtpPacketSide2.get() == NULL)
+			double seqNumDelta = (double)rtpPacket->m_seqNum - (double)m_lastRtpPacketSide1->m_seqNum;
+			if(DLLCONFIG.m_rtpDiscontinuityDetect)
 			{
-				// First RTP packet for side 2
-				m_lastRtpPacketSide2 = rtpPacket;
-				channel = 2;
-
-				if(m_log->isInfoEnabled())
+				double timestampDelta = (double)rtpPacket->m_timestamp - (double)m_lastRtpPacketSide1->m_timestamp;
+				if(	abs(seqNumDelta) > m_minRtpSeqDelta  &&
+					abs(timestampDelta) > m_minRtpTimestampDelta)	
 				{
-					rtpPacket->ToString(logMsg);
-					logMsg =  "[" + m_trackingId + "] 1st packet s2: " + logMsg;
+					logMsg.Format("[%s] RTP discontinuity s1: before: seq:%u ts:%u after: seq:%u ts:%u", 
+						m_trackingId, m_lastRtpPacketSide1->m_seqNum, m_lastRtpPacketSide1->m_timestamp, 
+						rtpPacket->m_seqNum, rtpPacket->m_timestamp);
+					LOG4CXX_INFO(m_log, logMsg);
+					return false;
+				}
+			}
+			//In case of dialer session, rtp keeps on going even when the call is done
+			//If we detect the pausing in rtp, we break the session
+			int deltaTimestamp = rtpPacket->m_timestamp - m_lastRtpPacketSide1->m_timestamp;
+			if(DLLCONFIG.m_rtpBreakupOnStreamPause == true && (abs(seqNumDelta) * 160) < deltaTimestamp)
+			{
+				if((double)rtpPacket->m_seqNum < (double)m_lastRtpPacketSide1->m_seqNum)	//seq reset
+				{
+					seqNumDelta = 65536 - (double)m_lastRtpPacketSide1->m_seqNum + (double)rtpPacket->m_seqNum;
+				}
+				if((seqNumDelta * 160) < deltaTimestamp)
+				{
+					logMsg.Format("[%s] RTP stream pause detected, breaking up s1: before: seq:%u ts:%u after: seq:%u ts:%u",
+								m_trackingId, m_lastRtpPacketSide1->m_seqNum, m_lastRtpPacketSide1->m_timestamp,
+								rtpPacket->m_seqNum, rtpPacket->m_timestamp);
+					LOG4CXX_INFO(m_log, logMsg);
+					return false;
+				}
+			}
+
+			if(seqNumDelta > (double)m_highestRtpSeqNumDelta)
+			{
+				m_highestRtpSeqNumDelta = (unsigned int)seqNumDelta;
+			}
+
+			if(seqNumDelta > 1)
+			{
+				if(seqNumDelta <= DLLCONFIG.m_rtpSeqGapThreshold)
+				{
+					m_rtpNumSeqGaps += 1;
+					m_rtpNumMissingPkts += ((unsigned int)seqNumDelta - 1);
+				}
+			}
+		}
+		m_lastRtpPacketSide1 = rtpPacket;
+		m_numAlienRtpPacketsS1 = 0;
+	}
+	else if (channel == 2)
+	{
+		// Subsequent RTP packet for side 2
+		if(rtpPacket->m_timestamp == m_lastRtpPacketSide2->m_timestamp)
+		{
+			m_hasDuplicateRtp = true;
+			return true;	// dismiss duplicate RTP packet
+		}
+		else
+		{
+			double seqNumDelta = (double)rtpPacket->m_seqNum - (double)m_lastRtpPacketSide2->m_seqNum;
+			if(DLLCONFIG.m_rtpDiscontinuityDetect)
+			{
+				double timestampDelta = (double)rtpPacket->m_timestamp - (double)m_lastRtpPacketSide2->m_timestamp;
+				if(	abs(seqNumDelta) > m_minRtpSeqDelta  &&
+					abs(timestampDelta) > m_minRtpTimestampDelta)
+				{
+					logMsg.Format("[%s] RTP discontinuity s2: before: seq:%u ts:%u after: seq:%u ts:%u",
+						m_trackingId, m_lastRtpPacketSide2->m_seqNum, m_lastRtpPacketSide2->m_timestamp,
+						rtpPacket->m_seqNum, rtpPacket->m_timestamp);
+					LOG4CXX_INFO(m_log, logMsg);
+					return false;
+				}
+			}
+
+			int deltaTimestamp = rtpPacket->m_timestamp - m_lastRtpPacketSide2->m_timestamp;
+			if(DLLCONFIG.m_rtpBreakupOnStreamPause == true )
+			{
+				if((double)rtpPacket->m_seqNum < (double)m_lastRtpPacketSide2->m_seqNum)	//seq reset
+				{
+					seqNumDelta = 65536 - (double)m_lastRtpPacketSide2->m_seqNum + (double)rtpPacket->m_seqNum;
+				}
+				if((seqNumDelta * 160) < deltaTimestamp)
+				{
+					logMsg.Format("[%s] RTP stream pause detected, breaking up s2: before: seq:%u ts:%u after: seq:%u ts:%u",
+							m_trackingId, m_lastRtpPacketSide2->m_seqNum, m_lastRtpPacketSide2->m_timestamp,
+							rtpPacket->m_seqNum, rtpPacket->m_timestamp);
+					LOG4CXX_INFO(m_log, logMsg);
+					return false;
+				}
+			}
+
+			if(seqNumDelta > (double)m_highestRtpSeqNumDelta)
+			{
+				m_highestRtpSeqNumDelta = (unsigned int)seqNumDelta;
+			}
+		}
+
+		m_lastRtpPacketSide2 = rtpPacket;
+		m_numAlienRtpPacketsS2 = 0;
+	}
+	else if (channel == 0) // neither belongs to 1 or 2
+	{
+		// this packet does not match either s1 or s2 (on the basis of SSRC)
+		if(m_ssrcCandidate == -1)
+		{
+			m_ssrcCandidate = rtpPacket->m_ssrc;
+			m_ssrcCandidateTimestamp = (unsigned int)rtpPacket->m_arrivalTimestamp;
+			rtpPacket->ToString(logMsg);
+			logMsg.Format("[%s] ssrc candidate: %s", m_trackingId, logMsg);
+			LOG4CXX_INFO(m_log, logMsg);
+		}
+		else if(rtpPacket->m_ssrc == m_ssrcCandidate)
+		{
+			m_ssrcCandidateTimestamp = (unsigned int)rtpPacket->m_arrivalTimestamp;
+			m_numAlienRtpPacketsS1++;
+			m_numAlienRtpPacketsS2++;
+		}
+		else
+		{
+			if((time(NULL) - m_ssrcCandidateTimestamp) > 2)
+			{
+				m_ssrcCandidate = -1;
+				m_numAlienRtpPacketsS1 = 0;
+				m_numAlienRtpPacketsS2 = 0;
+				logMsg.Format("[%s] ssrc:0x%x candidate stopped", m_trackingId, rtpPacket->m_ssrc);
+				LOG4CXX_INFO(m_log, logMsg);
+			}
+			if(DLLCONFIG.m_rtpLogAllSsrc ==  true)
+			{
+				std::map<unsigned int, int>::iterator it;
+				it = m_loggedSsrcMap.find(rtpPacket->m_ssrc);
+				if(it == m_loggedSsrcMap.end())
+				{
+					m_loggedSsrcMap.insert(std::make_pair(rtpPacket->m_ssrc, 1));
+					logMsg.Format("[%s] detects unestablished ssrc:0x%x", m_trackingId, rtpPacket->m_ssrc);
 					LOG4CXX_INFO(m_log, logMsg);
 				}
-				if (CONFIG.m_discardUnidirectionalCalls && m_startWhenReceiveS2) {
-					Start();
-					ReportMetadata();
-				}
 			}
-			else
-			{
-				if(rtpPacket->m_ssrc == m_lastRtpPacketSide2->m_ssrc && m_lastRtpPacketSide2->m_destIp.s_addr == rtpPacket->m_destIp.s_addr)
-				{
-					// Subsequent RTP packet for side 2
-					if(rtpPacket->m_timestamp == m_lastRtpPacketSide2->m_timestamp)
-					{
-						m_hasDuplicateRtp = true;
-						return true;	// dismiss duplicate RTP packet
-					}
-					else
-					{
-						double seqNumDelta = (double)rtpPacket->m_seqNum - (double)m_lastRtpPacketSide2->m_seqNum;
-						if(DLLCONFIG.m_rtpDiscontinuityDetect)
-						{
-							double timestampDelta = (double)rtpPacket->m_timestamp - (double)m_lastRtpPacketSide2->m_timestamp;
-							if(	abs(seqNumDelta) > m_minRtpSeqDelta  &&
-								abs(timestampDelta) > m_minRtpTimestampDelta)
-							{
-								logMsg.Format("[%s] RTP discontinuity s2: before: seq:%u ts:%u after: seq:%u ts:%u",
-									m_trackingId, m_lastRtpPacketSide2->m_seqNum, m_lastRtpPacketSide2->m_timestamp,
-									rtpPacket->m_seqNum, rtpPacket->m_timestamp);
-								LOG4CXX_INFO(m_log, logMsg);
-								return false;
-							}
-						}
+		}
 
-						int deltaTimestamp = rtpPacket->m_timestamp - m_lastRtpPacketSide2->m_timestamp;
-						if(DLLCONFIG.m_rtpBreakupOnStreamPause == true )
-						{
-							if((double)rtpPacket->m_seqNum < (double)m_lastRtpPacketSide2->m_seqNum)	//seq reset
-							{
-								seqNumDelta = 65536 - (double)m_lastRtpPacketSide2->m_seqNum + (double)rtpPacket->m_seqNum;
-							}
-							if((seqNumDelta * 160) < deltaTimestamp)
-							{
-								logMsg.Format("[%s] RTP stream pause detected, breaking up s2: before: seq:%u ts:%u after: seq:%u ts:%u",
-										m_trackingId, m_lastRtpPacketSide2->m_seqNum, m_lastRtpPacketSide2->m_timestamp,
-										rtpPacket->m_seqNum, rtpPacket->m_timestamp);
-								LOG4CXX_INFO(m_log, logMsg);
-								return false;
-							}
-						}
+		bool remapped = false;
 
-						if(seqNumDelta > (double)m_highestRtpSeqNumDelta)
-						{
-							m_highestRtpSeqNumDelta = (unsigned int)seqNumDelta;
-						}
-					}
+		if(m_numAlienRtpPacketsS1 > 10)
+		{
+			// We have seen 10 alien packets and no s1 packets during the same period of time
+			m_numAlienRtpPacketsS1 = 0;
+			m_ssrcCandidate = -1;
+			remapped = true;
+			channel = 1;
+			m_lastRtpPacketSide1 = rtpPacket;
+			m_mappedS1S2 = false;
 
-					m_lastRtpPacketSide2 = rtpPacket;
-					channel = 2;
-					m_numAlienRtpPacketsS2 = 0;
-				}
-				else
-				{
-					// this packet does not match either s1 or s2 (on the basis of SSRC)
-					if(m_ssrcCandidate == -1)
-					{
-						m_ssrcCandidate = rtpPacket->m_ssrc;
-						m_ssrcCandidateTimestamp = (unsigned int)rtpPacket->m_arrivalTimestamp;
-						rtpPacket->ToString(logMsg);
-						logMsg.Format("[%s] ssrc candidate: %s", m_trackingId, logMsg);
-						LOG4CXX_INFO(m_log, logMsg);
-					}
-					else if(rtpPacket->m_ssrc == m_ssrcCandidate)
-					{
-						m_ssrcCandidateTimestamp = (unsigned int)rtpPacket->m_arrivalTimestamp;
-						m_numAlienRtpPacketsS1++;
-						m_numAlienRtpPacketsS2++;
-					}
-					else
-					{
-						if((time(NULL) - m_ssrcCandidateTimestamp) > 2)
-						{
-							m_ssrcCandidate = -1;
-							m_numAlienRtpPacketsS1 = 0;
-							m_numAlienRtpPacketsS2 = 0;
-							logMsg.Format("[%s] ssrc:0x%x candidate stopped", m_trackingId, rtpPacket->m_ssrc);
-							LOG4CXX_INFO(m_log, logMsg);
-						}
-						if(DLLCONFIG.m_rtpLogAllSsrc ==  true)
-						{
-							std::map<unsigned int, int>::iterator it;
-							it = m_loggedSsrcMap.find(rtpPacket->m_ssrc);
-							if(it == m_loggedSsrcMap.end())
-							{
-								m_loggedSsrcMap.insert(std::make_pair(rtpPacket->m_ssrc, 1));
-								logMsg.Format("[%s] detects unestablished ssrc:0x%x", m_trackingId, rtpPacket->m_ssrc);
-								LOG4CXX_INFO(m_log, logMsg);
-							}
-						}
-					}
+			rtpPacket->ToString(logMsg);
+			logMsg.Format("[%s] s1 remapped to: %s", m_trackingId, logMsg);
+			LOG4CXX_INFO(m_log, logMsg);
+		}
+		else if(m_numAlienRtpPacketsS2 > 10)
+		{
+			// We have seen 10 alien packets and no s2 packets during the same period of time
+			m_numAlienRtpPacketsS2 = 0;
+			m_ssrcCandidate = -1;
+			remapped = true;
+			channel = 2;
+			m_lastRtpPacketSide2 = rtpPacket;
+			m_mappedS1S2 = false;
 
-					bool remapped = false;
+			rtpPacket->ToString(logMsg);
+			logMsg.Format("[%s] s2 remapped to: %s", m_trackingId, logMsg);
+			LOG4CXX_INFO(m_log, logMsg);
+		}
+		else
+		{
+			// dismiss packet so that it does not disrupt the current established stream
+			return true;
+		}
 
-					if(m_numAlienRtpPacketsS1 > 10)
-					{
-						// We have seen 10 alien packets and no s1 packets during the same period of time
-						m_numAlienRtpPacketsS1 = 0;
-						m_ssrcCandidate = -1;
-						remapped = true;
-						channel = 1;
-						m_lastRtpPacketSide1 = rtpPacket;
-						m_mappedS1S2 = false;
-
-						rtpPacket->ToString(logMsg);
-						logMsg.Format("[%s] s1 remapped to: %s", m_trackingId, logMsg);
-						LOG4CXX_INFO(m_log, logMsg);
-					}
-					else if(m_numAlienRtpPacketsS2 > 10)
-					{
-						// We have seen 10 alien packets and no s2 packets during the same period of time
-						m_numAlienRtpPacketsS2 = 0;
-						m_ssrcCandidate = -1;
-						remapped = true;
-						channel = 2;
-						m_lastRtpPacketSide2 = rtpPacket;
-						m_mappedS1S2 = false;
-
-						rtpPacket->ToString(logMsg);
-						logMsg.Format("[%s] s2 remapped to: %s", m_trackingId, logMsg);
-						LOG4CXX_INFO(m_log, logMsg);
-					}
-					else
-					{
-						// dismiss packet so that it does not disrupt the current established stream
-						return true;
-					}
-
-					if (remapped)
-					{
-						m_lastRtpStreamStart = time(NULL);
-					}
-				}
-			}
+		if (remapped)
+		{
+			m_lastRtpStreamStart = time(NULL);
 		}
 	}
 

@@ -15,6 +15,8 @@ class OrkSession {
 			m_config(config),
 
 			m_keepRtp(true),
+			m_startWhenReceiveS2(false),
+			m_nonLookBackSessionStarted(false),
 
 			// DTMF related
 			m_dtmfDigitString(""),
@@ -26,17 +28,22 @@ class OrkSession {
 		CStdString m_trackingId;
 		time_t m_beginDate;			// When the session has seen a few RTP packets
 
+		int DetectChannel(RtpPacketInfoRef& rtpPacket) ;
 
 		CStdString m_dtmfDigitString;
 		unsigned int m_currentRtpEventTs;
 		int m_telephoneEventPayloadType;
 
 		virtual void TriggerOnDemandViaDtmf()=0;
+		virtual void Start();
+		virtual void ReportMetadata();
 
 		AcpConfig * m_config;
 
 		bool m_keepRtp;
 		CStdString m_logMsg;
+		bool m_startWhenReceiveS2;
+		bool m_nonLookBackSessionStarted;
 
 		RtpPacketInfoRef m_lastRtpPacketSide1;
 		RtpPacketInfoRef m_lastRtpPacketSide2;
