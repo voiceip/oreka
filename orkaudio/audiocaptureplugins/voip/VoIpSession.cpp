@@ -1110,7 +1110,7 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		return true;
 	}
 
-	if(CONFIG.m_lookBackRecording == false && m_numRtpPackets == 0)
+	if(CONFIG.m_lookBackRecording == false && m_numRtpPackets == 0 && m_nonLookBackSessionStarted == false)
 	{
 		if (CONFIG.m_discardUnidirectionalCalls ) {
 			m_startWhenReceiveS2 = true;
