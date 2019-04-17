@@ -58,6 +58,18 @@ void OrkSession::Start() {
 void OrkSession::ReportMetadata() {
 }
 
+// ==========================================================================
+//
+// DetectChannel (RtpPacketInfoRef& rtpPacket)
+//
+// Detects and returns the correct channel number for the rtp packet
+// it starts the session if session is set to start with the first s2.
+// We dont return exact channel number on first s1/2  because they are treated differently.
+// We are not sure if this is the most correct approach but it was implemented this way previously
+// and breaks a pcap if implemented other way. See T831 for more details
+//
+// =========================================================================
+
 int OrkSession::DetectChannel(RtpPacketInfoRef& rtpPacket) {
 	CStdString logMsg;
 
@@ -72,7 +84,7 @@ int OrkSession::DetectChannel(RtpPacketInfoRef& rtpPacket) {
 			logMsg =  "[" + m_trackingId + "] 1st packet s1: " + logMsg;
 			LOG4CXX_INFO(getLog(), logMsg);
 		}
-		return 1;
+		return 10;
 	}
 	else if( rtpPacket->m_ssrc == m_lastRtpPacketSide1->m_ssrc && m_lastRtpPacketSide1->m_destIp.s_addr == rtpPacket->m_destIp.s_addr ) {
 		return 1;
@@ -98,7 +110,7 @@ int OrkSession::DetectChannel(RtpPacketInfoRef& rtpPacket) {
 				m_nonLookBackSessionStarted = true;
 			}
 		}
-		return 2;
+		return 20;
 	}
 	else if(rtpPacket->m_ssrc == m_lastRtpPacketSide2->m_ssrc && m_lastRtpPacketSide2->m_destIp.s_addr == rtpPacket->m_destIp.s_addr) {
 		return 2;
