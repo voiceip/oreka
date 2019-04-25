@@ -118,8 +118,6 @@ void TapeFileNaming::ThreadHandler()
 
 				if(originalFilename.Compare(newFilename) != 0)
 				{
-					apr_status_t ret;
-					std::rename((PCSTR)originalFilename.c_str(), (PCSTR)newFilename.c_str());
 					if(std::rename((PCSTR)originalFilename.c_str(), (PCSTR)newFilename.c_str()) != 0)
 					{
 						logMsg.Format("[%s] error renaming file from %s to %s: %s", trackingId, originalFilename, newFilename, strerror(errno));
