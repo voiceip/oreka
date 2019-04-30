@@ -28,7 +28,7 @@ class OrkSession {
 		CStdString m_trackingId;
 		time_t m_beginDate;			// When the session has seen a few RTP packets
 
-		int DetectChannel(RtpPacketInfoRef& rtpPacket) ;
+		int DetectChannel(RtpPacketInfoRef& rtpPacket, bool* pIsFirstPacket=NULL ) ;
 
 		CStdString m_dtmfDigitString;
 		unsigned int m_currentRtpEventTs;

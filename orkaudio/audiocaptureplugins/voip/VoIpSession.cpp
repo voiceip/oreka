@@ -1156,8 +1156,14 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	m_lastRtpPacket = rtpPacket;
 
-	channel = DetectChannel(rtpPacket);
-	if (channel == 1)
+	bool firstPacketForChannel = false;
+	channel = DetectChannel(rtpPacket,&firstPacketForChannel);
+
+	// We do not process the first packets the same as the consequitive ones
+	// We are not sure if this is the most correct approach but it was implemented this way previously
+	// and breaks a pcap if implemented other way. See T831 for more details
+
+	if (channel == 1 && !firstPacketForChannel)
 	{
 		// Subsequent RTP packet for side 1
 		if(rtpPacket->m_timestamp == m_lastRtpPacketSide1->m_timestamp)
@@ -1217,7 +1223,7 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		m_lastRtpPacketSide1 = rtpPacket;
 		m_numAlienRtpPacketsS1 = 0;
 	}
-	else if (channel == 2)
+	else if (channel == 2 && !firstPacketForChannel)
 	{
 		// Subsequent RTP packet for side 2
 		if(rtpPacket->m_timestamp == m_lastRtpPacketSide2->m_timestamp)
