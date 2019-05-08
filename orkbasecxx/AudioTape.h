@@ -140,7 +140,7 @@ public:
 	bool m_isSuccessfulImported;
 	bool m_isDoneProcessed;
 	CStdString m_externalFileName;		//name of imported file, its not conventional orkaudio name, its convetional orkaudio identifier + orginal name
-
+	bool m_fromProcessMcf;
 	TapeResponseRef m_tapeResponse;
 
 	/*
@@ -150,6 +150,7 @@ public:
 	 */
 	void GenerateFinalFilePathAndIdentifier();
 	CStdString m_audioOutputPath;
+	void PopulateTimeInfo();
 
 private:
 	void GenerateCaptureFilePathAndIdentifier();

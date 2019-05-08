@@ -99,6 +99,7 @@ AudioTape::AudioTape(CStdString &portId)
 	m_mediaType = MediaType::AudioType; 	// by default, the tape should be audio
 	m_isSuccessfulImported = true;
 	m_isDoneProcessed = false;
+	m_fromProcessMcf = false;
 
 	if(CaptureEvent::AudioKeepDirectionIsDefault(CONFIG.m_audioKeepDirectionIncomingDefault) == false)
 	{
@@ -139,6 +140,8 @@ AudioTape::AudioTape(CStdString &portId, CStdString& file)
 	m_portId = portId;
 	m_onDemand = false;
 	m_localSide = CaptureEvent::LocalSideUnkn;
+	m_fromProcessMcf = false;
+	m_isExternal = false;
 
 	if(CaptureEvent::AudioKeepDirectionIsDefault(CONFIG.m_audioKeepDirectionIncomingDefault) == false)
 	{
@@ -626,7 +629,7 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 	if(captureEventRef.get() == 0)
 	{
 		// No more events, the tape is ready
-		if(m_isExternal || m_bytesWritten > 0)
+		if(m_fromProcessMcf || m_isExternal || m_bytesWritten > 0)
 		{
 			PopulateTapeMessage(pTapeMsg, CaptureEvent::EtReady);
 		}
@@ -722,6 +725,22 @@ void AudioTape::PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum ev
 
 	MutexSentinel sentinel(m_mutex);;
 	std::copy(m_tags.begin(), m_tags.end(), std::inserter(msg->m_tags, msg->m_tags.begin()));
+}
+
+void AudioTape::PopulateTimeInfo()
+{
+	apr_time_exp_t date = {0};
+	apr_time_t tn = m_beginDate*1000*1000;	//apr_time_t is microsec from epoch
+	apr_time_exp_lt(&date, tn);
+
+	int month = date.tm_mon + 1;				// january=0, decembre=11
+	int year = date.tm_year + 1900;
+	m_year.Format("%.4d", year);
+	m_day.Format("%.2d", date.tm_mday);
+	m_month.Format("%.2d", month);
+	m_hour.Format("%.2d", date.tm_hour);
+	m_min.Format("%.2d", date.tm_min);
+	m_sec.Format("%.2d", date.tm_sec);
 }
 
 void AudioTape::GenerateCaptureFilePathAndIdentifier()
