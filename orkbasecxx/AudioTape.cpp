@@ -125,6 +125,7 @@ AudioTape::AudioTape(CStdString &portId)
 	m_pushCount = 0;
 	m_popCount = 0;
 	m_highMark = 0;
+	m_RejectedCount = 0;
 	m_chunkQueueDataSize = 0;
 	m_chunkQueueErrorReported = false;
 	m_keep = true;
@@ -142,6 +143,7 @@ AudioTape::AudioTape(CStdString &portId, CStdString& file)
 	m_localSide = CaptureEvent::LocalSideUnkn;
 	m_fromProcessMcf = false;
 	m_isExternal = false;
+	m_RejectedCount = 0;
 
 	if(CaptureEvent::AudioKeepDirectionIsDefault(CONFIG.m_audioKeepDirectionIncomingDefault) == false)
 	{
@@ -185,8 +187,9 @@ void AudioTape::AddAudioChunk(AudioChunkRef chunkRef)
 			if(m_chunkQueueErrorReported == false)
 			{
 				m_chunkQueueErrorReported = true;
-				LOG4CXX_ERROR(LOG.tapeLog, "Rejected additional chunk due to slow hard drive -- Queued Data Size:" + FormatDataSize(m_chunkQueueDataSize) + " is greater than 3*CaptureFileBatchSizeKByte:" + FormatDataSize(CONFIG.m_captureFileBatchSizeKByte * 3 * 1024));
+				LOG4CXX_ERROR(LOG.tapeLog, "[" + m_trackingId + "]: Rejected additional chunk due to slow hard drive -- Queued Data Size:" + FormatDataSize(m_chunkQueueDataSize) + " is greater than 3*CaptureFileBatchSizeKByte:" + FormatDataSize(CONFIG.m_captureFileBatchSizeKByte * 3 * 1024));
 			}
+			m_RejectedCount++;
 
 			return;
 		}
@@ -401,7 +404,7 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		break;
 	case CaptureEvent::EtStop:
 		m_shouldStop = true;
-		logMsg.Format("pushcount:%d popcount:%d highmark:%d", m_pushCount, m_popCount, m_highMark);
+		logMsg.Format("[%s]: pushcount:%d popcount:%d highmark:%d rejectedcount:%d", m_trackingId, m_pushCount, m_popCount, m_highMark, m_RejectedCount);
 		LOG4CXX_DEBUG(LOG.tapeLog, logMsg);
 		m_duration = eventRef->m_timestamp - m_beginDate;
 		if((CONFIG.m_remotePartyMaxDigits > 0) && (m_remoteParty.length() > CONFIG.m_remotePartyMaxDigits) && (m_remoteParty.CompareNoCase(m_remoteIp) != 0))
