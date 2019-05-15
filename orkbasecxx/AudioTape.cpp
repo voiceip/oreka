@@ -100,6 +100,7 @@ AudioTape::AudioTape(CStdString &portId)
 	m_isSuccessfulImported = true;
 	m_isDoneProcessed = false;
 	m_fromProcessMcf = false;
+	m_isQueued = false;
 
 	if(CaptureEvent::AudioKeepDirectionIsDefault(CONFIG.m_audioKeepDirectionIncomingDefault) == false)
 	{
@@ -141,6 +142,7 @@ AudioTape::AudioTape(CStdString &portId, CStdString& file)
 	m_portId = portId;
 	m_onDemand = false;
 	m_localSide = CaptureEvent::LocalSideUnkn;
+	m_isQueued = false;
 	m_fromProcessMcf = false;
 	m_isExternal = false;
 	m_RejectedCount = 0;
