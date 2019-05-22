@@ -22,6 +22,16 @@
             <DefaultRolloverStrategy max="20" />
         </RollingRandomAccessFile>
 
+        <RollingRandomAccessFile name="access" fileName="${accessLogFile}" filePattern="${accessLogFile}.%i.gz" immediateFlush="true" >
+            <PatternLayout>
+                <Pattern>%d %p %c{1} [%t] %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="25 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="20" />
+        </RollingRandomAccessFile>
+
         <RollingRandomAccessFile name="license" fileName="${licenseLogFile}" filePattern="${licenseLogFile}.%i.gz" immediateFlush="true" >
             <PatternLayout>
                 <Pattern>%d %p %c{1} [%t] %m%n</Pattern>
@@ -37,6 +47,10 @@
 
 
     <Loggers>
+
+        <Logger name="ACCESS" level="DEBUG" additivity="false">
+            <AppenderRef ref="access" />
+        </Logger>
 
         <Logger name="file" level="DEBUG" additivity="false">
             <AppenderRef ref="orkweb" />

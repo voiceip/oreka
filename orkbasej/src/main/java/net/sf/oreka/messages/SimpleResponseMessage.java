@@ -20,15 +20,13 @@ public class SimpleResponseMessage extends AsyncMessage {
 
 	boolean success = false;
 	String comment = "";
-	
-	public void define(OrkSerializer serializer) throws OrkException {
 
+	public void define(OrkSerializer serializer) throws OrkException {
 		success = serializer.booleanValue("success", success, true);
 		comment = serializer.stringValue("comment", comment, false);
 	}
 
 	public String getOrkClassName() {
-
 		return "simpleresponse";
 	}
 

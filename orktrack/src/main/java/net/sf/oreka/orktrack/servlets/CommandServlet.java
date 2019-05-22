@@ -11,10 +11,9 @@
  *
  */
 
-package net.sf.oreka.orktrack;
+package net.sf.oreka.orktrack.servlets;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -24,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 import net.sf.oreka.messages.AsyncMessage;
 import net.sf.oreka.messages.SimpleResponseMessage;
 import net.sf.oreka.messages.SyncMessage;
+import net.sf.oreka.orktrack.OrkTrack;
 import net.sf.oreka.serializers.ServletRequestSerializer;
 import net.sf.oreka.serializers.SingleLineSerializer;
 import org.apache.logging.log4j.LogManager;

@@ -22,9 +22,14 @@ Based on [Orecx Oreka](http://www.orecx.com/open-source/), this project tries to
 The build tool is separately available at [github:Oreka-build](https://github.com/voiceip/oreka-build) which builds the project on a Ubuntu14.04 Virtual Box. 
 You can natively build if you have all dependencies but I develop on a OSx system, so have kept it separate.
 
-### Distribution
+### Distribution & Installation
 
-Debian installers are planned for release via [Bintray](https://bintray.com/voiceip/deb/oreka)
+Ubuntu installers are available via [Bintray](https://bintray.com/kingster/deb/oreka). To add the sources to your system run the following command
+```
+echo "deb https://dl.bintray.com/kingster/deb /" | sudo tee -a /etc/apt/sources.list.d/oreka.list
+apt update
+apt install oreka
+```
 
 #### More Information
 Read [more](README.txt)

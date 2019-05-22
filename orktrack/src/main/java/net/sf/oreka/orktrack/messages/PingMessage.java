@@ -19,12 +19,8 @@ import net.sf.oreka.messages.SimpleResponseMessage;
 import net.sf.oreka.messages.SyncMessage;
 import net.sf.oreka.serializers.OrkSerializer;
 
-import org.apache.log4j.Logger;
-
 public class PingMessage extends SyncMessage {
 
-	static Logger logger = Logger.getLogger(PingMessage.class);
-	
 	public PingMessage() {
 	}
 	

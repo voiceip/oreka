@@ -13,6 +13,8 @@
 
 package net.sf.oreka.orktrack.messages;
 
+import lombok.Getter;
+import lombok.Setter;
 import net.sf.oreka.Direction;
 import net.sf.oreka.OrkException;
 import net.sf.oreka.messages.AsyncMessage;
@@ -29,6 +31,8 @@ import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+@Getter
+@Setter
 public class MetadataMessage  extends SyncMessage {
 
 	Logger log = null;
@@ -112,92 +116,5 @@ public class MetadataMessage  extends SyncMessage {
 		
 	}
 
-	public String getCapturePort() {
-		return capturePort;
-	}
-
-	public void setCapturePort(String capturePort) {
-		this.capturePort = capturePort;
-	}
-
-	public Direction getDirection() {
-		return direction;
-	}
-
-	public void setDirection(Direction direction) {
-		this.direction = direction;
-	}
-
-	public int getDuration() {
-		return duration;
-	}
-
-	public void setDuration(int duration) {
-		this.duration = duration;
-	}
-
-	public String getLocalEntryPoint() {
-		return localEntryPoint;
-	}
-
-	public void setLocalEntryPoint(String localEntryPoint) {
-		this.localEntryPoint = localEntryPoint;
-	}
-
-	public String getLocalParty() {
-		return localParty;
-	}
-
-	public void setLocalParty(String localParty) {
-		this.localParty = localParty;
-	}
-
-	public Logger getLog() {
-		return log;
-	}
-
-	public void setLog(Logger log) {
-		this.log = log;
-	}
-
-	public String getLoginString() {
-		return loginString;
-	}
-
-	public void setLoginString(String loginString) {
-		this.loginString = loginString;
-	}
-
-	public String getRemoteParty() {
-		return remoteParty;
-	}
-
-	public void setRemoteParty(String remoteParty) {
-		this.remoteParty = remoteParty;
-	}
-
-	public String getService() {
-		return service;
-	}
-
-	public void setService(String service) {
-		this.service = service;
-	}
-
-	public CaptureStage getStage() {
-		return stage;
-	}
-
-	public void setStage(CaptureStage stage) {
-		this.stage = stage;
-	}
-
-	public int getTimestamp() {
-		return timestamp;
-	}
-
-	public void setTimestamp(int timestamp) {
-		this.timestamp = timestamp;
-	}
 
 }

@@ -13,6 +13,8 @@
 
 package net.sf.oreka.orktrack.messages;
 
+import lombok.Getter;
+import lombok.Setter;
 import net.sf.oreka.Direction;
 import net.sf.oreka.OrkException;
 import net.sf.oreka.messages.AsyncMessage;
@@ -28,9 +30,11 @@ import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+@Getter
+@Setter
 public class TapeMessage extends SyncMessage {
 
-	public enum CaptureStage {START , STOP, READY, COMPLETE, UNKN};
+	public  enum CaptureStage {START , STOP, READY, COMPLETE, UNKN};
 	
 	static Logger logger = Logger.getLogger(TapeMessage.class);
 	
@@ -56,14 +60,6 @@ public class TapeMessage extends SyncMessage {
 	String nativeCallId = "";
 	
 	public TapeMessage() {
-	}
-	
-	public String getService() {
-		return service;
-	}
-
-	public void setService(String service) {
-		this.service = service;
 	}
 
 	@Override
@@ -130,173 +126,6 @@ public class TapeMessage extends SyncMessage {
 		// TODO Auto-generated method stub
 		
 	}
-
-	public String getCapturePort() {
-		return capturePort;
-	}
-
-	public void setCapturePort(String capturePort) {
-		this.capturePort = capturePort;
-	}
-
-	public Direction getDirection() {
-		return direction;
-	}
-
-	public void setDirection(Direction direction) {
-		this.direction = direction;
-	}
-
-	public String getFilename() {
-		return filename;
-	}
-
-	public void setFilename(String filename) {
-		this.filename = filename;
-	}
-
-	public String getLocalEntryPoint() {
-		return localEntryPoint;
-	}
-
-	public void setLocalEntryPoint(String localEntryPoint) {
-		this.localEntryPoint = localEntryPoint;
-	}
-
-	public String getLocalParty() {
-		return localParty;
-	}
-
-	public void setLocalParty(String localParty) {
-		this.localParty = localParty;
-	}
-
-	public String getLoginString() {
-		return loginString;
-	}
-
-	public void setLoginString(String loginString) {
-		this.loginString = loginString;
-	}
-
-	public String getRemoteParty() {
-		return remoteParty;
-	}
-
-	public void setRemoteParty(String remoteParty) {
-		this.remoteParty = remoteParty;
-	}
-
-	public CaptureStage getStage() {
-		return stage;
-	}
-
-	public void setStage(CaptureStage stage) {
-		this.stage = stage;
-	}
-
-	public int getTimestamp() {
-		return timestamp;
-	}
-
-	public void setTimestamp(int timestamp) {
-		this.timestamp = timestamp;
-	}
-
-	public int getDuration() {
-		return duration;
-	}
-
-	public void setDuration(int duration) {
-		this.duration = duration;
-	}
-
-	public String getCaptureId() {
-		return captureId;
-	}
-	
-
-	public void setCaptureId(String captureId) {
-		this.captureId = captureId;
-	}
-	
-
-	public String getDstIp() {
-		return dstIp;
-	}
-	
-
-	public void setDstIp(String dstIp) {
-		this.dstIp = dstIp;
-	}
-	
-
-	public String getDstMac() {
-		return dstMac;
-	}
-	
-
-	public void setDstMac(String dstMac) {
-		this.dstMac = dstMac;
-	}
-	
-
-	public int getDstTcpPort() {
-		return dstTcpPort;
-	}
-	
-
-	public void setDstTcpPort(int dstTcpPort) {
-		this.dstTcpPort = dstTcpPort;
-	}
-	
-
-	public String getSrcIp() {
-		return srcIp;
-	}
-	
-
-	public void setSrcIp(String srcIp) {
-		this.srcIp = srcIp;
-	}
-	
-
-	public String getSrcMac() {
-		return srcMac;
-	}
-	
-
-	public void setSrcMac(String srcMac) {
-		this.srcMac = srcMac;
-	}
-	
-
-	public int getSrcTcpPort() {
-		return srcTcpPort;
-	}
-	
-
-	public void setSrcTcpPort(int srcTcpPort) {
-		this.srcTcpPort = srcTcpPort;
-	}
-
-	public String getRecId() {
-		return recId;
-	}
-	
-
-	public void setRecId(String recId) {
-		this.recId = recId;
-	}
-
-	public String getNativeCallId() {
-        return nativeCallId;
-    }
-
-    public void setNativeCallId(String nativeCallId) {
-        this.nativeCallId = nativeCallId;
-    }
-	
 	
 
 }

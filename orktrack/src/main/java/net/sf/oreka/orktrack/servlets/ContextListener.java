@@ -10,8 +10,10 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
-package net.sf.oreka.orktrack;
+package net.sf.oreka.orktrack.servlets;
 
+import net.sf.oreka.orktrack.LogManager;
+import net.sf.oreka.orktrack.OrkTrack;
 import net.sf.oreka.util.TomcatServerXMLParser;
 import org.apache.logging.log4j.Logger;
 

@@ -27,15 +27,26 @@
 		<param-value>/var/lib/tomcat8</param-value>
 	</context-param>
  	<listener>
-		<listener-class>net.sf.oreka.orktrack.ContextListener</listener-class>
+		<listener-class>net.sf.oreka.orktrack.servlets.ContextListener</listener-class>
 	</listener>
     <servlet>
         <servlet-name>command</servlet-name>
-        <servlet-class>net.sf.oreka.orktrack.CommandServlet</servlet-class>
+        <servlet-class>net.sf.oreka.orktrack.servlets.CommandServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
         <servlet-name>command</servlet-name>
         <url-pattern>/command</url-pattern>
     </servlet-mapping>
+
+    <filter>
+        <filter-name>AccessLogFilter</filter-name>
+        <filter-class>net.sf.oreka.orktrack.servlets.AccessLogFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>AccessLogFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
 </web-app>
