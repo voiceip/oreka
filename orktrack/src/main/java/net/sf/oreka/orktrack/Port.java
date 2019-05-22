@@ -221,6 +221,7 @@ public class Port {
 				recTape.setPort(recPort);
 				recTape.setRemoteParty(stopMessage.getRemoteParty());
 				recTape.setTimestamp(timestamp);
+				recTape.setNativeCallId(stopMessage.getNativeCallId());
 				recTape.setService(srv);
 				hbnSession.save(recTape);
 				logger.info("#" + tapeMessage.getCapturePort() + ": written tape " + recTape.getId());
