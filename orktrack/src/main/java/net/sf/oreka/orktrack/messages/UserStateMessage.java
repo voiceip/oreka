@@ -22,7 +22,7 @@ import net.sf.oreka.orktrack.LogManager;
 import net.sf.oreka.persistent.OrkUser;
 import net.sf.oreka.serializers.OrkSerializer;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 

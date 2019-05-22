@@ -25,7 +25,7 @@ import net.sf.oreka.persistent.OrkService;
 import net.sf.oreka.serializers.OrkSerializer;
 import net.sf.oreka.serializers.SingleLineSerializer;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 

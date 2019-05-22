@@ -13,12 +13,12 @@
 package net.sf.oreka.orktrack;
 
 import net.sf.oreka.util.TomcatServerXMLParser;
+import org.apache.logging.log4j.Logger;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import org.apache.log4j.Logger;
 
 public class ContextListener implements ServletContextListener {
 

@@ -13,14 +13,13 @@
 
 package net.sf.oreka.orktrack;
 
-import java.io.File;
-
 import net.sf.oreka.OrkException;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.ConfigurationSource;
+import org.apache.logging.log4j.core.config.xml.XmlConfiguration;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import java.io.File;
 
 /**
  * This singleton class manages all application log4j loggers
@@ -40,15 +39,13 @@ public class LogManager {
 	
 	private LogManager()
 	{
-		rootLogger =Logger.getRootLogger();
-		rootLogger.setLevel(Level.INFO);
-		configLogger = Logger.getLogger("config");
-		contextLogger = Logger.getLogger("context");
-		portLogger = Logger.getLogger("port");
-		userLogger = Logger.getLogger("user");
-		recurrentLogger = Logger.getLogger("net.sf.oreka.recurrent");
+		rootLogger = org.apache.logging.log4j.LogManager.getRootLogger();
+ 		configLogger = org.apache.logging.log4j.LogManager.getLogger("config");
+		contextLogger = org.apache.logging.log4j.LogManager.getLogger("context");
+		portLogger = org.apache.logging.log4j.LogManager.getLogger("port");
+		userLogger = org.apache.logging.log4j.LogManager.getLogger("user");
+		recurrentLogger = org.apache.logging.log4j.LogManager.getLogger("net.sf.oreka.recurrent");
 		
-	    BasicConfigurator.configure();	// in case there is no properties file
 	}
 	
 	public static LogManager getInstance()
@@ -73,7 +70,11 @@ public class LogManager {
 		if (file.exists()) {
 
 			// Attempt to configure log4j
-			PropertyConfigurator.configure(ConfigFilename);
+			//PropertyConfigurator.configure(ConfigFilename);
+            LoggerContext context = (org.apache.logging.log4j.core.LoggerContext) org.apache.logging.log4j.LogManager.getContext(false);
+            XmlConfiguration config = new XmlConfiguration(context, ConfigurationSource.fromUri(file.toURI()));
+            context.start(config);
+
 		}
 		else {
 			throw new OrkException("Log4j properties file does not exist:" + ConfigFilename + " check your web.xml");

@@ -43,7 +43,7 @@ public class OrkTrack {
 
 	public OrkTrack() {
 		
-		LogManager.getInstance().getConfigLogger().log(Level.INFO, "Entering OrkTrack");
+		LogManager.getInstance().getConfigLogger().info("Entering OrkTrack");
 	}
 	
 	public static void initialize(String log4jConfigFile, String hibernateConfigFile, String configFile) {
