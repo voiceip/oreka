@@ -14,11 +14,9 @@
 #ifndef __CAPTUREPLUGINPROXY_H__
 #define __CAPTUREPLUGINPROXY_H__
 
-#include "ace/Singleton.h"
-#include "ace/Thread_Mutex.h"
-#include "ace/DLL.h"
 #include "AudioCapture.h"
 #include "AudioCapturePlugin.h"
+#include "Utils.h"
 
 class DLL_IMPORT_EXPORT_ORKBASE CapturePluginProxy
 {
@@ -52,12 +50,9 @@ private:
 	SetOnHoldFunction m_setOnHoldFunction;
 	SetOffHoldFunction m_setOffHoldFunction;
 	GetConnectionStatusFunction m_GetConnectionStatusFunction;
-
-	ACE_DLL m_dll;
+	apr_dso_handle_t *m_dsoHandle;
 	bool m_loaded;
 };
-
-//typedef ACE_Singleton<CapturePluginProxy, ACE_Thread_Mutex> CapturePluginProxySingleton;
 
 #endif
 

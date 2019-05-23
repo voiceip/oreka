@@ -1,12 +1,18 @@
-AC_INIT(configure.in)
 
+AC_INIT([orkaudio], [1.0])
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(orkaudio, 1.0)
+AM_INIT_AUTOMAKE([subdir-objects])
 
 speex_lib=orkspeex
 
 if [cat /etc/issue | grep Ubuntu]; then
 	speex_lib=speex
+	CXXFLAGS+="-std=c++11"
+fi
+
+if [ grep -i opensuse /etc/os-release ]; then
+	speex_lib=speex
+	CXXFLAGS+="-std=c++11"
 fi
 
 if [grep "release 5" /etc/redhat-release]; then
@@ -14,8 +20,8 @@ if [grep "release 5" /etc/redhat-release]; then
 fi
 
 # Check if gcc supports cpp11
-if [echo "main(){}" | $CXX -std=c++11 -xc++ -S -  &>/dev/null]; then
-	CXXFLAGS+=" -g -O2 -fno-inline-functions -std=c++11 -DSUPPORTS_CPP11"
+if [echo "main(){}" | $CXX -std=c++11 -xc++ -S -  &>/dev/null] ; then
+	CXXFLAGS+=" -g -O2 -fno-inline-functions -std=c++11 -DSUPPORTS_CPP11 -fPIC"
 	LDFLAGS+=" -ldl"
 else
 	CXXFLAGS+=" -g -O2 -fno-inline-functions"

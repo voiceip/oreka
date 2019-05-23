@@ -172,16 +172,16 @@ void OggOpusFile::Open(CStdString& filename, fileOpenModeEnum mode, bool stereo,
 	{
 		m_filename = filename + GetExtension();
 	}
-	fout = NULL;
 	m_mode = mode;
 	if (mode == READ)
 	{
-		fout = ACE_OS::fopen((PCSTR)m_filename, "rb");
+        fout.open(m_filename, std::fstream::in | std::fstream::binary);
 	}
 	else
 	{
 		FileRecursiveMkdir(m_filename, CONFIG.m_audioFilePermissions, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, CONFIG.m_audioOutputPathMcf);
-		fout = ACE_OS::fopen((PCSTR)m_filename, "wb");
+        apr_status_t ret;
+        fout.open(m_filename, std::fstream::out | std::fstream::binary);
 		if(CONFIG.m_audioFilePermissions)
 		{
 			FileSetPermissions(m_filename, CONFIG.m_audioFilePermissions);
@@ -192,7 +192,7 @@ void OggOpusFile::Open(CStdString& filename, fileOpenModeEnum mode, bool stereo,
 			FileSetOwnership(m_filename, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup);
 		}
 	}
-	if(!fout)
+	if(!fout.is_open())
 	{
 		throw(CStdString("Could not open file: ") + m_filename);
 	}
@@ -413,10 +413,11 @@ void OggOpusFile::WriteHeader()
 /*Write an Ogg page to a file pointer*/
 int OggOpusFile::oe_write_page(ogg_page *page)
 {
-    int written =0;
-    written=ACE_OS::fwrite(page->header,1,page->header_len, fout);
-    written+=ACE_OS::fwrite(page->body,1,page->body_len, fout);
-    return written;
+    int writtenHdr =page->header_len;
+    fout.write((char*)page->header, writtenHdr);
+    int writtenBody = page->body_len;
+    fout.write((char*)page->body, writtenBody);
+    return (writtenHdr+writtenBody);
 }
 
 //Description: 
@@ -431,7 +432,7 @@ void OggOpusFile::WriteChunk(AudioChunkRef chunkRef)
 
 	if(chunkRef->GetDetails()->m_numBytes == 0) return;
 
-    if(fout == NULL) return;
+    if(!fout.is_open()) return;
 
     int numSamples = chunkRef->GetNumSamples() + m_extraSamplesFromLastChunk;   // total number of samples, this chunk + bytes from previous chunk which was cut out because it wont make into frames (multiple of 160 samples)
     if(numSamples < PCM_SAMPLES_IN_FRAME)
@@ -575,9 +576,9 @@ void OggOpusFile::Close()
         }
         EncodeChunks(&m_extraPcmBuf, PCM_SAMPLES_IN_FRAME, true);  
     }
-    if(fout != NULL)
+    if(fout.is_open())
     {
-        ACE_OS::fclose(fout);
+        fout.close();
     }
     
 }

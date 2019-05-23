@@ -1,9 +1,6 @@
 #include "Utils.h"
-#include "ace/OS_NS_stdio.h"
-#include "ace/OS_NS_arpa_inet.h"
-#include "ace/OS_NS_sys_stat.h"
 #include "time.h"
-
+#include <fstream>
 #ifndef WIN32
 #include <pwd.h>
 #include <grp.h>
@@ -11,6 +8,139 @@
 #include <unistd.h>
 #endif
 
+//========================================================
+//thread_local OrkAprSubPool aprThreadPool;
+//#define APR_POOL_MAX_FREE_SIZE (4*1024*1024*1024) 
+std::mutex OrkAprSingleton::aprLock;
+OrkAprSingleton::OrkAprSingleton()
+{
+    apr_status_t rt;
+    if (apr_initialize() != APR_SUCCESS)
+    {
+        throw (CStdString("Failed to initialized apr"));
+    }
+    if(apr_pool_create(&m_aprMp, NULL) != APR_SUCCESS)
+    {
+        throw (CStdString("Failed to create apr pool"));
+    }
+    apr_allocator_t* pa = apr_pool_allocator_get(m_aprMp);
+    // if(pa)
+    // {
+    //     apr_allocator_max_free_set(pa, APR_POOL_MAX_FREE_SIZE);
+    // }
+}
+OrkAprSingleton* OrkAprSingleton::m_instance(NULL);
+apr_pool_t* OrkAprSingleton::m_aprMp(NULL);
+void OrkAprSingleton::Initialize()
+{
+	if(m_instance == NULL)
+    {
+        std::lock_guard<std::mutex> lg(aprLock);
+        m_instance = new OrkAprSingleton();
+    }
+}
+OrkAprSingleton::~OrkAprSingleton()
+{
+    apr_pool_destroy(m_aprMp);
+}
+// std::shared_ptr<OrkAprSingleton> OrkAprSingleton::instance = 0;
+// std::shared_ptr<OrkAprSingleton> OrkAprSingleton::GetInstance()
+OrkAprSingleton* OrkAprSingleton::GetInstance()
+{
+    return m_instance;
+}
+
+apr_pool_t* OrkAprSingleton::GetAprMp()
+{
+    return m_aprMp;
+}
+
+//========================================================
+#ifndef CENTOS_6
+OrkOpenSslSingleton::OrkOpenSslSingleton()
+{
+	SslInitialize();
+	CreateCTXClient();
+//	ConfigureClientCtx();	//using default cert for now
+	CreateCTXServer();
+	ConfigureServerCtx();
+}
+
+void OrkOpenSslSingleton::SslInitialize()
+{
+    SSL_load_error_strings();
+    SSL_library_init();
+    OpenSSL_add_all_algorithms();
+}
+void OrkOpenSslSingleton::CreateCTXClient()
+{
+	const SSL_METHOD *method;
+    method = SSLv23_client_method();
+    m_clientCtx = SSL_CTX_new(method);
+    if (!m_clientCtx) {
+		throw (CStdString("Unable to create SSL client context\n"));
+    }
+}
+void OrkOpenSslSingleton::CreateCTXServer()
+{
+	const SSL_METHOD *method;
+    method = SSLv23_server_method();
+    m_serverCtx = SSL_CTX_new(method);
+    if (!m_serverCtx) {
+		throw (CStdString("Unable to create SSL server context\n"));
+    }
+}
+
+//Suggest to change to have proper method to locate cert/key
+void OrkOpenSslSingleton::ConfigureClientCtx()
+{
+    SSL_CTX_set_ecdh_auto(m_clientCtx, 1);
+    /* Set the key and cert */
+    if(SSL_CTX_use_certificate_file(m_clientCtx, "/etc/orkaudio/clientcert.pem", SSL_FILETYPE_PEM) <= 0) {
+		throw (CStdString("Unable to find clientcert.pem\n"));
+    }
+    if(SSL_CTX_use_PrivateKey_file(m_clientCtx, "/etc/orkaudio/clientkey.pem", SSL_FILETYPE_PEM) <= 0 ) {
+		throw (CStdString("Unable to find clientkey.perm\n"));
+    }
+   
+      /* Check if the client certificate and private-key
+matches */
+    if (!SSL_CTX_check_private_key(m_clientCtx)) {
+        throw (CStdString("Private key does not match the certificate public key\n"));
+
+    }
+}
+//Suggest to change to have proper method to locate cert/key
+void OrkOpenSslSingleton::ConfigureServerCtx()
+{
+	SSL_CTX_set_ecdh_auto(m_serverCtx, 1);
+    /* Set the key and cert */
+    if(SSL_CTX_use_certificate_file(m_serverCtx, "/etc/orkaudio/cert.pem", SSL_FILETYPE_PEM) <= 0) {
+		throw (CStdString("Unable to find cert.pem\n"));
+    }
+
+    if(SSL_CTX_use_PrivateKey_file(m_serverCtx, "/etc/orkaudio/key.pem", SSL_FILETYPE_PEM) <= 0 ) {
+		throw (CStdString("Unable to find key.perm\n"));
+    }
+    
+    /* Set to require peer (server) certificate verification */
+    SSL_CTX_set_verify(m_serverCtx,SSL_VERIFY_PEER,NULL);
+    SSL_CTX_set_verify_depth(m_serverCtx,1);
+	unsigned int currentPid = getpid();
+	CStdString ssl_session_ctx_id;
+	ssl_session_ctx_id.Format("orkaudio-%d", currentPid);
+	SSL_CTX_set_session_id_context(m_serverCtx, (unsigned char *)&ssl_session_ctx_id, ssl_session_ctx_id.length());
+}
+
+SSL_CTX* OrkOpenSslSingleton::GetClientCtx()
+{
+	return m_clientCtx;
+}
+SSL_CTX* OrkOpenSslSingleton::GetServerCtx()
+{
+	return m_serverCtx;
+}
+#endif
 //========================================================
 // String related stuff
 
@@ -41,6 +171,16 @@ bool StringIsPhoneNumber(CStdString& string)
 	return true;
 }
 
+bool ChopToken(CStdString &token, CStdString separator, CStdString &s) {
+	size_t pos = s.find(separator);
+	if (pos != std::string::npos) {
+		token = s.substr(0,pos);
+		s = s.substr(pos+separator.length());
+		return true;
+	}
+	return false;
+}
+
 bool MatchesStringList(CStdString& string, std::list<CStdString>& stringList)
 {
 	if(string.size() == 0)
@@ -57,33 +197,6 @@ bool MatchesStringList(CStdString& string, std::list<CStdString>& stringList)
 		}
 	}
 	return false;
-}
-
-CStdString GetHostFromAddressPair(CStdString& hostname)
-{
-        int colidx = 0;
-
-        if((colidx = hostname.Find(CStdString(":"))) >= 0)
-        {
-                return hostname.Left(colidx);
-        }
-
-        return hostname;
-}
-
-int GetPortFromAddressPair(CStdString& hostname)
-{
-        int colidx = 0;
-
-        if((colidx = hostname.Find(CStdString(":"))) >= 0)
-        {
-		CStdString portString;
-
-		portString = hostname.Right(hostname.size() - colidx - 1);
-                return StringToInt(portString);
-        }
-
-        return 0;
 }
 
 CStdString FormatDataSize(unsigned long int size)
@@ -183,6 +296,47 @@ void StringTokenizeToList(CStdString input, std::list<CStdString>& output)
     output.push_back(input);
 }
 
+void OrkSleepSec(unsigned int sec)
+{
+//    std::this_thread::sleep_for(std::chrono::seconds(sec));
+    apr_interval_time_t tsleep = sec*1000*1000;
+    apr_sleep(tsleep);
+}
+void OrkSleepMs(unsigned int msec)
+{
+    // std::this_thread::sleep_for(std::chrono::microseconds(msec));
+    apr_interval_time_t tsleep = msec*1000;
+    apr_sleep(tsleep);
+}
+void OrkSleepMicrSec(unsigned int microsec)
+{
+    // std::this_thread::sleep_for(std::chrono::microseconds(msec));
+    apr_interval_time_t tsleep = microsec;
+    apr_sleep(tsleep);
+}
+void OrkSleepNs(unsigned int nsec)
+{
+    // std::this_thread::sleep_for(std::chrono::nanoseconds(nsec));
+}
+ 
+int ork_vsnprintf(char *buf, apr_size_t len, const char *format, ...)
+{
+va_list ap;
+	int ret;
+	va_start(ap, format);
+	ret = apr_vsnprintf(buf, len, format, ap);
+	va_end(ap);
+	return ret;
+}
+
+CStdString AprGetErrorMsg(apr_status_t ret)
+{
+	CStdString errorMsg;
+	char errStr[256];
+	apr_strerror(ret, errStr, 256);
+	errorMsg.Format("%s", errStr);
+	return errorMsg;
+}
 //========================================================
 // file related stuff
 
@@ -237,10 +391,11 @@ CStdString FileStripExtension(CStdString& filename)
 
 bool FileCanOpen(CStdString& path)
 {
-	FILE* file = ACE_OS::fopen((PCSTR)path, "r");
-	if(file)
-	{
-		ACE_OS::fclose(file);
+	apr_status_t ret;
+	std::fstream file;
+	file.open(path, std::fstream::in);
+	if(file.is_open()){
+		file.close();
 		return true;
 	}
 	return false;
@@ -248,6 +403,8 @@ bool FileCanOpen(CStdString& path)
 
 void FileRecursiveMkdir(CStdString& path, int permissions, CStdString owner, CStdString group, CStdString rootDirectory)
 {
+	OrkAprSubPool locPool;
+
 	int position = 0, newPermissions = permissions;
 	bool done = false;
 
@@ -266,7 +423,8 @@ void FileRecursiveMkdir(CStdString& path, int permissions, CStdString owner, CSt
 		else
 		{
 			CStdString level = path.Left(position);
-			ACE_OS::mkdir((PCSTR)level);
+			apr_status_t ret;
+			ret = apr_dir_make(level, APR_OS_DEFAULT, AprLp);
 		}
 	}
 
@@ -279,7 +437,7 @@ void FileRecursiveMkdir(CStdString& path, int permissions, CStdString owner, CSt
 			position = 1 + rootDirectory.size();
 	        }
 	}
-
+#ifndef WIN32
 	if(newPermissions & S_IRUSR)
 	{
 		newPermissions |= S_IXUSR;
@@ -317,6 +475,7 @@ void FileRecursiveMkdir(CStdString& path, int permissions, CStdString owner, CSt
 			}
 		}
 	}
+#endif
 }
 
 int FileSetPermissions(CStdString filename, int permissions)
@@ -390,46 +549,387 @@ void FileEscapeName(CStdString& in, CStdString& out)
 	}
 }
 
+#ifdef WIN32
+#define stat _stat
+#endif
+
 bool FileIsExist(CStdString fileName)
 {
-	ACE_stat info;
- 	int file_att = -1;
-
-    file_att = ACE_OS::stat(fileName, &info);
-    if(file_att == 0)
-    {
+	struct stat finfo;
+	if(stat((PCSTR)fileName.c_str(), &finfo) != 0){
+		return false;
+	}
+	else{
 		return true;
-    }
-    else
-    {
-    	return false;
-    }
+	}
 }
 
 int FileSizeInKb(CStdString fileName)
 {
-	ACE_stat info;
-	int file_att = -1;
+	struct stat finfo;
+	if(stat((PCSTR)fileName.c_str(), &finfo) != 0){
+		return 0;
+	}
+	else{
+		return finfo.st_size/1024;
+	}
 
-	file_att = ACE_OS::stat(fileName, &info);
-
-    if(file_att == 0)
-    {
-		return ((info.st_size)/1024) ;
-    }
-    else
-    {
-    	return 0;
-    }
 }
 
 //=====================================================
+const char *inet_ntopV4(int inet, void *srcAddr, char *dst, size_t size)
+{
+	//AF_INET for now
+		unsigned char* src = (unsigned char*)srcAddr;
+	static const char fmt[] = "%u.%u.%u.%u";
+	char tmp[sizeof "255.255.255.255"];
+
+	if (ork_vsnprintf(tmp, sizeof tmp, fmt, src[0], src[1], src[2], src[3]) >= (int) size) {
+		return NULL;
+	}
+
+	return strcpy(dst, tmp);
+}
+#define INADDRSZ         4
+int inet_pton4(const char *src, struct in_addr* dstAddr)
+{
+    unsigned char* dst = (unsigned char*)dstAddr;
+	static const char digits[] = "0123456789";
+	int saw_digit, octets, ch;
+	unsigned char tmp[INADDRSZ], *tp;
+
+	saw_digit = 0;
+	octets = 0;
+	tp = tmp;
+	*tp = 0;
+	while ((ch = *src++) != '\0') {
+		const char *pch;
+
+		if ((pch = strchr(digits, ch)) != NULL) {
+			unsigned int val = *tp * 10 + (unsigned int) (pch - digits);
+
+			if (val > 255)
+				return (0);
+			*tp = (unsigned char) val;
+			if (!saw_digit) {
+				if (++octets > 4)
+					return (0);
+				saw_digit = 1;
+			}
+		} else if (ch == '.' && saw_digit) {
+			if (octets == 4)
+				return (0);
+			*++tp = 0;
+			saw_digit = 0;
+		} else
+			return (0);
+	}
+	if (octets < 4)
+		return (0);
+	/* bcopy(tmp, dst, INADDRSZ); */
+	memcpy(dst, tmp, INADDRSZ);
+	return (1);
+}
+//1:read 0:write
+int OrkAprSocketWait(apr_socket_t *sock, int direction)
+{
+#if defined (WIN32) || defined(WIN64)
+	fd_set fdset, *rptr, *wptr;
+	apr_os_sock_t socketdes;
+	apr_os_sock_get(&socketdes, sock);
+	apr_interval_time_t timeout;
+	apr_socket_timeout_get(sock, &timeout);
+	int rc;
+	struct timeval tv, *tvptr;
+
+	FD_ZERO(&fdset);
+	FD_SET(socketdes, &fdset);
+
+	if (direction == 1) {
+		rptr = &fdset;
+		wptr = NULL;
+	}
+	else { /* APR_WAIT_WRITE */
+		rptr = NULL;
+		wptr = &fdset;
+	}
+
+	if (timeout < 0) {
+		tvptr = NULL;
+	}
+	else {
+		/* casts for winsock/timeval definition */
+		tv.tv_sec = (long)apr_time_sec(timeout);
+		tv.tv_usec = (int)apr_time_usec(timeout);
+		tvptr = &tv;
+	}
+	rc = select(/* ignored */ FD_SETSIZE + 1, rptr, wptr, NULL, tvptr);
+	if (rc == SOCKET_ERROR) {
+		return apr_get_netos_error();
+	}
+	else if (!rc) {
+		return APR_FROM_OS_ERROR(WSAETIMEDOUT);
+	}
+
+	return APR_SUCCESS;
+#else
+	return apr_wait_for_io_or_timeout(NULL, sock, direction);
+#endif
+}
+
+#ifndef CENTOS_6
+//Note: OrkAprSocketWait use socket timeout, so we need to set it to desire value before invoke this
+int OrkSslRead(apr_socket_t* sock, SSL* ssl, char* buf, int len)
+{
+	apr_interval_time_t timestart = apr_time_now();
+	int read;
+	OrkAprSocketWait(sock, 1);    //1 is read, 0 is write
+	//regardless there is data in the pipe or timeup, we still need to do ssl_read. It will help to detect if connection down
+	read = SSL_read(ssl, buf, len); 
+	return read;
+}
+//note:socket timeout should be much shorter than timeoutMs here to minimize delay
+void OrkSslRead_n(apr_socket_t* sock, SSL* ssl, char* buf, int len, int64_t timeoutMs, int &lenRead)
+{
+	apr_interval_time_t timestart = apr_time_now();
+	lenRead = 0;
+	int read;
+	while((apr_time_now() - timestart) < timeoutMs*1000) 
+	{
+		OrkAprSocketWait(sock, 1);    //1 is read, 0 is write
+		//regardless there is data in the pipe or timeup, we still need to do ssl_read. It will help in case of connection down
+		read = SSL_read(ssl, buf + lenRead, len - lenRead); 
+		if(read <= 0){
+		int er = SSL_get_error(ssl, read);
+			if(er == SSL_ERROR_SYSCALL){
+				lenRead = -1; //to signal the connection is down
+				break;
+			}
+			continue;
+		}
+		else{
+			lenRead += read;
+		}
+		if(lenRead >= len) break;
+	}
+}
+
+int OrkSslWrite(apr_socket_t* sock, SSL* ssl, const char* buf, int len)
+{
+	apr_interval_time_t timestart = apr_time_now();
+	int write;
+	OrkAprSocketWait(sock, 0);    //1 is read, 0 is write
+	//regardless there is data in the pipe or timeup, we still need to do ssl_write. It will help in case of connection down
+	write = SSL_write(ssl, buf, len); 
+	return write;
+}
+
+void OrkSslWrite_n(apr_socket_t* sock, SSL* ssl, const char* buf, int len, int64_t timeoutMs, int &lenWritten)
+{
+	apr_interval_time_t timestart = apr_time_now();
+	lenWritten = 0;
+	int write;
+	while((apr_time_now() - timestart) < timeoutMs*1000) 
+	{
+		OrkAprSocketWait(sock, 0);    //1 is read, 0 is write
+		//regardless there is data in the pipe or timeup, we still need to do ssl_write. It will help in case of connection down
+		write = SSL_write(ssl, buf + lenWritten, len - lenWritten); 
+		if(write <= 0){
+			int er = SSL_get_error(ssl, write);
+			if(er == SSL_ERROR_SYSCALL){
+				lenWritten = -1; //to signal the connection is down
+				break;
+			}
+			continue;
+		}
+		else{
+			lenWritten += write;
+		}
+		if(lenWritten >= len) break;    
+	}
+
+}
+#endif
+
+//we should set apr_socket timeout very small explicitly before, otherwise timeout would be higher
+int OrkRecv_n(apr_socket_t* socket, char* buf, int len, int64_t timeoutMs, int &lenRead)
+{
+	int ret = 1;
+	apr_interval_time_t timestart = apr_time_now();
+	lenRead = 0;
+	while((apr_time_now() - timestart) < timeoutMs*1000) 
+	{
+		apr_size_t read = len - lenRead;
+		apr_status_t rt = apr_socket_recv(socket, buf+lenRead, &read);
+		if(rt == APR_SUCCESS){
+			lenRead += read;
+		}
+		else if(rt == 70007)    //apr socket timeout
+		{
+			continue;
+		}
+		else if(rt == APR_EOF)
+		{
+			ret = -1;
+			break;
+		}
+		else
+		{
+
+			break;
+		}
+		
+		if(lenRead >= len) break;
+		
+	}
+	return ret;
+}
+
+int OrkSend_n(apr_socket_t* socket, const char* buf, int len, int64_t timeoutMs, int &lenSent)
+{
+	int ret = 1;
+	apr_interval_time_t timestart = apr_time_now();
+	lenSent = 0;
+	while((apr_time_now() - timestart) < timeoutMs*1000) 
+	{
+		apr_size_t sent = len - lenSent;
+		apr_status_t rt = apr_socket_send(socket, buf+lenSent, &sent);
+		if(rt == APR_SUCCESS){
+			lenSent += sent;
+		}
+		else if(rt == 70007)    //apr socket timeout
+		{
+			continue;
+		}
+		else if(rt == APR_EOF)
+		{
+			ret = -1;
+			break;
+		}
+		else
+		{
+			ret = -1;
+			break;
+		}
+		
+		if(lenSent >= len) break;
+		
+	}
+	return ret;
+}
+#if defined (WIN32) || defined(WIN64)
+#define alloca _alloca
+#endif 
+#ifndef CENTOS_6
+int SSL_writev (SSL *ssl, const struct iovec *vector, int count)
+{
+	char *buffer;
+	char *bp;
+	size_t bytes, to_copy;
+	int i;
+
+	/* Find the total number of bytes to be written.  */
+	bytes = 0;
+	for (i = 0; i < count; ++i)
+	bytes += vector[i].iov_len;
+
+	/* Allocate a temporary buffer to hold the data.  */
+	buffer = (char *) alloca (bytes);
+
+	/* Copy the data into BUFFER.  */
+	to_copy = bytes;
+	bp = buffer;
+	for (i = 0; i < count; ++i)
+	{
+	#     define min(a, b)		((a) > (b) ? (b) : (a))
+		size_t copy = min (vector[i].iov_len, to_copy);
+
+		memcpy ((void *) bp, (void *) vector[i].iov_base, copy);
+		bp += copy;
+
+		to_copy -= copy;
+		if (to_copy == 0)
+		break;
+	}
+
+	return SSL_write (ssl, buffer, bytes);
+}
+
+int OrkSsl_Connect(SSL* ssl, int timeoutMs, CStdString &errstr)
+{
+	int r = 0;
+	apr_interval_time_t timestart = apr_time_now();
+	ERR_clear_error();
+	while((r = SSL_connect(ssl)) <=0)
+	{
+		int er = SSL_get_error(ssl, r);
+		if(r == SSL_ERROR_WANT_READ || r== SSL_ERROR_WANT_WRITE)
+		{
+			OrkSleepMs(100);
+		}
+		else
+		{
+			char errorstr[256];           
+			int error;
+			while((error = ERR_get_error()) != 0){
+				memset(errorstr, 0, 256);
+				ERR_error_string_n(error, errorstr, 256);
+				CStdString tmpstr;
+				tmpstr.Format("errno:%d errstr:%s\n", r, errorstr);
+				errstr = errstr + tmpstr;
+			} 
+			break;
+		}
+		
+		if((apr_time_now() - timestart) > timeoutMs*1000)
+		{
+			break;
+		}
+	}
+	return r;
+}
+
+int OrkSsl_Accept(SSL* ssl, int timeoutMs, CStdString &errstr)
+{
+	int r = 0;
+	apr_interval_time_t timestart = apr_time_now();
+	ERR_clear_error();
+	while((r = SSL_accept(ssl)) <=0)
+	{
+		int er = SSL_get_error(ssl, r);
+		if(r == SSL_ERROR_WANT_READ || r== SSL_ERROR_WANT_WRITE)
+		{
+			OrkSleepMs(100);
+		}
+		else
+		{
+			char errorstr[256];           
+			int error;
+			while((error = ERR_get_error()) != 0){
+				memset(errorstr, 0, 256);
+				ERR_error_string_n(error, errorstr, 256);
+				CStdString tmpstr;
+				tmpstr.Format("errno:%d errstr:%s\n", r, errorstr);
+				errstr = errstr + tmpstr;
+			}            
+			break;
+		}
+		
+		if((apr_time_now() - timestart) > timeoutMs*1000)
+		{
+			break;
+		}
+	}
+	return r;
+}
+#endif
+
 // TcpAddress
 
 void TcpAddress::ToString(CStdString& string)
 {
 	char szIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&ip, szIp, sizeof(szIp));
+	inet_ntopV4(AF_INET, (void*)&ip, szIp, sizeof(szIp));
 
 	string.Format("%s,%u", szIp, port);
 }
@@ -514,7 +1014,7 @@ void IpRanges::Compute()
 			cidrIpAddressString = entry;
 		}
 
-		if(ACE_OS::inet_aton((PCSTR)cidrIpAddressString, &cidrIpAddress))
+		if(inet_pton4((PCSTR)cidrIpAddressString, &cidrIpAddress))
 		{
 			unsigned int rangeBitWidth = 32-cidrPrefixLength;
 			unsigned int prefix = ntohl((unsigned int)cidrIpAddress.s_addr) >> (rangeBitWidth);
@@ -595,5 +1095,13 @@ int GetOrekaRtpPayloadTypeForSdpRtpMap(CStdString sdp)
 		ret = 64;
 	}
 	return ret;
+}
+
+
+int OrkGetHostname(char *name, int len)
+{
+	OrkAprSubPool locPool;
+
+	return apr_gethostname(name,len,AprLp);
 }
 

@@ -1,84 +1,57 @@
 
 This file describes how to build the C++ part of the oreka capture system
 
+For now, building on a Ubuntu 18.04LTS system is detailed. More platforms will follow later.
 =====================================
 Build on Linux 
 
 Prerequisites:
 
-install these packages first using your linux distribution packaging system 
-or download sources tarballs from the listed websites.
+install these packages first using your linux distribution packaging system
 
-* log4cxx 0.9.7 - It is important to use this precise version for now
-	http://logging.apache.org/log4cxx/
-* ACE 5.4.2
-	http://www.cs.wustl.edu/~schmidt/ACE.html
-* libpcap 0.7.2 (only needed if you want to do VoIP recording)
-	http://www.tcpdump.org/
-* boost 1.31.0
-	http://www.boost.org
-* xerces-c 2.6
-	http://xml.apache.org/xerces-c/
-* libsndfile 1.0.10
-	http://www.mega-nerd.com/libsndfile/
-* portaudio v18 (only needed if you want to do sound device recording)
-	http://www.portaudio.com
-
-Redhat/Centos specific
-
-* yum install boost-devel
-* yum install libpcap
-* Download orkaudio-0.4-centos4.2-i386-rpms.tar from sourceforge
-* rpm -i xercesc-2.7.0-1.i386.rpm
-* rpm -i ACE-5.4.8-1.i386.rpm
-* rpm -i log4cxx-0.9.7-1.i386.rpm
-* rpm -i libsndfile-1.0.13-1.i386.rpm
+* log4cxx 
+* libapr
+* libpcap
+* boost
+* xerces-c 
+* libsndfile
 
 Debian/Ubuntu specific
 
-* apt-get install libace-dev
-* apt-get install libboost-dev
-* apt-get install liblog4cpp-dev
-* apt-get install libpcap0.7-dev
-* apt-get install libxerces26-dev
-* apt-get install libsndfile1-dev
+* sudo apt-get install libboost-dev
+* sudo apt-get install libapr1-dev
+* sudo apt-get install liblog4cxx-dev
+* sudo apt-get install libpcap-dev
+* sudo apt-get install libxerces-c-dev
+* sudo apt-get install libsndfile1-dev
+* sudo apt-get install libspeex-dev
+
+Download and build opus and silk libraries
+* git clone https://github.com/OrecX/dependencies.git
+* tar -xf dependencies/opus-1.2.1.tar.gz
+* cd opus-1.2.1
+* ./configure --prefix=/opt/opus/
+* make CFLAGS="-fPIC -msse4.1"
+* sudo make install
+* sudo cp /opt/opus/lib/libopus.a /opt/opus/lib/libopusstatic.a
+* cd ..
+* tar -xf dependencies/silk.tgz -C /opt/
+* cd /opt/silk/SILKCodec/SILK_SDK_SRC_FIX/
+* sudo make clean lib
+
 
 Build orkbasecxx on the command line:
 
 * Go to the root directory of the orkbasecxx
-* libtoolize --force
-* automake -a
-* make -f Makefile.cvs
-* ./configure
+* autoreconf -i
+* ./configure CXX=g++
 * make
-* make install
+* sudo make install
 
 Build orkaudio on the command line:
 
 * Go to the root directory of the orkaudio
-* libtoolize --force
-* automake -a
-* make -f Makefile.cvs
-* ./configure
+* autoreconf -i
+* ./configure CXX=g++
 * make
-* make install
-
-For debug binary: modify above as follows
-* ./configure --enable-debug=full
-* CXXFLAGS="-O0 -g3"
-* make -e
-
-Build using Kdevelop
-
-* Project/import existing project (libtool based c++ project)
-
-=====================================
-Build on Windows/MSVC6 (SP6)
-
-* Download the c++ win32 external library pack and unpack into c:\devExt
-	(if you change this  location, you need to change all references in the dsp files)
-* Load orkaudio\OrkAudio.dsw into MSVC
-* Select orkbase as active project, build
-* Select orkaudio as active project, build
-* Select rtpmixer as active project, build
-* Select desired capture plugin, build
+* sudo make install

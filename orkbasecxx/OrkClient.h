@@ -37,6 +37,9 @@ class DLL_IMPORT_EXPORT_ORKBASE OrkHttpClient : public OrkClient
 public:
 	virtual bool Execute(SyncMessage& request, AsyncMessage& response, const CStdString& hostname, const int tcpPort, const CStdString& serviceName, int timeout = 5) = 0;
 	bool ExecuteUrl(const CStdString& request, CStdString& response, const CStdString& hostname, const int tcpPort, int timeout = 5);
+#ifndef CENTOS_6
+	bool ExecuteHttpsUrl(const CStdString& request, CStdString& response, const CStdString& hostname, const int tcpPort, int timeout = 5);
+#endif
 protected:
 };
 

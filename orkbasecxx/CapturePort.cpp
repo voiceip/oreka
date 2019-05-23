@@ -19,10 +19,9 @@
 #include "ImmediateProcessing.h"
 #include "Reporting.h"
 #include "ConfigManager.h"
-#include "ace/Thread_Mutex.h"
 
 static LoggerPtr s_log;
-static ACE_Thread_Mutex s_mutex;
+static std::mutex s_mutex;
 
 CapturePort::CapturePort(CStdString& id)
 {
@@ -406,15 +405,15 @@ CapturePorts::CapturePorts()
 {
 	m_ports.clear();
 	m_lastHooveringTime = time(NULL);
-	char hostname[HOSTNAME_BUF_LEN];
+	char hostname[ORKMAXHOSTLEN + 1];
 	if(CONFIG.m_hostnameReportFqdn == false)
 	{
-		ACE_OS::hostname(hostname, HOSTNAME_BUF_LEN);
+		OrkGetHostname(hostname, ORKMAXHOSTLEN+1);
 		m_hostname = hostname;
 	}
 	else
 	{
-		GetHostFqdn(m_hostname, HOSTNAME_BUF_LEN);
+		GetHostFqdn(m_hostname, ORKMAXHOSTLEN + 1);
 	}
 	s_log = Logger::getLogger("port");
 }

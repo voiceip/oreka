@@ -108,7 +108,7 @@ void TapeMsg::HandleResponse(MessageRef responseRef) {
 		CStdString tapeFilename = this->m_fileName;
 
 		CStdString absoluteFilename = CONFIG.m_audioOutputPath + "/" + tapeFilename;
-		if (ACE_OS::unlink((PCSTR)absoluteFilename) == 0)
+		if(std::remove((PCSTR)absoluteFilename.c_str()) == 0)
 		{
 			FLOG_INFO(LOG.messaging,"deleted tape: %s", tapeFilename);
 		}

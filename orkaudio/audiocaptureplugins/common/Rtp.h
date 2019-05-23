@@ -14,10 +14,9 @@
 #ifndef __RTP_H__
 #define __RTP_H__
 
-#include "ace/OS_NS_arpa_inet.h"
 #include "shared_ptr.h"
 #include "StdString.h"
-
+#include "Utils.h"
 
 // useful info we extract from an RTP packet
 class RtpPacketInfo
@@ -44,20 +43,6 @@ public:
 	time_t m_arrivalTimestamp;
 };
 typedef oreka::shared_ptr<RtpPacketInfo> RtpPacketInfoRef;
-
-class RtpEventInfo
-{
-public:
-	void ToString(CStdString& string);
-
-	unsigned short m_event;
-	unsigned short m_end;
-	unsigned short m_reserved;
-	unsigned short m_volume;
-	unsigned short m_duration;
-	unsigned int m_startTimestamp;
-};
-typedef oreka::shared_ptr<RtpEventInfo> RtpEventInfoRef;
 
 class RtcpSrcDescriptionPacketInfo
 {

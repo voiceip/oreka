@@ -10,155 +10,182 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
+#define _WINSOCKAPI_            // prevents the inclusion of winsock.h
 
 #include "SocketStreamer.h"
 
-static LoggerPtr s_log;
-
-void SocketStreamer::Initialize()
+SocketStreamer* SocketStreamerFactory::Create()
 {
-	std::list<CStdString>::iterator it;
-	CStdString logMsg;
-
-	s_log = Logger::getLogger("socketstreamer");
-
-	for(it = CONFIG.m_socketStreamerTargets.begin(); it != CONFIG.m_socketStreamerTargets.end(); it++)
-	{
-		CStdString tcpAddress = *it;
-		CStdString host;
-		int port = 0;
-		struct in_addr hostAddr;
-
-		memset(&hostAddr, 0, sizeof(hostAddr));
-		host = GetHostFromAddressPair(tcpAddress);
-		port = GetPortFromAddressPair(tcpAddress);
-
-		if(!host.size() || port == 0)
-		{
-			logMsg.Format("Invalid host:%s or port:%d -- check SocketStreamerTargets in config.xml", host, port);
-			LOG4CXX_WARN(s_log, logMsg);
-			continue;
-		}
-
-		if(!ACE_OS::inet_aton((PCSTR)host, &hostAddr))
-		{
-			logMsg.Format("Invalid host:%s -- check SocketStreamerTargets in config.xml", host);
-			LOG4CXX_WARN(s_log, logMsg);
-			continue;
-		}
-
-		TcpAddress* addr = new TcpAddress;
-
-		addr->port = port;
-		memcpy(&addr->ip, &hostAddr, sizeof(struct in_addr));
-
-		if(!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(ThreadHandler), (void*)addr))
-		{
-			delete addr;
-			logMsg.Format("Failed to start thread on %s,%d", host, port);
-			LOG4CXX_WARN(s_log, logMsg);
-			continue;
-		}
-	}
+	return new SocketStreamer(Logger::getLogger("socketstreamer"),"orka:sockstream");
 }
 
+SocketStreamer::SocketStreamer(LoggerPtr log, CStdString threadName) :
+	m_log(log),
+	m_threadName(threadName)
+{
+	OrkAprSingleton* orkAprsingle = OrkAprSingleton::GetInstance();
+	apr_pool_create(&m_peer, orkAprsingle->GetAprMp());
+}
 
 void SocketStreamer::ThreadHandler(void *args)
 {
-	SetThreadName("orka:sockstream");
+	SocketStreamer* ssc = (SocketStreamer*) args;
+	SetThreadName(ssc->m_threadName);
 
-	TcpAddress* tcpAddress = (TcpAddress*)args;
-	char szIp[16];
-	char buf[1024];
-	CStdString ipPort;
-	ACE_INET_Addr srvr;
-	ACE_SOCK_Connector connector;
-	ACE_SOCK_Stream peer;
+	CStdString logMsg;
+
+	CStdString params = ssc->m_logMsg;
+
+	CStdString ipPort = params;
 	bool connected = false;
-	struct timespec ts;
-	time_t nextReportConnFail = 0;
-	time_t nextReportBytesRead = 0;
+	time_t lastLogTime = 0;
 	int bytesRead = 0;
 	unsigned long int bytesSoFar = 0;
 
-	memset(&szIp, 0, sizeof(szIp));
-	memset(buf, 0, sizeof(buf));
-
-	ACE_OS::inet_ntop(AF_INET, (void*)&tcpAddress->ip, szIp, sizeof(szIp));
-	ipPort.Format("%s,%u", szIp, tcpAddress->port);
-
-	do {
-		if(!connected)
-		{
-			if(SocketStreamer::Connect(tcpAddress, srvr, connector, peer) == 0)
-			{
-				LOG4CXX_INFO(s_log, "Connected to:" + ipPort);
-				connected = true;
-				nextReportConnFail = 0;
-			}
-			else
-			{
-				if(time(NULL) >= nextReportConnFail)
-				{
-					LOG4CXX_WARN(s_log, "Couldn't connect to:" + ipPort + ": " + CStdString(strerror(errno)));
-					nextReportConnFail = time(NULL) + 60;
+	while(1) {
+		if (!connected) {
+			lastLogTime = 0;
+			while (!ssc->Connect()) {
+				if (time(NULL) - lastLogTime > 60 ) {
+					FLOG_WARN(ssc->m_log, "Couldn't connect to: %s error: %s", ipPort, CStdString(strerror(errno)));
+					lastLogTime = time(NULL);
 				}
-
-				ts.tv_sec = 2;
-				ts.tv_nsec = 0;
-				ACE_OS::nanosleep(&ts, NULL);
-
-				continue;
+				OrkSleepSec(2);
 			}
+			connected=true;
+			lastLogTime = 0;
 		}
 
-		bytesRead = peer.recv(buf, sizeof(buf));
-		if(bytesRead < 0)
+		bytesRead = ssc->Recv();
+		if(bytesRead <= 0)
 		{
-			LOG4CXX_WARN(s_log, "Connection to:" + ipPort + " closed: " + CStdString(strerror(errno)));
-			peer.close();
-			connected = false;
-			continue;
-		}
-
-		if(bytesRead == 0)
-		{
-			LOG4CXX_WARN(s_log, "Connection to:" + ipPort + " closed: Remote host closed connection");
-			peer.close();
+			FLOG_WARN(ssc->m_log, "Connection to: %s closed", ipPort);
+			ssc->Close();
 			connected = false;
 			continue;
 		}
 
 		bytesSoFar += bytesRead;
-		if(time(NULL) > nextReportBytesRead)
-		{
-			LOG4CXX_INFO(s_log, "Read " + FormatDataSize(bytesSoFar) + " from " + ipPort + " so far");
-			nextReportBytesRead = time(NULL) + 60;
+		if (time(NULL) - lastLogTime > 60 ) {
+			FLOG_INFO(ssc->m_log,"Read %s from %s so far", FormatDataSize(bytesSoFar), ipPort);
+			lastLogTime = time(NULL);
 		}
-
-		if(bytesSoFar >= 4000000000UL)
-		{
-			bytesSoFar = 0;
-		}
-
-		ts.tv_sec = 0;
-		ts.tv_nsec = 1;
-		ACE_OS::nanosleep(&ts, NULL);
-	} while(1);
+		OrkSleepMs(2);
+	}
 }
 
-int SocketStreamer::Connect(TcpAddress* tcpAddress, ACE_INET_Addr& srvr, ACE_SOCK_Connector& connector, ACE_SOCK_Stream& peer)
+bool SocketStreamer::Parse(CStdString target) 
+{
+	CStdString ip;
+	ChopToken(ip,":",target);
+
+	if (!inet_pton4((PCSTR)ip, &m_ip)) {
+		m_logMsg.Format("Invalid host:%s", ip);
+		return false;
+	}
+	m_logMsg += CStdString(" host:") + ip;
+
+	m_port = strtol(target,NULL,0);
+	if (m_port == 0) {
+		m_logMsg.Format("Invalid port:%s", target);
+		return false;
+	}
+	m_logMsg += CStdString(" port:") + target;
+
+	return true;
+}
+
+bool SocketStreamer::Connect()
 {
 	char szIp[16];
-
+	memset(m_buf, 0, sizeof(m_buf));
 	memset(&szIp, 0, sizeof(szIp));
-	ACE_OS::inet_ntop(AF_INET, (void*)&tcpAddress->ip, szIp, sizeof(szIp));
+	inet_ntopV4(AF_INET, (void*)&m_ip, szIp, sizeof(szIp));
 
-	srvr.set(tcpAddress->port, szIp);
-	if(connector.connect(peer, srvr) == -1)
-	{
+	apr_status_t ret;
+	apr_sockaddr_t* serverAddr;
+	apr_sockaddr_info_get(&serverAddr, szIp, APR_INET, m_port, 0, m_peer);
+	apr_socket_create(&m_socket, serverAddr->family, SOCK_STREAM, APR_PROTO_TCP, m_peer);
+	apr_socket_opt_set(m_socket, APR_SO_NONBLOCK, 0);
+	ret = apr_socket_connect(m_socket, serverAddr);
+	if(ret != APR_SUCCESS){
+		return false;
+	}
+	return Handshake();
+
+}
+
+void SocketStreamer::Close() {
+	apr_socket_close(m_socket);
+	apr_pool_clear(m_peer);
+}
+
+size_t SocketStreamer::Recv() {
+	CStdString logMsg;
+	m_bytesRead = sizeof(m_buf);
+	apr_status_t ret = apr_socket_recv(m_socket, (char*)m_buf, &m_bytesRead);
+	if(ret == APR_EOF){
 		return -1;
 	}
 
-	return 0;
+	if (m_bytesRead>0) {
+		ProcessData();
+	}
+	return m_bytesRead;
 }
+
+void SocketStreamer::ProcessData() {
+	// default do nothing
+}
+
+bool SocketStreamer::Handshake() {
+	return true; // default no handshake
+}
+
+void SocketStreamer::Initialize(std::list<CStdString>& targetList, SocketStreamerFactory *factory)
+{
+	CStdString logMsg;
+	SocketStreamerFactory ssf;
+
+	if (factory == NULL) {
+		factory = &ssf;
+	}
+
+	for (std::list<CStdString>::iterator it = targetList.begin(); it != targetList.end(); it++)
+	{
+		CStdString target=*it;
+
+		CStdString protocol;
+		ChopToken(protocol,"://",target);
+		protocol.ToLower();
+
+		if (factory->Accepts(protocol)) {
+
+			SocketStreamer *ss = factory->Create();
+			ss->m_logMsg.Format("protocol:%s",protocol);
+
+			if (!ss->Parse(target) || !ss->Spawn()) {
+				FLOG_ERROR(ss->m_log,"Target:%s - %s", *it, ss->m_logMsg);
+				delete ss;
+			}
+		}
+	}
+}
+
+bool SocketStreamer::Spawn() 
+{
+	CStdString logMsg;
+
+#ifndef UNIT_TESTING //disable if unit testing
+	try{
+		std::thread httpHandler(ThreadHandler, this);
+		httpHandler.detach();
+	} catch(const std::exception &ex){
+		m_logMsg.Format("Failed to start RunHttpServer thread reason:%s",  ex.what());
+		return false;
+	}
+#endif
+	FLOG_INFO(m_log, "Successfully created thread (%s)", m_logMsg);
+	return true;
+}
+

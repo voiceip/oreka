@@ -11,7 +11,6 @@
  *
  */
 
-#include "ace/OS_NS_ctype.h"
 #include "Utils.h"
 #include "UrlSerializer.h"
 
@@ -59,7 +58,7 @@ void UrlSerializer::DeSerialize(CStdString& input)
 			{
 				;	// ignore ampersands
 			}
-			else if ( ACE_OS::ace_isalnum(character) )
+			else if (isalnum(character) )
 			{
 				state = UrlKeyState;
 				key = character;
@@ -71,7 +70,7 @@ void UrlSerializer::DeSerialize(CStdString& input)
 			}
 			break;
 		case UrlKeyState:
-			if( ACE_OS::ace_isalnum(character) )
+			if(isalnum(character) )
 			{
 				key += character;
 			}

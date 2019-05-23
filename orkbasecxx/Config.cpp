@@ -13,8 +13,6 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
-#include "ace/OS_NS_unistd.h"
-#include "ace/OS_NS_dirent.h"
 #include "Utils.h"
 #include "serializers/Serializer.h"
 #include "Config.h"
@@ -55,8 +53,8 @@ Config::Config()
 	m_deleteFailedCaptureFile = DELETE_FAILED_CAPTURE_FILE_DEFAULT;
 	m_captureFileBatchSizeKByte = CAPTURE_FILE_BATCH_SIZE_KBYTE_DEFAULT;
 
-	char hostname[40];
-	ACE_OS::hostname(hostname, 40);
+	char hostname[ORKMAXHOSTLEN];
+	OrkGetHostname(hostname, sizeof(hostname));
 	m_serviceName = CStdString("orkaudio-") + hostname;
 
 	m_reportingRetryDelay = 5;
@@ -99,6 +97,8 @@ Config::Config()
 
 void Config::Define(Serializer* s)
 {
+	OrkAprSubPool locPool;
+
 	s->StringValue(COMMAND_PROCESSING_COMMAND_PARAM,m_commandProcessingCommand);
 	s->StringValue(RECORDING_START_SHELL_COMMAND_PARAM,m_recordingStartShellCommand);
 	s->StringValue(RECORDING_STOP_SHELL_COMMAND_PARAM,m_recordingStopShellCommand);
@@ -129,16 +129,18 @@ void Config::Define(Serializer* s)
 	s->IntValue(CLIENT_TIMEOUT_PARAM, m_clientTimeout);
 
 	s->StringValue(AUDIO_OUTPUT_PATH_PARAM, m_audioOutputPath);
+	apr_status_t ret;
 	if(!m_audioOutputPath.size()) {
 		char *loggingPath = NULL;
-
-		loggingPath = ACE_OS::getenv("ORKAUDIO_LOGGING_PATH");
-		if(loggingPath) {
-			ACE_DIR* dir = ACE_OS::opendir(loggingPath);
-			if(dir) {
-				ACE_OS::closedir(dir);
+		ret = apr_env_get(&loggingPath, "ORKAUDIO_LOGGING_PATH", AprLp);
+		if(ret == APR_SUCCESS) {
+			apr_dir_t* dir;
+			ret = apr_dir_open(&dir, loggingPath, AprLp);
+			if(ret == APR_SUCCESS)
+			{
+				apr_dir_close(dir);
 				m_audioOutputPath.Format("%s", loggingPath);
-		        }
+			}
 		}
 	}
 

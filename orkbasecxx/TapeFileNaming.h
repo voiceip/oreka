@@ -17,7 +17,6 @@
 #include "ThreadSafeQueue.h"
 #include "TapeProcessor.h"
 #include "AudioTape.h"
-#include "ace/Thread_Mutex.h"
 #include <map>
 
 class TapeFileNaming;
@@ -35,7 +34,7 @@ public:
 	TapeProcessorRef __CDECL__ Instanciate();
 	void __CDECL__ AddAudioTape(AudioTapeRef& audioTapeRef);
 
-	static void ThreadHandler(void *args);
+	static void ThreadHandler();
 
 	void SetQueueSize(int size);
 
@@ -46,7 +45,6 @@ private:
 	ThreadSafeQueue<AudioTapeRef> m_audioTapeQueue;
 
 	size_t m_threadCount;
-	ACE_Thread_Mutex m_mutex;
 	int m_currentDay;
 };
 

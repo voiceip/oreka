@@ -15,6 +15,7 @@
 
 #ifndef WIN32
 #include "sys/socket.h"
+#include <unistd.h>
 #endif
 
 #ifdef WIN32
@@ -23,21 +24,8 @@
 
 
 #include <list>
-#include "ace/OS_NS_unistd.h"
-#include "ace/OS_NS_string.h"
-#include "ace/OS_NS_strings.h"
-#include "ace/OS_NS_dirent.h"
-#include "ace/Singleton.h"
-#include "ace/Min_Max.h"
-#include "ace/OS_NS_arpa_inet.h"
-#include "ace/OS_NS_ctype.h"
-#include "ace/Thread_Manager.h"
-#include "ace/Thread_Mutex.h"
-#include "ace/Thread_Semaphore.h"
-#include "ace/SOCK_Dgram.h"
-#include "ace/INET_Addr.h"
-#include "ace/Acceptor.h"
-#include "ace/SOCK_Acceptor.h"
+#include <stdio.h>
+#include <string.h>
 #include "AudioCapturePlugin.h"
 #include "AudioCapturePluginCommon.h"
 #include "Utils.h"
@@ -71,8 +59,8 @@ static LoggerPtr s_rtcpPacketLog;
 static time_t s_lastHooveringTime;
 static time_t s_lastPause;
 static time_t s_lastPacketTimestamp;
-static ACE_Thread_Mutex s_mutex;
-static ACE_Thread_Semaphore s_replaySemaphore;
+static std::mutex s_mutex;
+static OrkSemaphore s_replaySemaphore;
 int s_replayThreadCounter;
 static bool s_liveCapture;
 static time_t s_lastPcapStatsReportingTime;
@@ -122,7 +110,7 @@ public:
 };
 typedef oreka::shared_ptr<PcapHandleData> PcapHandleDataRef;
 //========================================================
-class VoIp
+class VoIp : public OrkSingleton<VoIp>
 {
 public:
 	VoIp();
@@ -156,11 +144,11 @@ private:
 
 	std::list<PcapHandleDataRef> m_pcapHandles;
 	std::map<pcap_t*, CStdString> m_pcapDeviceMap;
-	ACE_Thread_Mutex m_pcapDeviceMapMutex;
-	time_t m_lastModLocalPartyMapTs;
+	std::mutex m_pcapDeviceMapMutex;
+	int64_t m_lastModLocalPartyMapTs;
 };
 
-typedef ACE_Singleton<VoIp, ACE_Thread_Mutex> VoIpSingleton;
+#define VoIpSingleton VoIp
 //=========================================================
 bool TryRtcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload)
 {
@@ -225,8 +213,8 @@ bool TryRtcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, Udp
 	}
 
 	char sourceIp[16], destIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, sourceIp, sizeof(sourceIp));
-	ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_dest, destIp, sizeof(destIp));
+	inet_ntopV4(AF_INET, (void*)&ipHeader->ip_src, sourceIp, sizeof(sourceIp));
+	inet_ntopV4(AF_INET, (void*)&ipHeader->ip_dest, destIp, sizeof(destIp));
 
 	// As per RFC we should be fairly sure we have an RTCP packet and
 	// henceforth our return value will be true
@@ -283,7 +271,7 @@ bool TryRtcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, Udp
 
 	memcpy(cname, csrcItem->data, ((csrcItem->length > 254) ? 254 : csrcItem->length));
 
-	if(csrcItem->length == 0 || ACE_OS::strncasecmp(cname, "ext", ((3 > csrcItem->length) ? csrcItem->length : 3)))
+	if(csrcItem->length == 0 || strncasecmp(cname, "ext", ((3 > csrcItem->length) ? csrcItem->length : 3)))
 	{
 		if(DLLCONFIG.m_inInMode == false)
 		{
@@ -309,11 +297,11 @@ bool TryRtcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, Udp
 	char *x = NULL, *y = NULL, *z = NULL;
 
 	x = cname;
-	y = ACE_OS::strchr(cname, '@');
+	y = strchr(cname, '@');
 	if(!y)
 	{
 		// CNAME is in the "host" or "host:port" format only, no user
-		y = ACE_OS::strchr(cname, ':');
+		y = strchr(cname, ':');
 		if(!y)
 		{
 			// We have no port
@@ -335,7 +323,7 @@ bool TryRtcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, Udp
 		GrabToken(x, x+strlen(x), info->m_cnameUsername);
 		if(*y)
 		{
-			z = ACE_OS::strchr(y, ':');
+			z = strchr(y, ':');
 			if(!z)
 			{
 				// We have no port
@@ -419,9 +407,9 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 					{
 						CStdString logMsg;
 						char sourceIp[16];
-						ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, sourceIp, sizeof(sourceIp));
+						inet_ntopV4(AF_INET, (void*)&ipHeader->ip_src, sourceIp, sizeof(sourceIp));
 						char destIp[16];
-						ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_dest, destIp, sizeof(destIp));
+						inet_ntopV4(AF_INET, (void*)&ipHeader->ip_dest, destIp, sizeof(destIp));
 						logMsg.Format("RTP packet filtered by rtpBlockedIpRanges: src:%s dst:%s", sourceIp, destIp);
 						LOG4CXX_DEBUG(s_rtpPacketLog, logMsg);
 					}
@@ -486,9 +474,9 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 				{
 					CStdString logMsg;
 					char sourceIp[16];
-					ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, sourceIp, sizeof(sourceIp));
+					inet_ntopV4(AF_INET, (void*)&ipHeader->ip_src, sourceIp, sizeof(sourceIp));
 					char destIp[16];
-					ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_dest, destIp, sizeof(destIp));
+					inet_ntopV4(AF_INET, (void*)&ipHeader->ip_dest, destIp, sizeof(destIp));
 					logMsg.Format("Unsupported codec:%x  src:%s dst:%s", rtpHeader->pt, sourceIp, destIp);
 					LOG4CXX_DEBUG(s_rtpPacketLog, logMsg);
 				}
@@ -876,9 +864,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 			{
 				if(DLLCONFIG.m_pcapFastReplaySleepUsPerSec > 0)
 				{
-					ACE_Time_Value yield;
-					yield.set(0,DLLCONFIG.m_pcapFastReplaySleepUsPerSec * 1000);
-					ACE_OS::sleep(yield);
+					OrkSleepMicrSec(DLLCONFIG.m_pcapFastReplaySleepUsPerSec);
 				}
 				s_lastPause = now;
 			}
@@ -886,10 +872,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 			{
 				// Make sure Orkaudio won't be flooded by too many
 				// packets at a time by yielding control to other threads.
-				struct timespec ts;
-				ts.tv_sec = 0;
-				ts.tv_nsec = 1;
-				ACE_OS::nanosleep (&ts, NULL);
+				OrkSleepMicrSec(1);
 			}
 		}
 		else
@@ -900,10 +883,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 			{
 				while(now == time(NULL))
 				{
-					struct timespec ts;
-					ts.tv_sec = 0;
-					ts.tv_nsec = 5000000;	// 5 ms
-					ACE_OS::nanosleep (&ts, NULL);
+					OrkSleepMs(5);
 				}
 				s_lastPacketTimestamp = header->ts.tv_sec;
 			}
@@ -981,11 +961,7 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 
 				while(1)
 				{
-					struct timespec ts;
-
-					ts.tv_sec = 60; // Try re-open after a minute
-					ts.tv_nsec = 0;
-					ACE_OS::nanosleep (&ts, NULL);
+					OrkSleepSec(60);
 
 					log.Format("Attempting to re-open device:%s - old handle:%x was closed", deviceName, oldHandle);
 					LOG4CXX_INFO(s_packetLog, log);
@@ -1037,33 +1013,36 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 
 void UdpListenerThread()
 {
+	OrkAprSubPool locPool;
+
 	SetThreadName("orka:v:udpl");
 
 	CStdString logMsg;
-	ACE_INET_Addr updPort;
-	if(DLLCONFIG.m_orekaEncapsulationHost.length() > 0)
-	{
-		updPort.set(DLLCONFIG.m_orekaEncapsulationPort, DLLCONFIG.m_orekaEncapsulationHost);
-	}
-	else
-	{
-		updPort.set(DLLCONFIG.m_orekaEncapsulationPort);
-	}
 
-	ACE_SOCK_Dgram updDgram;
-	ACE_INET_Addr remote;
-	ACE_Time_Value timeout;
-	timeout.set(0,1052);
-	unsigned char frameBuffer[65000];
+	char frameBuffer[65000];
+	apr_int32_t bufSize = 8388608;
+	apr_status_t ret;
+	apr_sockaddr_t* sa;
+    apr_socket_t* socket;
+	
+	apr_sockaddr_info_get(&sa, NULL, APR_INET, DLLCONFIG.m_orekaEncapsulationPort, 0, AprLp);
+    apr_socket_create(&socket, sa->family, SOCK_DGRAM, APR_PROTO_UDP, AprLp);
 
-	if (updDgram.open(updPort) == -1)
+    ret = apr_socket_bind(socket, sa);
+    if(ret != APR_SUCCESS){
+		logMsg.Format("UdpListenerThread failed to bind to udp port:%d", DLLCONFIG.m_orekaEncapsulationPort);
+		LOG4CXX_ERROR(s_packetLog, logMsg);
+    }
+
+   	apr_socket_opt_set(socket, APR_SO_NONBLOCK, 0);
+	apr_interval_time_t timeout = 100*1000;
+    apr_socket_timeout_set(socket, timeout);
+	if(ret != APR_SUCCESS)
 	{
-		return;
+		LOG4CXX_ERROR(s_packetLog, "UdpListenerThread failed to set timeout");
 	}
-
-	// use a large socket buffer.
-	size_t bufSize = 8388608;
-	if(updDgram.set_option( SOL_SOCKET, SO_RCVBUF, &bufSize, sizeof(bufSize)) == 0)
+	apr_socket_opt_set(socket, APR_SO_RCVBUF, bufSize);
+	if(ret == APR_SUCCESS)
 	{
 		logMsg.Format("Setting UDP listener socket buffer size:%d successful", bufSize);
 		LOG4CXX_INFO(s_packetLog, logMsg);
@@ -1076,12 +1055,14 @@ void UdpListenerThread()
 
 	struct pcap_pkthdr pcap_headerPtr ;
 	u_char param;
-	size_t recv_bytes = 0;
+	
 	bool stop = false;
 	while(stop != true)
 	{
+		apr_size_t recv_bytes = 65000;
 		memset(frameBuffer, 0, 65000);
-		if((recv_bytes = updDgram.recv(frameBuffer,65000,remote,0,&timeout)) != -1 )
+		apr_socket_recv(socket, frameBuffer, &recv_bytes);
+		if(recv_bytes > 0)
 		{
 			//Need to deencapsulate each packets in this packet
 			OrkEncapsulationStruct* orkEncapsulationStruct = (OrkEncapsulationStruct*)frameBuffer;
@@ -1112,7 +1093,7 @@ void UdpListenerThread()
 							break;
 						}
 
-						HandlePacket(&param, &pcap_headerPtr, frameBuffer + frameOffset + sizeof(OrkEncapsulationStruct));
+						HandlePacket(&param, &pcap_headerPtr, (unsigned char*)frameBuffer + frameOffset + sizeof(OrkEncapsulationStruct));
 						frameOffset = frameOffset + packetLen + sizeof(OrkEncapsulationStruct);
 					}
 					else
@@ -1182,20 +1163,26 @@ void Configure(DOMNode* node)
 
 void VoIp::OpenPcapDirectory(CStdString& path)
 {
-	CStdString logMsg;
+	OrkAprSubPool locPool;
 
+	CStdString logMsg;
+	std::map<CStdString, CStdString> pcapsMap;
 	// Iterate over folder
-	ACE_DIR* dir = ACE_OS::opendir((PCSTR)path);
-	if (!dir)
+	apr_status_t ret;
+	apr_dir_t* dir;
+	ret = apr_dir_open(&dir, (PCSTR)path, AprLp);
+	if (ret != APR_SUCCESS)
 	{
 		LOG4CXX_ERROR(s_packetLog, CStdString("pcap traces directory could not be found:" + path + " please correct this in config.xml"));
 	}
 	else
 	{
-		dirent* dirEntry = NULL;
-		while((dirEntry = ACE_OS::readdir(dir)))
+		apr_finfo_t finfo;
+		apr_int32_t wanted = APR_FINFO_NAME | APR_FINFO_SIZE;
+		while((ret = apr_dir_read(&finfo, wanted, dir)) == APR_SUCCESS)
 		{	
-			CStdString dirEntryFilename = dirEntry->d_name;
+			CStdString dirEntryFilename;
+			dirEntryFilename.Format("%s",finfo.name);
 			CStdString pcapExtension = ".pcap";
 			int extensionPos = dirEntryFilename.Find(pcapExtension);
 			if(extensionPos == -1)
@@ -1206,14 +1193,21 @@ void VoIp::OpenPcapDirectory(CStdString& path)
 
 			if ( extensionPos != -1 && (dirEntryFilename.size() - extensionPos) == pcapExtension.size() )
 			{
-				CStdString pcapFilePath = path + "/" + dirEntry->d_name;
+				CStdString pcapFilePath = path + "/" + finfo.name;
 				if(FileCanOpen(pcapFilePath))
 				{
-					OpenPcapFile(pcapFilePath);
+					pcapsMap.insert(std::make_pair(finfo.name, pcapFilePath));
 				}
 			}
 		}
-		ACE_OS::closedir(dir);
+
+		std::map<CStdString, CStdString>::iterator it;
+		for(it = pcapsMap.begin(); it != pcapsMap.end(); it++)
+		{
+			OpenPcapFile(it->second);
+		}
+
+		apr_dir_close(dir);
 	}
 
 }
@@ -1677,36 +1671,37 @@ void VoIp::ProcessLocalPartyMap(char *line, int ln)
 	VoIpSessionsSingleton::instance()->SaveLocalPartyMap(oldpty, newpty);
 }
 
+#ifdef WIN32
+#define stat _stat
+#endif
+
 void VoIp::LoadPartyMaps()
 {
 	CStdString logMsg;
-    //Separate file operation for file stat, just to not affect the current working stuff
-    ACE_stat stat;
-    memset(&stat, 0, sizeof(stat));
-    ACE_HANDLE fh = ACE_INVALID_HANDLE;
-    fh = ACE_OS::open(LOCAL_PARTY_MAP_FILE, O_RDONLY);
-    if(fh == ACE_INVALID_HANDLE)
-    {
-            fh = ACE_OS::open(ETC_LOCAL_PARTY_MAP_FILE, O_RDONLY);
-    }
-    if(fh != ACE_INVALID_HANDLE)
-    {
-            ACE_OS::fstat(fh, &stat);
-            if(stat.st_mtime <= m_lastModLocalPartyMapTs)
-            {
-                    //the file was already loaded and there has been no change since then
-                    ACE_OS::close(fh);
-                    return;
-            }
-            else
-            {
-                    logMsg.Format("Detected %s modification, timestamp:%lu oldtimestamp:%lu", LOCAL_PARTY_MAP_FILE, stat.st_mtime, m_lastModLocalPartyMapTs);
-                    LOG4CXX_INFO(s_packetLog, logMsg);
-                    m_lastModLocalPartyMapTs = stat.st_mtime;
-                    VoIpSessionsSingleton::instance()->ClearLocalPartyMap();
-            }
-            ACE_OS::close(fh);
-    }
+	//Separate file operation for file stat, just to not affect the current working stuff
+	struct stat finfo;
+	CStdString filename = LOCAL_PARTY_MAP_FILE;
+	int rt = -1;
+	if(stat((PCSTR)filename.c_str(), &finfo) != 0)
+	{
+		filename = ETC_LOCAL_PARTY_MAP_FILE;
+		rt = stat((PCSTR)filename.c_str(), &finfo);
+	}
+	if(rt == 0)
+	{
+		if(finfo.st_mtime <= m_lastModLocalPartyMapTs)
+		{
+			//the file was already loaded and there has been no change since then
+			return;
+		}		
+		else
+		{
+			logMsg.Format("Detected %s modification, timestamp:%lu oldtimestamp:%lu", LOCAL_PARTY_MAP_FILE, finfo.st_mtime, m_lastModLocalPartyMapTs);
+			LOG4CXX_INFO(s_packetLog, logMsg);
+			m_lastModLocalPartyMapTs = finfo.st_mtime;
+			VoIpSessionsSingleton::instance()->ClearLocalPartyMap();
+		}		
+	}
 
 	FILE *maps = NULL;
 	char buf[1024];
@@ -1893,27 +1888,37 @@ void VoIp::ReportPcapStats()
 
 void VoIp::Run()
 {
+	CStdString logMsg;
 	s_replayThreadCounter = m_pcapHandles.size();
 
 	if(DLLCONFIG.m_orekaEncapsulationMode == true)
 	{
-		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(UdpListenerThread), NULL, THR_DETACHED))
-		{
-				LOG4CXX_INFO(s_packetLog, CStdString("Failed to start udplistener thread"));
+		try{
+			std::thread handler(UdpListenerThread);
+			handler.detach();
+		} catch(const std::exception &ex){
+			logMsg.Format("Failed to start UdpListenerThread thread reason:%s",  ex.what());
+			LOG4CXX_ERROR(s_packetLog, logMsg);	
 		}
 #ifndef WIN32
-		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(TcpListenerThread), NULL, THR_DETACHED))
-		{
-				LOG4CXX_INFO(s_packetLog, CStdString("Failed to start tcplistener thread"));
+		try{
+			std::thread handler(TcpListenerThread);
+			handler.detach();
+		} catch(const std::exception &ex){
+			logMsg.Format("Failed to start TcpListenerThread thread reason:%s",  ex.what());
+			LOG4CXX_ERROR(s_packetLog, logMsg);	
 		}
 #endif
 	}
 
 	for(std::list<PcapHandleDataRef>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
 	{
-		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(SingleDeviceCaptureThreadHandler), (*it)->m_pcapHandle, THR_DETACHED))
-		{
-			LOG4CXX_INFO(s_packetLog, CStdString("Failed to create pcap capture thread"));
+		try{
+			std::thread handler(SingleDeviceCaptureThreadHandler, (*it)->m_pcapHandle);
+			handler.detach();
+		} catch(const std::exception &ex){
+			logMsg.Format("Failed to start SingleDeviceCaptureThreadHandler thread reason:%s",  ex.what());
+			LOG4CXX_ERROR(s_packetLog, logMsg);	
 		}
 	}
 
@@ -2221,10 +2226,12 @@ void TcpListenerThread()
 		}
 		logMsg.Format("Accepted incomming connection from:%s on socket:%d",inet_ntoa(remoteAddr.sin_addr), clientSock);
 		LOG4CXX_INFO(s_packetLog, logMsg);
-
-		if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(HandleTcpConnection), reinterpret_cast<void*>(clientSock), THR_DETACHED))
-		{
-			LOG4CXX_INFO(s_packetLog, CStdString("Failed to create HandleTcpConnection thread"));
+		try{
+			std::thread handler(HandleTcpConnection, clientSock);
+			handler.detach();
+		} catch(const std::exception &ex){
+			logMsg.Format("Failed to start HandleTcpConnection thread reason:%s",  ex.what());
+			LOG4CXX_ERROR(LOG.rootLog, logMsg);	
 		}
 
 	}

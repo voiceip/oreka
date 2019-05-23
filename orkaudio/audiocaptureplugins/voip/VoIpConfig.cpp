@@ -16,7 +16,6 @@
 #include "Utils.h"
 #include "serializers/Serializer.h"
 #include "VoIpConfig.h"
-#include "ace/OS_NS_arpa_inet.h"
 
 VoIpConfigTopObjectRef g_VoIpConfigTopObjectRef;
 
@@ -30,6 +29,8 @@ VoIpConfig::VoIpConfig()
 }
 
 void VoIpConfig::Reset() {
+	AcpConfig::Reset();
+
 	// Standard LAN internal IP range masks 
 	m_asciiLanMasks.push_back("192.168.255.255");
 	m_asciiLanMasks.push_back("10.255.255.255");
@@ -44,7 +45,6 @@ void VoIpConfig::Reset() {
 	m_rtpSessionWithSignallingTimeoutSec = 10;
 	m_rtpSessionWithSignallingInitialTimeoutSec = 5*60;
 	m_rtpSessionOnHoldTimeOutSec = 1800;
-	m_rtpReportDtmf = false;
 	m_rtpTrackByUdpPortOnly = false;
 	m_rtpAllowMultipleMappings = true;
 	m_rtpSeqGapThreshold = 500;
@@ -124,7 +124,6 @@ void VoIpConfig::Reset() {
 	m_urlExtractorEndpointIsSender =  true;
 	m_rtpMinAmountOfPacketsBeforeStart = 50;
 	m_rtpBreakupOnStreamPause = false;
-	m_rtpS1S2MappingDeterministic = false;
 	m_localPartyAddLocalIp = false;
 	m_rtpLogAllSsrc = false;
 	m_orekaEncapsulationMode = false;
@@ -136,7 +135,6 @@ void VoIpConfig::Reset() {
 	m_udpMinPort = 1024;
 	m_localPartyNameMapEnable = false;
 	m_ipFragmentsReassemble = false;
-	m_rtpS1S2MappingDeterministicS1IsLocal = true;
 	m_necNotifyDispLine = "Ind-DispLineN=3:Dsp:";
 
 	m_necVoipGatewayNames.push_back("sipphd");
@@ -153,10 +151,11 @@ void VoIpConfig::Reset() {
 
 void VoIpConfig::Define(Serializer* s)
 {
+	AcpConfig::Define(s);
+
 	s->StringValue(DEVICE_PARAM, m_device);
 	s->CsvValue("Devices", m_devices);
 	s->CsvValue("LanMasks", m_asciiLanMasks);
-	s->CsvValue("MediaGateways", m_asciiMediaGateways);
 	s->CsvValue("RtpTrackUsingIpAddresses", m_asciiRtpTrackUsingIpAddresses);
 
 	s->CsvValue("BlockedIpRanges", m_asciiBlockedIpRanges);
@@ -173,7 +172,6 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("RtpSessionWithSignallingTimeoutSec", m_rtpSessionWithSignallingTimeoutSec);
 	s->IntValue("RtpSessionWithSignallingInitialTimeoutSec", m_rtpSessionWithSignallingInitialTimeoutSec);
 	s->IntValue("RtpSessionOnHoldTimeOutSec", m_rtpSessionOnHoldTimeOutSec);
-	s->BoolValue("RtpReportDtmf", m_rtpReportDtmf);
 	s->IpRangesValue("RtpBlockedIpRanges", m_rtpBlockedIpRanges);
 	s->BoolValue("RtpTrackByUdpPortOnly", m_rtpTrackByUdpPortOnly);
 	s->BoolValue("RtpAllowMultipleMappings", m_rtpAllowMultipleMappings);
@@ -266,7 +264,6 @@ void VoIpConfig::Define(Serializer* s)
 	s->StringValue("RemotePartyUseExtractedKey", m_remotePartyUseExtractedKey);
 	s->IntValue("RtpMinAmountOfPacketsBeforeStart", m_rtpMinAmountOfPacketsBeforeStart);
 	s->BoolValue("RtpBreakupOnStreamPause", m_rtpBreakupOnStreamPause);
-	s->BoolValue("RtpS1S2MappingDeterministic", m_rtpS1S2MappingDeterministic);
 	s->BoolValue("LocalPartyAddLocalIp", m_localPartyAddLocalIp);
 	s->BoolValue("RtpLogAllSsrc", m_rtpLogAllSsrc);
 	s->IntValue("OrekaEncapsulationPort", m_orekaEncapsulationPort);
@@ -274,8 +271,6 @@ void VoIpConfig::Define(Serializer* s)
 	s->BoolValue("OrekaEncapsulationMode", m_orekaEncapsulationMode);
 	s->StringValue("OnDemandTcpMarkerKey", m_onDemandTcpMarkerKey);
 	s->StringValue("OnDemandTcpMarkerValue", m_onDemandTcpMarkerValue);
-	s->StringValue("OnDemandViaDtmfDigitsString", m_onDemandViaDtmfDigitsString);
-	s->StringValue("OnDemandPauseViaDtmfDigitsString", m_onDemandPauseViaDtmfDigitsString);
 	s->BoolValue("SipInfoDtmfRfc2976Detect", m_sipInfoDtmfRfc2976Detect);
 	s->BoolValue("MediaAddressUseSecondRtpAddress", m_mediaAddressUseSecondRtpAddress);
 	s->IntValue("TransferTimeOutInSec", m_transferTimeOutInSec);
@@ -283,7 +278,6 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("UdpMinPort", m_udpMinPort);
 	s->BoolValue("LocalPartyNameMapEnable",m_localPartyNameMapEnable);
 	s->BoolValue("IpFragmentsReassemble", m_ipFragmentsReassemble);
-	s->BoolValue("RtpS1S2MappingDeterministicS1IsLocal", m_rtpS1S2MappingDeterministicS1IsLocal);
 	s->StringValue("NecNotifyDispLine", m_necNotifyDispLine);
 	s->CsvValue("NecGatewayNames",m_necVoipGatewayNames);
 	s->BoolValue("SipMetadataUseLastInvite", m_sipMetadataUseLastInvite);
@@ -295,13 +289,15 @@ void VoIpConfig::Define(Serializer* s)
 
 void VoIpConfig::Validate()
 {
+	AcpConfig::Validate();
+
 	// iterate over ascii LAN masks and populate the binary LAN Masks list
 	m_lanMasks.clear();
 	std::list<CStdString>::iterator it;
 	for(it = m_asciiLanMasks.begin(); it != m_asciiLanMasks.end(); it++)
 	{
 		struct in_addr a;
-		if(ACE_OS::inet_aton((PCSTR)*it, &a))
+		if(inet_pton4((PCSTR)*it, &a))
 		{
 			m_lanMasks.push_back((unsigned int)a.s_addr);
 		}
@@ -311,27 +307,13 @@ void VoIpConfig::Validate()
 		}
 	}
 
-	// iterate over ascii Media gateway IP addresses and populate the binary Media gateway IP addresses list
-	m_mediaGateways.clear();
-	for(it = m_asciiMediaGateways.begin(); it != m_asciiMediaGateways.end(); it++)
-	{
-		struct in_addr a;
-		if(ACE_OS::inet_aton((PCSTR)*it, &a))
-		{
-			m_mediaGateways.push_back((unsigned int)a.s_addr);
-		}
-		else
-		{
-			throw (CStdString("VoIpConfig: invalid IP address in MediaGateways:" + *it));
-		}
-	}
 
 	// iterate over ascii RTP tracking IP addresses and populate the binary IP addresses list
 	m_rtpTrackUsingIpAddresses.clear();
 	for(it = m_asciiRtpTrackUsingIpAddresses.begin(); it != m_asciiRtpTrackUsingIpAddresses.end(); it++)
 	{
 		struct in_addr a;
-		if(ACE_OS::inet_aton((PCSTR)*it, &a))
+		if(inet_pton4((PCSTR)*it, &a))
 		{
 			m_rtpTrackUsingIpAddresses.push_back((unsigned int)a.s_addr);
 		}
@@ -374,7 +356,7 @@ void VoIpConfig::Validate()
 			cidrIpAddressString = entry;
 		}
 
-		if(ACE_OS::inet_aton((PCSTR)cidrIpAddressString, &cidrIpAddress))
+		if(inet_pton4((PCSTR)cidrIpAddressString, &cidrIpAddress))
 		{
 			unsigned int rangeBitWidth = 32-cidrPrefixLength;
 			unsigned int prefix = ntohl((unsigned int)cidrIpAddress.s_addr) >> (rangeBitWidth);
@@ -421,7 +403,7 @@ void VoIpConfig::Validate()
 			cidrIpAddressString = entry;
 		}
 
-		if(ACE_OS::inet_aton((PCSTR)cidrIpAddressString, &cidrIpAddress))
+		if(inet_pton4((PCSTR)cidrIpAddressString, &cidrIpAddress))
 		{
 			unsigned int rangeBitWidth = 32-cidrPrefixLength;
 			unsigned int prefix = ntohl((unsigned int)cidrIpAddress.s_addr) >> (rangeBitWidth);
@@ -553,18 +535,6 @@ bool VoIpConfig::IsPartOfLan(struct in_addr addr)
 	for(std::list<unsigned int>::iterator it = m_lanMasks.begin(); it != m_lanMasks.end(); it++)
 	{
 		if(((unsigned int)addr.s_addr & *it) == (unsigned int)addr.s_addr)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-bool VoIpConfig::IsMediaGateway(struct in_addr addr)
-{
-	for(std::list<unsigned int>::iterator it = m_mediaGateways.begin(); it != m_mediaGateways.end(); it++)
-	{
-		if((unsigned int)addr.s_addr == *it)
 		{
 			return true;
 		}

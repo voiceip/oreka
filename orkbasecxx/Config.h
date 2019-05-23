@@ -218,6 +218,10 @@ public:
 	int m_commandLineServerPort;
 	int m_httpServerPort;
 	int m_eventStreamingServerPort;
+	//
+	// N.B., the following element is configured by live monitoring when it parses the
+	//       configuration. It sets a read-only copy below, so that Reporting has access
+	CStdString m_liveStreamingServerPortStr;
 	bool m_lookBackRecording;
 	bool m_allowAutomaticRecording;
 	int m_captureFileSizeLimitKb;

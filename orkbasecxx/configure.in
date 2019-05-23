@@ -6,13 +6,28 @@ AM_INIT_AUTOMAKE(orkbase, 1.0)
 AC_PREFIX_DEFAULT(/usr)
 
 if [cat /etc/redhat-release | grep "release 6"]; then
-    CXXFLAGS+="-DCENTOS_6"
+    CXXFLAGS+="-DCENTOS_6 -D__STDC_CONSTANT_MACROS"
 fi
 
+if [grep -i "opensuse" /etc/os-release]; then
+    CXXFLAGS+="-std=c++11 -DXERCES_3"
+fi
+
+if [cat /etc/issue | grep "Ubuntu"]; then
+    CXXFLAGS+="-std=c++11"
+fi
+
+if [cat /etc/issue | grep "Ubuntu 16"]; then
+    CXXFLAGS+=" -DXERCES_3"
+fi
+
+if [cat /etc/issue | grep "Ubuntu 18"]; then
+    CXXFLAGS+=" -DXERCES_3"
+fi
 
 # Check if gcc supports cpp11 
 if [echo "main(){}" | $CXX -std=c++11 -xc++ -S -  &>/dev/null]; then 
-	CXXFLAGS+=" -g -O2 -std=c++11 -DSUPPORTS_CPP11 $CXXFLAGS"
+	CXXFLAGS+=" -g -O2 -std=c++11 -DSUPPORTS_CPP11 -fPIC $CXXFLAGS"
 else	
 	CXXFLAGS+=" -g -O2"
 fi

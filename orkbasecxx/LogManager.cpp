@@ -13,11 +13,12 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
-#include "ace/OS_NS_dirent.h"
 #include "LogManager.h"
 #include <log4cxx/propertyconfigurator.h>
 #include <log4cxx/basicconfigurator.h>
 #include <log4cxx/logmanager.h>
+#include "Utils.h"
+#include <fstream>
 
 OrkLogManager OrkLogManager::m_orkLogManager;
 
@@ -28,37 +29,39 @@ OrkLogManager* OrkLogManager::Instance()
 
 void OrkLogManager::Initialize()
 {
+	OrkAprSubPool locPool;
+
 	BasicConfigurator::resetConfiguration();
 	BasicConfigurator::configure();
-
+	apr_status_t ret;
 	char* logCfgFilename = NULL;
-        char* cfgEnvPath = "";
-        int cfgAlloc = 0;
+	char* cfgEnvPath = "";
+	int cfgAlloc = 0;
 
-        cfgEnvPath = ACE_OS::getenv("ORKAUDIO_CONFIG_PATH");
-        if(cfgEnvPath) {
-                ACE_DIR* dir = ACE_OS::opendir(cfgEnvPath);
-                if(dir) {
-                        int len = 0;
+	ret = apr_env_get(&cfgEnvPath, "ORKAUDIO_CONFIG_PATH", AprLp);
+	if(ret == APR_SUCCESS) {
+		apr_dir_t* dir;
+		ret = apr_dir_open(&dir, cfgEnvPath, AprLp);
+		if(ret == APR_SUCCESS)
+		{
+			int len = 0;
+			apr_dir_close(dir);
+			len = strlen(cfgEnvPath)+1+strlen("logging.properties")+1;
+			logCfgFilename = (char*)malloc(len);
 
-                        ACE_OS::closedir(dir);
-                        len = strlen(cfgEnvPath)+1+strlen("logging.properties")+1;
-                        logCfgFilename = (char*)malloc(len);
-
-                        if(logCfgFilename) {
-                                cfgAlloc = 1;
-								ACE_OS::snprintf(logCfgFilename, len, "%s/%s", cfgEnvPath, "logging.properties");
-                        }
-                }
-        }
+					if(logCfgFilename) {
+							cfgAlloc = 1;
+							apr_snprintf(logCfgFilename, len, "%s/%s", cfgEnvPath, "logging.properties", AprLp);
+					}
+		}
+	}
 
 	if(!logCfgFilename) {
-		FILE* file = ACE_OS::fopen("logging.properties", "r");
-		if(file)
-		{
-			// logging.properties exists in the current directory
+		std::fstream file;
+		file.open("logging.properties", std::fstream::in);
+		if(file.is_open()){
 			logCfgFilename = (char*)"logging.properties";
-			fclose(file);
+			file.close();
 		}
 		else
 		{

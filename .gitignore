@@ -1,4 +1,3 @@
-
 # Created by https://www.gitignore.io/api/c++,cmake,intellij,sublimetext
 
 ### C++ ###
@@ -100,4 +99,3 @@ libtool-*.tar.xz
 orkaudio/orkaudio
 orkaudio/audiocaptureplugins/*/AudioCapturePluginCommon.cpp
 !orkaudio/audiocaptureplugins/common/*
-

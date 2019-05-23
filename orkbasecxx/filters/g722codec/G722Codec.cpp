@@ -15,7 +15,7 @@
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
 #include "G722Codec.h"
-
+#include <cstring>
 G722ToPcmFilter::G722ToPcmFilter()
 {
 	// Initialize decoder

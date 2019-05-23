@@ -11,17 +11,20 @@
  *
  */
 #pragma warning( disable: 4786 ) // disables truncated symbols in browse-info warning
-
+#ifdef WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <Windows.h>
+//#include "winsock2.h"
+#endif
 #include "ConfigManager.h"
 #include "MediaChunkFile.h"
-#include "Utils.h"
 
 #define MAX_CHUNK_SIZE 100000
 
 
 MediaChunkFile::MediaChunkFile()
 {
-	m_stream = NULL;
 	m_mode = READ;
 	m_numChunksWritten = 0;
 	m_sampleRate = 0;
@@ -37,11 +40,10 @@ MediaChunkFile::~MediaChunkFile()
 
 void MediaChunkFile::Close()
 {
-	if(m_stream)
+	if(m_stream.is_open())
 	{
 		FlushToDisk();
-		ACE_OS::fclose(m_stream);
-		m_stream = NULL;
+		m_stream.close();
 	}
 }
 
@@ -60,15 +62,16 @@ bool MediaChunkFile::FlushToDisk()
 		{
 			continue;
 		}
-
-		int numWritten = ACE_OS::fwrite(tmpChunk->GetDetails(), sizeof(AudioChunkDetails), 1, m_stream);
-		if(numWritten != 1)
+		int numWritten = sizeof(AudioChunkDetails);
+		m_stream.write((char*)tmpChunk->GetDetails(), numWritten);
+		if(!m_stream.good())
 		{
 			writeError = true;
 			break;
 		}
-		numWritten = ACE_OS::fwrite(tmpChunk->m_pBuffer, sizeof(char), tmpChunk->GetNumBytes(), m_stream);
-		if(numWritten != tmpChunk->GetNumBytes())
+		numWritten = tmpChunk->GetNumBytes()*sizeof(char);
+		m_stream.write((char*)tmpChunk->m_pBuffer, numWritten);
+		if(!m_stream.good())
 		{
 			writeError = true;
 			break;
@@ -98,7 +101,7 @@ void MediaChunkFile::WriteChunk(AudioChunkRef chunkRef)
 
 	if(m_chunkQueueDataSize > (unsigned int)(CONFIG.m_captureFileBatchSizeKByte*1024))
 	{
-		if (m_stream)
+		if(m_stream.is_open())
 		{
 			writeError = FlushToDisk();
 		}
@@ -115,18 +118,21 @@ void MediaChunkFile::WriteChunk(AudioChunkRef chunkRef)
 
 int MediaChunkFile::ReadChunkMono(AudioChunkRef& chunkRef)
 {
-	unsigned int numRead = 0;
+	int numRead = 0;
 
-	if (m_stream)
+	if(m_stream.is_open())
 	{
 		chunkRef.reset(new AudioChunk());
 		short temp[MAX_CHUNK_SIZE];
-		numRead = ACE_OS::fread(temp, sizeof(AudioChunkDetails), 1, m_stream);
-		if(numRead == 1)
+		numRead = sizeof(AudioChunkDetails);
+		m_stream.read((char*)temp, numRead);
+		if(m_stream.eof()){
+			return 0;
+		}
+		if(!m_stream.fail())
 		{
 			AudioChunkDetails details;
 			memcpy(&details, temp, sizeof(AudioChunkDetails));
-
 			if(details.m_marker != MEDIA_CHUNK_MARKER)
 			{
 				throw(CStdString("Invalid marker in file:")+ m_filename);
@@ -137,8 +143,9 @@ int MediaChunkFile::ReadChunkMono(AudioChunkRef& chunkRef)
 			}
 			else
 			{
-				numRead = ACE_OS::fread(temp, sizeof(char), details.m_numBytes, m_stream);
-				if(numRead != details.m_numBytes)
+				int numRead = details.m_numBytes;
+				m_stream.read((char*)temp, numRead);	
+				if(m_stream.fail())
 				{
 					throw(CStdString("Incomplete chunk in file:")+ m_filename);
 				}
@@ -150,7 +157,6 @@ int MediaChunkFile::ReadChunkMono(AudioChunkRef& chunkRef)
 	{
 		throw(CStdString("Read attempt on unopened file:")+ m_filename);
 	}
-	
 	return numRead;
 }
 
@@ -166,16 +172,15 @@ void MediaChunkFile::Open(CStdString& filename, fileOpenModeEnum mode, bool ster
 	{
 		m_filename = filename + GetExtension();
 	}
-	m_stream = NULL;
 	m_mode = mode;
 	if (mode == READ)
 	{
-		m_stream = ACE_OS::fopen((PCSTR)m_filename, "rb");
+		m_stream.open(m_filename, std::fstream::in | std::fstream::binary);
 	}
 	else
 	{
 		FileRecursiveMkdir(m_filename, CONFIG.m_audioFilePermissions, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup, CONFIG.m_audioOutputPathMcf);
-		m_stream = ACE_OS::fopen((PCSTR)m_filename, "wb");
+		m_stream.open(m_filename, std::fstream::out | std::fstream::binary);
 
 		if(CONFIG.m_audioFilePermissions)
 		{
@@ -187,7 +192,7 @@ void MediaChunkFile::Open(CStdString& filename, fileOpenModeEnum mode, bool ster
 			FileSetOwnership(m_filename, CONFIG.m_audioFileOwner, CONFIG.m_audioFileGroup);
 		}
 	}
-	if(!m_stream)
+	if(!m_stream.is_open())
 	{
 		throw(CStdString("Could not open file: ") + m_filename);
 	}

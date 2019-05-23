@@ -38,6 +38,8 @@
 #include "AudioCapture.h"
 #include "sndfile.h"
 #include "AudioFile.h"
+#include "Utils.h"
+#include <fstream>
 
 #define MAX_FRAME_BYTES 61295
 #define IMIN(a,b) ((a) < (b) ? (a) : (b))   /**< Minimum int value.   */
@@ -73,7 +75,6 @@ public:
 	OggOpusFile();
 	~OggOpusFile();
 
-    FILE* fp;
     ogg_page *page;
 	void Open(CStdString& filename, fileOpenModeEnum mode, bool stereo = false, int sampleRate = 8000);
 	void Close();
@@ -100,9 +101,7 @@ private:
     char               *inFile;
     char               *outFile;
     char               *range_file;
-    FILE               *fin;
-    FILE               *fout;
-    FILE               *frange;
+    std::fstream               fout;
     ogg_stream_state   os;
     ogg_page           og;
     ogg_packet         op;

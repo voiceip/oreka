@@ -13,7 +13,6 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
-#include "ace/OS_NS_time.h"
 #include "Object.h"
 #include "Serializer.h"
 #include "Utils.h"
@@ -235,12 +234,13 @@ void Serializer::AddCsvMap(const char* key,  std::map<CStdString, CStdString>& v
 
 void Serializer::AddDate(const char* key, time_t value)
 {
-	struct tm date;
-	ACE_OS::localtime_r(&value ,&date);
-	int month = date.tm_mon + 1;				// january=0, decembre=11
-	int year = date.tm_year + 1900;
+ 	apr_time_t tn =apr_time_now();
+	apr_time_exp_t texp;
+    apr_time_exp_lt(&texp, tn);
+	int month = texp.tm_mon + 1;				// january=0, decembre=11
+	int year = texp.tm_year + 1900;
 	CStdString dateString;
-	dateString.Format("%.4d-%.2d-%.2d_%.2d-%.2d-%.2d", year, month, date.tm_mday, date.tm_hour, date.tm_min, date.tm_sec);
+	dateString.Format("%.4d-%.2d-%.2d_%.2d-%.2d-%.2d", year, month, texp.tm_mday,texp.tm_hour, texp.tm_min, texp.tm_sec);
 	AddString(key, dateString);
 }
 

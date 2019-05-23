@@ -17,9 +17,8 @@
 #include "ThreadSafeQueue.h"
 #include "TapeProcessor.h"
 #include "AudioTape.h"
-#include "ace/Thread_Mutex.h"
 #include <map>
-
+#include <mutex>
 class  DirectionSelector;
 typedef oreka::shared_ptr<DirectionSelector> DirectionSelectorRef;
 
@@ -37,7 +36,7 @@ public:
 	CStdString __CDECL__ GetName();
 	TapeProcessorRef __CDECL__ Instanciate();
 	void __CDECL__ AddAudioTape(AudioTapeRef& audioTapeRef);
-	static void ThreadHandler(void *args);
+	static void ThreadHandler();
 	void SetQueueSize(int size);
 
 private:
@@ -49,7 +48,7 @@ private:
 	void LoadAreaCodesMap();
 
 	size_t m_threadCount;
-	ACE_Thread_Mutex m_mutex;
+	std::mutex m_mutex;
 	int m_currentDay;
 	std::map<CStdString, CStdString> m_areaCodesMap;
 };

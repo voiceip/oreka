@@ -6,9 +6,13 @@
  * http://www.orecx.com
  *
  */
-
+#ifdef WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <Windows.h>
+//#include "winsock2.h"
+#endif
 #include "SipHeaders.h"
-#include "ace/OS_NS_arpa_inet.h"
 #include "Utils.h"
 #include "MemUtils.h"
 
@@ -17,12 +21,11 @@ SipSubscribeInfo::SipSubscribeInfo()
 
 }
 //==========================================================
-SipInviteInfo::SipInviteInfo()
+SipInviteInfo::SipInviteInfo() : m_telephoneEventPayloadType(0)
 {
 	m_fromRtpIp.s_addr = 0;
 	m_validated = false;
 	m_attrSendonly = false;
-	m_telephoneEventPtDefined = false;
 	m_SipGroupPickUpPatternDetected = false;
 	m_orekaRtpPayloadType = 0;
 }
@@ -30,20 +33,20 @@ SipInviteInfo::SipInviteInfo()
 void SipInviteInfo::ToString(CStdString& string)
 {
 	char fromRtpIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_fromRtpIp, fromRtpIp, sizeof(fromRtpIp));
+	inet_ntopV4(AF_INET, (void*)&m_fromRtpIp, fromRtpIp, sizeof(fromRtpIp));
 
 	char senderIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+	inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
 
 	char receiverIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+	inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
 	CStdString senderMac, receiverMac;
 
 	MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
 	MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
 
-	string.Format("sender:%s from:%s@%s RTP:%s,%s to:%s@%s rcvr:%s callid:%s smac:%s rmac:%s fromname:%s toname:%s ua:%s requesturi:%s a:sendonly:%s telephone-event-payload-type:%s", senderIp, m_from, m_fromDomain, fromRtpIp, m_fromRtpPort, m_to, m_toDomain, receiverIp, m_callId, senderMac, receiverMac, m_fromName, m_toName, m_userAgent, m_requestUri, ((m_attrSendonly == true) ? "present" : "not-present"), m_telephoneEventPayloadType);
+	string.Format("sender:%s from:%s@%s RTP:%s,%s to:%s@%s rcvr:%s callid:%s smac:%s rmac:%s fromname:%s toname:%s ua:%s requesturi:%s a:sendonly:%s telephone-event-payload-type:%d", senderIp, m_from, m_fromDomain, fromRtpIp, m_fromRtpPort, m_to, m_toDomain, receiverIp, m_callId, senderMac, receiverMac, m_fromName, m_toName, m_userAgent, m_requestUri, ((m_attrSendonly == true) ? "present" : "not-present"), m_telephoneEventPayloadType);
 }
 
 //==========================================================
@@ -58,8 +61,8 @@ void Sip302MovedTemporarilyInfo::ToString(CStdString& string)
 	char senderIp[16];
 	char receiverIp[16];
 
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+	inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+	inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
 	string.Format("sender:%s rcvr:%s from:%s@%s to:%s@%s contact:%s@%s fromname:%s toname:%s contactname:%s callid:%s", senderIp, receiverIp, m_from, m_fromDomain, m_to, m_toDomain, m_contact, m_contactDomain, m_fromName, m_toName, m_contactName, m_callId);
 }
@@ -80,8 +83,8 @@ void SipFailureMessageInfo::ToString(CStdString& string)
 
 	MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
 	MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+	inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+	inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
 	string.Format("sender:%s rcvr:%s smac:%s rmac:%s callid:%s errorcode:%s reason:\"%s\"", senderIp, receiverIp, senderMac, receiverMac, m_callId, m_errorCode, m_errorString);
 }
@@ -93,8 +96,8 @@ void SipFailureMessageInfo::ToString(CStdString& string, SipInviteInfoRef invite
 
 	//MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
 	//MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+	inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+	inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
 	string.Format("sender:%s from:%s to:%s rcvr:%s callid:%s errorcode:%s reason:\"%s\"", senderIp, inviteInfo->m_from, inviteInfo->m_to, receiverIp, inviteInfo->m_callId, m_errorCode, m_errorString);
 }
@@ -109,13 +112,13 @@ Sip200OkInfo::Sip200OkInfo()
 void Sip200OkInfo::ToString(CStdString& string)
 {
 	char mediaIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_mediaIp, mediaIp, sizeof(mediaIp));
+	inet_ntopV4(AF_INET, (void*)&m_mediaIp, mediaIp, sizeof(mediaIp));
 
 	char senderIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+	inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
 
 	char receiverIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+	inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
 	if(m_mediaPort.size())
 	{
@@ -139,13 +142,13 @@ SipSessionProgressInfo::SipSessionProgressInfo()
 void SipSessionProgressInfo::ToString(CStdString& string)
 {
 	char mediaIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_mediaIp, mediaIp, sizeof(mediaIp));
+	inet_ntopV4(AF_INET, (void*)&m_mediaIp, mediaIp, sizeof(mediaIp));
 
 	char senderIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+	inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
 
 	char receiverIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+	inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
 	string.Format("sender:%s from:%s RTP:%s,%s to:%s rcvr:%s callid:%s", senderIp, m_from, mediaIp, m_mediaPort, m_to, receiverIp, m_callId);
 }
@@ -160,10 +163,10 @@ SipByeInfo::SipByeInfo()
 void SipByeInfo::ToString(CStdString& string)
 {
 	char senderIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+	inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
 
 	char receiverIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+	inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
 	string.Format("sender:%s rcvr:%s callid:%s from:%s to:%s fromDomain:%s toDomain:%s fromName:%s toName:%s", senderIp, receiverIp, m_callId, m_from, m_to, m_fromDomain, m_toDomain, m_fromName, m_toName);
 }
@@ -191,8 +194,8 @@ void SipRefer::ToString(CStdString& string)
 {
 	char senderIp[16];
 	char receiverIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+	inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+	inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
 	string.Format("sender:%s rcvr:%s from:%s@%s to:%s@%s fromname:%s toname:%s referto:%s referredby:%s referredParty:%s callid:%s", senderIp, receiverIp, m_from, m_fromDomain, m_to, m_toDomain, m_fromName, m_toName, m_referToParty, m_referredByParty, m_referredParty, m_callId);
 }

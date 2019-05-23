@@ -281,8 +281,8 @@ bool TryIax2New(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 	{
 		char source_ip[16], dest_ip[16];
 
-		ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, source_ip, sizeof(source_ip));
-		ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_dest, dest_ip, sizeof(dest_ip));
+		inet_ntopV4(AF_INET, (void*)&ipHeader->ip_src, source_ip, sizeof(source_ip));
+		inet_ntopV4(AF_INET, (void*)&ipHeader->ip_dest, dest_ip, sizeof(dest_ip));
 	        iax2_dump_frame(fh, source_ip, dest_ip);
 	}
 

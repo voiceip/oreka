@@ -84,7 +84,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			if(s_skinnyParsersLog->isInfoEnabled())
 			{
 				char szRemoteIp[16];
-				ACE_OS::inet_ntop(AF_INET, (void*)&startMedia->remoteIpAddr, szRemoteIp, sizeof(szRemoteIp));
+				inet_ntopV4(AF_INET, (void*)&startMedia->remoteIpAddr, szRemoteIp, sizeof(szRemoteIp));
 				logMsg.Format(" CallId:%u PassThru:%u media address:%s,%u", startMedia->conferenceId, startMedia->passThruPartyId, szRemoteIp, startMedia->remoteTcpPort);
 			}
 			VoIpSessionsSingleton::instance()->ReportSkinnyStartMediaTransmission(startMedia, ipHeader, tcpHeader);
@@ -102,7 +102,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			if(s_skinnyParsersLog->isInfoEnabled())
 			{
 				char szRemoteIp[16];
-				ACE_OS::inet_ntop(AF_INET, (void*)&startMedia->remoteIpAddr, szRemoteIp, sizeof(szRemoteIp));
+				inet_ntopV4(AF_INET, (void*)&startMedia->remoteIpAddr, szRemoteIp, sizeof(szRemoteIp));
 				logMsg.Format(" (CCM 7.1) CallId:%u PassThru:%u media address:%s,%u", startMedia->conferenceId, startMedia->passThruPartyId, szRemoteIp, startMedia->remoteTcpPort);
 			}
 
@@ -299,7 +299,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			if(s_skinnyParsersLog->isInfoEnabled())
 			{
 				char szMediaIp[16];
-				ACE_OS::inet_ntop(AF_INET, (void*)&openReceiveAck->endpointIpAddr, szMediaIp, sizeof(szMediaIp));
+				inet_ntopV4(AF_INET, (void*)&openReceiveAck->endpointIpAddr, szMediaIp, sizeof(szMediaIp));
 				logMsg.Format(" PassThru:%u media address:%s,%u", openReceiveAck->passThruPartyId, szMediaIp, openReceiveAck->endpointTcpPort);
 			}
 			endpointIp = ipHeader->ip_src;	// this skinny message is phone -> CCM
@@ -321,7 +321,7 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 			if(s_skinnyParsersLog->isInfoEnabled())
 			{
 				char szMediaIp[16];
-				ACE_OS::inet_ntop(AF_INET, (void*)&openReceiveAck->endpointIpAddr, szMediaIp, sizeof(szMediaIp));
+				inet_ntopV4(AF_INET, (void*)&openReceiveAck->endpointIpAddr, szMediaIp, sizeof(szMediaIp));
 				logMsg.Format(" (CCM 7.1) PassThru:%u media address:%s,%u", openReceiveAck->passThruPartyId, szMediaIp, openReceiveAck->endpointTcpPort);
 			}
 			endpointIp = ipHeader->ip_src;	// this skinny message is phone -> CCM
@@ -438,8 +438,8 @@ void HandleSkinnyMessage(SkinnyHeaderStruct* skinnyHeader, IpHeaderStruct* ipHea
 	if(useful && s_skinnyParsersLog->isInfoEnabled())
 	{
 		CStdString msg = SkinnyMessageToString(skinnyHeader->messageType);
-		ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
-		ACE_OS::inet_ntop(AF_INET, (void*)&cmIp, szCmIp, sizeof(szCmIp));
+		inet_ntopV4(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
+		inet_ntopV4(AF_INET, (void*)&cmIp, szCmIp, sizeof(szCmIp));
 		logMsg.Format("processed %s%s endpoint:%s,%u cm:%s,%u", msg, logMsg, szEndpointIp, endpointTcpPort, szCmIp, cmTcpPort);
 		LOG4CXX_INFO(s_skinnyParsersLog, logMsg);
 	}

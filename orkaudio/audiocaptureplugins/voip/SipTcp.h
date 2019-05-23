@@ -18,7 +18,6 @@
 #include <list>
 #include "SipTcp.h"
 #include <map>
-#include "ace/Singleton.h"
 #include "PacketHeaderDefs.h"
 
 using namespace log4cxx;

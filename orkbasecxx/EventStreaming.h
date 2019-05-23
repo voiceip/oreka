@@ -17,9 +17,6 @@
 #include <queue>
 #include <list>
 #include "shared_ptr.h"
-#include "ace/Singleton.h"
-#include "ace/Thread_Mutex.h"
-#include "ace/Thread_Semaphore.h"
 #include "AudioCapture.h"
 #include "ConfigManager.h"
 #include "CapturePluginProxy.h"
@@ -40,14 +37,14 @@ public:
 	void WaitForMessages();
 private:
 	std::list<MessageRef> m_messages;
-	ACE_Thread_Mutex m_mutex;
-	ACE_Thread_Semaphore m_semaphore;
+	std::mutex m_mutex;
+	OrkSemaphore m_semaphore;
 };
 typedef oreka::shared_ptr<EventStreamingSession> EventStreamingSessionRef;
 
 //==========================================================
 
-class DLL_IMPORT_EXPORT_ORKBASE EventStreaming
+class DLL_IMPORT_EXPORT_ORKBASE EventStreaming: public OrkSingleton<EventStreaming>
 {
 public:
 	EventStreaming();
@@ -61,10 +58,10 @@ public:
 
 private:
 	AlphaCounter m_alphaCounter;
-	ACE_Thread_Mutex m_mutex;
+	std::mutex m_mutex;
 	std::list<EventStreamingSessionRef> m_sessions;
 };
-typedef ACE_Singleton<EventStreaming, ACE_Thread_Mutex> EventStreamingSingleton;
+#define EventStreamingSingleton EventStreaming
 
 //==========================================================
 

@@ -17,7 +17,7 @@
 #include "ThreadSafeQueue.h"
 #include "TapeProcessor.h"
 #include "AudioTape.h"
-
+#include <mutex>
 
 class DLL_IMPORT_EXPORT_ORKBASE Reporting : public TapeProcessor
 {
@@ -32,7 +32,7 @@ public:
 	void __CDECL__ SkipTapes(int number, CStdString trackingServer="");
 
 	//static Reporting* GetInstance();
-	static void ThreadHandler(void *args);
+	static void ThreadHandler();
 	static void ReportingThreadEntryPoint(void *args);
 
 private:

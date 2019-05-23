@@ -21,9 +21,10 @@
 #include <list>
 #include "ConfigManager.h"
 #include "VoIpConfig.h"
-#include "ace/OS_NS_arpa_inet.h"
+
 #include "MemUtils.h"
 #include <boost/algorithm/string/predicate.hpp>
+#include "../common/DtmfHandling.h"
 
 extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;
@@ -34,12 +35,13 @@ extern CaptureEventCallBackFunction g_captureEventCallBack;
 	VoIpSessions* VoIpSessionsSingleton::voipSessions = NULL;
 #endif
 
-VoIpSession::VoIpSession(CStdString& trackingId) : m_hasReceivedCallInfo(false)
+VoIpSession::VoIpSession(CStdString& trackingId) : OrkSession(&DLLCONFIG),
+	m_hasReceivedCallInfo(false),
+	m_creationDate()
 {
 	m_startWhenReceiveS2 = false;
 	m_trackingId = trackingId;
 	m_lastUpdated = time(NULL);
-	m_creationDate = ACE_OS::gettimeofday();
 	m_skinnyLastCallInfoTime = m_creationDate;
 	m_sipLastInvite = m_creationDate;
 	m_log = Logger::getLogger("rtpsession");
@@ -52,13 +54,11 @@ VoIpSession::VoIpSession(CStdString& trackingId) : m_hasReceivedCallInfo(false)
 	m_started = false;
 	m_stopped = false;
 	m_onHold = false;
-	m_keepRtp = true;
 	if(CONFIG.m_lookBackRecording == false)
 	{
 		m_keepRtp = false;
 	}
 	m_nonLookBackSessionStarted = false;
-	m_beginDate = 0;
 	m_hasDuplicateRtp = false;
 	m_highestRtpSeqNumDelta = 0;
 	m_minRtpSeqDelta = (double)DLLCONFIG.m_rtpDiscontinuityMinSeqDelta;
@@ -66,12 +66,10 @@ VoIpSession::VoIpSession(CStdString& trackingId) : m_hasReceivedCallInfo(false)
 	m_skinnyPassThruPartyId = 0;
 	memset(m_localMac, 0, sizeof(m_localMac));
 	memset(m_remoteMac, 0, sizeof(m_remoteMac));
-	m_currentRtpEventTs = 0;
 	m_rtcpLocalParty = false;
 	m_rtcpRemoteParty = false;
 	m_remotePartyReported = false;
 	m_localPartyReported = false;
-	m_sessionTelephoneEventPtDefined = false;
 	m_rtpIp.s_addr = 0;
 	m_skinnyLineInstance = 0;
 	m_onDemand = false;
@@ -210,7 +208,7 @@ void VoIpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcp
 			char realm[256], *d = NULL;
 
 			memset(realm, 0, sizeof(realm));
-			ACE_OS::snprintf(realm, sizeof(realm), "%s", (PCSTR)rtcpInfo->m_cnameDomain);
+			apr_snprintf(realm, sizeof(realm), "%s", (PCSTR)rtcpInfo->m_cnameDomain);
 
 			if((d = strchr(realm, '.')))
 			{
@@ -237,7 +235,7 @@ void VoIpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcp
 			if(DLLCONFIG.m_localPartyAddLocalIp == true)
 			{
 				char szLocalIp[16];
-				ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+				inet_ntopV4(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
 				m_localParty.Format("%s@%s", m_localParty, szLocalIp);
 			}
 			CaptureEventRef event(new CaptureEvent());
@@ -255,7 +253,7 @@ void VoIpSession::ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcp
 			char realm[256], *d = NULL;
 
 			memset(realm, 0, sizeof(realm));
-			ACE_OS::snprintf(realm, sizeof(realm), "%s", (PCSTR)rtcpInfo->m_cnameDomain);
+			apr_snprintf(realm, sizeof(realm), "%s", (PCSTR)rtcpInfo->m_cnameDomain);
 
 			if((d = strchr(realm, '.')))
 			{
@@ -320,11 +318,11 @@ void VoIpSession::Start()
 
 void VoIpSession::GenerateOrkUid()
 {
-	struct tm date = {0};
-	ACE_OS::localtime_r(&m_beginDate, &date);
-	int month = date.tm_mon + 1;				// january=0, decembre=11
-	int year = date.tm_year + 1900;
-	m_orkUid.Format("%.4d%.2d%.2d_%.2d%.2d%.2d_%s", year, month, date.tm_mday, date.tm_hour, date.tm_min, date.tm_sec, m_trackingId);
+	apr_time_exp_t texp;
+   	apr_time_exp_lt(&texp, m_beginDate*1000*1000);
+	int month = texp.tm_mon + 1;				// january=0, decembre=11
+	int year = texp.tm_year + 1900;
+	m_orkUid.Format("%.4d%.2d%.2d_%.2d%.2d%.2d_%s", year, month, texp.tm_mday,texp.tm_hour, texp.tm_min, texp.tm_sec, m_trackingId);
 }
 
 
@@ -362,9 +360,9 @@ void VoIpSession::ProcessMetadataRawRtp(RtpPacketInfoRef& rtpPacket)
 	}
 
 	char szSourceIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szSourceIp, sizeof(szSourceIp));
+	inet_ntopV4(AF_INET, (void*)&rtpPacket->m_sourceIp, szSourceIp, sizeof(szSourceIp));
 	char szDestIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szDestIp, sizeof(szDestIp));
+	inet_ntopV4(AF_INET, (void*)&rtpPacket->m_destIp, szDestIp, sizeof(szDestIp));
 
 	if(DLLCONFIG.m_sangomaEnable)
 	{
@@ -540,7 +538,7 @@ void VoIpSession::UpdateMetadataSkinny()
 		if(DLLCONFIG.m_localPartyAddLocalIp == true)
 		{
 			char szLocalIp[16];
-			ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+			inet_ntopV4(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
 			m_localPartyName.Format("%s@%s", m_localPartyName, szLocalIp);
 		}
 		event->m_value = m_localPartyName;
@@ -550,7 +548,7 @@ void VoIpSession::UpdateMetadataSkinny()
 		if(DLLCONFIG.m_localPartyAddLocalIp == true)
 		{
 			char szLocalIp[16];
-			ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+			inet_ntopV4(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
 			m_localParty.Format("%s@%s", m_localParty, szLocalIp);
 		}
 		event->m_value = m_localParty;
@@ -643,7 +641,7 @@ void VoIpSession::UpdateMetadataSipOnRtpChange(RtpPacketInfoRef& rtpPacket, bool
 		if(DLLCONFIG.m_localPartyAddLocalIp == true)
 		{
 			char szLocalIp[16];
-			ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+			inet_ntopV4(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
 			m_localParty.Format("%s@%s", m_localParty, szLocalIp);
 		}
 
@@ -682,7 +680,7 @@ void VoIpSession::UpdateMetadataSipOnRtpChange(RtpPacketInfoRef& rtpPacket, bool
 
 		// Report Local IP
 		char szLocalIp[16];
-		ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+		inet_ntopV4(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
 		event.reset(new CaptureEvent());
 		event->m_type = CaptureEvent::EtLocalIp;
 		event->m_value = szLocalIp;
@@ -769,7 +767,7 @@ void VoIpSession::ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket)
 {
 	//  In Skinny we always want the endpoint (phone) to be used as a local IP address
 	char szEndpointIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_endPointIp, szEndpointIp, sizeof(szEndpointIp));
+	inet_ntopV4(AF_INET, (void*)&m_endPointIp, szEndpointIp, sizeof(szEndpointIp));
 	m_capturePort = m_trackingId;
 
 	if( ( (unsigned int)m_endPointIp.s_addr) == ((unsigned int)rtpPacket->m_destIp.s_addr) )
@@ -797,9 +795,9 @@ void VoIpSession::ReportMetadata()
 {
 	CStdString logMsg;
 	char szLocalIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+	inet_ntopV4(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
 	char szRemoteIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&m_remoteIp, szRemoteIp, sizeof(szRemoteIp));
+	inet_ntopV4(AF_INET, (void*)&m_remoteIp, szRemoteIp, sizeof(szRemoteIp));
 
 	if(DLLCONFIG.m_localPartyForceLocalIp)
 	{
@@ -883,7 +881,7 @@ void VoIpSession::ReportMetadata()
 		if(DLLCONFIG.m_localPartyAddLocalIp == true)
 		{
 			char szLocalIp[16];
-			ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+			inet_ntopV4(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
 			m_localPartyName.Format("%s@%s", m_localPartyName, szLocalIp);
 		}
 		event->m_value = m_localPartyName;
@@ -893,7 +891,7 @@ void VoIpSession::ReportMetadata()
 		if(DLLCONFIG.m_localPartyAddLocalIp == true)
 		{
 			char szLocalIp[16];
-			ACE_OS::inet_ntop(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
+			inet_ntopV4(AF_INET, (void*)&m_localIp, szLocalIp, sizeof(szLocalIp));
 			m_localParty.Format("%s@%s", m_localParty, szLocalIp);
 		}
 		event->m_value = m_localParty;
@@ -1001,67 +999,6 @@ void VoIpSession::ReportMetadata()
 	g_captureEventCallBack(event, m_capturePort);
 }
 
-void VoIpSession::ReportDtmfDigit(int channel, CStdString digitValue,  unsigned int digitDuration, unsigned int digitVolume, unsigned int rtpEventTs, unsigned int rtpEventSeqNo)
-{
-	if(m_dtmfDigitString.length() > 100)
-	{
-		m_dtmfDigitString.clear();
-	}
-	m_dtmfDigitString += digitValue;
-	LOG4CXX_INFO(m_log, "[" + m_trackingId + "] DTMF event [ " + digitValue + " ] new string:" + m_dtmfDigitString);
-	if(DLLCONFIG.m_onDemandViaDtmfDigitsString.length() > 0)
-	{
-		if(m_dtmfDigitString.find(DLLCONFIG.m_onDemandViaDtmfDigitsString) != std::string::npos)
-		{
-			m_keepRtp = true;
-			CStdString side = "both";
-			MarkAsOnDemand(side);
-			m_dtmfDigitString.clear();
-			LOG4CXX_INFO(m_log, "[" + m_trackingId + "] recording started or resumed due to DTMF string pressed");
-		}
-	}
-	if(DLLCONFIG.m_onDemandPauseViaDtmfDigitsString.length() > 0)
-	{
-		if(m_dtmfDigitString.find(DLLCONFIG.m_onDemandPauseViaDtmfDigitsString) != std::string::npos)
-		{
-			m_keepRtp = false;
-			m_dtmfDigitString.clear();
-			LOG4CXX_INFO(m_log, "[" + m_trackingId + "] recording paused due to DTMF string pressed");
-		}
-	}
-
-	int rtpEvent = DtmfDigitToEnum(digitValue);
-	CaptureEventRef event(new CaptureEvent());
-	CStdString dtmfEventString, dtmfEventKey;
-	ACE_Time_Value timeNow;
-	ACE_Time_Value beginTime;
-	ACE_Time_Value timeDiff;
-	int msDiff = 0;
-
-	beginTime.set(m_beginDate, 0);
-	timeNow = ACE_OS::gettimeofday();
-	timeDiff = timeNow - beginTime;
-	msDiff = (timeDiff.sec() * 1000) + (timeDiff.usec() / 1000);
-
-	if(CONFIG.m_dtmfReportingDetailed == true)
-	{
-		dtmfEventString.Format("event:%d timestamp:%u duration:%d volume:%d seqno:%d offsetms:%d channel:%d", rtpEvent, rtpEventTs, digitDuration, digitVolume, rtpEventSeqNo, msDiff, channel);
-		dtmfEventKey.Format("RtpDtmfEvent_%u", rtpEventTs);
-		event->m_type = CaptureEvent::EtKeyValue;
-		event->m_key = dtmfEventKey;
-		event->m_value = dtmfEventString;
-		g_captureEventCallBack(event, m_capturePort);
-		LOG4CXX_INFO(m_log, "[" + m_trackingId + "] RTP DTMF event [ " + dtmfEventString + " ]");
-	}
-
-	event.reset(new CaptureEvent());
-	event->m_type = CaptureEvent::EtKeyValue;
-	event->m_key = "dtmfdigit";
-	event->m_value = digitValue;
-	event->m_offsetMs = msDiff;
-	g_captureEventCallBack(event, m_capturePort);
-}
-
 void VoIpSession::GoOnHold(time_t onHoldTime)
 {
 	if(m_started != true)
@@ -1087,51 +1024,6 @@ void VoIpSession::GoOffHold(time_t offHoldTime)
 		event->m_value.Format("%d", m_holdDuration);
 		g_captureEventCallBack(event,  m_capturePort);
 	}
-}
-
-void VoIpSession::HandleRtpEvent(RtpPacketInfoRef& rtpPacket, int channel)
-{
-	CStdString logMsg;
-
-	if(rtpPacket->m_payloadSize < sizeof(RtpEventPayloadFormat))
-	{
-		LOG4CXX_WARN(m_log, "[" + m_trackingId + "] Payload size for event packet too small");
-		return;
-	}
-
-	if(DLLCONFIG.m_rtpDtmfOnlyLocal)
-	{
-		if(rtpPacket->m_sourceIp.s_addr != m_localIp.s_addr)
-		{
-			return;
-		}
-	}
-
-	RtpEventPayloadFormat *payloadFormat = (RtpEventPayloadFormat *)rtpPacket->m_payload;
-	RtpEventInfoRef rtpEventInfo(new RtpEventInfo());
-
-	rtpEventInfo->m_event = (unsigned short)payloadFormat->event;
-	rtpEventInfo->m_end = (payloadFormat->er_volume & 0x80) ? 1 : 0;
-	rtpEventInfo->m_reserved = (payloadFormat->er_volume & 0x40) ? 1 : 0;
-	rtpEventInfo->m_volume = (unsigned short)(payloadFormat->er_volume & 0x3F);
-	rtpEventInfo->m_duration = ntohs(payloadFormat->duration);
-	rtpEventInfo->m_startTimestamp = rtpPacket->m_timestamp;
-
-	if(m_log->isDebugEnabled())
-	{
-		CStdString eventString;
-		rtpEventInfo->ToString(eventString);
-		logMsg.Format("[%s] RTP DTMF Event Packet: %s", m_trackingId, eventString);
-		LOG4CXX_DEBUG(m_log, logMsg);
-	}
-
-	if(m_currentRtpEventTs != rtpEventInfo->m_startTimestamp)
-	{
-		m_currentRtpEventTs = rtpEventInfo->m_startTimestamp;
-		ReportDtmfDigit(channel, DtmfDigitToString(rtpEventInfo->m_event), rtpEventInfo->m_duration, rtpEventInfo->m_volume, rtpEventInfo->m_startTimestamp, rtpPacket->m_seqNum);
-	}
-
-	return;
 }
 
 // Returns false if the packet does not belong to the session (RTP timestamp discontinuity)
@@ -1180,21 +1072,14 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		m_nonLookBackSessionStarted = true;
 	}
 
-	if(m_protocol == ProtSip)
+	if(m_protocol == ProtSip && DLLCONFIG.m_rtpReportDtmf && m_telephoneEventPayloadType && rtpPacket->m_payloadType == m_telephoneEventPayloadType)
 	{
-		if(DLLCONFIG.m_rtpReportDtmf)
-		{
-			//Check if this is a telephone-event
-			if(m_sessionTelephoneEventPtDefined)
-			{
-				if(rtpPacket->m_payloadType == m_telephoneEventPayloadType)
-				{
-					// This is a telephone-event
-					HandleRtpEvent(rtpPacket, channel);
-					return true;
-				}
-			}
+		if(DLLCONFIG.m_rtpDtmfOnlyLocal && rtpPacket->m_sourceIp.s_addr != m_localIp.s_addr) {
+			return true;
 		}
+
+		HandleRtpEvent(this, channel, (RtpEventPayloadFormat *)rtpPacket->m_payload, rtpPacket->m_payloadSize, rtpPacket->m_timestamp, rtpPacket->m_seqNum);
+		return true;
 	}
 
 	if(!m_keepRtp)
@@ -1495,19 +1380,17 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		}
 	}
 
-	//re-evaluate s1/s2 mapping
-	if (DLLCONFIG.m_rtpS1S2MappingDeterministic && !m_mappedS1S2 && m_lastRtpPacketSide1.get() && m_lastRtpPacketSide2.get()) {
-		if (m_protocol==ProtSip || m_protocol==ProtSkinny)  // cascading if blocks, intentional, not a bug 
-		if ( ((unsigned int)m_lastRtpPacketSide1->m_sourceIp.s_addr != (unsigned int)m_localIp.s_addr) == DLLCONFIG.m_rtpS1S2MappingDeterministicS1IsLocal ) 
-		{ 
+	if ( m_config->m_rtpS1S2MappingDeterministic && !m_mappedS1S2 && m_lastRtpPacketSide1.get() && m_lastRtpPacketSide2.get() ) {
+		m_mappedS1S2 = true;
+		if (m_protocol==ProtSip || m_protocol==ProtSkinny)
+		if ( ShouldSwapChannels() ) {
 			RtpPacketInfoRef tmpRtpPacketInfoRef = m_lastRtpPacketSide1;
 			m_lastRtpPacketSide1 = m_lastRtpPacketSide2;
 			m_lastRtpPacketSide2 = tmpRtpPacketInfoRef;
 			channel = (channel%2)+1; // 1 if it was 2 , 2 if it was 1
 
-			LOG4CXX_INFO(m_log, "[" + m_trackingId + "] deterministic audio channel mapping: swapped s1 and s2");
+			LOG4CXX_INFO(m_log, "[" + m_trackingId + "] deterministic audio channel mapping: swapped s1 and s2 because " + m_logMsg );
 		}
-		m_mappedS1S2 = true;
 	}
 
 	m_numRtpPackets++;
@@ -1541,7 +1424,7 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 	if(		(m_protocol == ProtRawRtp && m_numRtpPackets == DLLCONFIG.m_rtpMinAmountOfPacketsBeforeStart)	||
 			(m_protocol == ProtSkinny && m_numRtpPackets == 2)	||
-			(m_protocol == ProtSip && m_numRtpPackets == 2)			)
+			(m_protocol == ProtSip    && m_numRtpPackets == (CONFIG.m_discardUnidirectionalCalls?1:2)) )
 	{
 		// We've got enough packets to start the session.
 		// For Raw RTP, the high number is to make sure we have a "real" raw RTP session, not a leftover from a SIP/Skinny session
@@ -1731,10 +1614,8 @@ void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 		g_captureEventCallBack(event, m_capturePort);
 	}
 	m_invites.push_front(invite);
-	if(invite->m_telephoneEventPtDefined)
-	{
-		m_telephoneEventPayloadType = StringToInt(invite->m_telephoneEventPayloadType);
-		m_sessionTelephoneEventPtDefined = true;
+	if (invite->m_telephoneEventPayloadType) {
+		m_telephoneEventPayloadType = invite->m_telephoneEventPayloadType;
 	}
 
 	//with CUCM hunt pilots in the inbound case, Remote-Party-ID of the first INVITE to the endpoint is reported as the hunt pilot extension.
@@ -1810,7 +1691,7 @@ void VoIpSession::ReportSipInfo(SipInfoRef& info)
 	m_lastSipInfo = info;
 	if(info->m_dtmfDigit.length() > 0 && DLLCONFIG.m_sipInfoDtmfRfc2976Detect == true)
 	{
-		ReportDtmfDigit(0, info->m_dtmfDigit, 0, 0, 0, 0);
+		ReportDtmfDigit(this,0, info->m_dtmfDigit, 0, 0, 0, 0);
 	}
 	if((DLLCONFIG.m_sipOnDemandFieldValue.length() > 0) && (info->m_onDemand == true))
 	{
@@ -1939,7 +1820,7 @@ void VoIpSession::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruc
 		CStdString key, value;
 		char szIp[16];
 
-		ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, szIp, sizeof(szIp));
+		inet_ntopV4(AF_INET, (void*)&ipHeader->ip_src, szIp, sizeof(szIp));
 		key = "callmanager";
 		value = szIp;
 
@@ -2024,7 +1905,7 @@ void VoIpSession::SkinnyTrackConferencesTransfers(CStdString callId, CStdString 
 	{
 		CStdString endpointIp;
 	  	char szIp[16];
-		ACE_OS::inet_ntop(AF_INET, (void*)&m_endPointIp, szIp, sizeof(szIp));
+		inet_ntopV4(AF_INET, (void*)&m_endPointIp, szIp, sizeof(szIp));
 		endpointIp.Format("%s", szIp);
 	  	logMsg.Format("SkinnyTrackConferencesTransfers:[%s] could not find associated endpoint:%s",m_trackingId, endpointIp);
 		LOG4CXX_INFO(m_log, logMsg);
@@ -2222,7 +2103,7 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	}
 
 	newSession->ReportSipInvite(invite);
-	newSession->m_sipLastInvite = ACE_OS::gettimeofday();
+	newSession->m_sipLastInvite.GetTimeNow();
 	SetMediaAddress(newSession, invite->m_fromRtpIp, rtpPort);
 	if(DLLCONFIG.m_sipTrackMediaAddressOnSender)
 	{
@@ -2302,7 +2183,7 @@ void VoIpSessions::ReportSipSessionProgress(SipSessionProgressInfoRef& info)
 	if (pair != m_byCallId.end())
 	{
 		VoIpSessionRef session = pair->second;
-		unsigned short mediaPort = ACE_OS::atoi(info->m_mediaPort);
+		unsigned short mediaPort = std::atoi(info->m_mediaPort);
 
 		SetMediaAddress(session, info->m_mediaIp, mediaPort);
 		if(DLLCONFIG.m_sipTrackMediaAddressOnSender)
@@ -2348,7 +2229,7 @@ void VoIpSessions::ReportSip200Ok(Sip200OkInfoRef info)
 	if (pair != m_byCallId.end())
 	{
 		VoIpSessionRef session = pair->second;
-		unsigned short mediaPort = ACE_OS::atoi(info->m_mediaPort);
+		unsigned short mediaPort = std::atoi(info->m_mediaPort);
 
 		if(info->m_hasSdp && DLLCONFIG.m_sipUse200OkMediaAddress && DLLCONFIG.m_sipDynamicMediaAddress)
 		{
@@ -2425,7 +2306,7 @@ void VoIpSessions::ReportSipNotify(SipNotifyInfoRef& notify)
 
 		unsigned int invite_s_addr = DLLCONFIG.m_sipDirectionReferenceIpAddresses.Matches(tmpSession->m_invite->m_senderIp)? tmpSession->m_invite->m_receiverIp.s_addr: tmpSession->m_invite->m_senderIp.s_addr;
 
-		if ( (invite_s_addr == (unsigned int) notify->m_receiverIp.s_addr) && (!session || tmpSession->m_sipLastInvite > session->m_sipLastInvite) ) {
+		if ((invite_s_addr == (unsigned int) notify->m_receiverIp.s_addr) && (!session || tmpSession->m_sipLastInvite > session->m_sipLastInvite)) {
 			session = tmpSession;
 		}
  	}
@@ -2532,7 +2413,7 @@ void VoIpSessions::UpdateSessionWithCallInfo(SkCallInfoStruct* callInfo, VoIpSes
 	char szEndPointIp[16];
 
 	VoIpEndpointInfoRef endpoint = GetVoIpEndpointInfo(session->m_endPointIp, session->m_endPointSignallingPort);
-	ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
+	inet_ntopV4(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
 
 	if (session->m_hasReceivedCallInfo==true &&  strcmp(callInfo->calledParty,callInfo->callingParty)==0) {
 		return;
@@ -2670,18 +2551,18 @@ bool VoIpSessions::SkinnyFindMostLikelySessionForRtp(RtpPacketInfoRef& rtpPacket
 	char szRtpDstIp[16];
 
 	session->m_endPointSignallingPort = endpoint->m_skinnyPort;
-	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szRtpSrcIp, sizeof(szRtpSrcIp));
-	ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szRtpDstIp, sizeof(szRtpDstIp));
+	inet_ntopV4(AF_INET, (void*)&rtpPacket->m_sourceIp, szRtpSrcIp, sizeof(szRtpSrcIp));
+	inet_ntopV4(AF_INET, (void*)&rtpPacket->m_destIp, szRtpDstIp, sizeof(szRtpDstIp));
 
 	if(srcmatch == true)
 	{
 		SetMediaAddress(session, rtpPacket->m_sourceIp, rtpPacket->m_sourcePort);
-		ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szEndPointIp, sizeof(szEndPointIp));
+		inet_ntopV4(AF_INET, (void*)&rtpPacket->m_sourceIp, szEndPointIp, sizeof(szEndPointIp));
 	}
 	else
 	{
 		SetMediaAddress(session, rtpPacket->m_destIp, rtpPacket->m_destPort);
-		ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szEndPointIp, sizeof(szEndPointIp));
+		inet_ntopV4(AF_INET, (void*)&rtpPacket->m_destIp, szEndPointIp, sizeof(szEndPointIp));
 	}
 
 	logMsg.Format("[%s] RTP stream detected on endpoint:%s extension:%s RTP:%s,%d %s,%d callid:%s", session->m_trackingId, szEndPointIp, endpoint->m_extension, szRtpSrcIp, rtpPacket->m_sourcePort, szRtpDstIp, rtpPacket->m_destPort, endpoint->m_latestCallId);
@@ -2696,8 +2577,7 @@ bool VoIpSessions::SkinnyFindMostLikelySessionForRtpBehindNat(RtpPacketInfoRef& 
 	VoIpSessionRef session, tmpSession, mostRecentSession;
 	CStdString logMsg;
 
-	ACE_Time_Value latestSkinnyTimestamp, rtpArrivalTimestamp;
-	rtpArrivalTimestamp = ACE_OS::gettimeofday();
+	OrkTimeValue latestSkinnyTimestamp, rtpArrivalTimestamp;
 
 	for(it=m_byCallId.begin(); it!=m_byCallId.end(); it++)
 	{
@@ -2822,7 +2702,7 @@ void VoIpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStru
 		// CM can resend the same message more than once in a session, 
 		// just update timestamp
 		VoIpSessionRef existingSession = pair->second;
-		existingSession->m_skinnyLastCallInfoTime = ACE_OS::gettimeofday();
+		existingSession->m_skinnyLastCallInfoTime.GetTimeNow();
 		
 		CStdString oldVal = existingSession->m_remoteParty;;
 
@@ -2848,7 +2728,7 @@ void VoIpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStru
 		if(ipPortSession.get() && ipPortSession->m_callId.IsEmpty())
 		{
 			// The session has not already had a CallInfo, update it with CallInfo data
-			ipPortSession->m_skinnyLastCallInfoTime = ACE_OS::gettimeofday();
+			ipPortSession->m_skinnyLastCallInfoTime.GetTimeNow();
 			ipPortSession->m_callId = callId;
 			UpdateSessionWithCallInfo(callInfo, ipPortSession);
 			ipPortSession->UpdateMetadataSkinny();
@@ -2860,7 +2740,7 @@ void VoIpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStru
 
 				CStdString dir = CaptureEvent::DirectionToString(ipPortSession->m_direction);
 				char szEndPointIp[16];
-				ACE_OS::inet_ntop(AF_INET, (void*)&ipPortSession->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
+				inet_ntopV4(AF_INET, (void*)&ipPortSession->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
 
 				logMsg.Format("[%s] LATE Skinny CallInfo callId %s local:%s remote:%s dir:%s endpoint:%s", ipPortSession->m_trackingId,
 						ipPortSession->m_callId, ipPortSession->m_localParty, ipPortSession->m_remoteParty, dir, szEndPointIp);
@@ -2879,7 +2759,7 @@ void VoIpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStru
 	session->m_endPointIp = ipHeader->ip_dest;	// CallInfo message always goes from CM to endpoint
 	session->m_endPointSignallingPort = ntohs(tcpHeader->dest);
 	session->m_protocol = VoIpSession::ProtSkinny;
-	session->m_skinnyLastCallInfoTime = ACE_OS::gettimeofday();
+	session->m_skinnyLastCallInfoTime.GetTimeNow();
 	UpdateSessionWithCallInfo(callInfo, session);
 	session->ReportSkinnyCallInfo(callInfo, ipHeader);
 
@@ -2890,7 +2770,7 @@ void VoIpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStru
 	{
 		CStdString logMsg;
 		CStdString dir = CaptureEvent::DirectionToString(session->m_direction);
-		ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
+		inet_ntopV4(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
 
 		logMsg.Format("[%s] Skinny CallInfo callId %s local:%s remote:%s dir:%s line:%d endpoint:%s", session->m_trackingId,
 			session->m_callId, session->m_localParty, session->m_remoteParty, dir, session->m_skinnyLineInstance, szEndPointIp);
@@ -2951,7 +2831,7 @@ void VoIpSessions::ReportSkinnyCallStateMessage(SkCallStateMessageStruct* callSt
 	{
 		char szEndpointIp[16];
 		struct in_addr endpointIp = ipHeader->ip_dest;
-		ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
+		inet_ntopV4(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
 		logMsg.Format("hold detected on endpoint:%s but session not found. Try SkinnyIgnoreStopMediaTransmission", szEndpointIp);
 		LOG4CXX_INFO(m_log, logMsg);
 	}
@@ -3091,7 +2971,7 @@ VoIpSessionRef VoIpSessions::SipfindNewestBySenderIp(struct in_addr receiverIpAd
 		{
 			if(session.get())
 			{
-				if(tmpSession->m_sipLastInvite > session->m_sipLastInvite)
+				if(tmpSession->m_sipLastInvite.usec() > session->m_sipLastInvite.usec())
 				{
 					session = tmpSession;
 				}
@@ -3134,7 +3014,7 @@ VoIpSessionRef VoIpSessions::findNewestByEndpoint(struct in_addr endpointIpAddr,
 		{
 			if(session.get())
 			{
-				if(tmpSession->m_skinnyLastCallInfoTime > session->m_skinnyLastCallInfoTime)
+				if(tmpSession->m_skinnyLastCallInfoTime.usec() > session->m_skinnyLastCallInfoTime.usec())
 				{
 					session = tmpSession;
 				}
@@ -3190,7 +3070,7 @@ void VoIpSessions::CraftMediaAddress(CStdString& mediaAddress, struct in_addr ip
 
 	if(DLLCONFIG.m_rtpTrackByUdpPortOnly == false)
 	{
-		ACE_OS::inet_ntop(AF_INET, (void*)&ipAddress, szIpAddress, sizeof(szIpAddress));
+		inet_ntopV4(AF_INET, (void*)&ipAddress, szIpAddress, sizeof(szIpAddress));
 		mediaAddress.Format("%s,%u", szIpAddress, udpPort);
 	}
 	else
@@ -3222,7 +3102,7 @@ CStdString VoIpSessions::MediaAddressToString(unsigned long long ipAndPort)
 		unsigned short port;
 		ip = ipAndPort >> 16;
 		port = ipAndPort & 0xffff;
-		ACE_OS::inet_ntop(AF_INET, (void*)&ip, szIp, sizeof(szIp));
+		inet_ntopV4(AF_INET, (void*)&ip, szIp, sizeof(szIp));
 		strMediaAddress.Format("%s,%u", szIp, port);
 		return strMediaAddress;
 	}
@@ -3244,7 +3124,7 @@ void VoIpSessions::SetMediaAddress(VoIpSessionRef& session, struct in_addr media
 	{
 		char szMediaIp[16];
 		CStdString logMsg;
-		ACE_OS::inet_ntop(AF_INET, (void*)&mediaIp, szMediaIp, sizeof(szMediaIp));
+		inet_ntopV4(AF_INET, (void*)&mediaIp, szMediaIp, sizeof(szMediaIp));
 
 		logMsg.Format("[%s] %s,%d rejected by MediaAddressBlockedIpRanges", session->m_trackingId, szMediaIp, mediaPort);
 		LOG4CXX_INFO(m_log, logMsg);
@@ -3258,7 +3138,7 @@ void VoIpSessions::SetMediaAddress(VoIpSessionRef& session, struct in_addr media
 		{
 			char szMediaIp[16];
 			CStdString logMsg;
-			ACE_OS::inet_ntop(AF_INET, (void*)&mediaIp, szMediaIp, sizeof(szMediaIp));
+			inet_ntopV4(AF_INET, (void*)&mediaIp, szMediaIp, sizeof(szMediaIp));
 
 			logMsg.Format("[%s] %s,%d is not allowed by MediaAddressAllowedIpRanges", session->m_trackingId, szMediaIp, mediaPort);
 			LOG4CXX_INFO(m_log, logMsg);
@@ -3315,7 +3195,7 @@ void VoIpSessions::SetMediaAddress(VoIpSessionRef& session, struct in_addr media
 		if(m_log->isInfoEnabled())
 		{
 			char szEndPointIp[16];
-			ACE_OS::inet_ntop(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
+			inet_ntopV4(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
 			logMsg.Format("[%s] media address:%s %s callId:%s endpoint:%s", session->m_trackingId, MediaAddressToString(mediaAddress), VoIpSession::ProtocolToString(session->m_protocol),session->m_callId, szEndPointIp);
 			LOG4CXX_INFO(m_log, logMsg);
 		}
@@ -3378,7 +3258,7 @@ void VoIpSessions::RemoveFromMediaAddressMap(VoIpSessionRef& session, unsigned l
 CStdString VoIpSessions::GenerateSkinnyCallId(struct in_addr endpointIp, unsigned short endpointSkinnyPort, unsigned int callId)
 {
 	char szEndPointIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndPointIp, sizeof(szEndPointIp));
+	inet_ntopV4(AF_INET, (void*)&endpointIp, szEndPointIp, sizeof(szEndPointIp));
 	CStdString skinnyCallId;
 	if(DLLCONFIG.m_skinnyBehindNat == true)
 	{
@@ -3421,7 +3301,7 @@ void VoIpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStru
 			{
 				VoIpEndpointInfoRef endpoint = GetVoIpEndpointInfo(openReceive->endpointIpAddr, ntohs(tcpHeader->source));
 				char szEndpointIp[16];
-				ACE_OS::inet_ntop(AF_INET, (void*)&openReceive->endpointIpAddr, szEndpointIp, sizeof(szEndpointIp));
+				inet_ntopV4(AF_INET, (void*)&openReceive->endpointIpAddr, szEndpointIp, sizeof(szEndpointIp));
 
 				// create new session and insert into the ipAndPort
 				CStdString trackingId = m_alphaCounter.GetNext();
@@ -3479,7 +3359,7 @@ void VoIpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionSt
 			{
 				VoIpEndpointInfoRef endpoint = GetVoIpEndpointInfo(ipHeader->ip_dest, ntohs(tcpHeader->source));
 				char szEndpointIp[16];
-				ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_dest, szEndpointIp, sizeof(szEndpointIp));
+				inet_ntopV4(AF_INET, (void*)&ipHeader->ip_dest, szEndpointIp, sizeof(szEndpointIp));
 
 				// create new session and insert into the ipAndPort
 				CStdString trackingId = m_alphaCounter.GetNext();
@@ -3572,7 +3452,7 @@ void VoIpSessions::SetEndpointExtension(CStdString& extension, struct in_addr* e
 	char szEndpointIp[16];
 	unsigned long long ipAndPort;
 
-	ACE_OS::inet_ntop(AF_INET, (void*)endpointIp, szEndpointIp, sizeof(szEndpointIp));
+	inet_ntopV4(AF_INET, (void*)endpointIp, szEndpointIp, sizeof(szEndpointIp));
 	Craft64bitMediaAddress(ipAndPort, *endpointIp, skinnyPort);
 
 	pair = m_endpoints.find(ipAndPort);
@@ -3652,7 +3532,7 @@ void VoIpSessions::ReportSkinnySoftKeyHold(SkSoftKeyEventMessageStruct* skEvent,
 	{
 		char szEndpointIp[16];
 
-		ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, szEndpointIp, sizeof(szEndpointIp));
+		inet_ntopV4(AF_INET, (void*)&ipHeader->ip_src, szEndpointIp, sizeof(szEndpointIp));
 		logMsg.Format("Received HOLD notification from endpoint %s but couldn't find any valid RTP Session",
 				szEndpointIp);
 
@@ -3683,7 +3563,7 @@ void VoIpSessions::ReportSkinnySoftKeyResume(SkSoftKeyEventMessageStruct* skEven
     {
         char szEndpointIp[16];
 
-        ACE_OS::inet_ntop(AF_INET, (void*)&ipHeader->ip_src, szEndpointIp, sizeof(szEndpointIp));
+        inet_ntopV4(AF_INET, (void*)&ipHeader->ip_src, szEndpointIp, sizeof(szEndpointIp));
         logMsg.Format("Received RESUME notification from endpoint %s but couldn't find any valid RTP Session",
                         szEndpointIp);
 
@@ -3698,7 +3578,7 @@ void VoIpSessions::ReportSkinnySoftKeyConfPressed(struct in_addr endpointIp, Tcp
 	skinnyPort = ntohs(tcpHeader->source);
 	VoIpEndpointInfoRef endpoint;
 	char szEndpointIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
+	inet_ntopV4(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
 
 	endpoint = GetVoIpEndpointInfo(endpointIp, skinnyPort);
 	if(endpoint == NULL)
@@ -3745,7 +3625,7 @@ void VoIpSessions::ReportSkinnySoftKeySetConfConnected(struct in_addr endpointIp
 	unsigned short skinnyPort;
 	skinnyPort = ntohs(tcpHeader->dest);
 	char szEndpointIp[16];
-	ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
+	inet_ntopV4(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
 	VoIpEndpointInfoRef endpoint;
 	endpoint = GetVoIpEndpointInfo(endpointIp, skinnyPort);
 	if(endpoint == NULL)
@@ -3784,7 +3664,7 @@ VoIpEndpointInfoRef VoIpSessions::GetVoIpEndpointInfo(struct in_addr endpointIp,
 	unsigned long long ipAndPort;
 	std::map<unsigned long long, VoIpEndpointInfoRef>::iterator pair;
 
-	ACE_OS::inet_ntop(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
+	inet_ntopV4(AF_INET, (void*)&endpointIp, szEndpointIp, sizeof(szEndpointIp));
 	Craft64bitMediaAddress(ipAndPort, endpointIp, skinnyPort);
 
 	pair = m_endpoints.find(ipAndPort);
@@ -3944,7 +3824,7 @@ void VoIpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 			// So removing the session from the map with the m_ipAndPort key can be wrong
 			if(DLLCONFIG.m_rtpAllowMultipleMappings == true && session1->m_protocol == VoIpSession::ProtSip && session2->m_protocol == VoIpSession::ProtSip)
 			{
-				if(session1->m_sipLastInvite > session2->m_sipLastInvite)
+				if(session1->m_sipLastInvite.usec() > session2->m_sipLastInvite.usec())
 				{
 					if(session2->m_numRtpPackets != 1)			//not the first packet
 					{
@@ -4133,9 +4013,9 @@ void VoIpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 			char szRtpDstIp[16];
 			CStdString logMsg;
 
-			ACE_OS::inet_ntop(AF_INET, (void*)&endpoint->m_ip, szEndpointIp, sizeof(szEndpointIp));
-			ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_sourceIp, szRtpSrcIp, sizeof(szRtpSrcIp));
-			ACE_OS::inet_ntop(AF_INET, (void*)&rtpPacket->m_destIp, szRtpDstIp, sizeof(szRtpDstIp));
+			inet_ntopV4(AF_INET, (void*)&endpoint->m_ip, szEndpointIp, sizeof(szEndpointIp));
+			inet_ntopV4(AF_INET, (void*)&rtpPacket->m_sourceIp, szRtpSrcIp, sizeof(szRtpSrcIp));
+			inet_ntopV4(AF_INET, (void*)&rtpPacket->m_destIp, szRtpDstIp, sizeof(szRtpDstIp));
 
 			session->m_localParty = endpoint->m_extension;
 			if(endpoint->m_ip.s_addr == rtpPacket->m_sourceIp.s_addr)
@@ -4221,7 +4101,7 @@ void VoIpSessions::UrlExtraction(CStdString& input, struct in_addr* endpointIp)
 			{
 				;	// ignore ampersands
 			}
-			else if ( ACE_OS::ace_isalnum(character) )
+			else if(isalnum(character) )
 			{
 				state = VoIpSessions::UrlKeyState;
 				key = character;
@@ -4233,7 +4113,7 @@ void VoIpSessions::UrlExtraction(CStdString& input, struct in_addr* endpointIp)
 			}
 			break;
 		case VoIpSessions::UrlKeyState:
-			if( ACE_OS::ace_isalnum(character) )
+			if(isalnum(character) )
 			{
 				key += character;
 			}
@@ -4928,6 +4808,13 @@ void VoIpSessions::SaveSkinnyGlobalNumbersList(CStdString& number)
 	m_skinnyGlobalNumbersList.insert(std::make_pair(number, 0));
 	LOG4CXX_DEBUG(m_log, "Saved skinny global number:" + number);
 }
+
+void VoIpSession::TriggerOnDemandViaDtmf() {
+	m_keepRtp = true;
+	CStdString side = "both";
+	MarkAsOnDemand(side);
+}
+
 //============================================================
 UrlExtractionValue::UrlExtractionValue()
 {
