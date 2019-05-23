@@ -10,7 +10,12 @@
 * Please refer to http://www.gnu.org/copyleft/gpl.html
 *
 */
-
+#ifdef WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <Windows.h>
+//#include "winsock2.h"
+#endif
 #include "PacketHeaderDefs.h"
 #include "SizedBuffer.h"
 #include <list>
@@ -18,9 +23,9 @@
 #include "LogManager.h"
 #include <stdexcept>
 #include "Utils.h"
-#include "ace/Thread_Mutex.h"
+
 CStdString logMsg;
-static ACE_Thread_Mutex s_threadMutex;
+static std::mutex s_threadMutex;
 
 // All the fragmentation handling algorithms must comply to this interface
 class FragmentationAlgorithmInterface {

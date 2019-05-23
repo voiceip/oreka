@@ -16,10 +16,6 @@
 #include "stdio.h"
 
 #include "MultiThreadedServer.h"
-#include "ace/Thread_Manager.h"
-#include "ace/DLL.h"
-#include "ace/OS_NS_dirent.h"
-#include "ace/OS_NS_string.h"
 #include "OrkAudio.h"
 #include "Utils.h"
 #include "messages/TapeMsg.h"
@@ -56,6 +52,8 @@
 #include "SpeexCodec.h"
 #include "G721Codec.h"
 #include "OpusCodec.h"
+#include <thread>
+#include "apr_signal.h"
 
 static volatile bool serviceStop = false;
 
@@ -71,8 +69,10 @@ long ExceptionFilter(struct _EXCEPTION_POINTERS *ptr)
 }
 #endif
 
-void LoadPlugins(std::list<ACE_DLL>& pluginDlls)
+void LoadPlugins(std::list<apr_dso_handle_t*>& pluginDlls)
 {
+	OrkAprSubPool locPool;
+
 	CStdString pluginsDirectory = CONFIG.m_pluginsDirectory;
 #ifdef WIN32
 	if(pluginsDirectory.size() == 0)
@@ -90,55 +90,57 @@ void LoadPlugins(std::list<ACE_DLL>& pluginDlls)
 	CStdString pluginExtension = ".so";
 #endif
 	CStdString pluginPath;
-	ACE_DLL dll;
-
-	ACE_DIR* dir = ACE_OS::opendir((PCSTR)pluginsDirectory);
-	if (!dir)
+	apr_status_t ret;
+	apr_dir_t* dir;
+	
+	ret = apr_dir_open(&dir, (PCSTR)pluginsDirectory, AprLp);
+	if (ret != APR_SUCCESS)
 	{
 		LOG4CXX_ERROR(LOG.rootLog, CStdString("Plugins directory could not be found:" + pluginsDirectory + " check your config.xml"));
 	}
 	else
 	{
-		dirent* dirEntry = NULL;
-		while((dirEntry = ACE_OS::readdir(dir)))
+		apr_finfo_t finfo;
+		apr_int32_t wanted = APR_FINFO_NAME | APR_FINFO_SIZE;
+		while((ret = apr_dir_read(&finfo, wanted, dir)) == APR_SUCCESS) 
 		{
-			CStdString dirEntryFilename = dirEntry->d_name;
-			int extensionPos = dirEntryFilename.Find(pluginExtension);
-
-			if ( extensionPos != -1 && (dirEntryFilename.size() - extensionPos) == pluginExtension.size() )
+			apr_dso_handle_t *dsoHandle;
+			CStdString fileName;
+			fileName.Format("%s", finfo.name);
+			int extensionPos = fileName.Find(pluginExtension);
+			if((extensionPos != -1) && ((fileName.size() - extensionPos) == pluginExtension.size()))
 			{
-				pluginPath = pluginsDirectory + "/" + dirEntry->d_name;
-				dll.open((PCSTR)pluginPath);
-				ACE_TCHAR* error = dll.error();
-				if(error)
+				pluginPath = pluginsDirectory + finfo.name;
+				char errstr[256];
+				// dsoHandle needs to persist beyond this function, so we need to use
+				// a pool that also persists -- use the global pool. this is safe here because 
+				// we're running in the main thread where the pool was created.
+				ret = apr_dso_load(&dsoHandle, (PCSTR)pluginPath, OrkAprSingleton::GetInstance()->GetAprMp());
+				if(ret != APR_SUCCESS)
 				{
-					LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load plugin: " + pluginPath + " with error: " + error));
-#ifndef WIN32
-					CStdString logMsg;
-					logMsg.Format("DLL Error: %s", dlerror());
-					LOG4CXX_ERROR(LOG.rootLog, logMsg);
-#endif
+					apr_dso_error(dsoHandle, errstr, sizeof(errstr));
+					LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load plugin: ") + pluginPath + " error:" + errstr);
 				}
 				else
 				{
 					LOG4CXX_INFO(LOG.rootLog, CStdString("Loaded plugin: ") + pluginPath);
 
 					InitializeFunction initfunction;
-					initfunction = (InitializeFunction)dll.symbol("OrkInitialize");
-
-					if (initfunction)
+					ret = apr_dso_sym((apr_dso_handle_sym_t*)&initfunction, dsoHandle, "OrkInitialize");
+					if (ret == APR_SUCCESS)
 					{
 						initfunction();
-						pluginDlls.push_back(dll);
+						pluginDlls.push_back(dsoHandle);
 					}
 					else
 					{
 						LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to initialize plugin: ") + pluginPath);
 					}
 				}
+
 			}
 		}
-		ACE_OS::closedir(dir);
+		apr_dir_close(dir);
 	}
 }
 
@@ -150,7 +152,7 @@ void Transcode(CStdString &file)
 
 	ConfigManager::Instance()->Initialize();
 
-	std::list<ACE_DLL> pluginDlls;
+	std::list<apr_dso_handle_t*> pluginDlls;
 	LoadPlugins(pluginDlls);
 
 	// Register in-built filters
@@ -178,12 +180,14 @@ void Transcode(CStdString &file)
 	Reporting::Initialize();
 	TapeFileNaming::Initialize();
 
-	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(BatchProcessing::ThreadHandler)))
-	{
-		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create batch processing thread"));
+	try{
+		std::thread handler(&BatchProcessing::ThreadHandler);
+		handler.detach();
+	} catch(const std::exception &ex){
+		CStdString logMsg;
+		logMsg.Format("Failed to start BatchProcessing thread reason:%s",  ex.what());
+		LOG4CXX_ERROR(LOG.rootLog, logMsg);	
 	}
-
-
 
 	// Transmit the tape to the BatchProcessing
 	CStdString ProcessorName("BatchProcessing");
@@ -199,14 +203,17 @@ void Transcode(CStdString &file)
 	// Wait for completion
 	while(!Daemon::Singleton()->IsStopping())
 	{
-		ACE_OS::sleep(1);
+		OrkSleepSec(1);
 	}
 }
 
 void MainThread()
 {
-	// Avoid program exit on broken pipe
-	ACE_OS::signal (SIGPIPE, (ACE_SignalHandler) SIG_IGN);
+	CStdString logMsg;
+    // Avoid program exit on broken pipe
+#ifndef WIN32
+    apr_signal(SIGPIPE, SIG_IGN);
+#endif
 	OrkLogManager::Instance()->Initialize();
 	LOG4CXX_INFO(LOG.rootLog, CStdString("\n\nOrkAudio service starting\n"));
 
@@ -251,7 +258,7 @@ void MainThread()
 		capturePluginOk = true;
 	}
 
-	std::list<ACE_DLL> pluginDlls;
+	std::list<apr_dso_handle_t*> pluginDlls;
 	LoadPlugins(pluginDlls);
 
 	// Register in-built filters
@@ -283,53 +290,80 @@ void MainThread()
 	DirectionSelector::Initialize();
 	TapeProcessorRegistry::instance()->CreateProcessingChain();
 
-	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(ImmediateProcessing::ThreadHandler)))
-	{
-		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create immediate processing thread"));
+	try{
+		std::thread handler(&ImmediateProcessing::ThreadHandler);
+		handler.detach();
+	} catch(const std::exception &ex){
+		logMsg.Format("Failed to start ImmediateProcessing thread reason:%s",  ex.what());
+		LOG4CXX_ERROR(LOG.rootLog, logMsg);	
 	}
+	
 	if(CONFIG.m_storageAudioFormat != FfNative)
 	{
-		// storage format is not native, which means we need batch workers to compress to wanted format
-		if (!ACE_Thread_Manager::instance()->spawn_n(CONFIG.m_numBatchThreads, ACE_THR_FUNC(BatchProcessing::ThreadHandler)))
+		// storage format is not native, which means we need batch workers to compress to wanted format 
+		for(int i = 0; i < CONFIG.m_numBatchThreads; i++)
 		{
-			LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create batch processing thread"));
+			try{
+				std::thread handler(&BatchProcessing::ThreadHandler);
+				handler.detach();
+			} catch(const std::exception &ex){
+				logMsg.Format("Failed to start BatchProcessing thread reason:%s",  ex.what());
+				LOG4CXX_ERROR(LOG.rootLog, logMsg);	
+			}
 		}
 	}
-	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(Reporting::ThreadHandler)))
-	{
-		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create reporting thread"));
-	}
-	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(TapeFileNaming::ThreadHandler)))
-	{
-		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create tape file naming thread"));
+
+	try{
+		std::thread handler(&Reporting::ThreadHandler);
+		handler.detach();
+	} catch(const std::exception &ex){
+		logMsg.Format("Failed to start Reporting thread reason:%s",  ex.what());
+		LOG4CXX_ERROR(LOG.rootLog, logMsg);	
 	}
 
-	if (!ACE_Thread_Manager::instance()->spawn_n(CONFIG.m_numCommandThreads,ACE_THR_FUNC(CommandProcessing::ThreadHandler)))
-	{
-		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create the Command Processing thread"));
+	try{
+		std::thread handler(&TapeFileNaming::ThreadHandler);
+		handler.detach();
+	} catch(const std::exception &ex){
+		logMsg.Format("Failed to start TapeFileNaming thread reason:%s",  ex.what());
+		LOG4CXX_ERROR(LOG.rootLog, logMsg);	
 	}
 
-	if (!ACE_Thread_Manager::instance()->spawn_n(CONFIG.m_numDirectionSelectorThreads,ACE_THR_FUNC(DirectionSelector::ThreadHandler)))
-	{
-		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create the DirectionSelector thread"));
+	try{
+		std::thread handler(&CommandProcessing::ThreadHandler);
+		handler.detach();
+	} catch(const std::exception &ex){
+		logMsg.Format("Failed to start CommandProcessing thread reason:%s",  ex.what());
+		LOG4CXX_ERROR(LOG.rootLog, logMsg);	
 	}
 
+	try{
+		std::thread handler(&DirectionSelector::ThreadHandler);
+		handler.detach();
+	} catch(const std::exception &ex){
+		logMsg.Format("Failed to start DirectionSelector thread reason:%s",  ex.what());
+		LOG4CXX_ERROR(LOG.rootLog, logMsg);	
+	}
 	// Create command line server
-//	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(CommandLineServer::run), (void *)CONFIG.m_commandLineServerPort))
-//	{
-//		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create command line server"));
-//	}
+	// CommandLineServer commandLineServer(CONFIG.m_commandLineServerPort);
+	// if(commandLineServer.Initialize())
+	// {
+	// 	std::thread handler(&CommandLineServer::Run, &commandLineServer);
+	// 	handler.detach();
+	// }
 
-	// Create Http server
-	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(HttpServer::run), (void *)CONFIG.m_httpServerPort))
+	HttpServer httpServ(CONFIG.m_httpServerPort);
+	if(httpServ.Initialize())
 	{
-		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create Http server"));
+		std::thread handler(&HttpServer::Run, &httpServ);
+		handler.detach();
 	}
 
-	// Create event streaming server
-	if(!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(EventStreamingServer::run), (void *)CONFIG.m_eventStreamingServerPort))
+	EventStreamingServer eventStreamingSvc(CONFIG.m_eventStreamingServerPort);
+	if(eventStreamingSvc.Initialize())
 	{
-		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create event streaming server"));
+		std::thread handler(&EventStreamingServer::Run, &eventStreamingSvc);
+		handler.detach();
 	}
 
 	if(capturePluginOk)
@@ -337,20 +371,17 @@ void MainThread()
 		CapturePluginProxy::Singleton()->Run();
 	}
 
-	SocketStreamer::Initialize();
+	SocketStreamer::Initialize(CONFIG.m_socketStreamerTargets);
 
-	//ACE_Thread_Manager::instance ()->wait ();
 	while(!Daemon::Singleton()->IsStopping())
 	{
-		ACE_OS::sleep(1);
+		OrkSleepSec(1);
 	}
 
 	CapturePluginProxy::Singleton()->Shutdown();
 
-	// Wait that all ACE threads have returned
-	//ACE_Thread_Manager::instance ()->wait ();
-	ACE_OS::sleep(2);
-
+	OrkSleepSec(2);
+	
 	//***** This is to avoid an exception when NT service exiting
 	//***** Need to find out the real problem and fix
 #ifdef WIN32
@@ -367,11 +398,13 @@ void MainThread()
 
 int main(int argc, char* argv[])
 {
+	OrkAprSingleton::Initialize();
+
 	// the "service name" reported on the tape messages uses CONFIG.m_serviceName
 	// which also defaults to orkaudio-[hostname] but can be different depending on the
 	// value set in config.xml
-	char hostname[40];
-	ACE_OS::hostname(hostname, 40);
+	char hostname[ORKMAXHOSTLEN];
+	OrkGetHostname(hostname, sizeof(hostname));
 	CStdString serviceName = CStdString("orkaudio-") + hostname;
 	Daemon::Initialize(serviceName, MainThread, StopHandler);
 

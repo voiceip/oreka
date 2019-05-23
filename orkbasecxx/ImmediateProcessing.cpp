@@ -16,24 +16,15 @@
 
 #include "ImmediateProcessing.h"
 #include "LogManager.h"
-#include "ace/OS_NS_unistd.h"
 #include "BatchProcessing.h"
 #include "Daemon.h"
 #include "ConfigManager.h"
 #include "TapeProcessor.h"
 
-
-ImmediateProcessing ImmediateProcessing::m_immediateProcessingSingleton;
-
 ImmediateProcessing::ImmediateProcessing()
 {
 	m_lastQueueFullTime = time(NULL);
 	m_semaphore.acquire();
-}
-
-ImmediateProcessing* ImmediateProcessing::GetInstance()
-{
-	return &m_immediateProcessingSingleton;
 }
 
 void ImmediateProcessing::AddAudioTape(AudioTapeRef audioTapeRef)
@@ -107,7 +98,7 @@ void ImmediateProcessing::Push(AudioTapeRef& audioTapeRef)
 	m_semaphore.release();
 }
 
-void ImmediateProcessing::ThreadHandler(void *args)
+void ImmediateProcessing::ThreadHandler()
 {
 	SetThreadName("orka:imm");
 

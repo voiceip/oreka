@@ -19,14 +19,11 @@
 #include <map>
 #include <list>
 #include "shared_ptr.h"
-#include "ace/Thread_Mutex.h"
-#include "ace/Singleton.h"
-
 #include "StdString.h"
-
 #include "AudioCapture.h"
 #include "AudioTape.h"
 #include "Filter.h"
+#include <mutex>
 
 #define HOSTNAME_BUF_LEN 255
 /** Base class for all types of capture ports. */ 
@@ -52,7 +49,7 @@ private:
 
 	CStdString m_id;
 	AudioTapeRef m_audioTapeRef;
-	ACE_Thread_Mutex m_mutex;
+	std::mutex m_mutex;
 	bool m_capturing;
 	double m_vadBelowThresholdSec;
 	bool m_vadUp;
@@ -67,7 +64,7 @@ private:
 typedef oreka::shared_ptr<CapturePort> CapturePortRef;
 
 /** This singleton holds all dynamically created capture ports and allows convenient access. */
-class DLL_IMPORT_EXPORT_ORKBASE CapturePorts
+class DLL_IMPORT_EXPORT_ORKBASE CapturePorts: public OrkSingleton<CapturePorts>
 {
 public:
 	CapturePorts();
@@ -78,12 +75,12 @@ public:
 	void Hoover();
 private:
 	std::map<CStdString, CapturePortRef> m_ports;
-	ACE_Thread_Mutex m_mutex;
+	std::mutex m_mutex;
 	time_t m_lastHooveringTime;
 	CStdString m_hostname;
 };
 
-typedef ACE_Singleton<CapturePorts, ACE_Thread_Mutex> CapturePortsSingleton;
+#define CapturePortsSingleton CapturePorts
 
 #endif
 

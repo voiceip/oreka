@@ -16,13 +16,12 @@
 
 #include "ThreadSafeQueue.h"
 #include "AudioTape.h"
-
-class DLL_IMPORT_EXPORT_ORKBASE ImmediateProcessing
+#include <mutex>
+class DLL_IMPORT_EXPORT_ORKBASE ImmediateProcessing : public OrkSingleton<ImmediateProcessing>
 {
 public:
 	ImmediateProcessing();
-	static ImmediateProcessing* GetInstance();
-	static void ThreadHandler(void *args);
+	static void ThreadHandler();
 
 	void AddAudioTape(AudioTapeRef audioTapeRef);
 
@@ -31,11 +30,9 @@ public:
 	void Push(AudioTapeRef& audioTapeRef);
 
 private:
-	static ImmediateProcessing m_immediateProcessingSingleton;
-
 	std::map<CStdString, AudioTapeRef> m_audioTapeQueue;
-	ACE_Thread_Mutex m_mutex;
-	ACE_Thread_Semaphore m_semaphore;
+	std::mutex m_mutex;
+	OrkSemaphore m_semaphore;
 
 	time_t m_lastQueueFullTime;
 };

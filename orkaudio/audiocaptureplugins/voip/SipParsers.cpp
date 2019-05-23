@@ -6,6 +6,12 @@
  * http://www.orecx.com
  *
  */
+#ifdef WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <Windows.h>
+//#include "winsock2.h"
+#endif
 #include "SipParsers.h"
 #include "ParsingUtils.h"
 #include "LogManager.h"
@@ -619,7 +625,7 @@ bool TrySipSessionProgress(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 			struct in_addr mediaIp;
 			if(connectionAddress.size())
 			{
-				if(ACE_OS::inet_aton((PCSTR)connectionAddress, &mediaIp))
+				if(inet_pton4((PCSTR)connectionAddress, &mediaIp))
 				{
 					info->m_mediaIp = mediaIp;
 				}
@@ -770,7 +776,7 @@ bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 			struct in_addr mediaIp;
 			if(connectionAddress.size())
 			{
-				if(ACE_OS::inet_aton((PCSTR)connectionAddress, &mediaIp))
+				if(inet_pton4((PCSTR)connectionAddress, &mediaIp))
 				{
 					info->m_mediaIp = mediaIp;
 				}
@@ -1305,6 +1311,10 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			GrabSipName(toField, toFieldEnd, info->m_toName);
 
 			char* sipUser = memFindAfter("sip:", toField, toFieldEnd);
+			if(!sipUser)
+			{
+				sipUser = memFindAfter("tel:", toField, toFieldEnd);
+			}
 			if(sipUser)
 			{
 				if(DLLCONFIG.m_sipReportFullAddress)
@@ -1416,7 +1426,7 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			struct in_addr fromIp;
 			if(connectionAddress.size())
 			{
-				if(ACE_OS::inet_aton((PCSTR)connectionAddress, &fromIp))
+				if(inet_pton4((PCSTR)connectionAddress, &fromIp))
 				{
 					info->m_fromRtpIp = fromIp;
 
@@ -1513,12 +1523,9 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 					 * of the string "telephone-event", 15 characters */
 					if(nextStep && ((sipEnd - nextStep) >= 15))
 					{
-						if(ACE_OS::strncasecmp(nextStep, "telephone-event", 15) == 0)
-						{
-							/* Our DTMF packets are indicated using
-							 * the payload type rtpPayloadType */
-							info->m_telephoneEventPayloadType = rtpPayloadType;
-							info->m_telephoneEventPtDefined = true;
+						if(strncasecmp(nextStep, "telephone-event", 15) == 0) {
+							/* Our DTMF packets are indicated using * the payload type rtpPayloadType */
+							info->m_telephoneEventPayloadType = StringToInt(rtpPayloadType);
 							break;
 						}
 					}

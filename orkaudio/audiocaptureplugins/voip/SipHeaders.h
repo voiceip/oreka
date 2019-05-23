@@ -67,8 +67,7 @@ public:
 	bool m_validated;		// true when an RTP stream has been seen for the INVITE
 	bool m_attrSendonly;		// true if the SDP has a:sendonly
 	std::map<CStdString, CStdString> m_extractedFields;
-	CStdString m_telephoneEventPayloadType;
-	bool m_telephoneEventPtDefined;
+	int m_telephoneEventPayloadType;
 	CStdString m_fromDomain;
 	CStdString m_toDomain;
 	CStdString m_fromName;

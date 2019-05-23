@@ -46,6 +46,8 @@ class DLL_IMPORT_EXPORT_ORKBASE TcpPingMsg : public SyncMessage
 {
 public:
 	TcpPingMsg();
+	~TcpPingMsg() { apr_pool_destroy(m_loc_pool); }
+
 
 	void Define(Serializer* s);
 	inline void Validate() {};
@@ -56,6 +58,8 @@ public:
 
 	CStdString m_hostname;
 	int m_port;
+	apr_pool_t * m_loc_pool;
+	
 };
 
 #endif

@@ -19,7 +19,6 @@
 
 #include "ConfigManager.h"
 #include "BatchProcessing.h"
-#include "ace/OS_NS_unistd.h"
 #include "audiofile/LibSndFileFile.h"
 #include "audiofile/OggOpusFile.h"
 #include "Daemon.h"
@@ -47,10 +46,11 @@ BatchProcessing::BatchProcessing()
 {
 	m_threadCount = 0;
 
-	struct tm date = {0};
-	time_t now = time(NULL);
-	ACE_OS::localtime_r(&now, &date);
-	m_currentDay = date.tm_mday;
+	apr_time_t tn =apr_time_now();
+	apr_time_exp_t texp;
+    apr_time_exp_lt(&texp, tn);
+
+	m_currentDay = texp.tm_mday;
 }
 
 CStdString __CDECL__ BatchProcessing::GetName()
@@ -205,7 +205,7 @@ bool BatchProcessing::SkipChunk(AudioTapeRef& audioTapeRef, AudioChunkRef& chunk
 	return skip;
 }
 
-void BatchProcessing::ThreadHandler(void *args)
+void BatchProcessing::ThreadHandler()
 {
 	SetThreadName("orka:batch");
 
@@ -346,9 +346,7 @@ void BatchProcessing::ThreadHandler(void *args)
 				while(fileRef->ReadChunkMono(chunkRef))
 				{
 					// ############ HACK
-					//ACE_Time_Value yield;
-					//yield.set(0,1);
-					//ACE_OS::sleep(yield);
+                    // sleep for 1 usec
 					// ############ HACK
 
 					AudioChunkDetails details = *chunkRef->GetDetails();
@@ -538,16 +536,7 @@ void BatchProcessing::ThreadHandler(void *args)
 
 					if(CONFIG.m_batchProcessingEnhancePriority == false)
 					{
-						// Give up CPU between every audio buffer to make sure the actual recording always has priority
-						//ACE_Time_Value yield;
-						//yield.set(0,1);	// 1 us
-						//ACE_OS::sleep(yield);
-
-						// Use this instead, even if it still seems this holds the whole process under Linux instead of this thread only.
-						struct timespec ts;
-						ts.tv_sec = 0;
-						ts.tv_nsec = 1;
-						ACE_OS::nanosleep (&ts, NULL);
+						OrkSleepMicrSec(1);
 					}
 					
 					if(CONFIG.m_transcodingSleepEveryNumFrames > 0 && CONFIG.m_transcodingSleepUs > 0)
@@ -555,10 +544,7 @@ void BatchProcessing::ThreadHandler(void *args)
 						if(frameSleepCounter >= (unsigned int)CONFIG.m_transcodingSleepEveryNumFrames)
 						{
 							frameSleepCounter = 0;
-							struct timespec ts;
-							ts.tv_sec = 0;
-							ts.tv_nsec = CONFIG.m_transcodingSleepUs*1000;
-							ACE_OS::nanosleep (&ts, NULL);
+							OrkSleepMicrSec(CONFIG.m_transcodingSleepUs);
 						}
 						else
 						{
@@ -574,7 +560,10 @@ void BatchProcessing::ThreadHandler(void *args)
 					stopChunk->GetDetails()->m_marker = MEDIA_CHUNK_EOS_MARKER;
 					rtpMixer->AudioChunkIn(stopChunk);
 					rtpMixer->AudioChunkOut(tmpChunkRef);
-					tmpChunkRef->GetDetails()->m_marker = MEDIA_CHUNK_EOS_MARKER;
+
+					if (tmpChunkRef.get()) {
+						tmpChunkRef->GetDetails()->m_marker = MEDIA_CHUNK_EOS_MARKER;
+					}
 					if(rtpMixerSecondary.get() != NULL)
 					{
 						rtpMixerSecondary->AudioChunkOut(tmpChunkSecondaryRef);

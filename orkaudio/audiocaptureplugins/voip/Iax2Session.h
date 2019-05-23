@@ -17,7 +17,6 @@
 #include <log4cxx/logger.h>
 #include "Iax2Session.h"
 #include <map>
-#include "ace/Singleton.h"
 #include "PacketHeaderDefs.h"
 #include "AudioCapturePlugin.h"
 #include "AudioCapturePluginCommon.h"
@@ -251,7 +250,7 @@ private:
 typedef oreka::shared_ptr<Iax2Session> Iax2SessionRef;
 
 //===================================================================
-class Iax2Sessions
+class Iax2Sessions : public OrkSingleton<Iax2Sessions>
 {
 public:
 	Iax2Sessions();
@@ -271,7 +270,7 @@ private:
 	LoggerPtr m_log;
 	AlphaCounter m_alphaCounter;
 };
-typedef ACE_Singleton<Iax2Sessions, ACE_Thread_Mutex> Iax2SessionsSingleton;
+#define Iax2SessionsSingleton Iax2Sessions
 
 /* Miscellaneous */
 static inline unsigned int get_unaligned_uint32(void *p)

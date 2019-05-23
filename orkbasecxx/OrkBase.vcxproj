@@ -115,7 +115,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>.;.\filters\gsm;.\filters\gsm\gsm610;.\filters\ilbc;.\filters\ilbc\ilbc;C:\DevExtVC12\libsndfile\include;C:\DevExtVC12\boost\boost_1_32_0;C:\DevExtVC12\ACE_wrappers;C:\DevExtVC12\xerces\src;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\src\main\include;.\filters\g722codec;C:\DevExtVC12\speex\speex-1.2beta3-win32\include;C:\sfTrunk\orkbasecxx\filters\g726codecs\g72x;C:\sfTrunk\orkbasecxx\filters\g726codecs;C:\DevExtVC12\opus-1.2.1-dev\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;.\filters\gsm;.\filters\gsm\gsm610;.\filters\ilbc;.\filters\ilbc\ilbc;C:\DevExtVC12\libsndfile\include;C:\DevExtVC12\boost\boost_1_32_0;C:\DevExtVC12\xerces\src;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\src\main\include;.\filters\g722codec;C:\DevExtVC12\speex\speex-1.2beta3-win32\include;C:\sfTrunk\orkbasecxx\filters\g726codecs\g72x;C:\sfTrunk\orkbasecxx\filters\g726codecs;C:\DevExtVC12\opus-1.2.1-dev\include;C:\DevExtVC12\apr-1.6.3\apr\include;C:\DevExtVC12\apr-1.6.3\apr-util\include;C:\DevExtVC12\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SUPPORTS_CPP11;BUILD_ORKBASE;WIN32;NDEBUG;_WINDOWS;_USRDLL;inline=__inline;_ALLOW_KEYWORD_MACROS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -133,10 +133,10 @@
       <Culture>0x0809</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>LIBSNDFILE-1.lib;xerces-c_2.lib;log4cxx.lib;ace.lib;odbc32.lib;odbccp32.lib;libspeex.lib;libogg_static.lib;opus_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LIBSNDFILE-1.lib;xerces-c_2.lib;log4cxx.lib;odbc32.lib;odbccp32.lib;libspeex.lib;libogg_static.lib;opus_static.lib;aprutil-1.lib;apr-1.lib;ssleay32MT.lib;libeay32MT.lib;ws2_32.lib;Rpcrt4.lib;mswsock.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>.\ReleaseVC12\OrkBase.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>C:\DevExtVC12\libsndfile\lib;C:\DevExtVC12\libsndfile;C:\DevExtVC12\ACE_wrappers\lib;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\projects\Release;C:\DevExtVC12\xerces\Build\Win32\VC8\Release;C:\DevExtVC12\speex\speex-1.2beta3-win32\lib;C:\DevExtVC12\opus-1.2.1-dev\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\DevExtVC12\libsndfile\lib;C:\DevExtVC12\libsndfile;C:\DevExtVC12\Log4cxx\log4cxx-0.10.0\projects\Release;C:\DevExtVC12\xerces\Build\Win32\VC8\Release;C:\DevExtVC12\speex\speex-1.2beta3-win32\lib;C:\DevExtVC12\opus-1.2.1-dev\lib;C:\DevExtVC12\apr-1.6.3\apr\LibR;C:\DevExtVC12\apr-1.6.3\apr-util\LibR;C:\DevExtVC12\openssl\lib\VC;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>.\ReleaseVC12\OrkBase.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>

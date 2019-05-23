@@ -124,7 +124,9 @@ void SilkCodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 		}
 
 	}
-	else if(abs(outputDetails.m_timestamp - m_lastRtpTs) != (abs(outputDetails.m_sequenceNumber - m_lastRtpSeq) *m_sampleRate8KhzMultiplier*160))
+	// cast timestamps to long so that we can take difference of unsigned ints
+	else if(abs((long)outputDetails.m_timestamp - (long)m_lastRtpTs) !=
+		   (abs((long)outputDetails.m_sequenceNumber - (long)m_lastRtpSeq) *m_sampleRate8KhzMultiplier*160))
 	{
 		// sequence number delta is not coherent with timestamp delta, recalculating m_sampleRate8KhzMultiplier.
 		//Using abs() in the condition to make sure that out of order packets will not trigger this and cause one additional unecessary lost packet

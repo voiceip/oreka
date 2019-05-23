@@ -15,8 +15,6 @@
 #define __THREADSAFEQUEUE_H__
 
 #include <queue>
-#include "ace/Thread_Mutex.h"
-#include "ace/Thread_Semaphore.h"
 #include "Utils.h"
 
 /** Thread safe queue holding objects of arbitrary class.
@@ -39,8 +37,8 @@ public:
 
 private:
 	int m_size;
-	ACE_Thread_Mutex m_mutex;
-	ACE_Thread_Semaphore m_semaphore;
+	std::mutex m_mutex;
+	OrkSemaphore m_semaphore;
 	std::queue<T> m_queue;
 };
 

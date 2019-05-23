@@ -14,6 +14,8 @@
 #ifndef __VOIPCONFIG_H__
 #define __VOIPCONFIG_H__
 
+#include "../common/AcpConfig.h"
+
 #include <list>
 #include <map>
 #include "StdString.h"
@@ -26,7 +28,7 @@
 #define DEVICE_PARAM "Device"
 
 /** This class defines various configuration parameters for the generator. */
-class VoIpConfig : public Object
+class VoIpConfig : public AcpConfig
 {
 public:
 	VoIpConfig();	
@@ -39,7 +41,6 @@ public:
 	inline ObjectRef Process() {return ObjectRef();};
 
 	bool IsPartOfLan(struct in_addr);
-	bool IsMediaGateway(struct in_addr);
 	bool IsRtpTrackingIpAddress(struct in_addr addr);
 	bool IsDeviceWanted(CStdString device);
 	bool IsPacketWanted(IpHeaderStruct* ipHeader);
@@ -47,8 +48,6 @@ public:
 
 	CStdString m_device;				// old style but can still be used for specifying single device
 	std::list<CStdString> m_devices;	// new style devices csv
-	std::list<unsigned int> m_mediaGateways;
-	std::list<CStdString> m_asciiMediaGateways;
 	std::list<unsigned int> m_lanMasks;
 	std::list<CStdString> m_asciiLanMasks;
 	std::list<unsigned int> m_rtpTrackUsingIpAddresses;
@@ -77,7 +76,6 @@ public:
 	bool m_rtpDiscontinuityDetect;
 	int  m_rtpDiscontinuityMinSeqDelta;
 	bool m_rtpDetectOnOddPorts;
-	bool m_rtpReportDtmf;
 	IpRanges m_rtpBlockedIpRanges;
 	bool m_rtpTrackByUdpPortOnly;
 	bool m_rtpAllowMultipleMappings;
@@ -164,7 +162,6 @@ public:
 	CStdString m_remotePartyUseExtractedKey;
 	int m_rtpMinAmountOfPacketsBeforeStart;
 	bool m_rtpBreakupOnStreamPause;
-	bool m_rtpS1S2MappingDeterministic;
 	bool m_localPartyAddLocalIp;
 	bool m_rtpLogAllSsrc;
 	bool m_orekaEncapsulationMode;
@@ -173,7 +170,6 @@ public:
 	CStdString m_onDemandTcpMarkerKey;
 	CStdString m_onDemandTcpMarkerValue;
 	bool m_sipInfoDtmfRfc2976Detect;
-	CStdString m_onDemandViaDtmfDigitsString;
 	CStdString m_onDemandPauseViaDtmfDigitsString;
 	bool m_mediaAddressUseSecondRtpAddress;
 	int m_transferTimeOutInSec;
@@ -181,7 +177,6 @@ public:
 	int m_udpMinPort;
 	bool m_localPartyNameMapEnable;
 	bool m_ipFragmentsReassemble;
-	bool m_rtpS1S2MappingDeterministicS1IsLocal;
 	CStdString m_necNotifyDispLine;
 	std::list<CStdString> m_necVoipGatewayNames;	// new style devices csv
 	bool m_sipMetadataUseLastInvite;

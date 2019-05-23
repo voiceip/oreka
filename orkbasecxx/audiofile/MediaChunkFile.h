@@ -16,8 +16,8 @@
 
 #include <queue>
 #include "audiofile/AudioFile.h"
-
-
+#include "Utils.h"
+#include <fstream>
 /** File class for saving audio chunks as-is */
 class DLL_IMPORT_EXPORT_ORKBASE MediaChunkFile : public AudioFile
 {
@@ -36,8 +36,7 @@ public:
 protected:
 	bool FlushToDisk();
 
-	FILE* m_stream;
-
+	std::fstream m_stream;
 	size_t m_chunkQueueDataSize;
 	std::queue<AudioChunkRef> m_chunkQueue;
 };

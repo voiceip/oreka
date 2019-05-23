@@ -6,5 +6,5 @@ libmessages_la_SOURCES = AsyncMessage.cpp Message.cpp \
 	CrashMessage.cpp AddTagMsg.cpp
 
 #libmessages_la_LIBADD = -L/projects/ext/xmlrpc++/xmlrpc++0.7/ -lXmlRpc
-INCLUDES = -I@top_srcdir@ -I../../orkaudio
+INCLUDES = -I@top_srcdir@ -I../../orkaudio -I/usr/include/apr-1 -I/usr/include/apr-1.0
 AM_CXXFLAGS = -D_REENTRANT

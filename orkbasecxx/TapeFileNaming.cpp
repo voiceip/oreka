@@ -18,7 +18,6 @@
 #include <bitset>
 
 #include "ConfigManager.h"
-#include "ace/OS_NS_unistd.h"
 #include "Daemon.h"
 #include "Filter.h"
 #include "Reporting.h"
@@ -38,11 +37,10 @@ void TapeFileNaming::Initialize()
 TapeFileNaming::TapeFileNaming()
 {
 	m_threadCount = 0;
-
-	struct tm date = {0};
-	time_t now = time(NULL);
-	ACE_OS::localtime_r(&now, &date);
-	m_currentDay = date.tm_mday;
+	apr_time_t tn = apr_time_now();
+	apr_time_exp_t texp;
+   	apr_time_exp_lt(&texp, tn);
+	m_currentDay = texp.tm_mday;
 }
 
 CStdString __CDECL__ TapeFileNaming::GetName()
@@ -68,7 +66,7 @@ void TapeFileNaming::SetQueueSize(int size)
 	m_audioTapeQueue.setSize(size);
 }
 
-void TapeFileNaming::ThreadHandler(void *args)
+void TapeFileNaming::ThreadHandler()
 {
 	SetThreadName("orka:tapename");
 
@@ -120,7 +118,9 @@ void TapeFileNaming::ThreadHandler(void *args)
 
 				if(originalFilename.Compare(newFilename) != 0)
 				{
-					if(ACE_OS::rename((PCSTR)originalFilename, (PCSTR)newFilename) != 0)
+					apr_status_t ret;
+					std::rename((PCSTR)originalFilename.c_str(), (PCSTR)newFilename.c_str());
+					if(std::rename((PCSTR)originalFilename.c_str(), (PCSTR)newFilename.c_str()) != 0)
 					{
 						logMsg.Format("[%s] error renaming file from %s to %s: %s", trackingId, originalFilename, newFilename, strerror(errno));
 						LOG4CXX_ERROR(LOG.tapeFileNamingLog, logMsg);

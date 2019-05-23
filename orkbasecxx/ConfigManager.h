@@ -16,7 +16,6 @@
 
 #include <list>
 #include <xercesc/parsers/XercesDOMParser.hpp>
-#include "ace/Singleton.h"
 #include "Config.h"
 #include "AudioCapturePlugin.h"
 

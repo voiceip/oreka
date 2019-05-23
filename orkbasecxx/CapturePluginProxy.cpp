@@ -10,11 +10,13 @@
  * Please refer to http://www.gnu.org/copyleft/gpl.html
  *
  */
-
+#ifdef WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <Windows.h>
+//#include "winsock2.h"
+#endif
 #include "CapturePluginProxy.h"
-#include "ace/OS_NS_dirent.h"
-#include "ace/OS_NS_string.h"
-#include "ace/Thread_Manager.h"
 #include "ConfigManager.h"
 #include "CapturePort.h"
 
@@ -46,9 +48,12 @@ bool CapturePluginProxy::Initialize()
 
 bool CapturePluginProxy::Init()
 {
+	OrkAprSubPool locPool;
+
 	// Get the desired capture plugin from the config file, or else, use the first dll encountered.
 	CStdString pluginDirectory = CONFIG.m_capturePluginPath + "/";
 	CStdString pluginPath;
+	apr_status_t ret;
 	if (!CONFIG.m_capturePlugin.IsEmpty())
 	{
 		// A specific plugin was specified in the config file
@@ -57,49 +62,42 @@ bool CapturePluginProxy::Init()
 	else
 	{
 		// No plugin specified, find the first one in the plugin directory
-		ACE_DIR* dir = ACE_OS::opendir((PCSTR)pluginDirectory);
-		if (!dir)
+		apr_dir_t* dir;
+		ret = apr_dir_open(&dir, (PCSTR)pluginDirectory, AprLp);
+		if(ret != APR_SUCCESS)
 		{
 			LOG4CXX_ERROR(LOG.rootLog, CStdString("Capture plugin directory could not be found:" + pluginDirectory));
 		}
 		else
 		{
-			dirent* dirEntry = NULL;
-			bool found = false;
-			bool done = false;
-			while(!found && !done)
-			{	
-				dirEntry = ACE_OS::readdir(dir);
-				if(dirEntry)
+			apr_finfo_t finfo;
+    		apr_int32_t wanted = APR_FINFO_NAME | APR_FINFO_SIZE;
+    		while((ret = apr_dir_read(&finfo, wanted, dir)) == APR_SUCCESS) 
+			{
+				CStdString fileName;
+				fileName.Format("%s", finfo.name);
+				if(fileName.find(".dll") != std::string::npos)
 				{
-					if (ACE_OS::strstr(dirEntry->d_name, ".dll"))
-					{
-						found = true;
-						done = true;
-						pluginPath = pluginDirectory + dirEntry->d_name;
-					}
+					pluginPath = pluginDirectory + finfo.name;
+					break;
 				}
-				else
-				{
-					done = true;
-				}
-			}
-			ACE_OS::closedir(dir);
+   			}
+			apr_dir_close(dir);
 		}
 	}
 	if (!pluginPath.IsEmpty())
 	{
-		m_dll.open((PCSTR)pluginPath);
-		ACE_TCHAR* error = m_dll.error();
-#ifndef WIN32
-		char *errorstr;
-#endif
-		if(error)
+    	apr_status_t ret;
+		char errstr[256];
+		// dso handle needs to persist so it must me allocated using a pool that
+		// will also persist. 
+		ret = apr_dso_load(&m_dsoHandle, (PCSTR)pluginPath, OrkAprSingleton::GetInstance()->GetAprMp());
+		if(ret != APR_SUCCESS)
 		{
+			apr_strerror(ret, errstr, sizeof(errstr));
+			apr_dso_error(m_dsoHandle, errstr, sizeof(errstr));
 #ifndef WIN32
-			errorstr = dlerror();
-			CStdString errorcstds(errorstr);
-			LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load the following plugin: ") + pluginPath + " " + errorcstds + CStdString(", could be missing dependency, Try running in cmd box (orkaudio debug)"));
+			LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load the following plugin: ") + pluginPath + " " + errstr + CStdString(", could be missing dependency, Try running in cmd box (orkaudio debug)"));
 #else
 			LOG4CXX_ERROR(LOG.rootLog, CStdString("Failed to load the following plugin: ") + pluginPath + CStdString(", could be missing dependency. Try running ldd on it."));
 #endif
@@ -110,39 +108,41 @@ bool CapturePluginProxy::Init()
 			LOG4CXX_INFO(LOG.rootLog, CStdString("Loaded plugin: ") + pluginPath);
 
 			RegisterCallBacksFunction registerCallBacks;
-			registerCallBacks = (RegisterCallBacksFunction)m_dll.symbol("RegisterCallBacks");
+			if((ret = apr_dso_sym((apr_dso_handle_sym_t*)&registerCallBacks, m_dsoHandle, "RegisterCallBacks")) != APR_SUCCESS)
+			{
+				LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find registerCallBacksFunction"));
+			}
 			registerCallBacks(AudioChunkCallBack, CaptureEventCallBack, OrkLogManager::Instance());
 
-			m_configureFunction = (ConfigureFunction)m_dll.symbol("Configure");
-			if (m_configureFunction)
+			ret = apr_dso_sym((apr_dso_handle_sym_t*)&m_configureFunction, m_dsoHandle, "Configure");
+			if (ret == APR_SUCCESS)
 			{
 				ConfigManager::Instance()->AddConfigureFunction(m_configureFunction);
 
-				m_initializeFunction = (InitializeFunction)m_dll.symbol("Initialize");
-				if (m_initializeFunction)
+				ret = apr_dso_sym((apr_dso_handle_sym_t*)&m_initializeFunction, m_dsoHandle, "Initialize");
+				if (ret == APR_SUCCESS)
 				{
 					m_initializeFunction();
-
-					m_runFunction = (RunFunction)m_dll.symbol("Run");
-					if (m_runFunction)
+					ret = apr_dso_sym((apr_dso_handle_sym_t*)&m_runFunction, m_dsoHandle, "Run");
+					if (ret == APR_SUCCESS)
 					{
-						m_startCaptureFunction = (StartCaptureFunction)m_dll.symbol("StartCapture");
-						if (m_startCaptureFunction)
+						ret = apr_dso_sym((apr_dso_handle_sym_t*)&m_startCaptureFunction, m_dsoHandle, "StartCapture");
+						if (ret == APR_SUCCESS)
 						{
-							m_stopCaptureFunction = (StopCaptureFunction)m_dll.symbol("StopCapture");
-							if (m_stopCaptureFunction)
+							ret = apr_dso_sym((apr_dso_handle_sym_t*)&m_stopCaptureFunction, m_dsoHandle, "StopCapture");
+							if (ret == APR_SUCCESS)
 							{
-								m_pauseCaptureFunction = (PauseCaptureFunction)m_dll.symbol("PauseCapture");
-								if(m_pauseCaptureFunction)
+								ret = apr_dso_sym((apr_dso_handle_sym_t*)&m_pauseCaptureFunction, m_dsoHandle, "PauseCapture");
+								if(ret == APR_SUCCESS)
 								{
-									m_setOnHoldFunction = (SetOnHoldFunction)m_dll.symbol("SetOnHold");
-									if(m_setOnHoldFunction)
+									ret = apr_dso_sym((apr_dso_handle_sym_t*)&m_setOnHoldFunction, m_dsoHandle, "SetOnHold");
+									if(ret == APR_SUCCESS)
 									{
-										m_setOffHoldFunction = (SetOffHoldFunction)m_dll.symbol("SetOffHold");
-										if(m_setOffHoldFunction)
+										ret = apr_dso_sym((apr_dso_handle_sym_t*)&m_setOffHoldFunction, m_dsoHandle, "SetOffHold");
+										if(ret == APR_SUCCESS)
 										{
-											m_GetConnectionStatusFunction = (GetConnectionStatusFunction)m_dll.symbol("GetConnectionStatus");
-											if(m_GetConnectionStatusFunction)
+											ret = apr_dso_sym((apr_dso_handle_sym_t*)&m_GetConnectionStatusFunction, m_dsoHandle, "GetConnectionStatus");
+											if(ret == APR_SUCCESS)
 											{
 												m_loaded = true;
 											}
@@ -202,16 +202,22 @@ bool CapturePluginProxy::Init()
 
 void CapturePluginProxy::Run()
 {
-	if (!ACE_Thread_Manager::instance()->spawn(ACE_THR_FUNC(m_runFunction)))
-	{
-		LOG4CXX_INFO(LOG.rootLog, CStdString("Failed to create capture thread"));
+	try{
+		std::thread handler(m_runFunction);
+		handler.detach();
+	} catch(const std::exception &ex){
+		CStdString logMsg;
+		logMsg.Format("Failed to create capture thread reason:%s",  ex.what());
+		LOG4CXX_ERROR(LOG.rootLog, logMsg);	
 	}
 }
 
 void CapturePluginProxy::Shutdown()
 {
-	ShutdownFunction shutdownFunction = (ShutdownFunction)m_dll.symbol("Shutdown");
-	if (shutdownFunction)
+	ShutdownFunction shutdownFunction;
+	apr_status_t ret;
+	ret = apr_dso_sym((apr_dso_handle_sym_t*)&shutdownFunction, m_dsoHandle, "Shutdown");
+	if (ret == APR_SUCCESS)
 	{
 		LOG4CXX_INFO(LOG.rootLog, CStdString("Shutting down"));
 		shutdownFunction();

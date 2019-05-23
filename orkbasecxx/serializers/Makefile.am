@@ -5,6 +5,6 @@ libserializers_la_SOURCES = DomSerializer.cpp DomSerializer.h Serializer.cpp\
 	UrlSerializer.cpp UrlSerializer.h XmlRpcSerializer.cpp\
 	XmlRpcSerializer.h
 #libserializers_la_LIBADD = -L/projects/ext/xmlrpc++/xmlrpc++0.7/ -lXmlRpc
-INCLUDES = -I@top_srcdir@
+INCLUDES = -I@top_srcdir@ -I/usr/include/apr-1 -I/usr/include/apr-1.0
 
 AM_CXXFLAGS = -D_REENTRANT

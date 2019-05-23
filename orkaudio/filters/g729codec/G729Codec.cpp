@@ -11,6 +11,7 @@
 #include "AudioCapture.h"
 #include <iostream>
 #include <string>
+#include <cstring>
 
 static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("codec.g729");
  

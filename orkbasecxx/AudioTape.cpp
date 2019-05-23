@@ -14,8 +14,6 @@
 
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
-
-#include "ace/OS_NS_time.h"
 #include "Utils.h"
 #include "ThreadSafeQueue.h"
 #include "LogManager.h"
@@ -92,7 +90,7 @@ AudioTape::AudioTape(CStdString &portId)
 {
 	m_portId = portId;
 	m_state = StateCreated;
-	m_beginDate = ACE_OS::time(NULL);
+	m_beginDate = apr_time_sec(apr_time_now());
 	m_endDate = 0;
 	m_duration = 0;
 	m_direction = CaptureEvent::DirUnkn;
@@ -728,15 +726,15 @@ void AudioTape::PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum ev
 
 void AudioTape::GenerateCaptureFilePathAndIdentifier()
 {
-	struct tm date = {0};
-
-	ACE_OS::localtime_r(&m_beginDate, &date);
+	apr_time_t tn = m_beginDate*1000*1000;	//apr_time_t is microsec from epoch
+	apr_time_exp_t date;
+   	apr_time_exp_lt(&date, tn);
 	int month = date.tm_mon + 1;				// january=0, decembre=11
 	int year = date.tm_year + 1900;
 
-	m_filePath.Format("%.4d/%.2d/%.2d/%.2d/", year, month, date.tm_mday, date.tm_hour);
+	m_filePath.Format("%.4d/%.2d/%.2d/%.2d/", year, month, date.tm_mday,date.tm_hour);
 
-	m_fileIdentifier.Format("%.4d%.2d%.2d_%.2d%.2d%.2d_%s", year, month, date.tm_mday, date.tm_hour, date.tm_min, date.tm_sec, m_portId);
+	m_fileIdentifier.Format("%.4d%.2d%.2d_%.2d%.2d%.2d_%s", year, month, date.tm_mday,date.tm_hour, date.tm_min, date.tm_sec, m_portId);
 
 	m_year.Format("%.4d", year);
 	m_day.Format("%.2d", date.tm_mday);
@@ -855,12 +853,12 @@ void AudioTape::GenerateFinalFilePath()
                         }
                         case TapeAttributes::TaHostname:
                         {
-                                char host_name[255];
+                                char host_name[ORKMAXHOSTLEN+1];
 				CStdString hostname;
 				if(CONFIG.m_hostnameReportFqdn == false)
 				{
 					memset(host_name, 0, sizeof(host_name));
-					ACE_OS::hostname(host_name, sizeof(host_name));
+					OrkGetHostname(host_name, sizeof(host_name));
 					hostname.Format("%s", host_name);
 				}
 				else
@@ -1055,10 +1053,10 @@ void AudioTape::GenerateFinalFilePathAndIdentifier()
                         }
                         case TapeAttributes::TaHostname:
 			{
-				char host_name[255];
+				char host_name[ORKMAXHOSTLEN+1];
 
 				memset(host_name, 0, sizeof(host_name));
-				ACE_OS::hostname(host_name, sizeof(host_name));
+				OrkGetHostname(host_name, sizeof(host_name));
 
 				if(strlen(host_name))
 				{
