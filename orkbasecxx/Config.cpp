@@ -93,6 +93,7 @@ Config::Config()
 	m_clientRetryPeriodSec = CLIENT_RETRY_PERIOD_SEC_DEFAULT;
 	m_hostnameReportFqdn = HOSTNAME_REPORT_FQDN_DEFAULT;
 	m_discardUnidirectionalCalls = false;
+	m_audioFileBitRate = 6000;
 }
 
 void Config::Define(Serializer* s)
@@ -232,6 +233,7 @@ void Config::Define(Serializer* s)
 	}
 	s->IntValue(CLIENT_RETRY_PERIOD_SEC, m_clientRetryPeriodSec);
 	s->BoolValue("DiscardUnidirectionalCalls", m_discardUnidirectionalCalls);
+	s->IntValue("AudioFileBitRate", m_audioFileBitRate);
 }
 
 void Config::Validate()
