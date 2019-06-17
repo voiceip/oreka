@@ -84,7 +84,6 @@ VoIpSession::VoIpSession(CStdString& trackingId) : OrkSession(&DLLCONFIG),
 	m_numAlienRtpPacketsS2 = 0;
 	m_ssrcCandidate = -1;
 	m_mappedS1S2 =  false;
-	m_orekaRtpPayloadType = 0;
 }
 
 void VoIpSession::Stop()
@@ -1427,7 +1426,7 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		{
 			if( *it == payloadType ) 
 			{
-				rtpPacket->m_payloadType = 66;
+				rtpPacket->m_payloadType = pt_SPEEX;
 				break;
 			}
 		}
@@ -1440,9 +1439,9 @@ bool VoIpSession::AddRtpPacket(RtpPacketInfoRef& rtpPacket)
 		details.m_channel = channel;
 		details.m_encoding = AlawAudio;
 		details.m_numBytes = rtpPacket->m_payloadSize;
-		if(m_orekaRtpPayloadType != 0 && rtpPacket->m_payloadType >= 96)
+		if(rtpPacket->m_payloadType >= 96)
 		{
-			details.m_rtpPayloadType = m_orekaRtpPayloadType;
+			details.m_rtpPayloadType = m_orekaRtpPayloadTypeMap[rtpPacket->m_payloadType-96];
 		}
 		else
 		{
@@ -1558,6 +1557,26 @@ void VoIpSession::ReportSipNotify(SipNotifyInfoRef& notify)
 	}
 }
 
+void VoIpSession::LogRtpPayloadMap()
+{
+	if (m_log->isDebugEnabled())
+	{
+		CStdString logMsg;
+		logMsg.Format("[%s]: rtp payload map:", m_trackingId);
+		int n=0;
+		for (int i = 0; i < 32; i++)
+		{
+			if (m_orekaRtpPayloadTypeMap[i] != i+96)
+			{
+				n++;
+				logMsg.AppendFormat(" %d->%d", i+96, m_orekaRtpPayloadTypeMap[i]);
+			}
+		}
+		if (n == 0) logMsg.AppendFormat(" Empty!");
+		LOG4CXX_DEBUG(m_log, logMsg);
+	}
+}
+
 void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 {
 	if(DLLCONFIG.m_sipMetadataUseLastInvite || m_invite.get() == NULL)
@@ -1611,12 +1630,8 @@ void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	}
 
 	// Use the RTP codec that was extracted from SDP if available
-	//- WARNING, if near end and far end use different codecs, it will force the codec detected in the SDP onto both streams and will not work
-	//- might need to fix this at some point
-	if(invite->m_orekaRtpPayloadType != 0)
-	{
-		m_orekaRtpPayloadType = invite->m_orekaRtpPayloadType;
-	}
+	UpdateRtpPayloadMap(invite->m_orekaRtpPayloadTypeMap);
+	LogRtpPayloadMap();
 
 	// Gather extracted fields
 	if(m_started)

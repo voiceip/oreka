@@ -22,7 +22,9 @@ class OrkSession {
 			m_dtmfDigitString(""),
 			m_currentRtpEventTs(0),
 			m_telephoneEventPayloadType(config->m_rtpEventPayloadTypeDefaultValue)
-		{}
+		{
+			for (int i = 0; i < 32; i++) m_orekaRtpPayloadTypeMap[i] = i+96;
+		}
 
 		CStdString m_capturePort;
 		CStdString m_trackingId;
@@ -50,6 +52,19 @@ class OrkSession {
 		bool ShouldSwapChannels();
 		struct in_addr m_localIp;
 		bool m_mappedS1S2;
+		unsigned char m_orekaRtpPayloadTypeMap[32];
+
+		void	UpdateRtpPayloadMap(unsigned char *map)
+		{
+			for (int i = 0; i < 32; i++)
+			{
+				// The map we're passed is an array of 32 payload types.
+				// each entry is 0 if it hasn't been seen in the SDP, and
+				// will otherwise be the internal Oreka RTP payload type
+				// as used in BatchProcessing
+				if (map[i]) m_orekaRtpPayloadTypeMap[i] = map[i];
+			}
+		}
 };
 typedef oreka::shared_ptr<OrkSession> OrkSessionRef;
 

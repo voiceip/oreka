@@ -156,7 +156,6 @@ public:
 	unsigned int m_numAlienRtpPacketsS1;
 	unsigned int m_numAlienRtpPacketsS2;
 	unsigned int m_ssrcCandidate;
-	int m_orekaRtpPayloadType;
 	void ReportMetadataUpdateSkinny();
 	bool m_hasReceivedCallInfo;
 
@@ -172,6 +171,7 @@ private:
 	bool MatchesReferenceAddresses(struct in_addr inAddr);
 	bool IsInSkinnyReportingList(CStdString item);
 	virtual void TriggerOnDemandViaDtmf();
+	void LogRtpPayloadMap();
 
 	RtpPacketInfoRef m_lastRtpPacket;
 	//RtpRingBuffer m_rtpRingBuffer;

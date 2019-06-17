@@ -15,6 +15,7 @@
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
 #include "IlbcFilters.h"
+#include "Utils.h"
 
 IlbcToPcmFilter::IlbcToPcmFilter()
 {
@@ -157,7 +158,7 @@ CStdString IlbcToPcmFilter::GetName()
 
 bool IlbcToPcmFilter::SupportsInputRtpPayloadType(int rtpPayloadType)
 {
-	return (rtpPayloadType == 0x61 || rtpPayloadType == 0x62 || rtpPayloadType == 63 );
+	return (rtpPayloadType == pt_ILBC );
 }
 
 void IlbcToPcmFilter::CaptureEventIn(CaptureEventRef& event)

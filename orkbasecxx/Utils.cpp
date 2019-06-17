@@ -1,6 +1,7 @@
 #include "Utils.h"
 #include "time.h"
 #include <fstream>
+#include "AudioCapture.h"
 #ifndef WIN32
 #include <pwd.h>
 #include <grp.h>
@@ -1067,32 +1068,42 @@ int GetOrekaRtpPayloadTypeForSdpRtpMap(CStdString sdp)
 	if((sdp.Find("opus") != std::string::npos) || (sdp.Find("OPUS") != std::string::npos))
 	{
 		rtpCodec = "opus";
-		ret = 60;
+		ret = pt_OPUS;
 	}
 	else if(sdp.Find("AMR/8000") != std::string::npos)
 	{
 		rtpCodec = "amr-nb";
-		ret = 61;
+		ret = pt_AMRNB;
 	}
 	else if(sdp.Find("AMR-WB") != std::string::npos)
 	{
 		rtpCodec = "amr-wb";
-		ret = 62;
+		ret = pt_AMRWB;
 	}
 	else if(sdp.Find("iLBC") != std::string::npos) 
 	{
 		rtpCodec = "ilbc";
-		ret = 63;
+		ret = pt_ILBC;
 	} 
 	else if(sdp.Find("SILK/8000") != std::string::npos)
 	{
 		rtpCodec = "silk";
-		ret = 64;
+		ret = pt_SILK;
 	}
 	else if(sdp.Find("SILK/16000") != std::string::npos)
 	{
 		rtpCodec = "silk";
-		ret = 64;
+		ret = pt_SILK;
+	}
+	else if(sdp.Find("speex") != std::string::npos)
+	{
+		rtpCodec = "speex";
+		ret = pt_SPEEX;
+	}
+	else if((sdp.Find("telephone-event") != std::string::npos) || (sdp.Find("TELEPHONE-EVENT") != std::string::npos))
+	{
+		rtpCodec = "telephone-event";
+		ret = pt_TEL_EVENT;
 	}
 	return ret;
 }
@@ -1136,4 +1147,39 @@ void set_socket_buffer_size(log4cxx::LoggerPtr log, const char *msg, apr_socket_
 	getsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char *)&socketsize, &len);
 	logMsg.Format("[%s] Request socket buffer size of %d; actual size = %d", msg, size, socketsize);
 	LOG4CXX_INFO(log, logMsg);
+}
+
+CStdString RtpPayloadTypeEnumToString(char pt)
+{
+	CStdString ptStr = "unknown";
+	switch(pt)
+	{
+		case pt_PCMU: ptStr = "PCMU";
+			break;
+		case pt_GSM: ptStr = "GSM";
+			break;
+		case pt_G723: ptStr = "G723";
+			break;
+		case pt_PCMA: ptStr = "PCMA";
+			break;
+		case pt_G722: ptStr = "G722";
+			break;
+		case pt_OPUS: ptStr = "Opus";
+			break;
+		case pt_AMRNB: ptStr = "Amr-NB";
+			break;
+		case pt_AMRWB: ptStr = "Amr-WB";
+			break;
+		case pt_ILBC: ptStr = "iLBC";
+			break;
+		case pt_SILK: ptStr = "Silk";
+			break;
+		case pt_SPEEX: ptStr = "Speex";
+			break;
+		case pt_TEL_EVENT: ptStr = "telephone-event";
+			break;
+		default: ptStr = "unknown";
+	}
+	return ptStr;
+
 }

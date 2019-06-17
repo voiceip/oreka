@@ -1,7 +1,8 @@
-#include "SpeexCodec.h"
 #include <stdio.h>
 #include <vector>
+#include "Utils.h"
 #include "ConfigManager.h"
+#include "SpeexCodec.h"
 
 static log4cxx::LoggerPtr s_log;
 
@@ -137,7 +138,7 @@ CStdString SpeexDecoder::GetName()
 
 bool SpeexDecoder::SupportsInputRtpPayloadType(int rtpPayloadType)
 {
-	return rtpPayloadType == 66;
+	return rtpPayloadType == pt_SPEEX;
 }
 
 void SpeexDecoder::CaptureEventIn(CaptureEventRef &event)

@@ -17,6 +17,7 @@
 #include "OpusCodec.h"
 #include "AudioCapture.h"
 #include <log4cxx/logger.h>
+#include "Utils.h"
 
 static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("codec.opus");
 
@@ -155,7 +156,7 @@ CStdString OpusCodecDecoder::GetName()
 
 bool OpusCodecDecoder::SupportsInputRtpPayloadType(int rtpPayloadType)
 {
-	return rtpPayloadType == 60;
+	return rtpPayloadType == pt_OPUS;
 }
 
 void OpusCodecDecoder::CaptureEventIn(CaptureEventRef& event)
