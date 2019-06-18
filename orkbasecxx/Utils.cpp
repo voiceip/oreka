@@ -1164,19 +1164,72 @@ CStdString RtpPayloadTypeEnumToString(char pt)
 			break;
 		case pt_G722: ptStr = "G722";
 			break;
-		case pt_OPUS: ptStr = "Opus";
+		case pt_G729: ptStr = "G729";
 			break;
-		case pt_AMRNB: ptStr = "Amr-NB";
+		case pt_OPUS: ptStr = "opus";
 			break;
-		case pt_AMRWB: ptStr = "Amr-WB";
+		case pt_AMRNB: ptStr = "AMR-NB";
+			break;
+		case pt_AMRWB: ptStr = "AMR-WB";
 			break;
 		case pt_ILBC: ptStr = "iLBC";
 			break;
-		case pt_SILK: ptStr = "Silk";
+		case pt_SILK: ptStr = "SILK";
 			break;
-		case pt_SPEEX: ptStr = "Speex";
+		case pt_SPEEX: ptStr = "speex";
 			break;
 		case pt_TEL_EVENT: ptStr = "telephone-event";
+			break;
+		// ==== unsupported codecs
+		// the following codecs are not supported, but included for
+		// logging purposes
+		case 1:
+		case 2:
+		case 19:
+			ptStr = "reserved";
+			break;
+		case 5:
+		case 6:
+		case 16:
+		case 17:
+			ptStr = "DVI4";
+			break;
+		case 7:
+			ptStr = "LPC";
+			break;
+		case 10:
+		case 11:
+			ptStr = "L16";
+			break;
+		case 12:
+			ptStr = "QCELP";
+			break;
+		case 13:
+			ptStr = "CN";
+			break;
+		case 14:
+			ptStr = "MPA";
+			break;
+		case 15:
+			ptStr = "G728";
+			break;
+		case 25:
+			ptStr = "CELB";
+			break;
+		case 26:
+			ptStr = "JPEG";
+			break;
+		case 28:
+			ptStr = "nv";
+			break;
+		case 32:
+			ptStr = "MPV";
+			break;
+		case 33:
+			ptStr = "MP2T";
+			break;
+		case 34:
+			ptStr = "H263";
 			break;
 		default: ptStr = "unknown";
 	}
