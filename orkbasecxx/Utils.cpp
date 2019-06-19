@@ -1059,48 +1059,63 @@ bool IpRanges::Empty()
 		return false;
 }
 
-//This maps dynamic payload types >= 96  that are detected in the SDP to our own arbitrary static payload type values
-//for example, the opus codec will always be mapped to oreka payload type 60, regardless of the dynamic payload type it is given in a particular SIP session.
+// ciFind: case insensitive find helper function
+// we're using this for codecs, which are ASCII, so we don't
+// need to worry about unicode and/or locales
+static size_t ciFind(const std::string &Haystack, const std::string &Needle)
+{
+	auto it = std::search(
+			Haystack.begin(), Haystack.end(),
+			Needle.begin(),   Needle.end(),
+			[](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
+	);
+	if ( it != Haystack.end() ) return it - Haystack.begin();
+	else return std::string::npos; // not found
+}
+//This maps dynamic payload types >= 96  that are detected in the SDP to our own
+//arbitrary internal payload values. For example, the opus codec will always be
+//mapped to oreka payload type 60, regardless of the dynamic payload
+//type it is given in a particular SIP session.
 int GetOrekaRtpPayloadTypeForSdpRtpMap(CStdString sdp)
 {
 	CStdString rtpCodec;
 	int ret = 0;
-	if((sdp.Find("opus") != std::string::npos) || (sdp.Find("OPUS") != std::string::npos))
+	if(ciFind(sdp, "opus") != std::string::npos)
 	{
 		rtpCodec = "opus";
 		ret = pt_OPUS;
 	}
-	else if(sdp.Find("AMR/8000") != std::string::npos)
+	else if(ciFind(sdp, "AMR/8000") != std::string::npos)
 	{
 		rtpCodec = "amr-nb";
 		ret = pt_AMRNB;
 	}
-	else if(sdp.Find("AMR-WB") != std::string::npos)
+	else if(ciFind(sdp, "AMR-WB") != std::string::npos)
 	{
 		rtpCodec = "amr-wb";
 		ret = pt_AMRWB;
 	}
-	else if(sdp.Find("iLBC") != std::string::npos) 
+	else if(ciFind(sdp, "iLBC") != std::string::npos)
 	{
 		rtpCodec = "ilbc";
 		ret = pt_ILBC;
 	} 
-	else if(sdp.Find("SILK/8000") != std::string::npos)
+	else if(ciFind(sdp, "SILK/8000") != std::string::npos)
 	{
 		rtpCodec = "silk";
 		ret = pt_SILK;
 	}
-	else if(sdp.Find("SILK/16000") != std::string::npos)
+	else if(ciFind(sdp, "SILK/16000") != std::string::npos)
 	{
 		rtpCodec = "silk";
 		ret = pt_SILK;
 	}
-	else if(sdp.Find("speex") != std::string::npos)
+	else if(ciFind(sdp, "speex") != std::string::npos)
 	{
 		rtpCodec = "speex";
 		ret = pt_SPEEX;
 	}
-	else if((sdp.Find("telephone-event") != std::string::npos) || (sdp.Find("TELEPHONE-EVENT") != std::string::npos))
+	else if(ciFind(sdp, "telephone-event") != std::string::npos)
 	{
 		rtpCodec = "telephone-event";
 		ret = pt_TEL_EVENT;
