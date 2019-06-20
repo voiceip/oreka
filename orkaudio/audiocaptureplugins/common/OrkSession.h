@@ -15,6 +15,7 @@ class OrkSession {
 			m_config(config),
 
 			m_keepRtp(true),
+			m_onDemand(false),
 			m_startWhenReceiveS2(false),
 			m_nonLookBackSessionStarted(false),
 
@@ -43,6 +44,7 @@ class OrkSession {
 		AcpConfig * m_config;
 
 		bool m_keepRtp;
+		bool m_onDemand;
 		CStdString m_logMsg;
 		bool m_startWhenReceiveS2;
 		bool m_nonLookBackSessionStarted;

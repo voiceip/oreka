@@ -136,7 +136,7 @@ void ReportDtmfDigit(OrkSession* ss, int channel, CStdString digitValue,  unsign
 
 	CStdString ods = ss->m_config->m_onDemandViaDtmfDigitsString;
 
-	if(ods.length() > 0 && ss->m_dtmfDigitString.find(ods) != std::string::npos) {
+	if(ss->m_onDemand == false && ods.length() > 0 && ss->m_dtmfDigitString.find(ods) != std::string::npos) {
 		LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "] Trigger OnDemand via DTMF");
 		ss->TriggerOnDemandViaDtmf();
 		ss->m_dtmfDigitString.clear();

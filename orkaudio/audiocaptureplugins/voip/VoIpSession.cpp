@@ -72,7 +72,6 @@ VoIpSession::VoIpSession(CStdString& trackingId) : OrkSession(&DLLCONFIG),
 	m_localPartyReported = false;
 	m_rtpIp.s_addr = 0;
 	m_skinnyLineInstance = 0;
-	m_onDemand = false;
 	m_lastRtpStreamStart = 0;
 	m_rtpNumMissingPkts = 0;
 	m_rtpNumSeqGaps = 0;
