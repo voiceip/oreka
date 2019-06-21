@@ -7,6 +7,8 @@
 #include <grp.h>
 #include <netdb.h>
 #include <unistd.h>
+#else
+#include <cctype>  //needed in WIN32 for std::toupper
 #endif
 
 //========================================================
