@@ -184,10 +184,15 @@ void ReportDtmfDigit(OrkSession* ss, int channel, CStdString digitValue,  unsign
 		g_captureEventCallBack(event, ss->m_capturePort);
 	}
 
+	CStdString dtmfDigitEventValue = digitValue;
+	if(CONFIG.m_dtmfReportingDetailed == true) {
+		dtmfDigitEventValue.Format("%s_%d_%d",digitValue,digitVolume,digitDuration);
+	}
+
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtKeyValue;
 	event->m_key = "dtmfdigit";
-	event->m_value = digitValue;
+	event->m_value = dtmfDigitEventValue;
 	event->m_offsetMs = msDiff;
 	g_captureEventCallBack(event, ss->m_capturePort);
 }
