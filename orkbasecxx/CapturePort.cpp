@@ -141,6 +141,11 @@ void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 {
 	FilterAudioChunk(chunkRef);
 
+	if (!CONFIG.m_audioOutputEnable)
+	{
+		return;
+	}
+
 	time_t now = time(NULL);
 	m_lastUpdated = now;
 

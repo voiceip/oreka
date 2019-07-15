@@ -257,6 +257,7 @@ public:
 	bool m_hostnameReportFqdn;
 	CStdString m_audioOutputPathMcf;
 	bool m_discardUnidirectionalCalls;
+	bool m_audioOutputEnable;
 
 private:
 	log4cxx::LoggerPtr m_log;
