@@ -1122,6 +1122,18 @@ int GetOrekaRtpPayloadTypeForSdpRtpMap(CStdString sdp)
 		rtpCodec = "telephone-event";
 		ret = pt_TEL_EVENT;
 	}
+	else if(ciFind(sdp, "AAL2-G726-32") != std::string::npos)
+	{
+		//No support for AAL2-G726-32 (big endian ordering),
+		// However we need to match against against this string or 
+		// else the next check below (G726-32) will match.
+		ret = 0;  //0 --> no match;
+	}
+	else if(ciFind(sdp, "G726-32") != std::string::npos)
+	{
+		rtpCodec = "G726-32";
+		ret = 2;
+	}
 	return ret;
 }
 
@@ -1173,6 +1185,8 @@ CStdString RtpPayloadTypeEnumToString(char pt)
 	{
 		case pt_PCMU: ptStr = "PCMU";
 			break;
+		case 2:ptStr = "G721/G726-32";
+			break;
 		case pt_GSM: ptStr = "GSM";
 			break;
 		case pt_G723: ptStr = "G723";
@@ -1201,7 +1215,6 @@ CStdString RtpPayloadTypeEnumToString(char pt)
 		// the following codecs are not supported, but included for
 		// logging purposes
 		case 1:
-		case 2:
 		case 19:
 			ptStr = "reserved";
 			break;
