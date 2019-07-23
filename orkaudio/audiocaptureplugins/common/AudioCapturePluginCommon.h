@@ -36,6 +36,7 @@ DLL_EXPORT void __CDECL__  PauseCapture(CStdString& party, CStdString& orkuid, C
 DLL_EXPORT void __CDECL__  SetOnHold(CStdString& port, CStdString& orkuid);
 DLL_EXPORT void __CDECL__  SetOffHold(CStdString& port, CStdString& orkuid);
 DLL_EXPORT void __CDECL__  GetConnectionStatus(CStdString& msg);
+DLL_EXPORT void __CDECL__  ProcessMetadataMsg(SyncMessage* msg);
 }
 
 #endif

@@ -1,3 +1,11 @@
+#ifdef WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <Windows.h>
+//#include "winsock2.h"
+#endif
+
+#include "SpeexCodec.h"
 #include <stdio.h>
 #include <vector>
 #include "Utils.h"

@@ -132,6 +132,7 @@ public:
 	void ProcessSkinnyGlobalNumbers(char *line, int ln);
 	void LoadSkinnyGlobalNumbers();
 	void GetConnectionStatus(CStdString& msg);
+	void ProcessMetadataMsg(SyncMessage* msg);
 
 private:
 	pcap_t* OpenPcapDeviceLive(CStdString name);
@@ -2013,6 +2014,11 @@ void VoIp::GetConnectionStatus(CStdString& msg)
 {
 	msg = "unknown";
 }
+
+void VoIp::ProcessMetadataMsg(SyncMessage* msg)
+{
+	;
+}
 //================================================================================
 #ifndef WIN32
 void HandleTcpConnection(int clientSock)
@@ -2275,3 +2281,7 @@ void __CDECL__  GetConnectionStatus(CStdString& msg)
 	VoIpSingleton::instance()->GetConnectionStatus(msg);
 }
 
+void __CDECL__  ProcessMetadataMsg(SyncMessage* msg)
+{
+	VoIpSingleton::instance()->ProcessMetadataMsg(msg);
+}

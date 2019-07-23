@@ -19,6 +19,7 @@
 #include "AudioCapture.h"
 #include "LogManager.h"
 #include "xercesc/dom/DOMNode.hpp"
+#include "messages/SyncMessage.h"
 
 using namespace XERCES_CPP_NAMESPACE;
 
@@ -47,7 +48,7 @@ typedef void (__CDECL__* PauseCaptureFunction)(CStdString& port, CStdString& ork
 typedef void (__CDECL__* SetOnHoldFunction)(CStdString& port, CStdString& orkUid);
 typedef void (__CDECL__* SetOffHoldFunction)(CStdString& port, CStdString& orkUid);
 typedef void (__CDECL__* GetConnectionStatusFunction)(CStdString& msg);
-
+typedef void (__CDECL__* ProcessMetadataMsgFunction)(SyncMessage* msg);
 
 #endif
 
