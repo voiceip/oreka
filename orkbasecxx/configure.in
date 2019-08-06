@@ -5,31 +5,30 @@ AM_INIT_AUTOMAKE(orkbase, 1.0)
 
 AC_PREFIX_DEFAULT(/usr)
 
-if [cat /etc/redhat-release | grep "release 6"]; then
-    CXXFLAGS+="-DCENTOS_6 -D__STDC_CONSTANT_MACROS"
-fi
-
-if [grep -i "opensuse" /etc/os-release]; then
-    CXXFLAGS+="-std=c++11 -DXERCES_3"
-fi
-
-if [cat /etc/issue | grep "Ubuntu"]; then
-    CXXFLAGS+="-std=c++11"
-fi
-
-if [cat /etc/issue | grep "Ubuntu 18"]; then
-    CXXFLAGS+=" -DXERCES_3"
-fi
-
-# Check if gcc supports cpp11 
-if [echo "main(){}" | $CXX -std=c++11 -xc++ -S -  &>/dev/null]; then 
-	CXXFLAGS+=" -g -O2 -std=c++11 -DSUPPORTS_CPP11 -fPIC $CXXFLAGS"
-else	
-	CXXFLAGS+=" -g -O2"
-fi
-
 AC_LANG_CPLUSPLUS
 AC_PROG_CXX
+
+if [cat /etc/redhat-release | grep "release 6"]; then
+    CXXFLAGS+=" -DCENTOS_6 -D__STDC_CONSTANT_MACROS"
+fi
+
+
+# don't define XERCES_3 for Centos 6 or 7
+if ! grep -i "centos" /etc/os-release ; then
+    if ! grep -i "centos" /etc/centos-release ; then
+        CXXFLAGS+=" -DXERCES_3"
+    fi
+fi
+
+
+
+# Check if gcc supports cpp11 
+if [echo "int main(){}" | $CXX -std=c++11 -xc++ -S -  &>/dev/null]; then 
+	CXXFLAGS+=" -std=c++11 -DSUPPORTS_CPP11 -fPIC"
+else	
+	AC_MSG_FAILURE("Compiler must support C++ 11")
+fi
+
 AM_PROG_LIBTOOL
 
 AC_OUTPUT(Makefile messages/Makefile serializers/Makefile audiofile/Makefile filters/Makefile filters/gsm/Makefile filters/gsm/gsm610/Makefile filters/ilbc/Makefile filters/ilbc/ilbc/Makefile filters/audiogain/Makefile filters/g722codec/Makefile filters/speex/Makefile filters/g726codecs/Makefile filters/g726codecs/g72x/Makefile filters/opuscodec/Makefile)
