@@ -3,13 +3,25 @@ AC_INIT(configure.in)
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE(orkbase, 1.0)
 
+boost_lib=-lboost_system
+
 AC_PREFIX_DEFAULT(/usr)
 
 AC_LANG_CPLUSPLUS
 AC_PROG_CXX
 
+if [grep "release 7" /etc/redhat-release]; then
+    boost_lib=-lboost_system-mt
+fi
+
+# don't support TLS under Centos 6
+if [! grep "release 6" /etc/redhat-release]; then
+    CXXFLAGS+=" -DSUPPORT_TLS_SERVER -DSUPPORT_TLS_CLIENT"
+fi
+
 if [cat /etc/redhat-release | grep "release 6"]; then
     CXXFLAGS+=" -DCENTOS_6 -D__STDC_CONSTANT_MACROS"
+    boost_lib=
 fi
 
 
@@ -22,6 +34,8 @@ fi
 
 
 
+AC_SUBST(boost_lib,$boost_lib)
+	
 # Check if gcc supports cpp11 
 if [echo "int main(){}" | $CXX -std=c++11 -xc++ -S -  &>/dev/null]; then 
 	CXXFLAGS+=" -std=c++11 -DSUPPORTS_CPP11 -fPIC"
@@ -39,5 +53,6 @@ echo "========= Configuration ==========="
 echo ""
 echo "     cxx : $CXX"
 echo "cxxflags : $CXXFLAGS"
+echo "boost_lib: $boost_lib"
 echo ""
 echo "==================================="

@@ -172,7 +172,7 @@ private:
 #define AprLp locPool.GetAprPool()
 
 
-#ifndef CENTOS_6
+#ifdef SUPPORT_TLS_SERVER
 //==========================================================
 class DLL_IMPORT_EXPORT_ORKBASE OrkOpenSslSingleton : public OrkSingleton<OrkOpenSslSingleton>
 {
@@ -180,15 +180,12 @@ public:
 	OrkOpenSslSingleton();
 	~OrkOpenSslSingleton();
 	SSL_CTX* GetServerCtx();
-	SSL_CTX* GetClientCtx();
 private:
 	void SslInitialize();
 	void CreateCTXServer();
-	void CreateCTXClient();
 	void ConfigureServerCtx();
-	void ConfigureClientCtx();
 	SSL_CTX* m_serverCtx;
-	SSL_CTX* m_clientCtx;	
+	log4cxx::LoggerPtr s_log;
 };
 #endif
 

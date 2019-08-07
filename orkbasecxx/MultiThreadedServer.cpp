@@ -28,12 +28,18 @@
 #include "EventStreaming.h"
 #include "apr_portable.h"
 
+
+void LogSSLKeys(SSL *s);
+
 #if !defined(MSG_NOSIGNAL)
 #define MSG_NOSIGNAL 0
 #endif
 
 log4cxx::LoggerPtr CommandLineServer::s_log;
 log4cxx::LoggerPtr HttpServer::s_log;
+#ifdef SUPPORT_TLS_SERVER
+log4cxx::LoggerPtr HttpsServer::s_log;
+#endif
 
 CommandLineServer::CommandLineServer(int port)
 {
@@ -191,14 +197,13 @@ void CommandLineServer::RoutineSvc(apr_socket_t* sock)
 static int s_httpSessions = 0;
 static std::mutex s_httpMutex;
 
-#ifndef CENTOS_6
-SSL_CTX* HttpServer::m_ctx;
+#ifdef SUPPORT_TLS_SERVER
+SSL_CTX* HttpsServer::m_ctx;
 #endif
 HttpServer::HttpServer(int port)
 {
 	s_log = log4cxx::Logger::getLogger("interface.httpserver");
 	m_port = port;
-	m_sslPort = port +1;
 	OrkAprSingleton* orkAprsingle = OrkAprSingleton::GetInstance();
 	m_mp = orkAprsingle->GetAprMp();
 }
@@ -207,77 +212,43 @@ bool HttpServer::Initialize()
 {
 	apr_status_t ret;
 
-    ret = apr_sockaddr_info_get(&m_sockAddr, NULL, APR_INET, m_port, 0, m_mp);
-    if(ret != APR_SUCCESS)
+	if(m_port == 0)
+	{
+		LOG4CXX_INFO(s_log, "HTTP server disabled");
+		return false;
+	}
+	ret = apr_sockaddr_info_get(&m_sockAddr, NULL, APR_INET, m_port, 0, m_mp);
+	if(ret != APR_SUCCESS)
 	{
 		LOG4CXX_ERROR(s_log, "Failed to get sockaddr for http server");
 		return false;
 	}
-    ret = apr_socket_create(&m_socket, m_sockAddr->family, SOCK_STREAM,APR_PROTO_TCP, m_mp);
-    if(ret != APR_SUCCESS)
+	ret = apr_socket_create(&m_socket, m_sockAddr->family, SOCK_STREAM,APR_PROTO_TCP, m_mp);
+	if(ret != APR_SUCCESS)
 	{
 		LOG4CXX_ERROR(s_log, "Failed to create a socket http server");
 		return false;
 	}
-    apr_socket_opt_set(m_socket, APR_SO_REUSEADDR, 1);
+	apr_socket_opt_set(m_socket, APR_SO_REUSEADDR, 1);
 	apr_socket_timeout_set(m_socket, -1);
 
-    ret = apr_socket_bind(m_socket, m_sockAddr);
+	ret = apr_socket_bind(m_socket, m_sockAddr);
 	if(ret != APR_SUCCESS)
 	{
-		LOG4CXX_ERROR(s_log, "Failed to bind http server socket");
+		CStdString logMsg;
+		logMsg.Format("Failed to bind HTTP server socket %d: rc = %d: %s", m_port, ret, AprGetErrorMsg(ret));
+		LOG4CXX_ERROR(s_log, logMsg);
 		return false;
 	}
-    ret = apr_socket_listen(m_socket, SOMAXCONN);
+	ret = apr_socket_listen(m_socket, SOMAXCONN);
 	if(ret != APR_SUCCESS)
 	{
 		LOG4CXX_ERROR(s_log, "Failed to have a listening socket for http server");
 		return false;
 	}
 	CStdString tcpPortString = IntToString(m_port);
-    LOG4CXX_INFO(s_log, CStdString("Started HttpServer on port:")+tcpPortString);
+	LOG4CXX_INFO(s_log, CStdString("Started HttpServer on port:")+tcpPortString);
 
-#ifndef CENTOS_6
-	//===============SSL====================
-
-	// ret = apr_sockaddr_info_get(&m_sslSockAddr, NULL, APR_INET, m_sslPort, 0, m_mp);
-    // if(ret != APR_SUCCESS)
-	// {
-	// 	LOG4CXX_ERROR(s_log, "Failed to get sockaddr for https server");
-	// 	return false;
-	// }
-    // ret = apr_socket_create(&m_sslSocket, m_sslSockAddr->family, SOCK_STREAM,APR_PROTO_TCP, m_mp);
-    // if(ret != APR_SUCCESS)
-	// {
-	// 	LOG4CXX_ERROR(s_log, "Failed to create a socket https server");
-	// 	return false;
-	// }
-    // apr_socket_opt_set(m_sslSocket, APR_SO_REUSEADDR, 1);
-	// apr_socket_timeout_set(m_sslSocket, -1);
-
-    // ret = apr_socket_bind(m_sslSocket, m_sslSockAddr);
-	// if(ret != APR_SUCCESS)
-	// {
-	// 	LOG4CXX_ERROR(s_log, "Failed to bind https server socket");
-	// 	return false;
-	// }
-    // ret = apr_socket_listen(m_sslSocket, SOMAXCONN);
-	// if(ret != APR_SUCCESS)
-	// {
-	// 	LOG4CXX_ERROR(s_log, "Failed to have a listening socket for http server");
-	// 	return false;
-	// }
-	// CStdString sslTcpPortString = IntToString(m_sslPort);
-    // LOG4CXX_INFO(s_log, CStdString("Started HttpsServer on port:")+sslTcpPortString);
-
-	// //We will need a config param enable to activate ssl connection
-	// m_ctx = OrkOpenSslSingleton::GetInstance()->GetServerCtx();
-	// if(!m_ctx){
-	// 	LOG4CXX_ERROR(s_log, "Failed to create CTX for http server");
-	// 	return false;
-	// }
-	//=========================
-#endif
 	return true;
 }
 
@@ -291,15 +262,6 @@ void HttpServer::Run()
 		logMsg.Format("Failed to start RunHttpServer thread reason:%s",  ex.what());
 		LOG4CXX_ERROR(s_log, logMsg);
 	}
-
-	// try{
-	// 	std::thread httpsHandler(&HttpServer::RunHttpsServer, this);
-	// 	httpsHandler.detach();
-	// } catch(const std::exception &ex){
-	// 	CStdString logMsg;
-	// 	logMsg.Format("Failed to start RunHttpsServer thread reason:%s",  ex.what());
-	// 	LOG4CXX_ERROR(s_log, logMsg);
-	// }
 }
 
 void HttpServer::RunHttpServer()
@@ -340,14 +302,95 @@ void HttpServer::RunHttpServer()
 	}
 }
 
-#ifndef CENTOS_6
-void HttpServer::RunHttpsServer()
+#ifdef SUPPORT_TLS_SERVER
+HttpsServer::HttpsServer(int port)
+{
+	s_log = log4cxx::Logger::getLogger("interface.tlsserver");
+	m_sslPort = port;
+	OrkAprSingleton* orkAprsingle = OrkAprSingleton::GetInstance();
+	m_mp = orkAprsingle->GetAprMp();
+}
+
+bool HttpsServer::Initialize()
+{
+	apr_status_t ret;
+	CStdString logMsg;
+
+	if(m_sslPort == 0)
+	{
+		LOG4CXX_INFO(s_log, "HTTPS server disabled");
+		return false;
+	}
+
+	ret = apr_sockaddr_info_get(&m_sslSockAddr, NULL, APR_INET, m_sslPort, 0, m_mp);
+	if(ret != APR_SUCCESS)
+	{
+		LOG4CXX_ERROR(s_log, "Failed to get sockaddr for https server");
+		return false;
+	}
+	ret = apr_socket_create(&m_sslSocket, m_sslSockAddr->family, SOCK_STREAM,APR_PROTO_TCP, m_mp);
+	if(ret != APR_SUCCESS)
+	{
+		LOG4CXX_ERROR(s_log, "Failed to create a socket https server");
+		return false;
+	}
+	apr_socket_opt_set(m_sslSocket, APR_SO_REUSEADDR, 1);
+	apr_socket_timeout_set(m_sslSocket, -1);
+
+	ret = apr_socket_bind(m_sslSocket, m_sslSockAddr);
+	if(ret != APR_SUCCESS)
+	{
+		CStdString logMsg;
+		logMsg.Format("Failed to bind HTTPS server socket %d: rc = %d: %s", m_sslPort, ret, AprGetErrorMsg(ret));
+		LOG4CXX_ERROR(s_log, logMsg);
+		return false;
+	}
+    ret = apr_socket_listen(m_sslSocket, SOMAXCONN);
+	if(ret != APR_SUCCESS)
+	{
+		LOG4CXX_ERROR(s_log, "Failed to have a listening socket for http server");
+		return false;
+	}
+	CStdString sslTcpPortString = IntToString(m_sslPort);
+	LOG4CXX_INFO(s_log, CStdString("Started HttpsServer on port:")+sslTcpPortString);
+
+	//We will need a config param enable to activate ssl connection
+	m_ctx = OrkOpenSslSingleton::GetInstance()->GetServerCtx();
+	if(!m_ctx){
+		LOG4CXX_ERROR(s_log, "No context for HTTPS server");
+		return false;
+	}
+
+	logMsg.Format("HttpsServer::Initialize: SSL port == %d", m_sslPort);
+	LOG4CXX_INFO(s_log, logMsg);
+
+	return true;
+}
+
+void HttpsServer::Run()
+{
+	if(m_ctx){
+		try{
+		std::thread httpsHandler(&HttpsServer::RunHttpsServer, this);
+		httpsHandler.detach();
+		} catch(const std::exception &ex){
+			CStdString logMsg;
+			logMsg.Format("Failed to start RunHttpsServer thread reason:%s",  ex.what());
+			LOG4CXX_ERROR(s_log, logMsg);
+		}
+	}
+}
+
+
+void HttpsServer::RunHttpsServer()
 {
 	while(true)
 	{
 		apr_status_t ret;
+		apr_pool_t* request_pool;
+		apr_pool_create(&request_pool, m_mp);
 		apr_socket_t* incomingSocket;
-        ret = apr_socket_accept(&incomingSocket, m_sslSocket,m_mp);
+        ret = apr_socket_accept(&incomingSocket, m_sslSocket,request_pool);
         if (ret != APR_SUCCESS) {
             continue;
         }
@@ -356,6 +399,9 @@ void HttpServer::RunHttpsServer()
 		try{
 			std::lock_guard<std::mutex> lk(s_httpMutex);
 			if(s_httpSessions > HTTP_MAX_SESSIONS){
+				LOG4CXX_WARN(s_log, "Closing incoming HTTPS request: session limit exceeded.");
+				apr_socket_close(incomingSocket);
+				apr_pool_destroy(request_pool);
 				continue;
 			}
 			std::thread handler(HandleSslHttpMessage, incomingSocket);
@@ -365,6 +411,8 @@ void HttpServer::RunHttpsServer()
 			CStdString logMsg;
 			logMsg.Format("Failed to start HttpsServer thread reason:%s",  ex.what());
 			LOG4CXX_ERROR(s_log, logMsg);
+			apr_socket_close(incomingSocket);
+			apr_pool_destroy(request_pool);
 			continue;
 		}
 	}
@@ -381,7 +429,7 @@ void HttpServer::HandleHttpMessage(apr_socket_t* sock, apr_pool_t* pool)
     while(true)
     { 
 		apr_size_t size = 2047;
-        apr_status_t ret = apr_socket_recv(sock, buf, &size);
+        	apr_status_t ret = apr_socket_recv(sock, buf, &size);
 		if (size > 5)
 		{
 			try
@@ -498,8 +546,8 @@ void HttpServer::HandleHttpMessage(apr_socket_t* sock, apr_pool_t* pool)
 	s_httpSessions--;
 }
 
-#ifndef CENTOS_6
-void HttpServer::HandleSslHttpMessage(apr_socket_t* sock)
+#ifdef SUPPORT_TLS_SERVER
+void HttpsServer::HandleSslHttpMessage(apr_socket_t* sock)
 {
 	apr_status_t ret;
 	SSL *ssl;
@@ -526,6 +574,7 @@ void HttpServer::HandleSslHttpMessage(apr_socket_t* sock)
 		apr_socket_close(sock);
 		return;
 	}
+	LogSSLKeys(ssl);
 	//In order to have SslRead/ssl_read blocking with timeout, we need to explicitly set timeout here
 	//if having socket blocking,  ssl_read blocking forever, and as the result SslRead blocking forever too
 	//set timeout for socket here will NOT have ssl_read blocking with timeout, it made ssl_read return right away, but our SslRead has its own timeout mechanism
@@ -535,7 +584,7 @@ void HttpServer::HandleSslHttpMessage(apr_socket_t* sock)
 	buf[2047] = '\0';	// security
 	int lenSent;
     while(true)
-    { 
+    {
         int size;
         size = OrkSslRead(sock, ssl, buf, 2048);
 		if (size > 5)
@@ -594,7 +643,7 @@ void HttpServer::HandleSslHttpMessage(apr_socket_t* sock)
 						response->SerializeDom(myDoc);
 						CStdString pingResponse = DomSerializer::DomNodeToString(myDoc);
 
-						CStdString httpOk("HTTPS/1.0 200 OK\r\nContent-type: text/xml\r\n\r\n");
+						CStdString httpOk("HTTP/1.0 200 OK\r\nContent-type: text/xml\r\n\r\n");
 											CStdString singleLineResponseString = response->SerializeSingleLine();
 											LOG4CXX_INFO(s_log, "response: " + singleLineResponseString);
 						int leng = httpOk.GetLength();
@@ -614,21 +663,21 @@ void HttpServer::HandleSslHttpMessage(apr_socket_t* sock)
 			}
 			catch (CStdString &e)
 			{
-				CStdString error("HTTPS/1.0 404 not found\r\nContent-type: text/html\r\n\r\nError\r\n");
+				CStdString error("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nError\r\n");
 				error = error + e + "\r\n";
 				int leng = error.GetLength();
 				OrkSslWrite(sock, ssl, error, leng);
 			}
 			catch(const XMLException& e)
 			{
-				CStdString error("HTTPS/1.0 404 not found\r\nContent-type: text/html\r\n\r\nXML Error\r\n");
+				CStdString error("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nXML Error\r\n");
 				int leng = error.GetLength();
 				OrkSslWrite(sock, ssl, error, leng);
 			}
 		}
 		else
 		{
-			CStdString notFound("HTTPS/1.0 404 not found\r\nContent-type: text/html\r\n\r\nNot found\r\n");
+			CStdString notFound("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nNot found\r\n");
 			int leng = notFound.GetLength();
 			OrkSslWrite(sock, ssl, notFound, leng);
 		}

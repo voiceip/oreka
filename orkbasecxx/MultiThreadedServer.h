@@ -56,9 +56,6 @@ public:
 	bool Initialize();
 	void Run();
 	void RunHttpServer();
-#ifndef CENTOS_6
-	void RunHttpsServer();
-#endif
 
 private:
 	apr_pool_t* m_mp;
@@ -66,17 +63,30 @@ private:
 	apr_socket_t* m_socket;
 	apr_socket_t* m_sslSocket;
     apr_sockaddr_t* m_sockAddr;
-	int m_sslPort;
-    apr_sockaddr_t* m_sslSockAddr;
-#ifndef CENTOS_6
-	static SSL_CTX* m_ctx;
-#endif
 	static log4cxx::LoggerPtr s_log;
 	static void HandleHttpMessage(apr_socket_t* sock, apr_pool_t* pool);
-#ifndef CENTOS_6
-	static void HandleSslHttpMessage(apr_socket_t* sock);
-#endif
+
 };
+
+#ifdef SUPPORT_TLS_SERVER
+class DLL_IMPORT_EXPORT_ORKBASE HttpsServer
+{
+public:
+	HttpsServer(int port);
+	bool Initialize();
+	void Run();
+	void RunHttpsServer();
+
+private:
+	apr_pool_t* m_mp;
+	apr_socket_t* m_sslSocket;
+	int m_sslPort;
+	apr_sockaddr_t* m_sslSockAddr;
+	static SSL_CTX* m_ctx;
+	static log4cxx::LoggerPtr s_log;
+	static void HandleSslHttpMessage(apr_socket_t* sock);
+};
+#endif //#ifndef CENTOS_6
 
 //==========================================================
 

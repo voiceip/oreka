@@ -157,6 +157,24 @@
 #define DYNAMIC_TAGS "DynamicTags"
 #define HOSTNAME_REPORT_FQDN "HostnameReportFqdn"
 #define HOSTNAME_REPORT_FQDN_DEFAULT false
+#ifdef SUPPORT_TLS_SERVER
+#define TLS_SERVER_CERTIFICATE_PATH_DEFAULT "/etc/orkaudio/certs/server_tls_cert.pem"
+#define TLS_SERVER_CERTIFICATE_PATH_PARAM "TlsServerCertificatePath"
+#define TLS_SERVER_KEY_PATH_DEFAULT "/etc/orkaudio/certs/server_tls_key.pem"
+#define TLS_SERVER_CERTIFICATE_KEY_PARAM "TlsServerKeyPath"
+#define TLS_SERVER_PORT_PARAM "TlsServerPort"
+#define TLS_SERVER_PORT_DEFAULT 0
+#endif
+#ifdef SUPPORT_TLS_CLIENT
+#define TLS_CLIENT_KEYLOG_FILE	"TlsClientKeyLogFile"
+#define TLS_CLIENT_KEYLOG_FILE_DEFAULT ""
+#define TLS_CLIENT_CERTFILE "TlsClientCACertFile"
+#define TLS_CLIENT_CERTFILE_DEFAULT ""
+#define TLS_CLIENT_CERTCHECK_DISABLE "TlsClientCACertCheckDisable"
+#define TLS_CLIENT_CERTCHECK_DISABLE_DEFAULT false
+#define TLS_CLIENT_CERTCHECK_IGNORE_EXPIRY "TlsClientCACertCheckIgnoreExpiry"
+#define TLS_CLIENT_CERTCHECK_IGNORE_EXPIRY_DEFAULT true
+#endif
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -258,7 +276,17 @@ public:
 	CStdString m_audioOutputPathMcf;
 	bool m_discardUnidirectionalCalls;
 	bool m_audioOutputEnable;
-
+#ifdef SUPPORT_TLS_SERVER
+	int m_tlsServerPort;
+	CStdString m_tlsServerCertPath;
+	CStdString m_tlsServerKeyPath;
+#endif
+#ifdef SUPPORT_TLS_CLIENT
+	bool m_tlsClientCertCheckDisable;
+	bool m_tlsClientCertCheckIgnoreExpiry;
+	CStdString m_tlsClientKeylogFile;
+	CStdString m_tlsClientCertFile;
+#endif
 private:
 	log4cxx::LoggerPtr m_log;
 	CStdString m_audioFilePermissionsStr;

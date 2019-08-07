@@ -280,7 +280,7 @@ void ReportingThread::Run()
 
 	CStdString logMsg;
 
-	FLOG_INFO(LOG.reporting,"[%s] reporting thread started", m_tracker.ToString());
+	FLOG_INFO(LOG.reporting,"[%s] %sreporting thread started.", m_tracker.ToString(), (m_tracker.m_https? "HTTPS ":""));
 
 	bool stop = false;
 	bool reportError = true;
@@ -313,7 +313,8 @@ void ReportingThread::Run()
 							  m_tracker.m_hostname, 
 							  m_tracker.m_port,
 							  m_tracker.m_servicename, 
-							  CONFIG.m_clientTimeout);
+							  CONFIG.m_clientTimeout,
+							  m_tracker.m_https);
 
 		if (!response.m_success) {
 			if (time(NULL) - reportErrorLastTime > 60) {
@@ -357,7 +358,7 @@ void ReportingThread::Run()
 				{
 					FLOG_INFO(LOG.reporting,"[%s] sending: %s", m_tracker.ToString(), msgAsSingleLineString);
 
-					OrkHttpSingleLineClient c;
+					//OrkHttpSingleLineClient c;
 
 					MessageRef tr = reportable->CreateResponse();
 
@@ -365,7 +366,7 @@ void ReportingThread::Run()
 
 					while (!success && !IsSkip())
 					{
-						if (c.Execute((SyncMessage&)(*msgRef.get()), (AsyncMessage&)(*tr.get()), m_tracker.m_hostname, m_tracker.m_port, m_tracker.m_servicename, CONFIG.m_clientTimeout))
+						if (c.Execute((SyncMessage&)(*msgRef.get()), (AsyncMessage&)(*tr.get()), m_tracker.m_hostname, m_tracker.m_port, m_tracker.m_servicename, CONFIG.m_clientTimeout, m_tracker.m_https))
 						{
 							success = true;
 							reportError = true; // reenable error reporting

@@ -29,6 +29,7 @@ class DLL_IMPORT_EXPORT_ORKBASE OrkTrack {
 		CStdString m_hostname;
 		CStdString m_servicename;
 		int m_port;
+		bool m_https;
 
 	private:
 		static std::vector<OrkTrack> s_trackers;

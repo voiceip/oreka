@@ -94,6 +94,15 @@ Config::Config()
 	m_hostnameReportFqdn = HOSTNAME_REPORT_FQDN_DEFAULT;
 	m_discardUnidirectionalCalls = false;
 	m_audioOutputEnable = true;
+#ifdef SUPPORT_TLS_SERVER
+	m_tlsServerPort = TLS_SERVER_PORT_DEFAULT;
+	m_tlsServerCertPath = TLS_SERVER_CERTIFICATE_PATH_DEFAULT;
+	m_tlsServerKeyPath = TLS_SERVER_KEY_PATH_DEFAULT;
+#endif
+#ifdef SUPPORT_TLS_CLIENT
+	m_tlsClientCertCheckDisable = TLS_CLIENT_CERTCHECK_DISABLE_DEFAULT;
+	m_tlsClientCertCheckIgnoreExpiry = TLS_CLIENT_CERTCHECK_IGNORE_EXPIRY_DEFAULT;
+#endif
 }
 
 void Config::Define(Serializer* s)
@@ -208,6 +217,12 @@ void Config::Define(Serializer* s)
 	s->BoolValue("DtmfReportingDetailed" ,m_dtmfReportingDetailed);
 	s->CsvValue(DYNAMIC_TAGS, m_dynamicTags);
 	s->BoolValue(HOSTNAME_REPORT_FQDN ,m_hostnameReportFqdn);
+#ifdef SUPPORT_TLS_CLIENT
+	s->StringValue(TLS_CLIENT_KEYLOG_FILE, m_tlsClientKeylogFile);
+	s->StringValue(TLS_CLIENT_CERTFILE, m_tlsClientCertFile);
+	s->BoolValue(TLS_CLIENT_CERTCHECK_DISABLE, m_tlsClientCertCheckDisable);
+	s->BoolValue(TLS_CLIENT_CERTCHECK_IGNORE_EXPIRY, m_tlsClientCertCheckIgnoreExpiry);
+#endif
 	//Construct the partyFilterMap
 	if(m_partyFilterCharsReplaceWith.size() != 0)
 	{
@@ -234,6 +249,11 @@ void Config::Define(Serializer* s)
 	s->IntValue(CLIENT_RETRY_PERIOD_SEC, m_clientRetryPeriodSec);
 	s->BoolValue("DiscardUnidirectionalCalls", m_discardUnidirectionalCalls);
 	s->BoolValue("AudioOutputEnable", m_audioOutputEnable);
+#ifdef SUPPORT_TLS_SERVER
+	s->IntValue(TLS_SERVER_PORT_PARAM, m_tlsServerPort);
+	s->StringValue(TLS_SERVER_CERTIFICATE_PATH_PARAM, m_tlsServerCertPath);
+	s->StringValue(TLS_SERVER_CERTIFICATE_KEY_PARAM, m_tlsServerKeyPath);
+#endif
 }
 
 void Config::Validate()

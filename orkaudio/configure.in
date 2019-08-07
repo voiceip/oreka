@@ -17,6 +17,11 @@ else
 	AC_MSG_FAILURE("Compiler must support C++ 11")
 fi
 
+# don't support TLS under Centos 6
+if [! grep "release 6" /etc/redhat-release]; then
+    CXXFLAGS+=" -DSUPPORT_TLS_SERVER -DSUPPORT_TLS_CLIENT"
+fi
+
 if [ egrep -i "release [67]" /etc/redhat-release ]; then
 	speex_lib=orkspeex
 fi
