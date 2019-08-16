@@ -20,21 +20,14 @@ bool OrkSession::ShouldSwapChannels()
 	bool s1_shouldBeLocal = m_config->m_rtpS1S2MappingDeterministicS1IsLocal == true;
 	bool s2_shouldBeLocal = !s1_shouldBeLocal;
 
-	bool s1_isLocal = (unsigned int)m_lastRtpPacketSide1->m_sourceIp.s_addr == (unsigned int)m_localIp.s_addr;
-	bool s2_isLocal = (unsigned int)m_lastRtpPacketSide2->m_sourceIp.s_addr == (unsigned int)m_localIp.s_addr;
-
-	if (s2_isLocal && s1_shouldBeLocal) {
-		m_logMsg = "s2 matches localip";
-		return true;
-	}
-
-	if (s1_isLocal && s2_shouldBeLocal) {
-		m_logMsg = "s1 matches localip";
-		return true;
-	}
-
-	if (!s1_isLocal && !s2_isLocal) {
-
+	//
+	// If Media Gateways have been defined, check the ip source against the
+	// media gateways to determine whether the flow is "local" or " remote"
+	// Otherwise, check against localIp. Using media gateways is the preferred approach
+	// as localIp follows the SIP endpoints, which are not necessarily the same as
+	// the media endpoints
+	if ( m_config->m_mediaGateways.size())
+	{
 		bool s1_isMediaGateway = m_config->IsMediaGateway(m_lastRtpPacketSide1->m_sourceIp);
 		bool s2_isMediaGateway = m_config->IsMediaGateway(m_lastRtpPacketSide2->m_sourceIp);
 
@@ -48,6 +41,22 @@ bool OrkSession::ShouldSwapChannels()
 			return true;
 		}
 	}
+	else
+	{
+		bool s1_isLocal = (unsigned int)m_lastRtpPacketSide1->m_sourceIp.s_addr == (unsigned int)m_localIp.s_addr;
+		bool s2_isLocal = (unsigned int)m_lastRtpPacketSide2->m_sourceIp.s_addr == (unsigned int)m_localIp.s_addr;
+
+		if (s2_isLocal && s1_shouldBeLocal) {
+			m_logMsg = "s2 matches localip";
+			return true;
+		}
+
+		if (s1_isLocal && s2_shouldBeLocal) {
+			m_logMsg = "s1 matches localip";
+			return true;
+		}
+	}
+
 
 	return false;
 }
