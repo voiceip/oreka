@@ -20,6 +20,8 @@ void AcpConfig::Reset() {
 	m_asciiMediaGateways.clear();
 	m_ctiDrivenEnable = false;
 	m_ctiDrivenMatchingTimeoutSec = 30;
+
+	m_sipReportFullAddress = false;
 }
 
 void AcpConfig::Define(Serializer* s) {
@@ -38,6 +40,7 @@ void AcpConfig::Define(Serializer* s) {
 	s->BoolValue("CtiDrivenEnable", m_ctiDrivenEnable);
 	s->IntValue("CtiDrivenMatchingTimeoutSec",m_ctiDrivenMatchingTimeoutSec);
 	s->CsvValue("CtiDrivenMatchingCriteria", m_ctiDrivenMatchingCriteria);
+	s->BoolValue("SipReportFullAddress", m_sipReportFullAddress);
 }
 
 void AcpConfig::Validate() {
