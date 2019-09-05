@@ -26,7 +26,7 @@ bool OrkSession::ShouldSwapChannels()
 	// Otherwise, check against localIp. Using media gateways is the preferred approach
 	// as localIp follows the SIP endpoints, which are not necessarily the same as
 	// the media endpoints
-	if ( m_config->m_mediaGateways.size())
+	if ( !m_config->m_mediaGateways.Empty())
 	{
 		bool s1_isMediaGateway = m_config->IsMediaGateway(m_lastRtpPacketSide1->m_sourceIp);
 		bool s2_isMediaGateway = m_config->IsMediaGateway(m_lastRtpPacketSide2->m_sourceIp);

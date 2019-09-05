@@ -6,6 +6,7 @@
 #include "Object.h"
 #include "serializers/Serializer.h"
 #include "StdString.h"
+#include "Utils.h"
 
 class AcpConfig : public Object
 {
@@ -25,7 +26,7 @@ public:
 	bool m_rtpS1S2MappingDeterministicS1IsLocal;
 
 	bool IsMediaGateway(struct in_addr);
-	std::list<unsigned int> m_mediaGateways;
+	IpRanges m_mediaGateways;
 	bool m_ctiDrivenEnable;
 	int m_ctiDrivenMatchingTimeoutSec;
 	std::list<CStdString> m_ctiDrivenMatchingCriteria;
