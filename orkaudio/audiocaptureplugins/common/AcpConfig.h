@@ -8,6 +8,14 @@
 #include "StdString.h"
 #include "Utils.h"
 
+typedef enum{
+	MatchLocalParty,
+	MatchRemoteParty,
+	MatchUcid,
+	MatchUcidTimestamp,
+	MatchNone
+} CtiMatchingCriteriaEnum;
+
 class AcpConfig : public Object
 {
 public:
@@ -32,6 +40,7 @@ public:
 	std::list<CStdString> m_ctiDrivenMatchingCriteria;
 
 	bool m_sipReportFullAddress;
+	std::list <CtiMatchingCriteriaEnum> m_ctiMatchingCriteriaList;
 };
 
 #endif

@@ -239,43 +239,46 @@ bool HttpServer::Initialize()
 
 #ifndef CENTOS_6
 	//===============SSL====================
+	if(CONFIG.m_tlsServerEnable)
+	{
+		ret = apr_sockaddr_info_get(&m_sslSockAddr, NULL, APR_INET, m_sslPort, 0, m_mp);
+		if(ret != APR_SUCCESS)
+		{
+			LOG4CXX_ERROR(s_log, "Failed to get sockaddr for https server");
+			return false;
+		}
+		ret = apr_socket_create(&m_sslSocket, m_sslSockAddr->family, SOCK_STREAM,APR_PROTO_TCP, m_mp);
+		if(ret != APR_SUCCESS)
+		{
+			LOG4CXX_ERROR(s_log, "Failed to create a socket https server");
+			return false;
+		}
+		apr_socket_opt_set(m_sslSocket, APR_SO_REUSEADDR, 1);
+		apr_socket_timeout_set(m_sslSocket, -1);
 
-	// ret = apr_sockaddr_info_get(&m_sslSockAddr, NULL, APR_INET, m_sslPort, 0, m_mp);
-    // if(ret != APR_SUCCESS)
-	// {
-	// 	LOG4CXX_ERROR(s_log, "Failed to get sockaddr for https server");
-	// 	return false;
-	// }
-    // ret = apr_socket_create(&m_sslSocket, m_sslSockAddr->family, SOCK_STREAM,APR_PROTO_TCP, m_mp);
-    // if(ret != APR_SUCCESS)
-	// {
-	// 	LOG4CXX_ERROR(s_log, "Failed to create a socket https server");
-	// 	return false;
-	// }
-    // apr_socket_opt_set(m_sslSocket, APR_SO_REUSEADDR, 1);
-	// apr_socket_timeout_set(m_sslSocket, -1);
+		ret = apr_socket_bind(m_sslSocket, m_sslSockAddr);
+		if(ret != APR_SUCCESS)
+		{
+			LOG4CXX_ERROR(s_log, "Failed to bind https server socket");
+			return false;
+		}
+	    ret = apr_socket_listen(m_sslSocket, SOMAXCONN);
+		if(ret != APR_SUCCESS)
+		{
+			LOG4CXX_ERROR(s_log, "Failed to have a listening socket for http server");
+			return false;
+		}
+		CStdString sslTcpPortString = IntToString(m_sslPort);
+		LOG4CXX_INFO(s_log, CStdString("Started HttpsServer on port:")+sslTcpPortString);
 
-    // ret = apr_socket_bind(m_sslSocket, m_sslSockAddr);
-	// if(ret != APR_SUCCESS)
-	// {
-	// 	LOG4CXX_ERROR(s_log, "Failed to bind https server socket");
-	// 	return false;
-	// }
-    // ret = apr_socket_listen(m_sslSocket, SOMAXCONN);
-	// if(ret != APR_SUCCESS)
-	// {
-	// 	LOG4CXX_ERROR(s_log, "Failed to have a listening socket for http server");
-	// 	return false;
-	// }
-	// CStdString sslTcpPortString = IntToString(m_sslPort);
-    // LOG4CXX_INFO(s_log, CStdString("Started HttpsServer on port:")+sslTcpPortString);
+		//We will need a config param enable to activate ssl connection
+		m_ctx = OrkOpenSslSingleton::GetInstance()->GetServerCtx();
+		if(!m_ctx){
+			LOG4CXX_ERROR(s_log, "Failed to create CTX for http server");
+			return false;
+		}
+	}
 
-	// //We will need a config param enable to activate ssl connection
-	// m_ctx = OrkOpenSslSingleton::GetInstance()->GetServerCtx();
-	// if(!m_ctx){
-	// 	LOG4CXX_ERROR(s_log, "Failed to create CTX for http server");
-	// 	return false;
-	// }
 	//=========================
 #endif
 	return true;
@@ -292,14 +295,16 @@ void HttpServer::Run()
 		LOG4CXX_ERROR(s_log, logMsg);
 	}
 
-	// try{
-	// 	std::thread httpsHandler(&HttpServer::RunHttpsServer, this);
-	// 	httpsHandler.detach();
-	// } catch(const std::exception &ex){
-	// 	CStdString logMsg;
-	// 	logMsg.Format("Failed to start RunHttpsServer thread reason:%s",  ex.what());
-	// 	LOG4CXX_ERROR(s_log, logMsg);
-	// }
+	if(m_ctx){
+		try{
+		std::thread httpsHandler(&HttpServer::RunHttpsServer, this);
+		httpsHandler.detach();
+		} catch(const std::exception &ex){
+			CStdString logMsg;
+			logMsg.Format("Failed to start RunHttpsServer thread reason:%s",  ex.what());
+			LOG4CXX_ERROR(s_log, logMsg);
+		}
+	}
 }
 
 void HttpServer::RunHttpServer()
@@ -346,8 +351,10 @@ void HttpServer::RunHttpsServer()
 	while(true)
 	{
 		apr_status_t ret;
+		apr_pool_t* request_pool;
+		apr_pool_create(&request_pool, m_mp);
 		apr_socket_t* incomingSocket;
-        ret = apr_socket_accept(&incomingSocket, m_sslSocket,m_mp);
+        ret = apr_socket_accept(&incomingSocket, m_sslSocket,request_pool);
         if (ret != APR_SUCCESS) {
             continue;
         }
@@ -356,6 +363,9 @@ void HttpServer::RunHttpsServer()
 		try{
 			std::lock_guard<std::mutex> lk(s_httpMutex);
 			if(s_httpSessions > HTTP_MAX_SESSIONS){
+				LOG4CXX_WARN(s_log, "Closing incoming HTTPS request: session limit exceeded.");
+				apr_socket_close(incomingSocket);
+				apr_pool_destroy(request_pool);
 				continue;
 			}
 			std::thread handler(HandleSslHttpMessage, incomingSocket);
@@ -365,6 +375,8 @@ void HttpServer::RunHttpsServer()
 			CStdString logMsg;
 			logMsg.Format("Failed to start HttpsServer thread reason:%s",  ex.what());
 			LOG4CXX_ERROR(s_log, logMsg);
+			apr_socket_close(incomingSocket);
+			apr_pool_destroy(request_pool);
 			continue;
 		}
 	}
@@ -379,7 +391,7 @@ void HttpServer::HandleHttpMessage(apr_socket_t* sock, apr_pool_t* pool)
 	SetThreadName("orka:httpreq");
 
     while(true)
-    { 
+    {
         apr_size_t size = 2048;
         apr_status_t ret = apr_socket_recv(sock, buf, &size);
 		if (size > 5)
@@ -521,7 +533,7 @@ void HttpServer::HandleSslHttpMessage(apr_socket_t* sock)
 	buf[2047] = '\0';	// security
 	int lenSent;
     while(true)
-    { 
+    {
         int size;
         size = OrkSslRead(sock, ssl, buf, 2048);
 		if (size > 5)

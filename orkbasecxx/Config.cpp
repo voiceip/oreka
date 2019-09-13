@@ -94,6 +94,9 @@ Config::Config()
 	m_hostnameReportFqdn = HOSTNAME_REPORT_FQDN_DEFAULT;
 	m_discardUnidirectionalCalls = false;
 	m_audioOutputEnable = true;
+	m_tlsServerEnable = TLS_SERVER_ENABLE_DEFAULT;
+	m_tlsServerCertPath = TLS_SERVER_CERTIFICATE_PATH_DEFAULT;
+	m_tlsServerKeyPath = TLS_SERVER_KEY_PATH_DEFAULT;
 }
 
 void Config::Define(Serializer* s)
@@ -234,6 +237,9 @@ void Config::Define(Serializer* s)
 	s->IntValue(CLIENT_RETRY_PERIOD_SEC, m_clientRetryPeriodSec);
 	s->BoolValue("DiscardUnidirectionalCalls", m_discardUnidirectionalCalls);
 	s->BoolValue("AudioOutputEnable", m_audioOutputEnable);
+	s->BoolValue(TLS_SERVER_ENABLE_PARAM, m_tlsServerEnable);
+	s->StringValue(TLS_SERVER_CERTIFICATE_PATH_PARAM, m_tlsServerCertPath);
+	s->StringValue(TLS_SERVER_CERTIFICATE_KEY_PARAM, m_tlsServerKeyPath);
 }
 
 void Config::Validate()
