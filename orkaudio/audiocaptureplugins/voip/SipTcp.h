@@ -20,6 +20,8 @@
 #include <map>
 #include "PacketHeaderDefs.h"
 
+bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
+
 using namespace log4cxx;
 
 class SafeBuffer
