@@ -2,8 +2,6 @@
 #include "time.h"
 #include <fstream>
 #include "AudioCapture.h"
-#include "Config.h"
-#include "ConfigManager.h"
 #ifndef WIN32
 #include <pwd.h>
 #include <grp.h>
@@ -120,11 +118,11 @@ void OrkOpenSslSingleton::ConfigureServerCtx()
 {
 	SSL_CTX_set_ecdh_auto(m_serverCtx, 1);
     /* Set the key and cert */
-    if(SSL_CTX_use_certificate_file(m_serverCtx, CONFIG.m_tlsServerCertPath, SSL_FILETYPE_PEM) <= 0) {
+    if(SSL_CTX_use_certificate_file(m_serverCtx, "/etc/orkaudio/cert.pem", SSL_FILETYPE_PEM) <= 0) {
 		throw (CStdString("Unable to find cert.pem\n"));
     }
 
-    if(SSL_CTX_use_PrivateKey_file(m_serverCtx, CONFIG.m_tlsServerKeyPath, SSL_FILETYPE_PEM) <= 0 ) {
+    if(SSL_CTX_use_PrivateKey_file(m_serverCtx, "/etc/orkaudio/key.pem", SSL_FILETYPE_PEM) <= 0 ) {
 		throw (CStdString("Unable to find key.perm\n"));
     }
     
@@ -868,7 +866,7 @@ int OrkSsl_Connect(SSL* ssl, int timeoutMs, CStdString &errstr)
 	while((r = SSL_connect(ssl)) <=0)
 	{
 		int er = SSL_get_error(ssl, r);
-		if(er == SSL_ERROR_WANT_READ || er== SSL_ERROR_WANT_WRITE)
+		if(r == SSL_ERROR_WANT_READ || r== SSL_ERROR_WANT_WRITE)
 		{
 			OrkSleepMs(100);
 		}
@@ -902,7 +900,7 @@ int OrkSsl_Accept(SSL* ssl, int timeoutMs, CStdString &errstr)
 	while((r = SSL_accept(ssl)) <=0)
 	{
 		int er = SSL_get_error(ssl, r);
-		if(er == SSL_ERROR_WANT_READ || er== SSL_ERROR_WANT_WRITE)
+		if(r == SSL_ERROR_WANT_READ || r== SSL_ERROR_WANT_WRITE)
 		{
 			OrkSleepMs(100);
 		}

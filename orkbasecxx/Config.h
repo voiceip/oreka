@@ -157,12 +157,6 @@
 #define DYNAMIC_TAGS "DynamicTags"
 #define HOSTNAME_REPORT_FQDN "HostnameReportFqdn"
 #define HOSTNAME_REPORT_FQDN_DEFAULT false
-#define TLS_SERVER_CERTIFICATE_PATH_DEFAULT "/etc/orkaudio/server_tls_cert.pem"
-#define TLS_SERVER_CERTIFICATE_PATH_PARAM "TlsServerCertificatePath"
-#define TLS_SERVER_KEY_PATH_DEFAULT "/etc/orkaudio/server_tls_key.pem"
-#define TLS_SERVER_CERTIFICATE_KEY_PARAM "TlsServerKeyPath"
-#define TLS_SERVER_ENABLE_PARAM "TlsServerEnable"
-#define TLS_SERVER_ENABLE_DEFAULT false
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -264,9 +258,6 @@ public:
 	CStdString m_audioOutputPathMcf;
 	bool m_discardUnidirectionalCalls;
 	bool m_audioOutputEnable;
-	bool m_tlsServerEnable;
-	CStdString m_tlsServerCertPath;
-	CStdString m_tlsServerKeyPath;
 
 private:
 	log4cxx::LoggerPtr m_log;
