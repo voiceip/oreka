@@ -163,7 +163,8 @@
     <ClCompile Include="ParsingUtils.cpp" />
     <ClCompile Include="SipHeaders.cpp" />
     <ClCompile Include="SipParsers.cpp" />
-	<ClCompile Include="..\Common/SipTcp.cpp" />
+	<ClCompile Include="..\Common\SipTcp.cpp" />
+	<ClCompile Include="..\Common\SafeBuffer.cpp" />
     <ClCompile Include="SkinnyParsers.cpp" />
     <ClCompile Include="VoIp.cpp" />
     <ClCompile Include="VoIpConfig.cpp" />
@@ -182,6 +183,7 @@
     <ClInclude Include="SipHeaders.h" />
     <ClInclude Include="SipParsers.h" />
     <ClInclude Include="..\Common\SipTcp.h" />
+    <ClInclude Include="..\Common\SafeBuffer.h" />
     <ClInclude Include="SkinnyParsers.h" />
     <ClInclude Include="VoIpConfig.h" />
     <ClInclude Include="VoIpSession.h" />
