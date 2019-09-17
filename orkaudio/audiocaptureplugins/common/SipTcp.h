@@ -14,11 +14,6 @@
 #ifndef _SIPTCP_H__
 #define _SIPTCP_H__ 1
 
-#include <log4cxx/logger.h>
-#include <list>
-#include "SipTcp.h"
-#include <map>
-#include "PacketHeaderDefs.h"
 #include "SafeBuffer.h"
 
 bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);

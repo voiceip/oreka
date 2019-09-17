@@ -3,27 +3,22 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <Windows.h>
-//#include "winsock2.h"
+#define _WINSOCKAPI_// prevents the inclusion of winsock.h
 #endif
+
 #include <list>
 #include "AudioCapturePlugin.h"
 #include "AudioCapturePluginCommon.h"
 #include "Utils.h"
-#include "VoIpConfig.h"
 #include "pcap.h"
 #include "PacketHeaderDefs.h"
 #include "Rtp.h"
-#include "VoIpSession.h"
-#include "Iax2Session.h"
 #include "SipTcp.h"
 #include "shared_ptr.h"
 #include "StdString.h"
 #include "SipTcp.h"
 #include <boost/algorithm/string/predicate.hpp>
 
-#ifdef WIN32
-#define snprintf _snprintf
-#endif
 
 static LoggerPtr s_sipTcpPacketLog = Logger::getLogger("packet.tcpsip");
 
