@@ -13,6 +13,7 @@ typedef enum{
 	MatchRemoteParty,
 	MatchUcid,
 	MatchUcidTimestamp,
+	MatchXrefci,
 	MatchNone
 } CtiMatchingCriteriaEnum;
 
