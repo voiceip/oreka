@@ -340,7 +340,7 @@ void DLL_IMPORT_EXPORT_ORKBASE GetHostFqdn(CStdString& fqdn, int size);
 class AlphaCounter
 {
 public:
-	inline AlphaCounter(int start = 0)
+	inline AlphaCounter(int start = 0, const std::string& prefix="")
 	{
 		if(start)
 		{
@@ -381,9 +381,9 @@ public:
 		return string;
 	}
 
-	inline void Reset()
+	inline void Reset(int value = 0)
 	{
-		m_counter = 0;
+		m_counter = value;
 	}
 private:
 	unsigned int m_counter;
