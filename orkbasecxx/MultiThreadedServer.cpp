@@ -380,12 +380,13 @@ void HttpServer::HandleHttpMessage(apr_socket_t* sock, apr_pool_t* pool)
 
     while(true)
     { 
-        apr_size_t size = 2048;
+		apr_size_t size = 2047;
         apr_status_t ret = apr_socket_recv(sock, buf, &size);
 		if (size > 5)
 		{
 			try
 			{
+				bool singleLineResp = false;
 				int startUrlOffset = 5;		// get rid of "GET /" from Http request, so skip 5 chars
 				char* stopUrl = strstr(buf+startUrlOffset, " HTTP");	// detect location of post-URL trailing stuff
 				if(!stopUrl)
@@ -393,6 +394,12 @@ void HttpServer::HandleHttpMessage(apr_socket_t* sock, apr_pool_t* pool)
 					LOG4CXX_WARN(s_log, "Malformed http request");
 					throw (CStdString("Malformed http request"));							;
 				}
+				char* singleLine = NULL;
+				singleLine = strstr(buf, "text/single-line");
+				if(singleLine != NULL){
+					singleLineResp = true;
+				}
+
 				*stopUrl = '\0';									// Remove post-URL trailing stuff
 				int urlLen = stopUrl - buf;
 				for(int i = startUrlOffset; i< urlLen; i++)
@@ -429,24 +436,31 @@ void HttpServer::HandleHttpMessage(apr_socket_t* sock, apr_pool_t* pool)
 					}
 					else
 					{
-						DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(XStr("Core").unicodeForm());
-						XERCES_CPP_NAMESPACE::DOMDocument* myDoc;
-						myDoc = impl->createDocument(
-									0,			 // root element namespace URI.
-									XStr("response").unicodeForm(),	   // root element name
-									0);			 // document type object (DTD).
-						response->SerializeDom(myDoc);
-						CStdString pingResponse = DomSerializer::DomNodeToString(myDoc);
-
-						CStdString httpOk("HTTP/1.0 200 OK\r\nContent-type: text/xml\r\n\r\n");
-											CStdString singleLineResponseString = response->SerializeSingleLine();
-											LOG4CXX_INFO(s_log, "response: " + singleLineResponseString);
+						CStdString httpOkBody;
+						CStdString httpOk;
+						if(singleLineResp == false){
+							DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(XStr("Core").unicodeForm());
+							XERCES_CPP_NAMESPACE::DOMDocument* myDoc;
+							myDoc = impl->createDocument(
+										0,			 // root element namespace URI.
+										XStr("response").unicodeForm(),	   // root element name
+										0);			 // document type object (DTD).
+							response->SerializeDom(myDoc);
+							httpOkBody = DomSerializer::DomNodeToString(myDoc);
+							myDoc->release(); 
+							httpOk = "HTTP/1.0 200 OK\r\nContent-type: text/xml\r\n\r\n";						
+						}
+						else{
+							SingleLineSerializer responseSerializer(response.get());
+							httpOkBody = responseSerializer.Serialize();
+							httpOk = "HTTP/1.0 200 OK\r\nContent-type: text/single-line\r\n\r\n";
+						}
+						CStdString singleLineResponseString = response->SerializeSingleLine();
+						LOG4CXX_INFO(s_log, "response: " + singleLineResponseString);
 						apr_size_t leng = httpOk.GetLength();
 						ret = apr_socket_send(sock, httpOk, &leng);
-						leng = pingResponse.GetLength();
-						ret = apr_socket_send(sock, pingResponse, &leng);
-
-						myDoc->release(); 
+						leng = httpOkBody.GetLength();
+						ret = apr_socket_send(sock, httpOkBody, &leng);
 					}
 				}
 				else
