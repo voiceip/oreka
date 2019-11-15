@@ -62,29 +62,22 @@ RUN apt-get update && apt-get install -y libpcap0.8 libsndfile1 libapr1 libspeex
 # Mount the image from "builder" stage at `/artifacts` during this run
 RUN --mount=type=bind,source=/,target=/artifacts,from=builder `
 	cp /artifacts/opt/oreka/orkaudio/orkaudio /usr/sbin/orkaudio `
-   	&& cp /artifacts/opt/oreka/orkaudio/audiocaptureplugins/voip/.libs/libvoip.* /usr/lib/`
-   	&& cp /artifacts/opt/oreka/orkaudio/audiocaptureplugins/generator/.libs/libgenerator* /usr/lib/`
+   	&& cp /artifacts/opt/oreka/orkaudio/audiocaptureplugins/voip/.libs/libvoip.so* /usr/lib/`
+   	&& cp /artifacts/opt/oreka/orkaudio/audiocaptureplugins/voip/.libs/libvoip.la /usr/lib/`
+   	&& cp /artifacts/opt/oreka/orkaudio/audiocaptureplugins/generator/.libs/libgenerator.so* /usr/lib/`
+   	&& cp /artifacts/opt/oreka/orkaudio/audiocaptureplugins/generator/.libs/libgenerator.la /usr/lib/`
    	&& cp /artifacts/usr/lib/liborkbase.*  /usr/lib/ `
    	&& cp /artifacts/usr/lib/x86_64-linux-gnu/libbcg729.*  /usr/lib/ `
    	&& mkdir -p /usr/lib/orkaudio/plugins/ `
    	&& cp /artifacts/opt/oreka/orkaudio/plugins/*.so  /usr/lib/orkaudio/plugins/
 
-# COPY --from=builder /opt/oreka/orkaudio/orkaudio  /usr/sbin/orkaudio
-# COPY --from=builder [ `
-# 	"/opt/oreka/orkaudio/audiocaptureplugins/voip/.libs/libvoip.so", `
-# 	"/opt/oreka/orkaudio/audiocaptureplugins/voip/.libs/libvoip.la", `
-# 	"/opt/oreka/orkaudio/audiocaptureplugins/generator/.libs/libgenerator.so", `
-# 	"/opt/oreka/orkaudio/audiocaptureplugins/generator/.libs/libgenerator.la", `
-# 	"/usr/lib/" ]
-# 
-# COPY --from=builder /usr/lib/liborkbase.*  /usr/lib/
-# COPY --from=builder /usr/lib/x86_64-linux-gnu/libbcg729.*  /usr/lib/
-# COPY --from=builder /opt/oreka/orkaudio/plugins/*.so  /usr/lib/orkaudio/plugins/
 
 ADD  https://raw.githubusercontent.com/voiceip/oreka/master/orkaudio/logging-linux-template.properties /etc/orkaudio/logging.properties
 COPY config.xml /etc/orkaudio/config.xml
+COPY entrypoint.sh /opt/entrypoint.sh
 
 ENV SHELL /bin/bash
+ENTRYPOINT [ "/opt/entrypoint.sh" ]
 
 CMD ["orkaudio", "debug"]
 

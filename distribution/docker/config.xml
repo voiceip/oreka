@@ -3,7 +3,7 @@
 	<!-- Copy this to config.xml and modify according to taste -->
 
 	<AudioOutputPath>/var/log/orkaudio/audio</AudioOutputPath>
-	<TapeFileNaming>[trackingid],[localparty],[remoteparty],[nativecallid]</TapeFileNaming>
+	<!-- <TapeFileNaming>[trackingid],[localparty],[remoteparty],[nativecallid]</TapeFileNaming> -->
 
 	<!-- Uncomment the plugin you want to use: -->
 	<!-- Use libvoip.so for SIP, Cisco Skinny and pure RTP -->
@@ -66,7 +66,7 @@
 
 		<!-- Use this if you want to force capture from a given list of devices. -->
 		<!-- All available devices are listed in orkaudio.log when the service is starting -->
-		<Devices>eth0</Devices>
+		<Devices>__INTERFACE__</Devices>
 
 		<!--<PcapFilter>net 217.14.0.0/16 or host 10.0.0.1</PcapFilter>-->
 
