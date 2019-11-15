@@ -1,19 +1,16 @@
 # escape=`
+# syntax=docker/dockerfile:experimental
 
-FROM ubuntu:xenial
+FROM ubuntu:xenial as builder
 MAINTAINER Kinshuk B (hi@kinsh.uk)
 
 # Configure apt
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update `
-    && apt-get -y install --no-install-recommends apt-utils 2>&1
 
-RUN apt-get install -y build-essential libtool automake git tree rpm libboost-dev `
+RUN apt-get update && apt-get install -y build-essential libtool automake git tree rpm libboost-dev `
 	libpcap-dev libsndfile1-dev libapr1-dev libspeex-dev liblog4cxx10-dev libace-dev `
 	libopus-dev libxerces-c3.1 libxerces-c3-dev libssl-dev cmake`
 	&& rm -rf /var/lib/apt/lists/* 
-
-USER root
 
 #silk
 RUN mkdir -p /opt/silk && chmod 777 /opt/silk`
@@ -32,7 +29,6 @@ RUN mkdir -p /opt/opus && chmod 777 /opt/opus`
 	&& make install `
 	&& ln -s /usr/local/lib/libopus.so /usr/local/lib/libopusstatic.so `
 	&& ln -s /usr/include/opus /opt/opus/include/opus
-
 
 #g729
 RUN mkdir -p /opt/bcg729 && chmod 777 /opt/bcg729`
@@ -56,10 +52,40 @@ RUN cd /opt/oreka/orkaudio `
 	&& make `
 	&& make install
 
-RUN mkdir -p /etc/orkaudio
+FROM ubuntu:xenial
+MAINTAINER Kinshuk B (hi@kinsh.uk)
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y libpcap0.8 libsndfile1 libapr1 libspeex1 liblog4cxx10v5 libace-6.3.3 `
+	libopus0 libxerces-c3.1 libssl1.0.0 && rm -rf /var/lib/apt/lists/* 
+
+# Mount the image from "builder" stage at `/artifacts` during this run
+RUN --mount=type=bind,source=/,target=/artifacts,from=builder `
+	cp /artifacts/opt/oreka/orkaudio/orkaudio /usr/sbin/orkaudio `
+   	&& cp /artifacts/opt/oreka/orkaudio/audiocaptureplugins/voip/.libs/libvoip.* /usr/lib/`
+   	&& cp /artifacts/opt/oreka/orkaudio/audiocaptureplugins/generator/.libs/libgenerator* /usr/lib/`
+   	&& cp /artifacts/usr/lib/liborkbase.*  /usr/lib/ `
+   	&& cp /artifacts/usr/lib/x86_64-linux-gnu/libbcg729.*  /usr/lib/ `
+   	&& mkdir -p /usr/lib/orkaudio/plugins/ `
+   	&& cp /artifacts/opt/oreka/orkaudio/plugins/*.so  /usr/lib/orkaudio/plugins/
+
+# COPY --from=builder /opt/oreka/orkaudio/orkaudio  /usr/sbin/orkaudio
+# COPY --from=builder [ `
+# 	"/opt/oreka/orkaudio/audiocaptureplugins/voip/.libs/libvoip.so", `
+# 	"/opt/oreka/orkaudio/audiocaptureplugins/voip/.libs/libvoip.la", `
+# 	"/opt/oreka/orkaudio/audiocaptureplugins/generator/.libs/libgenerator.so", `
+# 	"/opt/oreka/orkaudio/audiocaptureplugins/generator/.libs/libgenerator.la", `
+# 	"/usr/lib/" ]
+# 
+# COPY --from=builder /usr/lib/liborkbase.*  /usr/lib/
+# COPY --from=builder /usr/lib/x86_64-linux-gnu/libbcg729.*  /usr/lib/
+# COPY --from=builder /opt/oreka/orkaudio/plugins/*.so  /usr/lib/orkaudio/plugins/
 
 ADD  https://raw.githubusercontent.com/voiceip/oreka/master/orkaudio/logging-linux-template.properties /etc/orkaudio/logging.properties
 COPY config.xml /etc/orkaudio/config.xml
 
-# Set the default shell to bash instead of sh
 ENV SHELL /bin/bash
+
+CMD ["orkaudio", "debug"]
+
+
