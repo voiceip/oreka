@@ -1,0 +1,114 @@
+<config>
+	<!-- This is an example configuration file for the Oreka orkaudio capture service on Linux -->
+	<!-- Copy this to config.xml and modify according to taste -->
+
+	<AudioOutputPath>/var/log/orkaudio/audio</AudioOutputPath>
+	<TapeFileNaming>[trackingid],[localparty],[remoteparty],[nativecallid]</TapeFileNaming>
+
+	<!-- Uncomment the plugin you want to use: -->
+	<!-- Use libvoip.so for SIP, Cisco Skinny and pure RTP -->
+	<!-- Use libh323voip.so for Avaya, Nortel Unistim, H.323 and MGCP -->
+	<!-- See in <VoIpPlugin> below for more precise protocol tuning -->
+	<CapturePlugin>libvoip.so</CapturePlugin>
+	<!--<CapturePlugin>libh323voip.so</CapturePlugin>-->
+	<!--<CapturePlugin>liborksipua.so</CapturePlugin>-->
+
+	<CapturePluginPath>/usr/lib</CapturePluginPath>
+	<!--<PluginsDirectory>/oreka-src/orkaudio/plugins</PluginsDirectory>-->
+
+	<!-- Audio file storage format: choose from: native, gsm, ulaw, alaw, pcmwav -->
+	<StorageAudioFormat>pcmwav</StorageAudioFormat>
+	<StereoRecording>true</StereoRecording>
+	<TapeNumChannels>2</TapeNumChannels>
+	<AudioFileBitRate>8000</AudioFileBitRate>
+
+	<!-- If you want to keep native audio files as well as compressed, change this to "no" -->
+	<DeleteNativeFile>yes</DeleteNativeFile>
+
+	<TrackerHostname>localhost</TrackerHostname>
+	<TrackerTcpPort>8080</TrackerTcpPort>
+
+	<CapturePortFilters>LiveMonitoring</CapturePortFilters>
+	<TapeProcessors>BatchProcessing, Reporting</TapeProcessors>
+
+	<BatchProcessingEnhancePriority>true</BatchProcessingEnhancePriority>
+	<NumBatchThreads>25</NumBatchThreads>
+
+	<AudioFileOwner>tomcat</AudioFileOwner>
+	<AudioFileGroup>tomcat</AudioFileGroup>
+	<AudioFilePermissions>644</AudioFilePermissions>
+	<!--<TapeDurationMinimumSec>3</TapeDurationMinimumSec>-->
+
+	<!-- Uncomment the parameter below and fill in a comma-separated -->
+	<!-- list of TCP addresses which you wish to open a connection to. -->
+	<!-- For example 192.168.1.250:1721, 192.168.1.1:8091. A TCP -->
+	<!-- connection shall be opened and a read-loop shall be entered -->
+	<!-- into whereby any data read shall be discarded, and a record -->
+	<!-- maintained of the amount of data which has been read. -->
+	<!-- <SocketStreamerTargets></SocketStreamerTargets> -->
+
+	<VoIpPlugin>
+		<PcapSocketBufferSize>8388608</PcapSocketBufferSize>
+
+		<!--queuemetrics integration, uncomment the following line-->
+		<SipExtractFields>X-Unique-ID</SipExtractFields>
+
+		<!-- Use this for Nortel proprietary VoIP protocol -->
+		<!--<UnistimDetect>yes</UnistimDetect>-->
+
+		<!-- Turn both these on this for Avaya H.323 extensions -->
+		<AvayaDetect>yes</AvayaDetect>
+		<RtcpDetect>yes</RtcpDetect>
+
+		<!-- Set the option below to "true" to enable IAX2 support -->
+		<!-- the default is that IAX2 support is disabled -->
+		<!--<Iax2Support>false</Iax2Support> -->
+
+		<!-- Use this if you want to force capture from a given list of devices. -->
+		<!-- All available devices are listed in orkaudio.log when the service is starting -->
+		<Devices>eth0</Devices>
+
+		<!--<PcapFilter>net 217.14.0.0/16 or host 10.0.0.1</PcapFilter>-->
+
+		<SipOverTcpSupport>yes</SipOverTcpSupport>
+		<SipReportFullAddress>yes</SipReportFullAddress>
+		<!-- <SipRequestUriAsLocalParty>yes</SipRequestUriAsLocalParty> -->
+		<!--<SipUse200OkMediaAddress>yes</SipUse200OkMediaAddress>-->
+
+		<!-- Those two parameters are only needed for call direction detection (one or the other) -->
+		<!--<SipDomains>company.com, 65.34.25.87</SipDomains>-->
+		<!--<SipDirectionRefenceIpAddresses>65.34.98.56, 65.34.98.57</SipDirectionRefenceIpAddresses>-->
+
+		<!-- Sangoma wanpipe RTP tap for TDM boards -->
+		<!--<SangomaRxTcpPortStart>9000</SangomaRxTcpPortStart>-->
+		<!--<SangomaTxTcpPortStart>11000</SangomaTxTcpPortStart>-->
+
+		<!-- Mitel Communications Platform -->
+		<!-- Turn on the parameter below to enable support for Mitel -->
+		<!-- <MitelDetect>yes</MitelDetect> -->
+
+		<!-- The parameter below sets the Mitel signalling port. The -->
+		<!-- default is 3999 -->
+		<!-- <MitelSignallingPort>3999</MitelSignallingPort> -->
+
+		<!-- The parameter below sets the amount of time in seconds -->
+		<!-- after which the cached Mitel metadata shall be discarded. -->
+		<!-- The default is 60 seconds. -->
+		<!-- <MitelMetadataTimeoutSec>60</MitelMetadataTimeoutSec> -->
+
+		<!-- Turn on the parameter below to enable extension Mitel -->
+		<!-- extension detection using ARP. Turning on this parameter -->
+		<!-- automatically turns on MitelDetect -->
+		<!-- <MitelArpExtensionDetect>yes</MitelArpExtensionDetect> -->
+
+		<!-- Set MitelSmdrPort to the port where Mitel SMDR records -->
+		<!-- may be accessed. The default is 1752. Note that you -->
+		<!-- shall need to configure SocketStreamerTargets with the -->
+		<!-- host and this port, in order for Oreka to access the -->
+		<!-- SMDR records. See SocketStreamerTargets above for more -->
+		<!-- information on how to configure it. -->
+		<!-- <MitelSmdrPort>1752</MitelSmdrPort> -->
+		<!-- End of Available Configurations for Mitel Communications Platform -->
+
+	</VoIpPlugin>
+</config>
