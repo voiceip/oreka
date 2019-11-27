@@ -1,0 +1,7 @@
+name: 'Container Action Template'
+description: 'Get started with Container actions'
+author: 'GitHub'
+
+runs:
+  using: 'docker'
+  image: 'orkaudio'
