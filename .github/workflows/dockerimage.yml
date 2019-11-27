@@ -18,4 +18,4 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Build the Docker image
-      run: DOCKER_BUILDKIT=1 docker build distribution/docker --file distribution/docker/Dockerfile.orkaudio --tag orkaudio:$(date +%s)
+      run: DOCKER_BUILDKIT=1 docker build . --file .devcontainer/Dockerfile.orkaudio.build --tag orkaudio:$(date +%s)
