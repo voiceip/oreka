@@ -19,10 +19,31 @@ Based on [Orecx Oreka](http://www.orecx.com/open-source/), this project tries to
 
 ### Building
 
+#### Docker
+
+```
+export DOCKER_BUILDKIT=1
+distribution/docker
+docker build -f Dockerfile.orkaudio -t orkaudio .
+docker run -itd --net=host --restart=always --privileged=true --name orkaudio orkaudio
+```
+
+#### Debian
+
 The build tool is separately available at [github:Oreka-build](https://github.com/voiceip/oreka-build) which builds the project on a Ubuntu14.04 Virtual Box. 
 You can natively build if you have all dependencies but I develop on a OSx system, so have kept it separate.
 
 ### Distribution & Installation
+
+#### Docker
+
+Docker images are available via docker hub, so just run the below command to pull images directly from hub.docker.com. Note: `--net=host` on docker works on linux systems and is a [limitation of docker](https://docs.docker.com/network/host/), so please keep that in mind.
+
+```
+docker run -itd --net=host --restart=always --privileged=true voiceip/orkaudio
+```
+
+#### Debian
 
 Ubuntu installers are available via [Bintray](https://bintray.com/kingster/deb/oreka). To add the sources to your system run the following command
 ```
