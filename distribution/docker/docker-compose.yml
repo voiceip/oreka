@@ -20,7 +20,7 @@ services:
     environment:
       - SIP_SERVER_HOST=172.16.176.94
       - SIP_TRANSPORT=udp
-    command: dial username 7829869145
+    command: dial username 1234
     tty: true
     stdin_open: true
     container_name: softphone-app
