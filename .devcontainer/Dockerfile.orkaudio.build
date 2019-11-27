@@ -36,7 +36,7 @@ RUN mkdir -p /opt/bcg729 && chmod 777 /opt/bcg729`
 	&& make `
 	&& make install
 
-COPY entrypoint.sh  /entrypoint.sh
+COPY .devcontainer/entrypoint.sh  /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 
