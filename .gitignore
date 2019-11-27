@@ -100,3 +100,6 @@ orkaudio/orkaudio
 orkaudio/audiocaptureplugins/*/AudioCapturePluginCommon.cpp
 !orkaudio/audiocaptureplugins/common/*
 -.s
+
+.vscode
+
