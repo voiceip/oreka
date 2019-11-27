@@ -25,7 +25,7 @@ Based on [Orecx Oreka](http://www.orecx.com/open-source/), this project tries to
 export DOCKER_BUILDKIT=1
 distribution/docker
 docker build -f Dockerfile.orkaudio -t orkaudio .
-docker run -itd --net=host --restart=always --privileged=true --name orkaudio orkaudio
+docker run -itd --net=host --restart=always --privileged=true -v /var/log/orkaudio:/var/log/orkaudio --name orkaudio orkaudio
 ```
 
 #### Debian
@@ -40,7 +40,7 @@ You can natively build if you have all dependencies but I develop on a OSx syste
 Docker images are available via docker hub, so just run the below command to pull images directly from hub.docker.com. Note: `--net=host` on docker works on linux systems and is a [limitation of docker](https://docs.docker.com/network/host/), so please keep that in mind.
 
 ```
-docker run -itd --net=host --restart=always --privileged=true voiceip/orkaudio
+docker run -itd --net=host --restart=always --privileged=true -v /var/log/orkaudio:/var/log/orkaudio voiceip/orkaudio
 ```
 
 #### Debian
