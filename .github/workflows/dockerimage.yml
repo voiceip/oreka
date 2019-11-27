@@ -17,8 +17,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-      with:
-      fetch-depth: 1
     - name: Build the Docker image
       run: DOCKER_BUILDKIT=1 docker build . --file .devcontainer/Dockerfile.orkaudio.build --tag orkaudio:$(date +%s)
     - name: Run oreka build
