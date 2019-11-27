@@ -1,0 +1,16 @@
+sudo: true
+dist: bionic
+os: linux
+language: bash
+services:
+  - docker
+branches:
+  only: 
+    - master
+before_install:
+  - sed -i 's/#INSERT_HERE/COPY . \/oreka/g' .devcontainer/Dockerfile.orkaudio.build
+  - cat .devcontainer/Dockerfile.orkaudio.build
+  - docker build -t oreka -f .devcontainer/Dockerfile.orkaudio.build .
+  # - docker run oreka bash /entrypoint.sh
+script:
+  -  docker run -i oreka bash /entrypoint.sh 

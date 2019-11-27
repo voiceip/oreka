@@ -1,0 +1,46 @@
+# escape=`
+
+FROM ubuntu:xenial
+
+# Configure apt
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y build-essential libtool automake git tree rpm libboost-dev `
+	libpcap-dev libsndfile1-dev libapr1-dev libspeex-dev liblog4cxx10-dev libace-dev `
+	libopus-dev libxerces-c3.1 libxerces-c3-dev libssl-dev cmake`
+	&& rm -rf /var/lib/apt/lists/* 
+
+#silk
+RUN mkdir -p /opt/silk && chmod 777 /opt/silk`
+	&& git clone --depth 1 https://github.com/gaozehua/SILKCodec.git /opt/silk/SILKCodec `
+	&& cd /opt/silk/SILKCodec/SILK_SDK_SRC_FIX `
+	&& CFLAGS='-fPIC' make all 
+
+#opus
+RUN mkdir -p /opt/opus && chmod 777 /opt/opus`
+	&& git clone  https://github.com/xiph/opus.git /opt/opus `
+	&& cd /opt/opus `
+	&& git checkout v1.2.1 `
+	&& ./autogen.sh `
+	&& ./configure --enable-shared --with-pic --enable-static `
+	&& make `
+	&& make install `
+	&& ln -s /usr/local/lib/libopus.so /usr/local/lib/libopusstatic.so `
+	&& ln -s /usr/include/opus /opt/opus/include/opus
+
+#g729
+RUN mkdir -p /opt/bcg729 && chmod 777 /opt/bcg729`
+	&& git clone --depth 1 https://github.com/BelledonneCommunications/bcg729.git /opt/bcg729 `
+	&& cd /opt/bcg729 `
+	&& cmake . -DCMAKE_INSTALL_PREFIX=/usr`
+	&& make `
+	&& make install
+
+COPY .devcontainer/build.sh  /entrypoint.sh
+
+#INSERT_HERE
+
+ENTRYPOINT ["/entrypoint.sh"]
+
+# Set the default shell to bash instead of sh
+ENV SHELL /bin/bash
