@@ -106,5 +106,7 @@ orkaudio/audiocaptureplugins/*/AudioCapturePluginCommon.cpp
 target/
 .DS_Store
 .settings
-
+.factorypath
+.classpath
+**/WEB-INF/classes/*
 
