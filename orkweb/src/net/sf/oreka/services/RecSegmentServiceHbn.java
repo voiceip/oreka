@@ -109,10 +109,10 @@ public class RecSegmentServiceHbn implements RecSegmentService{
 				queryString.append(" where 1=1 ");
 			
 			if(filter.getLocalParty().length() > 0) {
-				queryString.append(" and seg.localParty=:localParty ");
+				queryString.append(" and seg.localParty LIKE :localParty ");
 			}
 			if(filter.getRemoteParty().length() > 0) {
-				queryString.append(" and seg.remoteParty=:remoteParty ");
+				queryString.append(" and seg.remoteParty LIKE :remoteParty ");
 			}
 			if(filter.getMinDuration().length() > 0) {
 				queryString.append(" and seg.duration>:minDuration ");
@@ -149,10 +149,10 @@ public class RecSegmentServiceHbn implements RecSegmentService{
 			}	
 			
 			if(filter.getLocalParty().length() > 0) {
-				query.setString("localParty", filter.getLocalParty());
+				query.setString("localParty", filter.getLocalParty() + "%");
 			}
 			if(filter.getRemoteParty().length() > 0) {
-				query.setString("remoteParty", filter.getRemoteParty());
+				query.setString("remoteParty", filter.getRemoteParty() + "%");
 			}
 			if(filter.getMinDuration().length() > 0) {
 				query.setString("minDuration", filter.getMinDuration());
