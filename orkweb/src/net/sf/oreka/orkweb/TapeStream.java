@@ -1,7 +1,10 @@
 package net.sf.oreka.orkweb;
 
+import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -17,6 +20,7 @@ import java.nio.file.Path;
 public class TapeStream extends HttpServlet {
 
     private final String BASE_PATH = "/var/log/orkaudio/audio/";
+    private Logger logger = LogManager.getInstance().getRootLogger();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -27,6 +31,8 @@ public class TapeStream extends HttpServlet {
 
         String absoluteFilename = BASE_PATH + fileName;
         Path path = new File(absoluteFilename).toPath();
+
+        logger.info("Serve Media File File {}", absoluteFilename);
 
         String mimeType = Files.probeContentType(path);
         response.setContentType(mimeType);

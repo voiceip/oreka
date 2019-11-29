@@ -163,7 +163,7 @@ function playStream(url) {
 $(document).ready(function() {
     $("a.play-button").on("click", function(event){
 		event.preventDefault();
-        playStream( "/stream/" + $(this).data('path'));
+        playStream( "/orkweb/stream/" + $(this).data('path'));
         return false;
     });
 });
