@@ -36,6 +36,7 @@ public class TapeStream extends HttpServlet {
 
         String mimeType = Files.probeContentType(path);
         response.setContentType(mimeType);
+        response.setHeader("Content-Disposition", "inline;filename=" + path.getFileName().toString());
 
         OutputStream out = response.getOutputStream();
         FileInputStream in = new FileInputStream(absoluteFilename);
