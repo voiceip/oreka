@@ -17,6 +17,7 @@
 #include "SilkCodec.h"
 #include <log4cxx/logger.h>
 #include "AudioCapture.h"
+#include "Utils.h"
 
 static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("codec.sik");
 
@@ -219,7 +220,7 @@ CStdString SilkCodecDecoder::GetName()
 
 bool SilkCodecDecoder::SupportsInputRtpPayloadType(int rtpPayloadType)
 {
-	return rtpPayloadType == 64;
+	return rtpPayloadType == pt_SILK;
 }
 
 void SilkCodecDecoder::CaptureEventIn(CaptureEventRef& event)

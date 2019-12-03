@@ -31,6 +31,7 @@ CapturePluginProxy::CapturePluginProxy()
 	m_startCaptureFunction = NULL;
 	m_stopCaptureFunction = NULL;
 	m_GetConnectionStatusFunction = NULL;
+	m_ProcessMetadataMsgFunction = NULL;
 
 	m_loaded = false;
 }
@@ -144,7 +145,15 @@ bool CapturePluginProxy::Init()
 											ret = apr_dso_sym((apr_dso_handle_sym_t*)&m_GetConnectionStatusFunction, m_dsoHandle, "GetConnectionStatus");
 											if(ret == APR_SUCCESS)
 											{
-												m_loaded = true;
+												ret = apr_dso_sym((apr_dso_handle_sym_t*)&m_ProcessMetadataMsgFunction, m_dsoHandle, "ProcessMetadataMsg");
+												if(ret == APR_SUCCESS)
+												{
+													m_loaded = true;
+												}
+												else
+												{
+													LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find ProcessMetadataMsg function in ") + pluginPath);
+												}												
 											}
 											else
 											{
@@ -297,6 +306,18 @@ void CapturePluginProxy::GetConnectionStatus(CStdString& msg)
 	else
 	{
 		throw(CStdString("Check Health: plugin not yet loaded"));
+	}
+}
+
+void CapturePluginProxy::ProcessMetadataMsg(SyncMessage* msg)
+{
+	if(m_loaded)
+	{
+		m_ProcessMetadataMsgFunction(msg);
+	}
+	else
+	{
+		throw(CStdString("ProcessMetadataMsg: plugin not yet loaded"));
 	}
 }
 

@@ -65,6 +65,7 @@ public:
 	bool m_pcapRepeat;
 	bool m_sipDropIndirectInvite;
 	int m_pcapSocketBufferSize;
+	int m_udpListenerSocketBufferSize;
 	bool m_pcapFastReplay;
 	int m_pcapFastReplaySleepUsPerSec;
 	int m_rtpSessionTimeoutSec;

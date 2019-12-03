@@ -258,6 +258,7 @@ public:
 	CStdString m_audioOutputPathMcf;
 	bool m_discardUnidirectionalCalls;
 	int m_audioFileBitRate;
+	bool m_audioOutputEnable;
 
 private:
 	log4cxx::LoggerPtr m_log;

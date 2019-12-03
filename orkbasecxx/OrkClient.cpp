@@ -148,13 +148,13 @@ bool OrkHttpClient::ExecuteUrl(const CStdString& request, CStdString& response, 
 		LogError(logMsg);
 		return false;
 	}
-	if(header.size() > 15 && header.GetAt(9) == '4' && header.GetAt(10) == '0' && header.GetAt(11) == '0')
+	if(header.size() > 12 && header.GetAt(9) == '4' && header.GetAt(10) == '0' && header.GetAt(11) == '0')
 	{
 		logMsg.Format("HTTP header:%s ** request:%s\nIgnore this message", header, requestDetails);
 		LOG4CXX_ERROR(m_log, logMsg);
 		return true;
 	}
-	if(header.size() < 15 || response.size() <= 0)
+	if(header.size() < 12 || response.size() <= 0)
 	{
 		logMsg.Format("HTTP header:%s ** request:%s ** response:%s ** header size:%d  response size:%d", header, requestDetails, response, header.size(), response.size());
 		LogError(logMsg);
@@ -162,10 +162,7 @@ bool OrkHttpClient::ExecuteUrl(const CStdString& request, CStdString& response, 
 	}
 	if(	header.GetAt(9) != '2' ||
 		header.GetAt(10) != '0' ||
-		header.GetAt(11) != '0' ||
-		header.GetAt(12) != ' ' ||
-		header.GetAt(13) != 'O' ||
-		header.GetAt(14) != 'K'		)
+		header.GetAt(11) != '0'	)
 	{
 		logMsg.Format("HTTP header:%s ** request:%s", header, requestDetails);
 		LogError(logMsg);

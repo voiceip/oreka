@@ -99,6 +99,8 @@ AudioTape::AudioTape(CStdString &portId)
 	m_mediaType = MediaType::AudioType; 	// by default, the tape should be audio
 	m_isSuccessfulImported = true;
 	m_isDoneProcessed = false;
+	m_fromProcessMcf = false;
+	m_isQueued = false;
 
 	if(CaptureEvent::AudioKeepDirectionIsDefault(CONFIG.m_audioKeepDirectionIncomingDefault) == false)
 	{
@@ -124,6 +126,7 @@ AudioTape::AudioTape(CStdString &portId)
 	m_pushCount = 0;
 	m_popCount = 0;
 	m_highMark = 0;
+	m_RejectedCount = 0;
 	m_chunkQueueDataSize = 0;
 	m_chunkQueueErrorReported = false;
 	m_keep = true;
@@ -139,6 +142,10 @@ AudioTape::AudioTape(CStdString &portId, CStdString& file)
 	m_portId = portId;
 	m_onDemand = false;
 	m_localSide = CaptureEvent::LocalSideUnkn;
+	m_isQueued = false;
+	m_fromProcessMcf = false;
+	m_isExternal = false;
+	m_RejectedCount = 0;
 
 	if(CaptureEvent::AudioKeepDirectionIsDefault(CONFIG.m_audioKeepDirectionIncomingDefault) == false)
 	{
@@ -182,8 +189,9 @@ void AudioTape::AddAudioChunk(AudioChunkRef chunkRef)
 			if(m_chunkQueueErrorReported == false)
 			{
 				m_chunkQueueErrorReported = true;
-				LOG4CXX_ERROR(LOG.tapeLog, "Rejected additional chunk due to slow hard drive -- Queued Data Size:" + FormatDataSize(m_chunkQueueDataSize) + " is greater than 3*CaptureFileBatchSizeKByte:" + FormatDataSize(CONFIG.m_captureFileBatchSizeKByte * 3 * 1024));
+				LOG4CXX_ERROR(LOG.tapeLog, "[" + m_trackingId + "]: Rejected additional chunk due to slow hard drive -- Queued Data Size:" + FormatDataSize(m_chunkQueueDataSize) + " is greater than 3*CaptureFileBatchSizeKByte:" + FormatDataSize(CONFIG.m_captureFileBatchSizeKByte * 3 * 1024));
 			}
+			m_RejectedCount++;
 
 			return;
 		}
@@ -398,7 +406,7 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		break;
 	case CaptureEvent::EtStop:
 		m_shouldStop = true;
-		logMsg.Format("pushcount:%d popcount:%d highmark:%d", m_pushCount, m_popCount, m_highMark);
+		logMsg.Format("[%s]: pushcount:%d popcount:%d highmark:%d rejectedcount:%d", m_trackingId, m_pushCount, m_popCount, m_highMark, m_RejectedCount);
 		LOG4CXX_DEBUG(LOG.tapeLog, logMsg);
 		m_duration = eventRef->m_timestamp - m_beginDate;
 		if((CONFIG.m_remotePartyMaxDigits > 0) && (m_remoteParty.length() > CONFIG.m_remotePartyMaxDigits) && (m_remoteParty.CompareNoCase(m_remoteIp) != 0))
@@ -626,7 +634,7 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 	if(captureEventRef.get() == 0)
 	{
 		// No more events, the tape is ready
-		if(m_isExternal || m_bytesWritten > 0)
+		if(m_fromProcessMcf || m_isExternal || m_bytesWritten > 0)
 		{
 			PopulateTapeMessage(pTapeMsg, CaptureEvent::EtReady);
 		}
@@ -722,6 +730,22 @@ void AudioTape::PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum ev
 
 	MutexSentinel sentinel(m_mutex);;
 	std::copy(m_tags.begin(), m_tags.end(), std::inserter(msg->m_tags, msg->m_tags.begin()));
+}
+
+void AudioTape::PopulateTimeInfo()
+{
+	apr_time_exp_t date = {0};
+	apr_time_t tn = m_beginDate*1000*1000;	//apr_time_t is microsec from epoch
+	apr_time_exp_lt(&date, tn);
+
+	int month = date.tm_mon + 1;				// january=0, decembre=11
+	int year = date.tm_year + 1900;
+	m_year.Format("%.4d", year);
+	m_day.Format("%.2d", date.tm_mday);
+	m_month.Format("%.2d", month);
+	m_hour.Format("%.2d", date.tm_hour);
+	m_min.Format("%.2d", date.tm_min);
+	m_sec.Format("%.2d", date.tm_sec);
 }
 
 void AudioTape::GenerateCaptureFilePathAndIdentifier()

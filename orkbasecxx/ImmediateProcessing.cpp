@@ -36,44 +36,22 @@ AudioTapeRef ImmediateProcessing::Pop(CStdString& after)
 {
 	m_semaphore.acquire();
 	MutexSentinel mutexSentinel(m_mutex);
-	std::map<CStdString, AudioTapeRef>::iterator begin;
-	std::map<CStdString, AudioTapeRef>::iterator upper;
 
 	AudioTapeRef audioTapeRef;
 
-	begin = m_audioTapeQueue.begin();
-	if(begin != m_audioTapeQueue.end())
+	if(m_audioTapeQueue.size() > 0)
 	{
-		if(after.size() == 0)
+		audioTapeRef = m_audioTapeQueue.front();
+		m_audioTapeQueue.pop_front();
+		if (audioTapeRef.get() != NULL)
 		{
-			audioTapeRef = begin->second;
+			audioTapeRef->m_isQueued = false;
 		}
 		else
 		{
-			upper = m_audioTapeQueue.upper_bound(after);
-			if(upper == m_audioTapeQueue.end())
-			{
-				audioTapeRef = begin->second;
-			}
-			else
-			{
-				audioTapeRef = upper->second;
-			}
+			LOG4CXX_WARN(LOG.immediateProcessingLog, "Popped NULL tapeRef");
 		}
-
-		if(audioTapeRef.get() != NULL)
-		{
-			m_audioTapeQueue.erase(audioTapeRef->m_portId);
-		}
-		else
-		{
-			CStdString key = "NULL";
-
-			m_audioTapeQueue.erase(key);
-		}
-
 	}
-
 
 	return audioTapeRef;
 }
@@ -81,19 +59,20 @@ AudioTapeRef ImmediateProcessing::Pop(CStdString& after)
 void ImmediateProcessing::Push(AudioTapeRef& audioTapeRef)
 {
 	MutexSentinel mutexSentinel(m_mutex);
-	CStdString key;
+	CStdString logMsg;
 
-	if(audioTapeRef.get() == NULL)
+	if (audioTapeRef.get() == NULL)
 	{
-		key = "NULL";
-	}
-	else
-	{
-		key = audioTapeRef->m_portId;
+		LOG4CXX_WARN(LOG.immediateProcessingLog,"Trying to Q a NULL tape");
+		return;
 	}
 
-	m_audioTapeQueue.erase(key);
-	m_audioTapeQueue.insert(std::make_pair(key, audioTapeRef));
+	// queue the tape if it isn't already queued
+	if (audioTapeRef->m_isQueued == false)
+	{
+		audioTapeRef->m_isQueued = true;
+		m_audioTapeQueue.push_back(audioTapeRef);
+	}
 
 	m_semaphore.release();
 }

@@ -132,6 +132,7 @@ public:
 	void ProcessSkinnyGlobalNumbers(char *line, int ln);
 	void LoadSkinnyGlobalNumbers();
 	void GetConnectionStatus(CStdString& msg);
+	void ProcessMetadataMsg(SyncMessage* msg);
 
 private:
 	pcap_t* OpenPcapDeviceLive(CStdString name);
@@ -1020,7 +1021,7 @@ void UdpListenerThread()
 	CStdString logMsg;
 
 	char frameBuffer[65000];
-	apr_int32_t bufSize = 8388608;
+	apr_int32_t bufSize = DLLCONFIG.m_udpListenerSocketBufferSize;
 	apr_status_t ret;
 	apr_sockaddr_t* sa;
     apr_socket_t* socket;
@@ -1041,17 +1042,7 @@ void UdpListenerThread()
 	{
 		LOG4CXX_ERROR(s_packetLog, "UdpListenerThread failed to set timeout");
 	}
-	apr_socket_opt_set(socket, APR_SO_RCVBUF, bufSize);
-	if(ret == APR_SUCCESS)
-	{
-		logMsg.Format("Setting UDP listener socket buffer size:%d successful", bufSize);
-		LOG4CXX_INFO(s_packetLog, logMsg);
-	}
-	else
-	{
-		logMsg.Format("Setting UDP listener socket buffer size:%d failed", bufSize);
-		LOG4CXX_ERROR(s_packetLog, logMsg);
-	}
+	set_socket_buffer_size(s_packetLog, "UdpListenerThread", socket,  bufSize);
 
 	struct pcap_pkthdr pcap_headerPtr ;
 	u_char param;
@@ -2023,6 +2014,11 @@ void VoIp::GetConnectionStatus(CStdString& msg)
 {
 	msg = "unknown";
 }
+
+void VoIp::ProcessMetadataMsg(SyncMessage* msg)
+{
+	;
+}
 //================================================================================
 #ifndef WIN32
 void HandleTcpConnection(int clientSock)
@@ -2285,3 +2281,7 @@ void __CDECL__  GetConnectionStatus(CStdString& msg)
 	VoIpSingleton::instance()->GetConnectionStatus(msg);
 }
 
+void __CDECL__  ProcessMetadataMsg(SyncMessage* msg)
+{
+	VoIpSingleton::instance()->ProcessMetadataMsg(msg);
+}

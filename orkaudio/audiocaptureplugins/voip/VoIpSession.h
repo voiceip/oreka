@@ -82,7 +82,8 @@ public:
 
 	VoIpSession(CStdString& trackingId);
 	void Stop();
-	void Start();
+	virtual void Start();
+	virtual void ReportMetadata();
 	bool AddRtpPacket(RtpPacketInfoRef& rtpPacket);
 	void ReportSipNotify(SipNotifyInfoRef& notify);
 	void ReportSipBye(SipByeInfoRef& bye);
@@ -144,8 +145,6 @@ public:
 	OrkTimeValue m_skinnyLastCallInfoTime;
 	int m_skinnyLineInstance;
 	bool m_onHold;
-	bool m_nonLookBackSessionStarted;
-	bool m_onDemand;
 	std::list<unsigned long long> m_mediaAddresses;
 	time_t m_lastRtpStreamStart;
 	int m_holdDuration;
@@ -156,9 +155,7 @@ public:
 	unsigned int m_numAlienRtpPacketsS1;
 	unsigned int m_numAlienRtpPacketsS2;
 	unsigned int m_ssrcCandidate;
-	int m_orekaRtpPayloadType;
 	void ReportMetadataUpdateSkinny();
-	bool m_startWhenReceiveS2;
 	bool m_hasReceivedCallInfo;
 
 private:
@@ -168,12 +165,12 @@ private:
 	void UpdateMetadataSipOnRtpChange(RtpPacketInfoRef& rtpPacket, bool);
 	void ProcessMetadataRawRtp(RtpPacketInfoRef&);
 	void ProcessMetadataSkinny(RtpPacketInfoRef& rtpPacket);
-	void ReportMetadata();
 	void GenerateOrkUid();
 	bool MatchesSipDomain(CStdString& domain);
 	bool MatchesReferenceAddresses(struct in_addr inAddr);
 	bool IsInSkinnyReportingList(CStdString item);
 	virtual void TriggerOnDemandViaDtmf();
+	void LogRtpPayloadMap();
 
 	RtpPacketInfoRef m_lastRtpPacket;
 	//RtpRingBuffer m_rtpRingBuffer;

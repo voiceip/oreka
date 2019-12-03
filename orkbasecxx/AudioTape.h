@@ -139,8 +139,9 @@ public:
 	MediaType::MediaTypeEnum m_mediaType;		// media type of manually imported tape
 	bool m_isSuccessfulImported;
 	bool m_isDoneProcessed;
+	bool m_isQueued;	//set to true when on Immediate Processing Q
 	CStdString m_externalFileName;		//name of imported file, its not conventional orkaudio name, its convetional orkaudio identifier + orginal name
-
+	bool m_fromProcessMcf;
 	TapeResponseRef m_tapeResponse;
 
 	/*
@@ -150,6 +151,7 @@ public:
 	 */
 	void GenerateFinalFilePathAndIdentifier();
 	CStdString m_audioOutputPath;
+	void PopulateTimeInfo();
 
 private:
 	void GenerateCaptureFilePathAndIdentifier();
@@ -172,6 +174,7 @@ private:
 	int m_pushCount;
 	int m_popCount;
 	int m_highMark;
+	int m_RejectedCount;
 	unsigned int m_chunkQueueDataSize;
 	bool m_chunkQueueErrorReported;
 

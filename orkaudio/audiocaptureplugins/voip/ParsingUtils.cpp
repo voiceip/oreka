@@ -305,3 +305,35 @@ void GrabLineSkipLeadingWhitespace(char* start, char* limit, CStdString& out)
 
 	GrabLine(c, limit, out);
 }
+
+void GetDynamicPayloadMapping(char* start, char* stop, unsigned char* map)
+{
+	CStdString rtpmap = "a=rtpmap:";
+	char* rtpmapPos;
+	rtpmapPos = memFindStr(rtpmap, start, stop);
+	while(rtpmapPos != NULL)
+	{
+		CStdString fullLine, plStr;
+		int plType = -1;
+		GrabTokenAcceptSpace(rtpmapPos, stop, fullLine);
+		GrabToken(rtpmapPos + rtpmap.length(), stop, plStr);
+		if(plStr.length() > 0)
+		{
+			plType = StringToInt(plStr);
+		}
+		if(plType > 95 && plType < 127)
+		{
+			int orekaPayloadType = GetOrekaRtpPayloadTypeForSdpRtpMap(fullLine);
+			if(orekaPayloadType && orekaPayloadType != map[plType-96])
+			{
+				map[plType-96] = orekaPayloadType; //remaps payload type to internal value
+			}
+		}
+
+		rtpmapPos = memFindStr(rtpmap, rtpmapPos + fullLine.length(), stop);
+	}
+
+}
+
+
+

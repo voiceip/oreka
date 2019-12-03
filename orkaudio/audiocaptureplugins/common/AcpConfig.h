@@ -26,6 +26,9 @@ public:
 
 	bool IsMediaGateway(struct in_addr);
 	std::list<unsigned int> m_mediaGateways;
+	bool m_ctiDrivenEnable;
+	int m_ctiDrivenMatchingTimeoutSec;
+	std::list<CStdString> m_ctiDrivenMatchingCriteria;
 };
 
 #endif

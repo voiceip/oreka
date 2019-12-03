@@ -79,7 +79,12 @@ public:
 	CStdString m_contactName;
 	CStdString m_contactDomain;
 	bool m_SipGroupPickUpPatternDetected;
-	int m_orekaRtpPayloadType;
+	//
+	//  track dynamic RTP payload types present in SDP
+	//  we need 32 bytes to track payload types 96-127.
+	//  value is 0 if payload type is not in the SDP.
+	//  otherwise it will be set to our internal RTP payload type
+	unsigned char m_orekaRtpPayloadTypeMap[32];
 
 	time_t m_recvTime;
 };

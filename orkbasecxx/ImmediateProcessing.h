@@ -30,7 +30,7 @@ public:
 	void Push(AudioTapeRef& audioTapeRef);
 
 private:
-	std::map<CStdString, AudioTapeRef> m_audioTapeQueue;
+	std::deque<AudioTapeRef> m_audioTapeQueue;
 	std::mutex m_mutex;
 	OrkSemaphore m_semaphore;
 
