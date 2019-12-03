@@ -13,8 +13,12 @@
 #include <string>
 #include <cstring>
 
+#define G729_FRAME_LEN  10
+#define G729_SAMPLES    80 /* 10ms at 8000 hz, 160 bytes signed linear */
+#define BUFFER_SAMPLES  8000
+
 static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("codec.g729");
- 
+
 template<class T>
 std::string toString(const T &value) {
     std::ostringstream os;
@@ -40,7 +44,7 @@ FilterRef G729CodecDecoder::Instanciate()
 
 void G729CodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 {
-    int16_t pcmdata[8000];
+    int16_t pcmdata[BUFFER_SAMPLES];
     int input_size = 0;
     int output_size;
     CStdString logMsg;
@@ -59,6 +63,8 @@ void G729CodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
     AudioChunkDetails outputDetails = *inputAudioChunk->GetDetails();
     if(SupportsInputRtpPayloadType(outputDetails.m_rtpPayloadType) == false)
     {
+        logMsg.Format("Wrong input RTP payload type: %d", outputDetails.m_rtpPayloadType);
+        LOG4CXX_DEBUG(s_log, logMsg);
         return;
     }
 
@@ -74,8 +80,8 @@ void G729CodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
        /* Native PLC interpolation */
        LOG4CXX_INFO(s_log, "G729  zero length frame");
        bcg729Decoder(decoder, NULL, 0, 1, 0, 0, ddp);
-       ddp += 80;
-       output_size = 160;
+       ddp += G729_SAMPLES;
+       output_size = 2 * G729_SAMPLES;
     } else {
         int framesize;
         uint32_t new_len = 0;
@@ -83,9 +89,9 @@ void G729CodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
             uint8_t isSID = (input_size - x < 8) ? 1 : 0;
             framesize = (isSID == 1) ? 2 : 10;
             bcg729Decoder(decoder, edp, 10, 0, isSID, 0, ddp);
-            ddp += 80;
+            ddp += G729_SAMPLES;
             edp += framesize;
-            new_len += 160;
+            new_len += 2 * G729_SAMPLES;
         }
         output_size = new_len;
     }
@@ -95,7 +101,7 @@ void G729CodecDecoder::AudioChunkIn(AudioChunkRef& inputAudioChunk)
     outputDetails.m_encoding = PcmAudio;
     outputDetails.m_numBytes = output_size;
 
-    LOG4CXX_DEBUG(s_log, "G729 AudioChunkOut Size : " + toString(outputDetails.m_numBytes));
+    //LOG4CXX_DEBUG(s_log, "G729 AudioChunkOut Size : " + toString(outputDetails.m_numBytes));
     short* outputBuffer = (short*)m_outputAudioChunk->CreateBuffer(outputDetails);
     memcpy(outputBuffer, pcmdata, outputDetails.m_numBytes);
 }
