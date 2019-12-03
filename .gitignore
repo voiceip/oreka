@@ -103,3 +103,10 @@ orkaudio/audiocaptureplugins/*/AudioCapturePluginCommon.cpp
 
 .vscode
 
+target/
+.DS_Store
+.settings
+.factorypath
+.classpath
+**/WEB-INF/classes/*
+

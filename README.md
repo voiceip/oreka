@@ -8,14 +8,27 @@ Based on [Orecx Oreka](http://www.orecx.com/open-source/), this project tries to
 - **Orktrack**:  
     Tracks and publishes all activity from one or more orkaudio services to any mainstream database/storage system.
 - **Orkweb**:   
-    Web based user interface for retrieval (UnChanged)
+    Web based user interface for retrieval
     
 ### Improvements
 
+**OrkAudio** 
+
 - Support for G729 Codec  
 - CallID Tracking   
-- Switch to faster logging (Log4j2)
 - Upgrade to latest version of libraries.
+
+**OrkTrack**
+
+- Switch to Maven
+- CallID Tracking   
+- Switch to faster logging (Log4j2)
+- Upgrade to java8
+
+**Orkweb**:   
+- Switch to Maven
+- Call Play / Download on all platform(s)/OS(es)
+
 
 ### Building
 
