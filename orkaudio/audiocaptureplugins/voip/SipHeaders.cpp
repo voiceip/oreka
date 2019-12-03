@@ -27,7 +27,7 @@ SipInviteInfo::SipInviteInfo() : m_telephoneEventPayloadType(0)
 	m_validated = false;
 	m_attrSendonly = false;
 	m_SipGroupPickUpPatternDetected = false;
-	m_orekaRtpPayloadType = 0;
+	memset(m_orekaRtpPayloadTypeMap, 0, sizeof(m_orekaRtpPayloadTypeMap));
 }
 
 void SipInviteInfo::ToString(CStdString& string)

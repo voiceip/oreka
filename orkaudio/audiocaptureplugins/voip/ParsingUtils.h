@@ -32,5 +32,6 @@ void GrabSipUriUser(char* in, char* limit, CStdString& out);
 void GrabString(char* start, char* stop, CStdString& out);
 char* GrabLine(char* start, char* limit, CStdString& out);
 void GrabLineSkipLeadingWhitespace(char* start, char* limit, CStdString& out);
+void GetDynamicPayloadMapping(char* start, char* stop, unsigned char* map);
 
 #endif

@@ -32,6 +32,7 @@ public:
 	void SetOnHold(CStdString& party, CStdString& orkuid);
 	void SetOffHold(CStdString& party, CStdString& orkuid);
 	void GetConnectionStatus(CStdString& msg);
+	void ProcessMetadataMsg(SyncMessage* msg);
 
 	static void __CDECL__  AudioChunkCallBack(AudioChunkRef chunkRef, CStdString& capturePort);
 	static void __CDECL__ CaptureEventCallBack(CaptureEventRef eventRef, CStdString& capturePort);
@@ -50,6 +51,7 @@ private:
 	SetOnHoldFunction m_setOnHoldFunction;
 	SetOffHoldFunction m_setOffHoldFunction;
 	GetConnectionStatusFunction m_GetConnectionStatusFunction;
+	ProcessMetadataMsgFunction m_ProcessMetadataMsgFunction;
 	apr_dso_handle_t *m_dsoHandle;
 	bool m_loaded;
 };

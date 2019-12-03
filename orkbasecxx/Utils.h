@@ -68,7 +68,7 @@
 #include "openssl/bio.h"
 #include "openssl/err.h"
 #endif
-
+#include <log4cxx/logger.h>
 
 //============================================
 
@@ -468,5 +468,29 @@ private:
 
 };
 
-#endif
+void DLL_IMPORT_EXPORT_ORKBASE set_socket_buffer_size(log4cxx::LoggerPtr log, const char *msg, apr_socket_t *sock, int size);
 
+
+
+typedef enum
+{
+	pt_Unknown = -1,
+	pt_PCMU = 0,
+	pt_GSM = 3,
+	pt_G723 = 4,
+	pt_PCMA = 8,
+	pt_G722 = 9,
+	pt_G729 = 18,
+	// the following payloads are dynamically assigned. The following values
+	// are used internally to discriminate the payload type.
+	pt_OPUS	= 60,
+	pt_AMRNB = 61,
+	pt_AMRWB = 62,
+	pt_ILBC = 63,
+	pt_SILK = 64,
+	pt_SPEEX = 66,
+	pt_TEL_EVENT =67
+} RtpPayloadType;
+
+CStdString RtpPayloadTypeEnumToString(char pt);
+#endif

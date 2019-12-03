@@ -408,11 +408,19 @@ void BatchProcessing::ThreadHandler()
 
 						if(decoder.get() == NULL)
 						{
+							//if(ptAlreadySeen == false && details.m_rtpPayloadType != pt_Telephone_event)
 							if(ptAlreadySeen == false)
-							{
+													{
 								// First time we see a particular unsupported payload type in this session, log it
 								CStdString rtpPayloadType = IntToString(details.m_rtpPayloadType);
-								LOG4CXX_ERROR(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " unsupported RTP payload type:" + rtpPayloadType);
+								if (details.m_rtpPayloadType == pt_TEL_EVENT)
+								{
+									LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " RTP payload type:" + rtpPayloadType + "(" + RtpPayloadTypeEnumToString(details.m_rtpPayloadType) +")");
+								}
+								else
+								{
+									LOG4CXX_ERROR(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " unsupported RTP payload type:" + rtpPayloadType + "(" + RtpPayloadTypeEnumToString(details.m_rtpPayloadType) +")");
+								}
 							}
 							// We cannot decode this chunk due to unknown codec, go to next chunk
 							continue;
@@ -421,7 +429,7 @@ void BatchProcessing::ThreadHandler()
 						{
 							// First time we see a particular supported payload type in this session, log it
 							CStdString rtpPayloadType = IntToString(details.m_rtpPayloadType);
-							LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " RTP payload type:" + rtpPayloadType);
+							LOG4CXX_INFO(LOG.batchProcessingLog, "[" + trackingId + "] Th" + threadIdString + " RTP payload type:" + rtpPayloadType + "(" + RtpPayloadTypeEnumToString(details.m_rtpPayloadType) +")");
 						}
 					}
 					if(!voIpSession || (firstChunk && decoder.get()))

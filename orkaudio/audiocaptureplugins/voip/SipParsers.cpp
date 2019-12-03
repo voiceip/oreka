@@ -1535,15 +1535,21 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			}
 		}
 
-		//Determine the being used codec: should be the first rtpmap
-		if(sipMethod == SIP_METHOD_200_OK || sipMethod == SIP_RESPONSE_SESSION_PROGRESS)
+		rtpmapAttribute = memFindAfter("\na=rtpmap:", (char*)audioSdpStart, audioSdpEnd);
+		if(rtpmapAttribute)
 		{
-			rtpmapAttribute = memFindAfter("\na=rtpmap:", (char*)audioSdpStart, audioSdpEnd);
-			if(rtpmapAttribute)
+			GetDynamicPayloadMapping(audioSdpStart,audioSdpEnd, info->m_orekaRtpPayloadTypeMap);
+			if(s_sipExtractionLog->isDebugEnabled())
 			{
-				CStdString line;
-				GrabLineSkipLeadingWhitespace(rtpmapAttribute, sipEnd, line);
-				info->m_orekaRtpPayloadType = GetOrekaRtpPayloadTypeForSdpRtpMap(line);
+				logMsg.Format("%s: [%s]: Re-mapped codecs", sipMethod, info->m_callId);
+				for (int i = 0; i < 32; i++)
+				{
+					if (info->m_orekaRtpPayloadTypeMap[i])
+					{
+						logMsg.AppendFormat(" %d->%d", i+96, info->m_orekaRtpPayloadTypeMap[i]);
+					}
+				}
+				LOG4CXX_DEBUG(s_sipExtractionLog, logMsg);
 			}
 		}
 

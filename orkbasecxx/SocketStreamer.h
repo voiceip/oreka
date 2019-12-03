@@ -54,7 +54,7 @@ protected:
 	bool Connect();
 	void Close();
 	size_t Recv();
-	virtual void ProcessData();
+	virtual bool ProcessData();
 	virtual bool Handshake();
 	virtual bool Parse(CStdString target);
 

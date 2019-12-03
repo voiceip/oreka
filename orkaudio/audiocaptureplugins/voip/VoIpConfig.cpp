@@ -39,6 +39,7 @@ void VoIpConfig::Reset() {
 	m_sipDropIndirectInvite = false;
 	m_pcapRepeat = false;
 	m_pcapSocketBufferSize = 67108864;
+	m_udpListenerSocketBufferSize = 67108864;
 	m_pcapFastReplay = true;
 	m_pcapFastReplaySleepUsPerSec = 0;
 	m_rtpSessionTimeoutSec = 10;
@@ -168,6 +169,7 @@ void VoIpConfig::Define(Serializer* s)
 	s->IntValue("PcapFastReplaySleepUsPerSec", m_pcapFastReplaySleepUsPerSec);
 	s->BoolValue("SipDropIndirectInvite", m_sipDropIndirectInvite);
 	s->IntValue("PcapSocketBufferSize", m_pcapSocketBufferSize);
+	s->IntValue("UdpListenerSocketBufferSize", m_udpListenerSocketBufferSize);
 	s->IntValue("RtpSessionTimeoutSec", m_rtpSessionTimeoutSec);
 	s->IntValue("RtpSessionWithSignallingTimeoutSec", m_rtpSessionWithSignallingTimeoutSec);
 	s->IntValue("RtpSessionWithSignallingInitialTimeoutSec", m_rtpSessionWithSignallingInitialTimeoutSec);
@@ -415,14 +417,20 @@ void VoIpConfig::Validate()
 			throw (CStdString("VoIpConfig: invalid IP range in BlockedIpRanges:" + entry));
 		}
 	}
-	if(m_pcapSocketBufferSize < 0)
+	if (m_pcapSocketBufferSize < 0)
 	{
 		CStdString exception;
 		exception.Format("VoIpConfig: PcapSocketBufferSize must be a positive number (currently:%d)", m_pcapSocketBufferSize);
 		throw (exception);
 
 	}
-	if(m_rtpSeqGapThreshold < 2)
+	if (m_udpListenerSocketBufferSize < 0)
+	{
+		CStdString exception;
+		exception.Format("VoIpConfig: UdpListenerSocketBufferSize must be a positive number (currently:%d)", m_udpListenerSocketBufferSize);
+		throw (exception);
+	}
+	if (m_rtpSeqGapThreshold < 2)
 	{
 		CStdString exception;
 		exception.Format("VoIpConfig: RtpSeqGapThreshold must be > 1 (currently:%d)", m_rtpSeqGapThreshold);

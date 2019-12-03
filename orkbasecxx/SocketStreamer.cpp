@@ -57,16 +57,20 @@ void SocketStreamer::ThreadHandler(void *args)
 		}
 
 		bytesRead = ssc->Recv();
-		if(bytesRead <= 0)
+		if(bytesRead == -1)
 		{
 			FLOG_WARN(ssc->m_log, "Connection to: %s closed", ipPort);
 			ssc->Close();
 			connected = false;
 			continue;
 		}
+		else if(bytesRead == 0)
+        {
+            continue;
+        }
 
 		bytesSoFar += bytesRead;
-		if (time(NULL) - lastLogTime > 60 ) {
+		if (time(NULL) - lastLogTime > 9 ) {
 			FLOG_INFO(ssc->m_log,"Read %s from %s so far", FormatDataSize(bytesSoFar), ipPort);
 			lastLogTime = time(NULL);
 		}
@@ -111,6 +115,8 @@ bool SocketStreamer::Connect()
 	if(ret != APR_SUCCESS){
 		return false;
 	}
+    apr_interval_time_t to = 1000*1000;
+    apr_socket_timeout_set(m_socket, to);
 	return Handshake();
 
 }
@@ -129,13 +135,16 @@ size_t SocketStreamer::Recv() {
 	}
 
 	if (m_bytesRead>0) {
-		ProcessData();
+		if(ProcessData() == false){
+            return -1;
+        }
 	}
 	return m_bytesRead;
 }
 
-void SocketStreamer::ProcessData() {
+bool SocketStreamer::ProcessData() {
 	// default do nothing
+    return true;
 }
 
 bool SocketStreamer::Handshake() {

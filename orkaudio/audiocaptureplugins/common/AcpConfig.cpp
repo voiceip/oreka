@@ -18,6 +18,8 @@ void AcpConfig::Reset() {
 	m_rtpS1S2MappingDeterministicS1IsLocal = true;
 
 	m_asciiMediaGateways.clear();
+	m_ctiDrivenEnable = false;
+	m_ctiDrivenMatchingTimeoutSec = 30;
 }
 
 void AcpConfig::Define(Serializer* s) {
@@ -33,6 +35,9 @@ void AcpConfig::Define(Serializer* s) {
 	s->BoolValue("RtpS1S2MappingDeterministicS1IsLocal", m_rtpS1S2MappingDeterministicS1IsLocal);
 
 	s->CsvValue("MediaGateways", m_asciiMediaGateways);
+	s->BoolValue("CtiDrivenEnable", m_ctiDrivenEnable);
+	s->IntValue("CtiDrivenMatchingTimeoutSec",m_ctiDrivenMatchingTimeoutSec);
+	s->CsvValue("CtiDrivenMatchingCriteria", m_ctiDrivenMatchingCriteria);
 }
 
 void AcpConfig::Validate() {

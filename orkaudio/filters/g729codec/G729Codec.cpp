@@ -12,6 +12,7 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+#include "Utils.h"
 
 #define G729_FRAME_LEN  10
 #define G729_SAMPLES    80 /* 10ms at 8000 hz, 160 bytes signed linear */
@@ -128,7 +129,7 @@ CStdString G729CodecDecoder::GetName()
 
 bool G729CodecDecoder::SupportsInputRtpPayloadType(int rtpPayloadType)
 {
-    return rtpPayloadType == 18;
+    return rtpPayloadType == pt_G729;
 }
 
 void G729CodecDecoder::CaptureEventIn(CaptureEventRef& event)

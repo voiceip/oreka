@@ -1,11 +1,14 @@
 #include "Utils.h"
 #include "time.h"
 #include <fstream>
+#include "AudioCapture.h"
 #ifndef WIN32
 #include <pwd.h>
 #include <grp.h>
 #include <netdb.h>
 #include <unistd.h>
+#else
+#include <cctype>  //needed in WIN32 for std::toupper
 #endif
 
 //========================================================
@@ -1058,41 +1061,78 @@ bool IpRanges::Empty()
 		return false;
 }
 
-//This maps dynamic payload types >= 96  that are detected in the SDP to our own arbitrary static payload type values
-//for example, the opus codec will always be mapped to oreka payload type 60, regardless of the dynamic payload type it is given in a particular SIP session.
+// ciFind: case insensitive find helper function
+// we're using this for codecs, which are ASCII, so we don't
+// need to worry about unicode and/or locales
+static size_t ciFind(const std::string &Haystack, const std::string &Needle)
+{
+	auto it = std::search(
+			Haystack.begin(), Haystack.end(),
+			Needle.begin(),   Needle.end(),
+			[](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
+	);
+	if ( it != Haystack.end() ) return it - Haystack.begin();
+	else return std::string::npos; // not found
+}
+//This maps dynamic payload types >= 96  that are detected in the SDP to our own
+//arbitrary internal payload values. For example, the opus codec will always be
+//mapped to oreka payload type 60, regardless of the dynamic payload
+//type it is given in a particular SIP session.
 int GetOrekaRtpPayloadTypeForSdpRtpMap(CStdString sdp)
 {
 	CStdString rtpCodec;
 	int ret = 0;
-	if((sdp.Find("opus") != std::string::npos) || (sdp.Find("OPUS") != std::string::npos))
+	if(ciFind(sdp, "opus") != std::string::npos)
 	{
 		rtpCodec = "opus";
-		ret = 60;
+		ret = pt_OPUS;
 	}
-	else if(sdp.Find("AMR/8000") != std::string::npos)
+	else if(ciFind(sdp, "AMR/8000") != std::string::npos)
 	{
 		rtpCodec = "amr-nb";
-		ret = 61;
+		ret = pt_AMRNB;
 	}
-	else if(sdp.Find("AMR-WB") != std::string::npos)
+	else if(ciFind(sdp, "AMR-WB") != std::string::npos)
 	{
 		rtpCodec = "amr-wb";
-		ret = 62;
+		ret = pt_AMRWB;
 	}
-	else if(sdp.Find("iLBC") != std::string::npos) 
+	else if(ciFind(sdp, "iLBC") != std::string::npos)
 	{
 		rtpCodec = "ilbc";
-		ret = 63;
+		ret = pt_ILBC;
 	} 
-	else if(sdp.Find("SILK/8000") != std::string::npos)
+	else if(ciFind(sdp, "SILK/8000") != std::string::npos)
 	{
 		rtpCodec = "silk";
-		ret = 64;
+		ret = pt_SILK;
 	}
-	else if(sdp.Find("SILK/16000") != std::string::npos)
+	else if(ciFind(sdp, "SILK/16000") != std::string::npos)
 	{
 		rtpCodec = "silk";
-		ret = 64;
+		ret = pt_SILK;
+	}
+	else if(ciFind(sdp, "speex") != std::string::npos)
+	{
+		rtpCodec = "speex";
+		ret = pt_SPEEX;
+	}
+	else if(ciFind(sdp, "telephone-event") != std::string::npos)
+	{
+		rtpCodec = "telephone-event";
+		ret = pt_TEL_EVENT;
+	}
+	else if(ciFind(sdp, "AAL2-G726-32") != std::string::npos)
+	{
+		//No support for AAL2-G726-32 (big endian ordering),
+		// However we need to match against against this string or 
+		// else the next check below (G726-32) will match.
+		ret = 0;  //0 --> no match;
+	}
+	else if(ciFind(sdp, "G726-32") != std::string::npos)
+	{
+		rtpCodec = "G726-32";
+		ret = 2;
 	}
 	return ret;
 }
@@ -1105,3 +1145,124 @@ int OrkGetHostname(char *name, int len)
 	return apr_gethostname(name,len,AprLp);
 }
 
+//
+// apr routines to set socket option do not support SO_RCVBUFFORCE, so we
+// need our own helper funtion.
+void set_socket_buffer_size(log4cxx::LoggerPtr log, const char *msg, apr_socket_t *sock, int size)
+{
+	CStdString logMsg;
+	apr_os_sock_t socket;
+	apr_os_sock_get(&socket, sock); //always returns success
+
+	if (socket == -1)
+	{
+		logMsg.Format("Error trying to get OS socket[%s]", msg);
+		LOG4CXX_ERROR(log, logMsg);
+		return;
+	}
+#ifndef WIN32
+	int rc = setsockopt(socket, SOL_SOCKET, SO_RCVBUFFORCE, (const char *)&size, sizeof(size));
+#else
+	int rc = setsockopt(socket, SOL_SOCKET, SO_RCVBUF, (const char *)&size, sizeof(size));
+#endif
+	if (rc < 0)
+	{
+		logMsg.Format("[%s]: Error setting socket buffer size to %d: %s",
+				msg, size, strerror(errno));
+		LOG4CXX_ERROR(log, logMsg);
+	}
+	int socketsize;
+	socklen_t len = sizeof(socketsize);
+	getsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char *)&socketsize, &len);
+	logMsg.Format("[%s] Request socket buffer size of %d; actual size = %d", msg, size, socketsize);
+	LOG4CXX_INFO(log, logMsg);
+}
+
+CStdString RtpPayloadTypeEnumToString(char pt)
+{
+	CStdString ptStr = "unknown";
+	switch(pt)
+	{
+		case pt_PCMU: ptStr = "PCMU";
+			break;
+		case 2:ptStr = "G721/G726-32";
+			break;
+		case pt_GSM: ptStr = "GSM";
+			break;
+		case pt_G723: ptStr = "G723";
+			break;
+		case pt_PCMA: ptStr = "PCMA";
+			break;
+		case pt_G722: ptStr = "G722";
+			break;
+		case pt_G729: ptStr = "G729";
+			break;
+		case pt_OPUS: ptStr = "opus";
+			break;
+		case pt_AMRNB: ptStr = "AMR-NB";
+			break;
+		case pt_AMRWB: ptStr = "AMR-WB";
+			break;
+		case pt_ILBC: ptStr = "iLBC";
+			break;
+		case pt_SILK: ptStr = "SILK";
+			break;
+		case pt_SPEEX: ptStr = "speex";
+			break;
+		case pt_TEL_EVENT: ptStr = "telephone-event";
+			break;
+		// ==== unsupported codecs
+		// the following codecs are not supported, but included for
+		// logging purposes
+		case 1:
+		case 19:
+			ptStr = "reserved";
+			break;
+		case 5:
+		case 6:
+		case 16:
+		case 17:
+			ptStr = "DVI4";
+			break;
+		case 7:
+			ptStr = "LPC";
+			break;
+		case 10:
+		case 11:
+			ptStr = "L16";
+			break;
+		case 12:
+			ptStr = "QCELP";
+			break;
+		case 13:
+			ptStr = "CN";
+			break;
+		case 14:
+			ptStr = "MPA";
+			break;
+		case 15:
+			ptStr = "G728";
+			break;
+		case 25:
+			ptStr = "CELB";
+			break;
+		case 26:
+			ptStr = "JPEG";
+			break;
+		case 28:
+			ptStr = "nv";
+			break;
+		case 32:
+			ptStr = "MPV";
+			break;
+		case 33:
+			ptStr = "MP2T";
+			break;
+		case 34:
+			ptStr = "H263";
+			break;
+		default: ptStr = "unknown";
+	}
+	return ptStr;
+
+}

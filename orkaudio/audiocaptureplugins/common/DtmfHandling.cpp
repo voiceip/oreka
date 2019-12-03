@@ -136,12 +136,6 @@ void ReportDtmfDigit(OrkSession* ss, int channel, CStdString digitValue,  unsign
 
 	CStdString ods = ss->m_config->m_onDemandViaDtmfDigitsString;
 
-	if(ss->m_keepRtp == false && ods.length() > 0 && ss->m_dtmfDigitString.find(ods) != std::string::npos) {
-		LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "] Trigger OnDemand via DTMF");
-		ss->TriggerOnDemandViaDtmf();
-		ss->m_dtmfDigitString.clear();
-	}
-
 	if(ss->m_keepRtp == true && ss->m_config->m_onDemandPauseViaDtmfDigitsString.length() > 0)
 	{
 		if(ss->m_dtmfDigitString.find(ss->m_config->m_onDemandPauseViaDtmfDigitsString) != std::string::npos)
@@ -150,6 +144,12 @@ void ReportDtmfDigit(OrkSession* ss, int channel, CStdString digitValue,  unsign
 			ss->m_dtmfDigitString.clear();
 			LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "] Pause OnDemand via DTMF");
 		}
+	}
+
+	if(ss->m_onDemand == false && ods.length() > 0 && ss->m_dtmfDigitString.find(ods) != std::string::npos) {
+		LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "] Trigger OnDemand via DTMF");
+		ss->TriggerOnDemandViaDtmf();
+		ss->m_dtmfDigitString.clear();
 	}
 
 
@@ -184,10 +184,15 @@ void ReportDtmfDigit(OrkSession* ss, int channel, CStdString digitValue,  unsign
 		g_captureEventCallBack(event, ss->m_capturePort);
 	}
 
+	CStdString dtmfDigitEventValue = digitValue;
+	if(CONFIG.m_dtmfReportingDetailed == true) {
+		dtmfDigitEventValue.Format("%s_%d_%d",digitValue,digitVolume,digitDuration);
+	}
+
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtKeyValue;
 	event->m_key = "dtmfdigit";
-	event->m_value = digitValue;
+	event->m_value = dtmfDigitEventValue;
 	event->m_offsetMs = msDiff;
 	g_captureEventCallBack(event, ss->m_capturePort);
 }

@@ -94,6 +94,7 @@ Config::Config()
 	m_hostnameReportFqdn = HOSTNAME_REPORT_FQDN_DEFAULT;
 	m_discardUnidirectionalCalls = false;
 	m_audioFileBitRate = 6000;
+	m_audioOutputEnable = true;
 }
 
 void Config::Define(Serializer* s)
@@ -234,6 +235,7 @@ void Config::Define(Serializer* s)
 	s->IntValue(CLIENT_RETRY_PERIOD_SEC, m_clientRetryPeriodSec);
 	s->BoolValue("DiscardUnidirectionalCalls", m_discardUnidirectionalCalls);
 	s->IntValue("AudioFileBitRate", m_audioFileBitRate);
+	s->BoolValue("AudioOutputEnable", m_audioOutputEnable);
 }
 
 void Config::Validate()
