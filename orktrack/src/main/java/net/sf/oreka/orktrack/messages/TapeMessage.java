@@ -13,12 +13,16 @@
 
 package net.sf.oreka.orktrack.messages;
 
+import com.codahale.metrics.SharedMetricRegistries;
+import com.codahale.metrics.annotation.Timed;
+import io.astefanutti.metrics.aspectj.Metrics;
 import lombok.Getter;
 import lombok.Setter;
 import net.sf.oreka.Direction;
 import net.sf.oreka.OrkException;
 import net.sf.oreka.messages.AsyncMessage;
 import net.sf.oreka.messages.SyncMessage;
+import net.sf.oreka.orktrack.Constants;
 import net.sf.oreka.orktrack.OrkTrack;
 import net.sf.oreka.orktrack.ServiceManager;
 import net.sf.oreka.orktrack.TapeManager;
@@ -32,11 +36,12 @@ import org.hibernate.Transaction;
 
 @Getter
 @Setter
+@Metrics
 public class TapeMessage extends SyncMessage {
 
 	public  enum CaptureStage {START , STOP, READY, COMPLETE, UNKN};
 	
-	static Logger logger = Logger.getLogger(TapeMessage.class);
+	static Logger log = Logger.getLogger(TapeMessage.class);
 	
 	CaptureStage stage = CaptureStage.UNKN;
 	int timestamp = 0;
@@ -63,18 +68,21 @@ public class TapeMessage extends SyncMessage {
 	}
 
 	@Override
+	@Timed(name = "process")
 	public AsyncMessage process() {
 
-		TapeResponse response = new TapeResponse();
+        SharedMetricRegistries.getOrCreate(Constants.DEFAULT_REGISTRY_NAME)
+                .counter("tapeMessage."+stage).inc();
+
+        TapeResponse response = new TapeResponse();
 		Session session = null;
-		Transaction tx = null;
-		
+
 		try {
 			session = OrkTrack.hibernateManager.getSession();
-	        tx = session.beginTransaction();
-	        
+			Transaction tx = session.beginTransaction();
+
 	        SingleLineSerializer ser = new SingleLineSerializer();
-	        logger.info("Message: " + ser.serialize(this));
+	        log.info("Message: " + ser.serialize(this));
 	        
 			OrkService service = ServiceManager.retrieveOrCreate(this.service, this.getHostname(), session);
 			
@@ -82,14 +90,14 @@ public class TapeMessage extends SyncMessage {
 			//port.notifyTapeMessage(this, session, service);
 			if (TapeManager.instance().notifyTapeMessage(this, session, service) == false) {
 				response.setDeleteTape(true);
-				logger.debug("Tape deletion requested:" + this.getFilename());
+				log.debug("Tape deletion requested:" + this.getFilename());
 			}
 			
 			response.setSuccess(true);
 			tx.commit();
 		}
 		catch (Exception e) {
-			logger.error("TapeMessage.process: ", e);
+			log.error("TapeMessage.process: ", e);
 			response.setSuccess(false);
 			response.setComment(e.getMessage());
 		}

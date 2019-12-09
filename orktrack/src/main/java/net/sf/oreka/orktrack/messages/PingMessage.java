@@ -13,20 +13,20 @@
 
 package net.sf.oreka.orktrack.messages;
 
+import com.codahale.metrics.annotation.Timed;
+import io.astefanutti.metrics.aspectj.Metrics;
 import net.sf.oreka.OrkException;
 import net.sf.oreka.messages.AsyncMessage;
 import net.sf.oreka.messages.SimpleResponseMessage;
 import net.sf.oreka.messages.SyncMessage;
 import net.sf.oreka.serializers.OrkSerializer;
 
+@Metrics(registry = "appMetrics")
 public class PingMessage extends SyncMessage {
 
-	public PingMessage() {
-	}
-	
 	@Override
+	@Timed(name = "process")
 	public AsyncMessage process() {
-		
 		SimpleResponseMessage response = new SimpleResponseMessage();
 		response.setSuccess(true);
 		response.setComment("pong");

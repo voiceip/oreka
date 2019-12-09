@@ -24,7 +24,7 @@
     </context-param>
 	<context-param>
 		<param-name>TomcatHome</param-name>
-		<param-value>/var/lib/tomcat8</param-value>
+		<param-value></param-value>
 	</context-param>
  	<listener>
 		<listener-class>net.sf.oreka.orktrack.servlets.ContextListener</listener-class>

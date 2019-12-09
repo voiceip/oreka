@@ -12,6 +12,7 @@
  */
 package net.sf.oreka.orktrack.servlets;
 
+import net.sf.oreka.orktrack.Constants;
 import net.sf.oreka.orktrack.LogManager;
 import net.sf.oreka.orktrack.OrkTrack;
 import net.sf.oreka.util.TomcatServerXMLParser;
@@ -27,8 +28,7 @@ public class ContextListener implements ServletContextListener {
     Logger log = LogManager.getInstance().getRootLogger();
 
     public void contextDestroyed(ServletContextEvent arg0) {
-
-        log.info(OrkTrack.APP_NAME + " shutting down.");
+        log.info(Constants.APP_NAME + " shutting down.");
     }
 
     public void contextInitialized(ServletContextEvent servletContextEvent) {

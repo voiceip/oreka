@@ -13,7 +13,6 @@ public class TapeResponse extends SimpleResponseMessage {
 	private boolean deleteTape = false;
 	
 	public void define(OrkSerializer serializer) throws OrkException {
-
 		super.define(serializer);
 		deleteTape = serializer.booleanValue("deletetape", deleteTape, false);
 	}
