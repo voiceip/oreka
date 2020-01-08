@@ -355,7 +355,7 @@ void ReportingThread::Run()
 
 				if( CONFIG.m_enableReporting)
 				{
-					FLOG_INFO(LOG.reporting,"[%s] q'd for %d secs: sending: %s", msgRef->Age(), m_tracker.ToString(), msgAsSingleLineString);
+					FLOG_INFO(LOG.reporting,"[%s] sending: %s", m_tracker.ToString(), msgAsSingleLineString);
 
 					OrkHttpSingleLineClient c;
 
