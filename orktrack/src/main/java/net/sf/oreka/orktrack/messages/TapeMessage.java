@@ -72,7 +72,7 @@ public class TapeMessage extends SyncMessage {
 	public AsyncMessage process() {
 
         SharedMetricRegistries.getOrCreate(Constants.DEFAULT_REGISTRY_NAME)
-                .counter("tapeMessage."+stage).inc();
+                .meter(getClass().getName()+".processing."+stage).mark();
 
         TapeResponse response = new TapeResponse();
 		Session session = null;
@@ -132,7 +132,7 @@ public class TapeMessage extends SyncMessage {
 
 	public void validate() {
 		// TODO Auto-generated method stub
-		
+
 	}
 	
 
