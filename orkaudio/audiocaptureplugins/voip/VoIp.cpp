@@ -446,6 +446,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 						unsigned short extLenFieldValue = (payload[2] << 8) | payload[3];
 						int rtpExtLen = extLenFieldValue * 4;//4 bytes for each fied
 						int payloadOffset = profileFieldLen + ExtLenFieldLen + rtpExtLen;
+						if (payloadOffset > payloadLength) return false; //corrupted or non-RTP packet
 						rtpInfo->m_payloadSize = payloadLength - payloadOffset;
 						rtpInfo->m_payload = payload + payloadOffset;
 					}
