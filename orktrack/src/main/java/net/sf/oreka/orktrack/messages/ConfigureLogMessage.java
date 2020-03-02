@@ -20,16 +20,8 @@ import net.sf.oreka.messages.SyncMessage;
 import net.sf.oreka.orktrack.LogManager;
 import net.sf.oreka.serializers.OrkSerializer;
 
-import org.apache.log4j.Logger;
-
 public class ConfigureLogMessage extends SyncMessage {
 
-	static Logger logger = Logger.getLogger(ConfigureLogMessage.class);
-	
-	
-	public ConfigureLogMessage() {
-	}
-	
 	@Override
 	public AsyncMessage process() {
 		

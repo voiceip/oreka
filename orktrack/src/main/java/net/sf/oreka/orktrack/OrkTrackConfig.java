@@ -13,10 +13,14 @@
 
 package net.sf.oreka.orktrack;
 
+import lombok.Getter;
+import lombok.Setter;
 import net.sf.oreka.OrkException;
 import net.sf.oreka.OrkObject;
 import net.sf.oreka.serializers.OrkSerializer;
 
+@Getter
+@Setter
 public class OrkTrackConfig implements OrkObject {
 
 	boolean ctiDriven = false;
@@ -33,14 +37,5 @@ public class OrkTrackConfig implements OrkObject {
 	public void validate() {
 		
 	}
-
-	public boolean isCtiDriven() {
-		return ctiDriven;
-	}
-
-	public void setCtiDriven(boolean ctiDriven) {
-		this.ctiDriven = ctiDriven;
-	}
-
 	
 }

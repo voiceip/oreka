@@ -16,42 +16,38 @@
  */
 package net.sf.oreka.orktrack;
 
-import java.util.Date;
-
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SharedMetricRegistries;
 import net.sf.oreka.HibernateManager;
 import net.sf.oreka.OrkObjectFactory;
-import net.sf.oreka.orktrack.messages.ConfigureLogMessage;
-import net.sf.oreka.orktrack.messages.InitMessage;
-import net.sf.oreka.orktrack.messages.MetadataMessage;
-import net.sf.oreka.orktrack.messages.PingMessage;
-import net.sf.oreka.orktrack.messages.TapeMessage;
-import net.sf.oreka.orktrack.messages.UserStateMessage;
+import net.sf.oreka.orktrack.messages.*;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
-
+import static net.sf.oreka.orktrack.Constants.*;
 
 public class OrkTrack {
 
-	public static final String APP_NAME = "OrkTrack";
-	
 	public static HibernateManager hibernateManager = HibernateManager.instance();
 	private static Date lastInMemoryObjectsSync = new Date(0);
+	public static MetricRegistry METRIC_REGISTRY;
+	private static JmxReporter reporter;
 
-	static Logger logger = Logger.getLogger(OrkTrack.class);
+	private static Logger log = LogManager.getInstance().getRootLogger();
 
 	public OrkTrack() {
-		
 		LogManager.getInstance().getConfigLogger().info("Entering OrkTrack");
 	}
 	
-	public static void initialize(String log4jConfigFile, String hibernateConfigFile, String configFile) {
+	public static void initialize(String log4jConfigFile, String hibernateConfigFile, String configFile) throws Exception {
         try {
 			LogManager.getInstance().configure(log4jConfigFile);
 
-			logger.info("========================================");
-			logger.info(OrkTrack.APP_NAME + " starting ...");
+			log.info("========================================");
+			log.info(APP_NAME + " starting ...");
 
 			// Register all OrkObjects
 			OrkObjectFactory.instance().registerOrkObject(new OrkTrackConfig());
@@ -64,9 +60,20 @@ public class OrkTrack {
 			ConfigManager.getInstance().load(configFile);
 
 			hibernateManager.configure(hibernateConfigFile);
+
+			METRIC_REGISTRY = SharedMetricRegistries.getOrCreate(DEFAULT_REGISTRY_NAME);
+
+			reporter = JmxReporter.forRegistry(METRIC_REGISTRY)
+					.convertDurationsTo(TimeUnit.MILLISECONDS)
+					.convertRatesTo(TimeUnit.SECONDS)
+					.inDomain("orktrack")
+					.build();
+			reporter.start();
+
 		}
 		catch (Exception e) {
-			logger.error("OrkTrack.initialize: Error configuring Hibernate:" + e.getMessage());
+			log.error("OrkTrack.initialize: Error configuring Hibernate:" + e.getMessage());
+			throw e ;
 		}
 
 		/*
@@ -81,9 +88,10 @@ public class OrkTrack {
 		 */
 		refreshInMemoryObjects();
 
-		logger.info(OrkTrack.APP_NAME + " started successfully.");
-		logger.info("----------------------------------------");
+		log.info(APP_NAME + " started successfully.");
+		log.info("----------------------------------------");
 
+		METRIC_REGISTRY.counter(APP_NAME).inc();
 	}
 	
 	public static void refreshInMemoryObjects() {
@@ -97,12 +105,4 @@ public class OrkTrack {
 		}
 	}
 	
-	public static void main(String[] args)
-	{
-		//System.out.println("hello");
-		//RecSegment seg = new RecSegment();
-		//System.out.println(seg.getDuration());
-		//OrkTrack orkTrack = new OrkTrack();
-	}
-
 }
