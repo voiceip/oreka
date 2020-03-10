@@ -58,12 +58,24 @@ docker run -itd --net=host --restart=always --privileged=true -v /var/log/orkaud
 
 #### Debian
 
-Ubuntu installers are available via [Bintray](https://bintray.com/kingster/deb/oreka). To add the sources to your system run the following command
+Binary releases are available from the [Releases Section](https://github.com/voiceip/oreka/releases). Download and install.
+
+~~Ubuntu installers are available via [Bintray](https://bintray.com/kingster/deb/oreka). To add the sources to your system run the following command~~ 
+
+```diff
+- Bintray currenty broken due to some issue. I will soon figure out how to publish with multiple versions.
 ```
-echo "deb https://dl.bintray.com/kingster/deb /" | sudo tee -a /etc/apt/sources.list.d/oreka.list
-apt update
-apt install oreka
+
 ```
+#echo "deb https://dl.bintray.com/kingster/deb /" | sudo tee -a /etc/apt/sources.list.d/oreka.list
+#apt update && apt install oreka
+dpkg -i oreka.deb
+apt-get -f install #install dependencies.
+svc -u /etc/service/orkaudio #to-start
+svc -u /etc/service/orkaudio #to-stop
+```
+
+
 
 #### More Information
 Read [more](README.txt)
