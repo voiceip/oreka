@@ -42,6 +42,8 @@ private:
     OpusDecoder* m_decoder;
     int m_sampleRate8KhzMultiplier;
     bool m_initialized;
+	bool m_errorLogged;
+	bool m_warnLogged;
 
 };
 

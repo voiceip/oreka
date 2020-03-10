@@ -14,30 +14,11 @@
 #ifndef _SIPTCP_H__
 #define _SIPTCP_H__ 1
 
-#include <log4cxx/logger.h>
-#include <list>
-#include "SipTcp.h"
-#include <map>
-#include "PacketHeaderDefs.h"
+#include "SafeBuffer.h"
+
+bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
 
 using namespace log4cxx;
-
-class SafeBuffer
-{
-public:
-        SafeBuffer();
-        ~SafeBuffer();
-
-        void Store(u_char *buf, int len);
-	void Add(u_char *buf, int len);
-        u_char *GetBuffer();
-        int Size();
-
-private:
-        u_char *m_pBuffer;
-        int m_size;
-};
-typedef oreka::shared_ptr<SafeBuffer> SafeBufferRef;
 
 // ============================================================
 

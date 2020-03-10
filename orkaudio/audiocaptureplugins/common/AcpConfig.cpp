@@ -1,6 +1,5 @@
 #include "AcpConfig.h"
 
-std::list<CStdString> m_asciiMediaGateways;
 
 AcpConfig::AcpConfig() {
 }
@@ -17,9 +16,10 @@ void AcpConfig::Reset() {
 	m_rtpS1S2MappingDeterministic = false;
 	m_rtpS1S2MappingDeterministicS1IsLocal = true;
 
-	m_asciiMediaGateways.clear();
 	m_ctiDrivenEnable = false;
 	m_ctiDrivenMatchingTimeoutSec = 30;
+
+	m_sipReportFullAddress = false;
 }
 
 void AcpConfig::Define(Serializer* s) {
@@ -34,39 +34,24 @@ void AcpConfig::Define(Serializer* s) {
 	s->BoolValue("RtpS1S2MappingDeterministic", m_rtpS1S2MappingDeterministic);
 	s->BoolValue("RtpS1S2MappingDeterministicS1IsLocal", m_rtpS1S2MappingDeterministicS1IsLocal);
 
-	s->CsvValue("MediaGateways", m_asciiMediaGateways);
+	s->IpRangesValue("MediaGateways", m_mediaGateways);
 	s->BoolValue("CtiDrivenEnable", m_ctiDrivenEnable);
 	s->IntValue("CtiDrivenMatchingTimeoutSec",m_ctiDrivenMatchingTimeoutSec);
 	s->CsvValue("CtiDrivenMatchingCriteria", m_ctiDrivenMatchingCriteria);
+	s->BoolValue("SipReportFullAddress", m_sipReportFullAddress);
 }
 
 void AcpConfig::Validate() {
-	// iterate over ascii Media gateway IP addresses and populate the binary Media gateway IP addresses list
-	std::list<CStdString>::iterator it;
-	m_mediaGateways.clear();
-	for(it = m_asciiMediaGateways.begin(); it != m_asciiMediaGateways.end(); it++)
-	{
-		struct in_addr a;
-		if(inet_pton4((PCSTR)*it, &a))
-		{
-			m_mediaGateways.push_back((unsigned int)a.s_addr);
-		}
-		else
-		{
-			throw (CStdString("VoIpConfig: invalid IP address in MediaGateways:" + *it));
-		}
-	}
+	m_mediaGateways.Compute();
 }
-
+#include <iostream>
 bool AcpConfig::IsMediaGateway(struct in_addr addr)
 {
-	for(std::list<unsigned int>::iterator it = m_mediaGateways.begin(); it != m_mediaGateways.end(); it++)
+	bool rc = false;
+	if (!m_mediaGateways.Empty())
 	{
-		if((unsigned int)addr.s_addr == *it)
-		{
-			return true;
-		}
+		rc = m_mediaGateways.Matches(addr);
 	}
-	return false;
+	return rc;
 }
 

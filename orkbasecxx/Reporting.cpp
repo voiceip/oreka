@@ -27,6 +27,8 @@
 #include "OrkTrack.h"
 #include <vector>
 
+static std::mutex s_mutex;
+
 struct ReportingThreadInfo
 {
 	int m_numTapesToSkip;
@@ -95,8 +97,15 @@ void Reporting::ReportingThreadEntryPoint(void *args)
 	myRunInfo.m_myInfo = rtInfoRef;
 	myRunInfo.m_threadId.Format("%s,%d", myRunInfo.m_tracker.m_hostname, myRunInfo.m_tracker.m_port);
 
-	s_reportingThreads.insert(std::make_pair(myRunInfo.m_tracker.m_hostname, rtInfoRef));
-	s_reportingThreadsVector.push_back(rtInfoRef);
+	//
+	// multiple reporting threads may be created so updating s_reportingThreads
+	// and s_reportingThreadsVector be protected.
+	{
+		MutexSentinel mutexSentinel(s_mutex);
+		s_reportingThreads.insert(std::make_pair(myRunInfo.m_tracker.m_hostname, rtInfoRef));
+		s_reportingThreadsVector.push_back(rtInfoRef);
+	}
+
 	delete rtInfo;
 
 	myRunInfo.Run();

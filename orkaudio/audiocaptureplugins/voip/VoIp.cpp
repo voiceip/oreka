@@ -396,7 +396,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 				return true;
 			}
 
-			if((rtpHeader->pt <= 34 &&  rtpHeader->pt != 13) || (rtpHeader->pt >= 97 && rtpHeader->pt < 128) )         
+			if((rtpHeader->pt <= 34 &&  rtpHeader->pt != 13) || (rtpHeader->pt >= 96 && rtpHeader->pt < 128) )         
 			// pt=13 is CN (Comfort Noise)
 			// pt=34 is H263
 			// pt=97 is IAX2 iLBC payload

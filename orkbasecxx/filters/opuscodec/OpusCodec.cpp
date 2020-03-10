@@ -38,6 +38,8 @@ OpusCodecDecoder::OpusCodecDecoder()
 		LOG4CXX_ERROR(s_log, "Failed to create the decoder");
 		m_initialized = true;
 	}
+	m_errorLogged = false;
+	m_warnLogged = false;
 }
 
 OpusCodecDecoder::~OpusCodecDecoder()
@@ -87,7 +89,7 @@ void OpusCodecDecoder::AudioChunkIn(AudioChunkRef& inputChunk)
 	AudioChunkDetails outputDetails = *inputChunk->GetDetails();	// pass through all details
 	outputDetails.m_rtpPayloadType = -1;							// and override the ones that this filter changes
 	outputDetails.m_encoding = PcmAudio;
-	outputDetails.m_numBytes = 320;
+	outputDetails.m_numBytes = m_max_frame_size;	//we will need to reset this to the proper number after the chunk got decoded, since the decoder may use up to 5760 bytes on the buffer
 	outputDetails.m_timestamp = details->m_timestamp;	//will need downsampling to 8khz
 	if(m_lastRtpSeq == 0 || m_lastRtpTs == 0)	//very first chunk, not known sampling rate yet
 	{
@@ -132,6 +134,27 @@ void OpusCodecDecoder::AudioChunkIn(AudioChunkRef& inputChunk)
 								&outputBuffer[0],
 								output_samples,
 								0);
+	if(output_samples > 0)
+	{
+		if(output_samples > 160 && m_warnLogged == false){
+			logMsg.Format("opus_decode audiochunk seq:%d numSamples:%d is over 160", outputDetails.m_sequenceNumber, output_samples);
+			LOG4CXX_WARN(s_log, logMsg);
+			m_warnLogged = true;
+		}
+		outputDetails.m_numBytes = output_samples*2;
+		m_outputChunk->SetDetails(&outputDetails);
+	}
+	else
+	{
+		if(m_errorLogged == false){
+			logMsg.Format("opus_decode audiochunk seq:%d error:%d", outputDetails.m_sequenceNumber, output_samples);
+			LOG4CXX_ERROR(s_log, logMsg);
+			m_errorLogged = true;
+		}
+		outputDetails.m_numBytes = 320;
+		m_outputChunk->SetDetails(&outputDetails);
+		memset(outputBuffer, 0, 320);
+	}
 }
 
 void OpusCodecDecoder::AudioChunkOut(AudioChunkRef& chunk)
