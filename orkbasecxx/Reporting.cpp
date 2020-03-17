@@ -193,7 +193,7 @@ bool Reporting::AddMessage(MessageRef messageRef)
 		MessageRef reportingMsgRef = reportable->Clone();
 
 		ret = reportingThread->m_messageQueue.push(reportingMsgRef);
-		FLOG_INFO(LOG.reporting,"[%s] %s: %s",reportingThread->m_tracker.ToString(),ret?"enqueued":"queue full, rejected",msgAsSingleLineString);
+		FLOG_INFO(LOG.reporting,"[%s] queuesize:%d %s: %s",reportingThread->m_tracker.ToString(),reportingThread->m_messageQueue.numElements(),ret?"enqueued":"queue full, rejected",msgAsSingleLineString);
 	}
 
 	EventStreamingSingleton::instance()->AddMessage(reportable->Clone());
@@ -356,7 +356,7 @@ void ReportingThread::Run()
 
 				if( CONFIG.m_enableReporting)
 				{
-					FLOG_INFO(LOG.reporting,"[%s] sending: %s", m_tracker.ToString(), msgAsSingleLineString);
+					FLOG_INFO(LOG.reporting,"[%s] timedeltasecs:%d sending: %s", m_tracker.ToString(), msgRef->Age(), msgAsSingleLineString);
 
 					//OrkHttpSingleLineClient c;
 
