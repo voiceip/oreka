@@ -33,6 +33,8 @@ public:
 
 	bool m_rtpS1S2MappingDeterministic;
 	bool m_rtpS1S2MappingDeterministicS1IsLocal;
+	int m_rtpS1MinNumPacketsBeforeStart;
+	int m_rtpS2MinNumPacketsBeforeStart;
 
 	bool IsMediaGateway(struct in_addr);
 	IpRanges m_mediaGateways;

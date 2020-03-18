@@ -15,6 +15,8 @@ void AcpConfig::Reset() {
 
 	m_rtpS1S2MappingDeterministic = false;
 	m_rtpS1S2MappingDeterministicS1IsLocal = true;
+	m_rtpS1MinNumPacketsBeforeStart = 0;
+	m_rtpS2MinNumPacketsBeforeStart = 0;
 
 	m_ctiDrivenEnable = false;
 	m_ctiDrivenMatchingTimeoutSec = 30;
@@ -39,6 +41,8 @@ void AcpConfig::Define(Serializer* s) {
 	s->IntValue("CtiDrivenMatchingTimeoutSec",m_ctiDrivenMatchingTimeoutSec);
 	s->CsvValue("CtiDrivenMatchingCriteria", m_ctiDrivenMatchingCriteria);
 	s->BoolValue("SipReportFullAddress", m_sipReportFullAddress);
+	s->IntValue("RtpS1MinNumPacketsBeforeStart",m_rtpS1MinNumPacketsBeforeStart);
+	s->IntValue("RtpS2MinNumPacketsBeforeStart",m_rtpS2MinNumPacketsBeforeStart);
 }
 
 void AcpConfig::Validate() {
