@@ -356,7 +356,7 @@ void ReportingThread::Run()
 
 				if( CONFIG.m_enableReporting)
 				{
-					FLOG_INFO(LOG.reporting,"[%s] timedeltasecs:%d sending: %s", m_tracker.ToString(), msgRef->Age(), msgAsSingleLineString);
+					FLOG_INFO(LOG.reporting,"[%s] timedeltasecs:%d sending: %s", m_tracker.ToString(), (int)(msgRef->Age()), msgAsSingleLineString);
 
 					//OrkHttpSingleLineClient c;
 
