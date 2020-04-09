@@ -5,28 +5,14 @@
 #include "shared_ptr.h"
 #include "AcpConfig.h"
 #include "Rtp.h"
+#include "Filter.h"
 
 class OrkSession {
 	public:
-		OrkSession (AcpConfig * config) :
-			m_capturePort(""),
-			m_trackingId(""),
-			m_beginDate(0),
-			m_config(config),
+		OrkSession(AcpConfig * config);
 
-			m_keepRtp(true),
-			m_onDemand(false),
-			m_startWhenReceiveS2(false),
-			m_nonLookBackSessionStarted(false),
-
-			// DTMF related
-			m_dtmfDigitString(""),
-			m_currentRtpEventTs(0),
-			m_telephoneEventPayloadType(config->m_rtpEventPayloadTypeDefaultValue)
-		{
-			for (int i = 0; i < 32; i++) m_orekaRtpPayloadTypeMap[i] = i+96;
-		}
-
+		bool m_started;
+		bool m_stopped;
 		CStdString m_capturePort;
 		CStdString m_trackingId;
 		time_t m_beginDate;			// When the session has seen a few RTP packets
@@ -55,6 +41,8 @@ class OrkSession {
 		struct in_addr m_localIp;
 		bool m_mappedS1S2;
 		unsigned char m_orekaRtpPayloadTypeMap[32];
+
+		std::vector<FilterRef> m_decoders;
 
 		void	UpdateRtpPayloadMap(unsigned char *map)
 		{

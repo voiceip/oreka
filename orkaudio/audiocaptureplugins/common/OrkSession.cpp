@@ -14,6 +14,38 @@ static LoggerPtr getLog() {
 	return s_log;
 }
 
+OrkSession::OrkSession(AcpConfig * config): m_config(config), m_telephoneEventPayloadType(config->m_rtpEventPayloadTypeDefaultValue)
+{
+	m_started = false;
+	m_stopped = false;
+	m_capturePort = "";
+	m_trackingId = "";
+	m_beginDate = 0;
+	m_keepRtp = true;
+	if(CONFIG.m_lookBackRecording == false)
+	{
+		m_keepRtp = false;
+	}
+	m_onDemand = false;
+	m_startWhenReceiveS2 = false;
+	m_nonLookBackSessionStarted = false;
+
+	// DTMF related
+	m_dtmfDigitString = "";
+	m_currentRtpEventTs = 0;
+	
+	for (int i = 0; i < 32; i++){
+		m_orekaRtpPayloadTypeMap[i] = i+96;
+	}
+	if(config->m_sessionStartsOnS2ActivityDb != 0){
+		FilterRef decoder;
+		for(int pt = 0; pt < RTP_PAYLOAD_TYPE_MAX; pt++)
+		{
+			decoder = FilterRegistry::instance()->GetNewFilter(pt);
+			m_decoders.push_back(decoder);
+		}
+	}
+}
 
 bool OrkSession::ShouldSwapChannels()
 {
@@ -117,7 +149,12 @@ int OrkSession::DetectChannel(RtpPacketInfoRef& rtpPacket, bool* pIsFirstPacket)
 			logMsg =  "[" + m_trackingId + "] 1st packet s2: " + logMsg;
 			LOG4CXX_INFO(getLog(), logMsg);
 		}
-		if (CONFIG.m_discardUnidirectionalCalls && m_startWhenReceiveS2)
+		//We just ignore the first s2 packet if m_sessionStartsOnS2ActivityDb enable, since channel swapping could happen after first s1 and s2
+		if(m_config->m_sessionStartsOnS2ActivityDb != 0)
+		{
+			//do nothing to not start the call
+		}
+		else if(CONFIG.m_discardUnidirectionalCalls && m_startWhenReceiveS2)
 		{
 			Start();
 			ReportMetadata();
@@ -133,6 +170,61 @@ int OrkSession::DetectChannel(RtpPacketInfoRef& rtpPacket, bool* pIsFirstPacket)
 		return 2;
 	}
 	else if(rtpPacket->m_ssrc == m_lastRtpPacketSide2->m_ssrc && m_lastRtpPacketSide2->m_destIp.s_addr == rtpPacket->m_destIp.s_addr) {
+		if(!m_started && (m_config->m_sessionStartsOnS2ActivityDb != 0)){			
+			AudioChunkDetails details;
+			details.m_arrivalTimestamp = rtpPacket->m_arrivalTimestamp;
+			details.m_numBytes = rtpPacket->m_payloadSize;
+			details.m_timestamp = rtpPacket->m_timestamp;
+			details.m_sequenceNumber = rtpPacket->m_seqNum;
+			details.m_channel = 2;
+			details.m_encoding = AlawAudio;
+			details.m_numBytes = rtpPacket->m_payloadSize;
+			if(rtpPacket->m_payloadType >= 96)
+			{
+				details.m_rtpPayloadType = m_orekaRtpPayloadTypeMap[rtpPacket->m_payloadType-96];
+			}
+			else
+			{
+				details.m_rtpPayloadType = rtpPacket->m_payloadType;
+			}
+			AudioChunkRef chunk(new AudioChunk());
+			chunk->SetBuffer(rtpPacket->m_payload, details);
+			double rmsVal = 0;
+			if(chunk->GetEncoding() != PcmAudio)
+			{
+				AudioChunkRef tmpChunkRef;
+				FilterRef decoder;
+				decoder = m_decoders.at(details.m_rtpPayloadType);
+				if(decoder.get() != NULL)
+				{
+					decoder->AudioChunkIn(chunk);
+					decoder->AudioChunkOut(tmpChunkRef);
+					if(tmpChunkRef.get())
+					{
+						rmsVal = tmpChunkRef->ComputeRmsDb();
+					}
+				}	
+			}
+			else
+			{
+				rmsVal = chunk->ComputeRmsDb();
+			}
+			if(getLog()->isDebugEnabled())
+			{
+				logMsg.Format("[%s] s2 db:%lf" ,m_trackingId, rmsVal);
+				LOG4CXX_TRACE(getLog(), logMsg);
+			}
+			if(rmsVal > m_config->m_sessionStartsOnS2ActivityDb)
+			{
+				Start();
+				ReportMetadata();
+				if (CONFIG.m_lookBackRecording == false)
+				{
+					m_nonLookBackSessionStarted = true;
+				}
+			}
+		}
+
 		return 2;
 	}
 

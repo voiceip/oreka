@@ -51,8 +51,6 @@ VoIpSession::VoIpSession(CStdString& trackingId) : OrkSession(&DLLCONFIG),
 	m_numRtpPackets = 0;
 	m_numIgnoredRtpPackets = 0;
 	m_metadataProcessed = false;
-	m_started = false;
-	m_stopped = false;
 	m_onHold = false;
 	if(CONFIG.m_lookBackRecording == false)
 	{

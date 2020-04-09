@@ -22,6 +22,7 @@ void AcpConfig::Reset() {
 	m_ctiDrivenMatchingTimeoutSec = 30;
 
 	m_sipReportFullAddress = false;
+	m_sessionStartsOnS2ActivityDb = 0;
 }
 
 void AcpConfig::Define(Serializer* s) {
@@ -43,10 +44,16 @@ void AcpConfig::Define(Serializer* s) {
 	s->BoolValue("SipReportFullAddress", m_sipReportFullAddress);
 	s->IntValue("RtpS1MinNumPacketsBeforeStart",m_rtpS1MinNumPacketsBeforeStart);
 	s->IntValue("RtpS2MinNumPacketsBeforeStart",m_rtpS2MinNumPacketsBeforeStart);
+	s->DoubleValue("SessionStartsOnS2ActivityDb", m_sessionStartsOnS2ActivityDb);
 }
 
 void AcpConfig::Validate() {
 	m_mediaGateways.Compute();
+	if(m_sessionStartsOnS2ActivityDb != 0)
+	{
+		m_rtpS1S2MappingDeterministic = true;
+		m_rtpS1S2MappingDeterministicS1IsLocal = true;
+	}
 }
 #include <iostream>
 bool AcpConfig::IsMediaGateway(struct in_addr addr)
