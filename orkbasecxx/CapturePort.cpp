@@ -139,15 +139,14 @@ void CapturePort::ReportEventBacklog(AudioTapeRef& audioTape)
 
 void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 {
+	time_t now = time(NULL);
+	m_lastUpdated = now;
 	FilterAudioChunk(chunkRef);
 
 	if (!CONFIG.m_audioOutputEnable)
 	{
 		return;
 	}
-
-	time_t now = time(NULL);
-	m_lastUpdated = now;
 
 	if(CONFIG.m_audioSegmentation)
 	{
