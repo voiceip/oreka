@@ -281,7 +281,7 @@ void MainThread()
 	FilterRegistry::instance()->RegisterFilter(filter);
 	
 	// Register in-built tape processors and build the processing chain
-	OrkTrack::Initialize(CONFIG.m_trackerHostname, CONFIG.m_trackerServicename, CONFIG.m_trackerTcpPort);
+	OrkTrack::Initialize(CONFIG.m_trackerHostname, CONFIG.m_trackerServicename, CONFIG.m_trackerTcpPort,  CONFIG.m_trackerTlsPort);
 	BatchProcessing::Initialize();
 	CommandProcessing::Initialize();
 	Reporting::Initialize();

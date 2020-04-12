@@ -59,6 +59,8 @@
 #define TRACKER_HOSTNAME_DEFAULT "localhost"
 #define TRACKER_TCP_PORT_PARAM "TrackerTcpPort"
 #define TRACKER_TCP_PORT_DEFAULT 8080
+#define TRACKER_TLS_PORT_PARAM "TrackerTlsPort"
+#define TRACKER_TLS_PORT_DEFAULT 8443
 #define TRACKER_SERVICENAME_PARAM "TrackerServicename"
 #define TRACKER_SERVICENAME_DEFAULT "orktrack"
 #define SERVICE_NAME_PARAM "ServiceName"
@@ -208,6 +210,7 @@ public:
 	std::list<CStdString> m_trackerHostname;
 	CStdString m_trackerServicename;
 	int m_trackerTcpPort;
+	int m_trackerTlsPort;
 	CStdString m_serviceName;
 	int m_reportingRetryDelay;
 	int m_clientTimeout;

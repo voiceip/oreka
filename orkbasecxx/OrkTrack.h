@@ -16,7 +16,7 @@
 
 class DLL_IMPORT_EXPORT_ORKBASE OrkTrack {
 	public:
-		static void Initialize(const std::list<CStdString>& hostnames, const CStdString defaultServiceName, const int defaultPort);
+		static void Initialize(const std::list<CStdString>& hostnames, const CStdString defaultServiceName, const int defaultTcpPort, const int defaultTlsPort);
 		static const std::vector<OrkTrack>& getTrackers() {
 			return s_trackers;
 		}

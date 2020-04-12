@@ -11,7 +11,7 @@
 
 std::vector<OrkTrack> OrkTrack::s_trackers;
 
-void OrkTrack::Initialize(const std::list<CStdString>& hostnameList, const CStdString defaultServicename, const int defaultPort)
+void OrkTrack::Initialize(const std::list<CStdString>& hostnameList, const CStdString defaultServicename, const int defaultTcpPort, const int defaultTlsPort)
 {
 	s_trackers.clear();
 
@@ -27,6 +27,10 @@ void OrkTrack::Initialize(const std::list<CStdString>& hostnameList, const CStdS
 			token.erase(0,8); //strip off the "https://"
 			is_https = true;
 		}
+		else if(token.rfind("http://",0) != std::string::npos)
+		{
+			token.erase(0,7); //strip off the "http://"
+		}
 		// chop the servicename, if any
 		pos = token.find("/");
 		tracker.m_servicename = (pos != std::string::npos) ? token.substr(pos+1) : CStdString(defaultServicename);
@@ -34,7 +38,11 @@ void OrkTrack::Initialize(const std::list<CStdString>& hostnameList, const CStdS
 		
 		// chop the port, if any
 		pos = token.find(":");
-		tracker.m_port = (pos != std::string::npos) ? atoi(token.substr(pos+1).c_str()) : defaultPort;
+		if (is_https)
+			tracker.m_port = (pos != std::string::npos) ? atoi(token.substr(pos+1).c_str()) : defaultTlsPort;
+		else
+			tracker.m_port = (pos != std::string::npos) ? atoi(token.substr(pos+1).c_str()) : defaultTcpPort;
+
 		token = token.substr(0,pos);
 
 		// remaining bit is the hostname
