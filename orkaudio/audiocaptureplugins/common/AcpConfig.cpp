@@ -1,5 +1,5 @@
 #include "AcpConfig.h"
-
+#include "ConfigManager.h"
 
 AcpConfig::AcpConfig() {
 }
@@ -53,6 +53,7 @@ void AcpConfig::Validate() {
 	{
 		m_rtpS1S2MappingDeterministic = true;
 		m_rtpS1S2MappingDeterministicS1IsLocal = true;
+		CONFIG.m_discardUnidirectionalCalls = true;
 	}
 }
 #include <iostream>
