@@ -490,4 +490,5 @@ typedef enum
 } RtpPayloadType;
 
 CStdString RtpPayloadTypeEnumToString(char pt);
+size_t DLL_IMPORT_EXPORT_ORKBASE ciFind(const std::string &Haystack, const std::string &Needle);
 #endif

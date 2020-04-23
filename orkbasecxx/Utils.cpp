@@ -1065,7 +1065,7 @@ bool IpRanges::Empty()
 // ciFind: case insensitive find helper function
 // we're using this for codecs, which are ASCII, so we don't
 // need to worry about unicode and/or locales
-static size_t ciFind(const std::string &Haystack, const std::string &Needle)
+size_t ciFind(const std::string &Haystack, const std::string &Needle)
 {
 	auto it = std::search(
 			Haystack.begin(), Haystack.end(),
