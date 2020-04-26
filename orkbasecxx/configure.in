@@ -11,7 +11,7 @@ AC_LANG_CPLUSPLUS
 AC_PROG_CXX
 
 if [grep "release 7" /etc/redhat-release]; then
-    boost_lib=-lboost_system-mt
+    boost_lib=/usr/lib64/static_libboost_system.a
 fi
 
 # don't support TLS under Centos 6
