@@ -20,6 +20,7 @@ void AcpConfig::Reset() {
 
 	m_ctiDrivenEnable = false;
 	m_ctiDrivenMatchingTimeoutSec = 30;
+	m_ctiDrivenStopIgnore = true;
 
 	m_sipReportFullAddress = false;
 	m_sessionStartsOnS2ActivityDb = 0;
@@ -41,6 +42,7 @@ void AcpConfig::Define(Serializer* s) {
 	s->BoolValue("CtiDrivenEnable", m_ctiDrivenEnable);
 	s->IntValue("CtiDrivenMatchingTimeoutSec",m_ctiDrivenMatchingTimeoutSec);
 	s->CsvValue("CtiDrivenMatchingCriteria", m_ctiDrivenMatchingCriteria);
+	s->BoolValue("CtiDrivenStopIgnore", m_ctiDrivenStopIgnore);
 	s->BoolValue("SipReportFullAddress", m_sipReportFullAddress);
 	s->IntValue("RtpS1MinNumPacketsBeforeStart",m_rtpS1MinNumPacketsBeforeStart);
 	s->IntValue("RtpS2MinNumPacketsBeforeStart",m_rtpS2MinNumPacketsBeforeStart);

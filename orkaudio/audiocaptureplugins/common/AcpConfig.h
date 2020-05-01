@@ -41,6 +41,7 @@ public:
 	bool m_ctiDrivenEnable;
 	int m_ctiDrivenMatchingTimeoutSec;
 	std::list<CStdString> m_ctiDrivenMatchingCriteria;
+	bool m_ctiDrivenStopIgnore;
 
 	bool m_sipReportFullAddress;
 	std::list <CtiMatchingCriteriaEnum> m_ctiMatchingCriteriaList;
