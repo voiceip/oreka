@@ -64,7 +64,7 @@
 		<!--    SiprecBroadWorks, SiprecAcme, CiscoBib, SiprecMetaswitch,         -->
 		<!--    SiprecOpenSips, Truphone, SiprecSonus, SiprecSangoma,             -->
 		<!--    SiprecAudioCodes, SipGeneric, Softphone                           -->
-		<!-- <SipMode>SiprecGeneric</SipMode> -->
+		<!-- <SipMode>SipGeneric</SipMode> -->
 		<!-- Uncomment the following for SIPREC configurations                    -->
 		<!-- <SupportFeatures>resource-priority,siprec</SupportFeatures> -->
 		<!-- extract any arbitrary SIPREC XML field as a tag -->
