@@ -23,7 +23,7 @@
 	<TrackerHostname>localhost</TrackerHostname>
 	<TrackerTcpPort>8080</TrackerTcpPort>
 
-	<CapturePortFilters>LiveMonitoring</CapturePortFilters>
+	<CapturePortFilters>LiveStreamFilter</CapturePortFilters>
 	<TapeProcessors>BatchProcessing, Reporting</TapeProcessors>
 	
 	<BatchProcessingEnhancePriority>true</BatchProcessingEnhancePriority>	    
