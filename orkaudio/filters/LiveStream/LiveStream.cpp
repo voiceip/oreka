@@ -13,6 +13,7 @@
 #include <string>
 #include <cstring>
 #include "Utils.h"
+#include "srs_librtmp.h"
 
 #define BUFFER_SAMPLES  8000
 
@@ -27,18 +28,12 @@ std::string toString(const T &value) {
 
 LiveStreamFilter::LiveStreamFilter()
 {
-   //setup new server
-    LiveStreamServer liveStreamServer(9090);
-	if(liveStreamServer.Initialize())
-	{
-		std::thread handler(&LiveStreamServer::Run, &liveStreamServer);
-		handler.detach();
-	}
+	LOG4CXX_INFO(s_log, "LiveStream New Instance Created \n");
 }
 
 LiveStreamFilter::~LiveStreamFilter()
 {
-
+	LOG4CXX_INFO(s_log, "LiveStream Destroying Created \n");
 }
 
 FilterRef LiveStreamFilter::Instanciate()
@@ -49,13 +44,17 @@ FilterRef LiveStreamFilter::Instanciate()
 
 void LiveStreamFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 {
-    int16_t pcmdata[BUFFER_SAMPLES];
-    int input_size = 0;
+	// LOG4CXX_INFO(s_log, "LiveStream AudioChunkIn ");
+	m_outputAudioChunk = inputAudioChunk;
+    // int16_t pcmdata[BUFFER_SAMPLES];
+    int size = 0;
     int output_size;
     CStdString logMsg;
 
-    memset(pcmdata, 0, sizeof(pcmdata));
-    m_outputAudioChunk.reset();
+	u_int32_t time_delta = 17;
+
+    // memset(pcmdata, 0, sizeof(pcmdata));
+    // m_outputAudioChunk.reset();
 
     if(inputAudioChunk.get() == NULL) {
         return;
@@ -66,25 +65,80 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
     }
 
     AudioChunkDetails outputDetails = *inputAudioChunk->GetDetails();
-    if(SupportsInputRtpPayloadType(outputDetails.m_rtpPayloadType) == false)
-    {
-        logMsg.Format("Wrong input RTP payload type: %d", outputDetails.m_rtpPayloadType);
-        LOG4CXX_DEBUG(s_log, logMsg);
-        return;
-    }
+    char* inputBuffer = (char*)inputAudioChunk->m_pBuffer;
+    size = outputDetails.m_numBytes;
 
-    unsigned char* inputBuffer = (unsigned char*)inputAudioChunk->m_pBuffer;
-    input_size = outputDetails.m_numBytes;
+	logMsg.Format("LiveStreamFilter AudioChunkIn Size: %d, Encoding: %s , RTP payload type: %s",size ,toString(outputDetails.m_encoding) , RtpPayloadTypeEnumToString(outputDetails.m_rtpPayloadType));
+    LOG4CXX_INFO(s_log, logMsg);
 
-    LOG4CXX_DEBUG(s_log, "LiveStream AudioChunkIn Size : " + toString(input_size));
+	// @param sound_format Format of SoundData. The following values are defined:
+	// 0 = Linear PCM, platform endian
+	// 1 = ADPCM
+	// 2 = MP3
+	// 3 = Linear PCM, little endian
+	// 4 = Nellymoser 16 kHz mono
+	// 5 = Nellymoser 8 kHz mono
+	// 6 = Nellymoser
+	// 7 = G.711 A-law logarithmic PCM
+	// 8 = G.711 mu-law logarithmic PCM
+	// 9 = reserved
+	// 10 = AAC
+	// 11 = Speex
+	// 14 = MP3 8 kHz
+	// 15 = Device-specific sound
+	// Formats 7, 8, 14, and 15 are reserved.
+	// AAC is supported in Flash Player 9,0,115,0 and higher.
+	// Speex is supported in Flash Player 10 and higher.
 
-    m_outputAudioChunk.reset(new AudioChunk());
-    outputDetails.m_rtpPayloadType = -1;
-    outputDetails.m_encoding = PcmAudio;
-    outputDetails.m_numBytes = input_size;
+	char sound_format = 15;
+	if (outputDetails.m_rtpPayloadType ==  pt_PCMU)
+		sound_format = 8;
+	else if (outputDetails.m_rtpPayloadType ==  pt_PCMA)
+		sound_format = 7;
 
-    short* outputBuffer = (short*)m_outputAudioChunk->CreateBuffer(outputDetails);
-    memcpy(outputBuffer, inputBuffer, outputDetails.m_numBytes);
+	// @param sound_rate Sampling rate. The following values are defined:
+	// 0 = 5.5 kHz
+	// 1 = 11 kHz
+	// 2 = 22 kHz
+	// 3 = 44 kHz
+	char sound_rate = 8;
+
+	// @param sound_size Size of each audio sample. This parameter only pertains to
+	// uncompressed formats. Compressed formats always decode
+	// to 16 bits internally.
+	// 0 = 8-bit samples
+	// 1 = 16-bit samples
+	char sound_size = 0;
+
+	// @param sound_type Mono or stereo sound
+	// 0 = Mono sound
+	// 1 = Stereo sound
+	char sound_type = outputDetails.m_channel == 0 ? 0 : 1;
+
+	timestamp  += 20 ;//=  outputDetails.m_timestamp; //+= time_delta;
+
+	if (rtmp != NULL) {
+		if (srs_audio_write_raw_frame(rtmp, 
+			sound_format, sound_rate, sound_size, sound_type,
+			inputBuffer, size,time_delta) != 0
+		) {
+			srs_human_trace("send audio raw data failed.");
+			return;
+		}
+		
+		srs_human_trace("sent packet: type=%s, time=%d, size=%d, codec=%d, rate=%d, sample=%d, channel=%d", 
+			srs_human_flv_tag_type2string(SRS_RTMP_TYPE_AUDIO), timestamp, size, sound_format, sound_rate, sound_size,
+			sound_type);
+	}
+
+	// outputDetails.m_rtpPayloadType = -1;
+    // m_outputAudioChunk.reset(new AudioChunk());
+    // outputDetails.m_rtpPayloadType = -1;
+    // outputDetails.m_encoding = PcmAudio;
+    // outputDetails.m_numBytes = size;
+
+    // short* outputBuffer = (short*)m_outputAudioChunk->CreateBuffer(outputDetails);
+    // memcpy(outputBuffer, inputBuffer, outputDetails.m_numBytes);
 }
 
 void LiveStreamFilter::AudioChunkOut(AudioChunkRef& chunk)
@@ -94,12 +148,12 @@ void LiveStreamFilter::AudioChunkOut(AudioChunkRef& chunk)
 
 AudioEncodingEnum LiveStreamFilter::GetInputAudioEncoding()
 {
-    return PcmAudio;
+    return UnknownAudio;
 }
 
 AudioEncodingEnum LiveStreamFilter::GetOutputAudioEncoding()
 {
-    return PcmAudio;
+    return UnknownAudio;
 }
 
 CStdString LiveStreamFilter::GetName()
@@ -109,17 +163,61 @@ CStdString LiveStreamFilter::GetName()
 
 bool LiveStreamFilter::SupportsInputRtpPayloadType(int rtpPayloadType)
 {
-    return rtpPayloadType == pt_PCMU;
+	//so that BatchProcessing doesn't pick this filter.
+    return rtpPayloadType == pt_Unknown;
 }
+
+
+std::string url = "rtmp://172.16.176.65:1935/live/sipcall";
 
 void LiveStreamFilter::CaptureEventIn(CaptureEventRef& event)
 {
-    ;
+	//Start RTP Stream Open
+	auto key = event->EventTypeToString(event->m_type);
+	LOG4CXX_INFO(s_log, "LiveStream CaptureEventIn " + key + " : " + event->m_value);
+	if(event->m_type == CaptureEvent::EventTypeEnum::EtCallId){
+		m_callId = event->m_value;
+	}
+
+	if(event->m_type == CaptureEvent::EventTypeEnum::EtStart){
+		//open rstp stream
+		rtmp = srs_rtmp_create(url.c_str());
+
+		if (srs_rtmp_handshake(rtmp) != 0) {
+			srs_human_trace("simple handshake failed.");
+			return;
+		}
+		srs_human_trace("simple handshake success");
+
+		if (srs_rtmp_connect_app(rtmp) != 0) {
+			srs_human_trace("connect vhost/app failed.");
+			return;
+		}
+		srs_human_trace("connect vhost/app success");
+
+		if (srs_rtmp_publish_stream(rtmp) != 0) {
+			srs_human_trace("publish stream failed.");
+			return;
+		}
+		srs_human_trace("publish stream success");
+	}
+
+	if(event->m_type == CaptureEvent::EventTypeEnum::EtStop){
+		//close rstp stream
+		if (rtmp != NULL) {
+			srs_human_trace("stream detroying...");
+			srs_rtmp_destroy(rtmp);
+		}
+	}
 }
 
 void LiveStreamFilter::CaptureEventOut(CaptureEventRef& event)
 {
-    ;
+	//LOG4CXX_INFO(s_log, "LiveStream CaptureEventOut " + toString(event.get()));
+}
+
+void LiveStreamFilter::SetSessionInfo(CStdString& trackingId){
+	LOG4CXX_INFO(s_log, "LiveStream SetSessionInfo " + trackingId);
 }
 
 // =================================================================
@@ -127,8 +225,10 @@ void LiveStreamFilter::CaptureEventOut(CaptureEventRef& event)
 LiveStreamServer::LiveStreamServer(int port)
 {
 	m_port = port;
-	OrkAprSingleton* orkAprsingle = OrkAprSingleton::GetInstance();
-	apr_pool_create(&m_mp,orkAprsingle->GetAprMp());
+	//OrkAprSingleton* orkAprsingle = OrkAprSingleton::GetInstance();
+	//apr_pool_create(&m_mp,orkAprsingle->GetAprMp());
+    apr_pool_create(&m_mp,NULL);
+
 }
  
 bool LiveStreamServer::Initialize()
@@ -179,7 +279,6 @@ void LiveStreamServer::Run()
 		apr_socket_t* incomingSocket;
 		apr_pool_t* request_pool;
 		apr_pool_create(&request_pool, m_mp);
-        LOG4CXX_INFO(s_log, "LiveStreamServer::Run loop Stage 1");
 
 		ret = apr_socket_accept(&incomingSocket, m_socket, request_pool);
         LOG4CXX_INFO(s_log, "LiveStreamServer::Run loop Stage 2");
@@ -188,21 +287,21 @@ void LiveStreamServer::Run()
 			apr_pool_destroy(request_pool);
 			continue;
 		}
-		// apr_socket_opt_set(incomingSocket, APR_SO_NONBLOCK, 0);
-        // LOG4CXX_INFO(s_log, "LiveStreamServer::Run loop Stage 3");
-		// apr_socket_timeout_set(incomingSocket, -1);
-        // LOG4CXX_INFO(s_log, "LiveStreamServer::Run loop Stage 4");
-		// try{
-		// 	std::thread handler(StreamingSvc, incomingSocket, request_pool);
-        //     LOG4CXX_INFO(s_log, "LiveStreamServer::Run loop Stage 5");
-		// 	handler.detach();
-		// } catch(const std::exception &ex){
-		// 	CStdString logMsg;
-		// 	logMsg.Format("Failed to start StreamingSvc thread reason:%s",  ex.what());
-		// 	LOG4CXX_ERROR(s_log, logMsg);
-		// 	apr_pool_destroy(request_pool);
-		// 	continue;
-		// }
+		apr_socket_opt_set(incomingSocket, APR_SO_NONBLOCK, 0);
+        LOG4CXX_INFO(s_log, "LiveStreamServer::Run loop Stage 3");
+		apr_socket_timeout_set(incomingSocket, -1);
+        LOG4CXX_INFO(s_log, "LiveStreamServer::Run loop Stage 4");
+		try{
+			std::thread handler(StreamingSvc, incomingSocket, request_pool);
+            LOG4CXX_INFO(s_log, "LiveStreamServer::Run loop Stage 5");
+			handler.detach();
+		} catch(const std::exception &ex){
+			CStdString logMsg;
+			logMsg.Format("Failed to start StreamingSvc thread reason:%s",  ex.what());
+			LOG4CXX_ERROR(s_log, logMsg);
+			apr_pool_destroy(request_pool);
+			continue;
+		}
 	}
 
 }
@@ -233,26 +332,26 @@ void LiveStreamServer::StreamingSvc(apr_socket_t* sock, apr_pool_t* pool)
 		// 	break;
 		// }
 
-		// try
-		// {
-		// 	int startUrlOffset = 5;
-		// 	char* stopUrl = strstr(buf+startUrlOffset, " HTTP");
+		try
+		{
+			int startUrlOffset = 5;
+			char* stopUrl = strstr(buf+startUrlOffset, " HTTP");
 
-		// 	if(!stopUrl)
-		// 	{
-		// 		throw (CStdString("Malformed http request"));
-		// 	}
+			if(!stopUrl)
+			{
+				throw (CStdString("Malformed http request"));
+			}
 
-		// 	CStdString header;
-		// 	struct tm date = {0};
-		// 	time_t now = time(NULL);
-		// 	CStdString rfc822Date;
+			CStdString header;
+			struct tm date = {0};
+			time_t now = time(NULL);
+			CStdString rfc822Date;
 
-		// 	apr_time_t tn = apr_time_now();
-		// 	apr_time_exp_t texp;
-		// 	apr_time_exp_gmt(&texp, tn);
-		// 	rfc822Date.Format("Tue, %.2d Nov %.4d %.2d:%.2d:%.2d GMT", texp.tm_mday, (texp.tm_year+1900), texp.tm_hour, texp.tm_min, texp.tm_sec);
-		// 	header.Format("HTTP/1.1 200 OK\r\nLast-Modified:%s\r\nContent-Type:text/plain\r\n\r\n", rfc822Date);
+			apr_time_t tn = apr_time_now();
+			apr_time_exp_t texp;
+			apr_time_exp_gmt(&texp, tn);
+			rfc822Date.Format("Tue, %.2d Nov %.4d %.2d:%.2d:%.2d GMT", texp.tm_mday, (texp.tm_year+1900), texp.tm_hour, texp.tm_min, texp.tm_sec);
+			header.Format("HTTP/1.1 200 OK\r\nLast-Modified:%s\r\nContent-Type:text/plain\r\n\r\n", rfc822Date);
 
 		// 	apr_size_t leng = header.GetLength();
 		// 	ret = apr_socket_send(sock, header, &leng);
@@ -263,8 +362,8 @@ void LiveStreamServer::StreamingSvc(apr_socket_t* sock, apr_pool_t* pool)
 		// 	logMsg.Format("%s Event streaming start", sessionId);
 		// 	LOG4CXX_INFO(s_log, logMsg);
 
-		// 	EventStreamingSessionRef session(new EventStreamingSession());
-		// 	EventStreamingSingleton::instance()->AddSession(session);
+			// EventStreamingSessionRef session(new EventStreamingSession());
+			// EventStreamingSingleton::instance()->AddSession(session);
 		// 	if(EventStreamingSingleton::instance()->GetNumSessions() > 100)
 		// 	{
 		// 		EventStreamingSingleton::instance()->RemoveSession(session);
@@ -309,15 +408,15 @@ void LiveStreamServer::StreamingSvc(apr_socket_t* sock, apr_pool_t* pool)
 		// 	EventStreamingSingleton::instance()->RemoveSession(session);
 		// 	logMsg.Format("%s Stream client stop - sent %d messages in %d sec", sessionId, messagesSent, (time(NULL) - startTime));
 		// 	LOG4CXX_INFO(s_log, logMsg);
-		// }
-		// catch (CStdString& e)
-		// {
-		// 	CStdString error("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nError\r\n");
-		// 	error = error + e + "\r\n";
-		// 	LOG4CXX_ERROR(s_log, e);
-		// 	apr_size_t leng = error.GetLength();
-		// 	ret = apr_socket_send(sock, error, &leng);
-		// }
+		}
+		catch (CStdString& e)
+		{
+			CStdString error("HTTP/1.0 404 not found\r\nContent-type: text/html\r\n\r\nError\r\n");
+			error = error + e + "\r\n";
+			LOG4CXX_ERROR(s_log, e);
+			apr_size_t leng = error.GetLength();
+			ret = apr_socket_send(sock, error, &leng);
+		}
         break;
     }
     apr_socket_close(sock);
@@ -336,5 +435,6 @@ extern "C"
         FilterRef filter(new LiveStreamFilter());
         FilterRegistry::instance()->RegisterFilter(filter);
         LOG4CXX_INFO(s_log, "LiveStream  filter initialized.");
+
     }
 }

@@ -11,9 +11,10 @@
 
 #include "LogManager.h"
 #include "Filter.h"
-#include "EventStreaming.h"
 #include <log4cxx/logger.h>
 #include "Utils.h"
+#include "srs_librtmp.h"
+
 
 class DLL_IMPORT_EXPORT_ORKBASE LiveStreamFilter : public Filter
 {
@@ -30,11 +31,15 @@ class DLL_IMPORT_EXPORT_ORKBASE LiveStreamFilter : public Filter
     bool __CDECL__ SupportsInputRtpPayloadType(int rtpm_payloadType );
     void __CDECL__ CaptureEventIn(CaptureEventRef& event);
     void __CDECL__ CaptureEventOut(CaptureEventRef& event);
+    void __CDECL__ SetSessionInfo(CStdString& trackingId);
+
 
   private:
     AudioChunkRef m_outputAudioChunk;
     bool m_initialized;
-
+    CStdString m_callId;
+    srs_rtmp_t rtmp = NULL;
+    u_int32_t timestamp = 0;
 };
 
 class DLL_IMPORT_EXPORT_ORKBASE LiveStreamServer

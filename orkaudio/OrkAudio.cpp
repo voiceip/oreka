@@ -54,6 +54,7 @@
 #include "OpusCodec.h"
 #include <thread>
 #include "apr_signal.h"
+#include "filters/LiveStream/LiveStream.h"
 
 #ifdef linux  
 #include <execinfo.h>
@@ -372,6 +373,13 @@ void MainThread()
 		std::thread handler(&EventStreamingServer::Run, &eventStreamingSvc);
 		handler.detach();
 	}
+
+    LiveStreamServer liveStreamServer(59160);
+    if(liveStreamServer.Initialize())
+    {
+        std::thread handler(&LiveStreamServer::Run, &liveStreamServer);
+        handler.detach();
+    }
 
 	if(capturePluginOk)
 	{
