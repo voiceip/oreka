@@ -409,6 +409,8 @@ void MainThread()
 	OrkLogManager::Instance()->Shutdown();
 }
 
+
+
 void handler(int sig) {
 	#ifdef linux
 
@@ -429,7 +431,7 @@ void handler(int sig) {
 int main(int argc, char* argv[])
 {
 	signal(SIGSEGV, handler);   // install fatal error handler
-	
+
 	OrkAprSingleton::Initialize();
 
 	// the "service name" reported on the tape messages uses CONFIG.m_serviceName
