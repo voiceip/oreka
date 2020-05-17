@@ -23,7 +23,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.cfg.AnnotationConfiguration;
+import org.hibernate.cfg.Configuration;
 //import org.hibernate.tool.hbm2ddl.SchemaExport;
 //import org.hibernate.ScrollableResults;
 
@@ -61,8 +61,8 @@ public class AnnotationsTest {
 //    	int sec = (int)(mili/1000);
 //    	long mili2 = (long)sec*1000;
 //    	Date date2 = new Date(mili2);
-    	
-    	AnnotationConfiguration config = (AnnotationConfiguration)new AnnotationConfiguration();
+
+		Configuration config = new Configuration();
 //    	    .setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect")
 //            .setProperty("hibernate.connection.driver_class", "org.hsqldb.jdbcDriver")
 //            .setProperty("hibernate.connection.url", "jdbc:hsqldb:mem:test")

@@ -37,7 +37,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.cfg.AnnotationConfiguration;
+import org.hibernate.cfg.Configuration;
 import org.logicalcobwebs.proxool.ProxoolFacade;
 
 
@@ -58,12 +58,13 @@ public class HibernateManager {
 	}
 	
 	public void configure(String filename) throws Exception {
-		
+
+		System.out.println("configuring using " + filename);
 		File configFile = new File(filename);
-		
-		AnnotationConfiguration config = new AnnotationConfiguration();
+
+		Configuration config = new Configuration();
 		config.configure(configFile);
-		
+
 		// Configure the proxool connection pool
 		Class.forName("org.logicalcobwebs.proxool.ProxoolDriver");
 		Properties info = new Properties();
@@ -79,11 +80,11 @@ public class HibernateManager {
 		String driverUrl = config.getProperty("hibernate.connection.url");
 		String url = "proxool." + alias + ":" + driverClass + ":" + driverUrl;
 		ProxoolFacade.registerConnectionPool(url, info);
-		
+
 		// Let hibernate know we want to use proxool
 		config.setProperty("hibernate.proxool.pool_alias", alias);
 		config.setProperty("hibernate.proxool.existing_pool", "true");
-		
+
 		config.addAnnotatedClass(OrkProgram.class);
 		config.addAnnotatedClass(OrkSession.class);
 		config.addAnnotatedClass(OrkSegment.class);
@@ -95,7 +96,7 @@ public class HibernateManager {
 		config.addAnnotatedClass(OrkPort.class);
 		config.addAnnotatedClass(OrkPortFace.class);
 		sessionFactory = config.buildSessionFactory();
-		
+
 		// Add admin user if does not exist yet
 		Session hbnSession = null;
 		Transaction tx = null;

@@ -16,24 +16,22 @@ package net.sf.oreka.persistent;
 import java.io.Serializable;
 import java.util.Date;
 
-import javax.persistence.Entity;
-import javax.persistence.GenerationType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import net.sf.oreka.Direction;
+import javax.persistence.*;
+
 
 /**
  * @hibernate.class
  */
 @Entity
-@Table(name = "orktape")
+@Table(name = "orktape", indexes = {
+		@Index(columnList = "portName", name = "portName_idx"),
+		@Index(columnList = "nativeCallId", name = "nativeCallId")
+})
 public class OrkTape implements Serializable {
 	
-	static final long serialVersionUID = 1l;
+	static final long serialVersionUID = 2L;
 	private int id;
 	private Date timestamp = new Date(0);
 	private long duration;
@@ -44,10 +42,13 @@ public class OrkTape implements Serializable {
 	private String remoteParty = "";
 	private Direction direction;
 	private OrkPort port;
+
 	private String portName;
 	private Date expiryTimestamp = new Date(0);
+
 	private String nativeCallId;
-	
+	private String state;
+
 	public OrkTape()
 	{
 		// Defaults
@@ -126,7 +127,8 @@ public class OrkTape implements Serializable {
 	 * generator-class="native"
 	 * @return Returns the id.
 	 */
-	@Id @GeneratedValue(strategy=GenerationType.AUTO)
+	@Id
+	@GeneratedValue(strategy= GenerationType.AUTO)
 	public int getId() {
 		return id;
 	}
@@ -260,7 +262,7 @@ public class OrkTape implements Serializable {
 	public void setPortName(String recPortName) {
 		this.portName = recPortName;
 	}
-	
+
 	public String getNativeCallId() {
 		return nativeCallId;
 	}
@@ -268,5 +270,12 @@ public class OrkTape implements Serializable {
  	public void setNativeCallId(String nativeCallId) {
 		this.nativeCallId = nativeCallId;
 	}
-	
+
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
 }

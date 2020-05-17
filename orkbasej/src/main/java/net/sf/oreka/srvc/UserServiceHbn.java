@@ -13,7 +13,7 @@ import net.sf.oreka.bo.UserBo;
 import net.sf.oreka.persistent.OrkLoginString;
 import net.sf.oreka.persistent.OrkUser;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;

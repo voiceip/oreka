@@ -49,7 +49,8 @@ public class CommandServlet extends HttpServlet {
             String resp = ser2.serialize(rsp);
             logger.debug("Reponse: " + resp);
             response.getWriter().println(resp);
-        } catch (Exception e) {
+        } catch (Throwable e) {
+            e.printStackTrace();
             logger.debug("Request: " + request.getQueryString());
             SimpleResponseMessage rsp = new SimpleResponseMessage();
             rsp.setComment(e.getMessage());

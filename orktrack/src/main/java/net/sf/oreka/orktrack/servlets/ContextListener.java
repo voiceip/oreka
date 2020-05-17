@@ -63,6 +63,8 @@ public class ContextListener implements ServletContextListener {
             log.info("OrkTrack ContextInitialized() HibernateConfigFile is " + hibernateConfigFile);
             hibernateConfigFile = configFolder + "/" + hibernateConfigFile;
         }
+        hibernateConfigFile = "/Volumes/Workspace/code/voice/recording/oreka/orkbasej/src/resources/database.hbm.xml" ;
+
 
         // Get path to server.xml file
         if (log.isDebugEnabled())

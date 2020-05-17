@@ -26,6 +26,22 @@ public class TapeManager {
 		}
 		return tapeManager;
 	}
+
+	public OrkTape getTapeByPortId(String portId, Session hbnSession) {
+
+//		OrkUser user = null;
+//		List users = hbnSession.createQuery(
+//				"from OrkTape where ls.loginString=:loginstring")
+//				.setString("loginstring", loginString)
+//				.list();
+//		if (users.size() > 0) {
+//			Object[] row =  (Object[])users.get(0);
+//			if (row.length > 1) {
+//				user = (OrkUser)row[1];
+//			}
+//		}
+		return null;
+	}
 	
 	/**
 	 * @param tapeMessage
@@ -36,29 +52,37 @@ public class TapeManager {
 	public boolean notifyTapeMessage(TapeMessage tapeMessage, Session hbnSession, OrkService srv) {
 		
 		boolean keepTape = true;
+		long date = ((long)tapeMessage.getTimestamp()) * 1000;
+		Date timestamp = new Date(date);
+
+		// create a new tape record
+		OrkTape recTape = new OrkTape();
+		recTape.setDirection(tapeMessage.getDirection());
+		recTape.setDuration(tapeMessage.getDuration());
+		recTape.setExpiryTimestamp(new Date());
+		recTape.setLocalParty(tapeMessage.getLocalParty());
+		recTape.setPortName(tapeMessage.getCapturePort());
+		recTape.setRemoteParty(tapeMessage.getRemoteParty());
+		recTape.setTimestamp(timestamp);
+		recTape.setNativeCallId(tapeMessage.getNativeCallId());
+		recTape.setState(tapeMessage.getStage().name());
+		recTape.setService(srv);
 		
 		if (tapeMessage.getStage() == TapeMessage.CaptureStage.START) {
-			; // tape start message
+			//also insert into db for tracking
+			// create a new tape record
+			recTape.setFilename(tapeMessage.getFilename()+".mcf");
+			hbnSession.save(recTape);
+			logger.info("Written start tape:" + tapeMessage.getRecId() + " as " + recTape.getId());
 		}
 		else if (tapeMessage.getStage() == TapeMessage.CaptureStage.READY){
 			// Tape stop message
-			long date = ((long)tapeMessage.getTimestamp()) * 1000;
-			Date timestamp = new Date(date);
-            
-			// create a new tape record
-			OrkTape recTape = new OrkTape();
-			recTape.setDirection(tapeMessage.getDirection());
-			recTape.setDuration(tapeMessage.getDuration());
-			recTape.setExpiryTimestamp(new Date());
+			//Retrieve Existing Tape if any
+
+
 			recTape.setFilename(tapeMessage.getFilename());
-			recTape.setLocalParty(tapeMessage.getLocalParty());
-			recTape.setPortName(tapeMessage.getCapturePort());
-			recTape.setRemoteParty(tapeMessage.getRemoteParty());
-			recTape.setTimestamp(timestamp);
-			recTape.setNativeCallId(tapeMessage.getNativeCallId());
-			recTape.setService(srv);
 			hbnSession.save(recTape);
-			logger.info("Written tape:" + tapeMessage.getRecId() + " as " + recTape.getId());
+			logger.info("Written ready tape:" + tapeMessage.getRecId() + " as " + recTape.getId());
 			
 			OrkSegment recSegment = new OrkSegment();
 			recSegment.setTimestamp(timestamp);
