@@ -28,12 +28,12 @@ std::string toString(const T &value) {
 
 LiveStreamFilter::LiveStreamFilter()
 {
-	LOG4CXX_INFO(s_log, "LiveStream New Instance Created \n");
+	LOG4CXX_INFO(s_log, "LiveStream New Instance Created");
 }
 
 LiveStreamFilter::~LiveStreamFilter()
 {
-	LOG4CXX_INFO(s_log, "LiveStream Destroying Created \n");
+	LOG4CXX_INFO(s_log, "LiveStream Instance Destroying");
 }
 
 FilterRef LiveStreamFilter::Instanciate()
@@ -48,7 +48,6 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 	m_outputAudioChunk = inputAudioChunk;
     // int16_t pcmdata[BUFFER_SAMPLES];
     int size = 0;
-    int output_size;
     CStdString logMsg;
 
 	u_int32_t time_delta = 17;
@@ -90,7 +89,7 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 	// AAC is supported in Flash Player 9,0,115,0 and higher.
 	// Speex is supported in Flash Player 10 and higher.
 
-	char sound_format = 15;
+	char sound_format = 9;
 	if (outputDetails.m_rtpPayloadType ==  pt_PCMU)
 		sound_format = 8;
 	else if (outputDetails.m_rtpPayloadType ==  pt_PCMA)
@@ -127,18 +126,9 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 		}
 		
 		srs_human_trace("sent packet: type=%s, time=%d, size=%d, codec=%d, rate=%d, sample=%d, channel=%d", 
-			srs_human_flv_tag_type2string(SRS_RTMP_TYPE_AUDIO), timestamp, size, sound_format, sound_rate, sound_size,
-			sound_type);
+			srs_human_flv_tag_type2string(SRS_RTMP_TYPE_AUDIO), timestamp, size, sound_format, sound_rate, sound_size, sound_type);
 	}
 
-	// outputDetails.m_rtpPayloadType = -1;
-    // m_outputAudioChunk.reset(new AudioChunk());
-    // outputDetails.m_rtpPayloadType = -1;
-    // outputDetails.m_encoding = PcmAudio;
-    // outputDetails.m_numBytes = size;
-
-    // short* outputBuffer = (short*)m_outputAudioChunk->CreateBuffer(outputDetails);
-    // memcpy(outputBuffer, inputBuffer, outputDetails.m_numBytes);
 }
 
 void LiveStreamFilter::AudioChunkOut(AudioChunkRef& chunk)
