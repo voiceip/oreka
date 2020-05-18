@@ -52,7 +52,7 @@ public class OrkSession implements Serializable {
 	* @hibernate.id
 	* generator-class="native"
 	*/
-	@Id @GeneratedValue(strategy=GenerationType.AUTO)
+	@Id @GeneratedValue(strategy=GenerationType.IDENTITY)
 	public int getId() {
 		return id;
 	}

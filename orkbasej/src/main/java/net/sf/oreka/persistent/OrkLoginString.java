@@ -56,7 +56,7 @@ public class OrkLoginString implements Serializable {
 	 * generator-class="native"
 	 * @return Returns the id.
 	 */
-	@Id @GeneratedValue(strategy=GenerationType.AUTO)
+	@Id @GeneratedValue(strategy=GenerationType.IDENTITY)
 	public int getId() {
 		return id;
 	}

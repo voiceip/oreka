@@ -31,8 +31,9 @@ public class OrkTape implements Serializable {
 	static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
+
 	private Date timestamp = new Date(0);
 	private long duration;
 	private String filename = "";
