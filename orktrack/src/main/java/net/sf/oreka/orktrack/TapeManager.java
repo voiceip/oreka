@@ -86,6 +86,9 @@ public class TapeManager {
 			Optional<OrkTape> existingTape  = getBestMatchingRunningTape(hbnSession, tapeMessage);
 			if (existingTape.isPresent()){
 				recTape = existingTape.get();
+				recTape.setDuration(tapeMessage.getDuration());
+				recTape.setLocalParty(tapeMessage.getLocalParty());
+				recTape.setRemoteParty(tapeMessage.getRemoteParty());
 				recTape.setFilename(tapeMessage.getFilename());
 				recTape.setState(tapeMessage.getStage().name());
 				hbnSession.update(recTape);
