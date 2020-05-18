@@ -1,6 +1,8 @@
 package net.sf.oreka.orktrack;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 import net.sf.oreka.orktrack.messages.TapeMessage;
 import net.sf.oreka.persistent.OrkSegment;
@@ -9,11 +11,13 @@ import net.sf.oreka.persistent.OrkService;
 import net.sf.oreka.persistent.OrkUser;
 
 import org.apache.log4j.Logger;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
+
 
 public class TapeManager {
 	
-	static Logger logger = Logger.getLogger(TapeManager.class);
+	private Logger logger = Logger.getLogger(TapeManager.class);
 	
 	static TapeManager tapeManager = null;
 	
@@ -27,20 +31,35 @@ public class TapeManager {
 		return tapeManager;
 	}
 
-	public OrkTape getTapeByPortId(String portId, Session hbnSession) {
+	public Optional<OrkTape> getTapeByNativeCallID(Session hbnSession, String callId) {
+		Query<OrkTape> query = hbnSession.createQuery("from OrkTape where nativeCallId=:nativeCallId order by id desc", OrkTape.class);
+		query.setParameter("nativeCallId", callId);
+		query.setMaxResults(1);
+		List<OrkTape> tapes = query.list();
+		if (tapes.size() > 0) {
+			return Optional.of(tapes.get(0));
+		}
+		return Optional.empty();
+	}
 
-//		OrkUser user = null;
-//		List users = hbnSession.createQuery(
-//				"from OrkTape where ls.loginString=:loginstring")
-//				.setString("loginstring", loginString)
-//				.list();
-//		if (users.size() > 0) {
-//			Object[] row =  (Object[])users.get(0);
-//			if (row.length > 1) {
-//				user = (OrkUser)row[1];
-//			}
-//		}
-		return null;
+	public Optional<OrkTape> getBestMatchingRunningTape(Session hbnSession, TapeMessage tapeMessage) {
+//		Session hbnSession = OrkTrack.hibernateManager.getSession();
+		Query<OrkTape> query = hbnSession.createQuery("from OrkTape where portName=:portName and nativeCallId=:nativeCallId and TIMESTAMPDIFF(MINUTE, timestamp, NOW()) < :timeOffSet order by id desc", OrkTape.class);
+		query.setParameter("portName", tapeMessage.getCapturePort());
+		query.setParameter("nativeCallId", tapeMessage.getNativeCallId());
+
+		if (tapeMessage.getNativeCallId() != ""){
+			query.setParameter("timeOffSet", Integer.MAX_VALUE);
+		} else {
+			query.setParameter("timeOffSet", 1440);
+		}
+		query.setMaxResults(1);
+
+		List<OrkTape> tapes = query.list();
+		if (tapes.size() > 0) {
+			return Optional.of(tapes.get(0));
+		}
+		return Optional.empty();
 	}
 	
 	/**
@@ -78,12 +97,19 @@ public class TapeManager {
 		else if (tapeMessage.getStage() == TapeMessage.CaptureStage.READY){
 			// Tape stop message
 			//Retrieve Existing Tape if any
+			Optional<OrkTape> existingTape  = getBestMatchingRunningTape(hbnSession, tapeMessage);
+			if (existingTape.isPresent()){
+				OrkTape tape = existingTape.get();
+				tape.setFilename(tapeMessage.getFilename());
+				tape.setState(tapeMessage.getStage().name());
+				hbnSession.update(tape);
+				logger.info("Updated ready tape:" + tapeMessage.getRecId() + " as " + recTape.getId());
+			} else {
+				recTape.setFilename(tapeMessage.getFilename());
+				hbnSession.save(recTape);
+				logger.info("Added ready tape:" + tapeMessage.getRecId() + " as " + recTape.getId());
+			}
 
-
-			recTape.setFilename(tapeMessage.getFilename());
-			hbnSession.save(recTape);
-			logger.info("Written ready tape:" + tapeMessage.getRecId() + " as " + recTape.getId());
-			
 			OrkSegment recSegment = new OrkSegment();
 			recSegment.setTimestamp(timestamp);
 			recSegment.setDirection(tapeMessage.getDirection());

@@ -16,17 +16,12 @@ package net.sf.oreka.persistent;
 import java.io.Serializable;
 import java.util.Date;
 
-
 import net.sf.oreka.Direction;
 import javax.persistence.*;
 
-
-/**
- * @hibernate.class
- */
 @Entity
 @Table(name = "orktape", indexes = {
-		@Index(columnList = "portName", name = "portName_idx"),
+		@Index(columnList = "timestamp,portName", name = "timestamp_portName_idx"),
 		@Index(columnList = "nativeCallId", name = "nativeCallId")
 })
 public class OrkTape implements Serializable {
@@ -161,7 +156,7 @@ public class OrkTape implements Serializable {
 	 * not-null="true"
 	 * @return Returns the port.
 	 */
-	@ManyToOne
+	@ManyToOne(cascade = {CascadeType.ALL})
 	public OrkPort getPort() {
 		return port;
 	}
@@ -209,7 +204,7 @@ public class OrkTape implements Serializable {
 	 * @hibernate.many-to-one
 	 * @return Returns the service.
 	 */
-	@ManyToOne
+	@ManyToOne(cascade = {CascadeType.ALL})
 	public OrkService getService() {
 		return service;
 	}
@@ -250,7 +245,6 @@ public class OrkTape implements Serializable {
 	
 	@Transient
 	public String getPlayUrl() {
-		
 		return "javascript:play('" + getUrl() + "')";
 	}
 
