@@ -57,7 +57,7 @@ public class TapeManager {
 	 * @return	false if the tape is rejected and should be deleted, otherwise true
 	 */
 	public boolean notifyTapeMessage(TapeMessage tapeMessage, Session hbnSession, OrkService srv) {
-		
+
 		boolean keepTape = true;
 		long date = ((long)tapeMessage.getTimestamp()) * 1000;
 		Date timestamp = new Date(date);
@@ -97,17 +97,26 @@ public class TapeManager {
 		} else if (tapeMessage.getStage() == TapeMessage.CaptureStage.READY){
 			// Tape stop message
 			//Retrieve Existing Tape if any
-			Optional<OrkTape> existingTape  = getBestMatchingRunningTape(hbnSession, tapeMessage);
+			String currentCallState = null;
+			 Optional<OrkTape> existingTape  = getBestMatchingRunningTape(hbnSession, tapeMessage);
 			if (existingTape.isPresent()){
 				recTape = existingTape.get();
+				currentCallState = recTape.getState();
 				recTape.setFilename(tapeMessage.getFilename());
 				recTape.setState(tapeMessage.getStage().name());
+
 				hbnSession.update(recTape);
 				logger.info("Updated ready tape:" + tapeMessage.getRecId() + " as " + recTape.getId());
 			} else {
 				recTape.setFilename(tapeMessage.getFilename());
 				hbnSession.save(recTape);
 				logger.info("Added ready tape:" + tapeMessage.getRecId() + " as " + recTape.getId());
+			}
+
+			//TODO: remove after migration
+			if (currentCallState != null &&  currentCallState != "" && currentCallState != TapeMessage.CaptureStage.READY.name()){
+				logger.info("Skipping OrkSegment entry");
+				return true;
 			}
 
 			OrkSegment recSegment = new OrkSegment();
@@ -119,7 +128,7 @@ public class TapeManager {
 			recSegment.setLocalEntryPoint(tapeMessage.getLocalEntryPoint());
 			recSegment.setTape(recTape);
 			recSegment.setPortName(recTape.getPortName());
-			
+
 			if(tapeMessage.getLocalParty() != "") {
 				OrkUser user = UserManager.instance().getByLoginString(tapeMessage.getLocalParty(), hbnSession);
 				recSegment.setUser(user);

@@ -328,8 +328,8 @@ public class OrkSegment implements Serializable {
 	public void setPortName(String recPortName) {
 		this.portName = recPortName;
 	}
-	
-	
-	
-	
+
+
+
+
 }

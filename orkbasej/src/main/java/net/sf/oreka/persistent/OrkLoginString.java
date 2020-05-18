@@ -37,7 +37,7 @@ public class OrkLoginString implements Serializable {
 	 * @hibernate.many-to-one
 	 * @return Returns the domain.
 	 */
-	@ManyToOne(cascade = {CascadeType.ALL})
+	@ManyToOne
 	public OrkDomain getDomain() {
 		return domain;
 	}
@@ -92,7 +92,7 @@ public class OrkLoginString implements Serializable {
 	 * @hibernate.many-to-one
 	 * @return Returns the user.
 	 */
-	@ManyToOne(cascade = {CascadeType.ALL})
+	@ManyToOne
 	public OrkUser getUser() {
 		return user;
 	}

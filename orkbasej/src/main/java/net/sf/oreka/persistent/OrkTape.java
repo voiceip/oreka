@@ -38,8 +38,7 @@ public class OrkTape implements Serializable {
 	private long duration;
 	private String filename = "";
 
-	@ManyToOne(cascade = {CascadeType.ALL})
-	@Transient
+	@ManyToOne
 	private OrkService service;
 
 	private String localParty = "";
@@ -47,8 +46,7 @@ public class OrkTape implements Serializable {
 	private String remoteParty = "";
 	private Direction direction;
 
-	@ManyToOne(cascade = {CascadeType.ALL})
-	@Transient
+	@ManyToOne
 	private OrkPort port;
 
 	private String portName;
