@@ -74,15 +74,24 @@ public class TapeManager {
 		recTape.setNativeCallId(tapeMessage.getNativeCallId());
 		recTape.setState(tapeMessage.getStage().name());
 		recTape.setService(srv);
-		
+
 		if (tapeMessage.getStage() == TapeMessage.CaptureStage.START) {
 			//also insert into db for tracking
 			// create a new tape record
 			recTape.setFilename(tapeMessage.getFilename()+".mcf");
 			hbnSession.save(recTape);
 			logger.info("Written start tape:" + tapeMessage.getRecId() + " as " + recTape.getId());
-		}
-		else if (tapeMessage.getStage() == TapeMessage.CaptureStage.READY){
+		} else if (tapeMessage.getStage() == TapeMessage.CaptureStage.STOP) {
+			//Update if present
+			Optional<OrkTape> existingTape  = getBestMatchingRunningTape(hbnSession, tapeMessage);
+			if (existingTape.isPresent()){
+				recTape = existingTape.get();
+				recTape.setFilename(tapeMessage.getFilename());
+				recTape.setState(tapeMessage.getStage().name());
+				hbnSession.update(recTape);
+				logger.info("Updated stop tape:" + tapeMessage.getRecId() + " as " + recTape.getId());
+			}
+		} else if (tapeMessage.getStage() == TapeMessage.CaptureStage.READY){
 			// Tape stop message
 			//Retrieve Existing Tape if any
 			Optional<OrkTape> existingTape  = getBestMatchingRunningTape(hbnSession, tapeMessage);
