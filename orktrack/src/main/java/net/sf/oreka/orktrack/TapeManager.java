@@ -113,12 +113,6 @@ public class TapeManager {
 				logger.info("Added ready tape:" + tapeMessage.getRecId() + " as " + recTape.getId());
 			}
 
-			//TODO: remove after migration
-			if (currentCallState != null &&  currentCallState != "" && currentCallState != TapeMessage.CaptureStage.READY.name()){
-				logger.info("Skipping OrkSegment entry");
-				return true;
-			}
-
 			OrkSegment recSegment = new OrkSegment();
 			recSegment.setTimestamp(timestamp);
 			recSegment.setDirection(tapeMessage.getDirection());
