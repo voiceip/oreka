@@ -72,7 +72,6 @@ public class OrkTrack {
 
 		}
 		catch (Throwable e) {
-        	e.printStackTrace();
 			log.error("OrkTrack.initialize: Error configuring Hibernate:" + e.getMessage());
 			throw e ;
 		}

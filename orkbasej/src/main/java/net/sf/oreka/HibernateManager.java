@@ -59,7 +59,6 @@ public class HibernateManager {
 	
 	public void configure(String filename) throws Exception {
 
-		System.out.println("configuring using " + filename);
 		File configFile = new File(filename);
 
 		Configuration config = new Configuration();

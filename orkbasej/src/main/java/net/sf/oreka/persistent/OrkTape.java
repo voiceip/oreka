@@ -16,6 +16,7 @@ package net.sf.oreka.persistent;
 import java.io.Serializable;
 import java.util.Date;
 
+import lombok.ToString;
 import net.sf.oreka.Direction;
 import javax.persistence.*;
 
@@ -24,18 +25,29 @@ import javax.persistence.*;
 		@Index(columnList = "timestamp,portName", name = "timestamp_portName_idx"),
 		@Index(columnList = "nativeCallId", name = "nativeCallId")
 })
+@ToString
 public class OrkTape implements Serializable {
 	
-	static final long serialVersionUID = 2L;
+	static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private int id;
 	private Date timestamp = new Date(0);
 	private long duration;
 	private String filename = "";
+
+	@ManyToOne(cascade = {CascadeType.ALL})
+	@Transient
 	private OrkService service;
+
 	private String localParty = "";
 	private String localEntryPoint = "";
 	private String remoteParty = "";
 	private Direction direction;
+
+	@ManyToOne(cascade = {CascadeType.ALL})
+	@Transient
 	private OrkPort port;
 
 	private String portName;
@@ -122,8 +134,7 @@ public class OrkTape implements Serializable {
 	 * generator-class="native"
 	 * @return Returns the id.
 	 */
-	@Id
-	@GeneratedValue(strategy= GenerationType.AUTO)
+
 	public int getId() {
 		return id;
 	}
@@ -156,7 +167,6 @@ public class OrkTape implements Serializable {
 	 * not-null="true"
 	 * @return Returns the port.
 	 */
-	@ManyToOne(cascade = {CascadeType.ALL})
 	public OrkPort getPort() {
 		return port;
 	}
@@ -204,7 +214,6 @@ public class OrkTape implements Serializable {
 	 * @hibernate.many-to-one
 	 * @return Returns the service.
 	 */
-	@ManyToOne(cascade = {CascadeType.ALL})
 	public OrkService getService() {
 		return service;
 	}
@@ -251,7 +260,6 @@ public class OrkTape implements Serializable {
 	public String getPortName() {
 		return portName;
 	}
-	
 
 	public void setPortName(String recPortName) {
 		this.portName = recPortName;
@@ -272,4 +280,5 @@ public class OrkTape implements Serializable {
 	public void setState(String state) {
 		this.state = state;
 	}
+
 }
