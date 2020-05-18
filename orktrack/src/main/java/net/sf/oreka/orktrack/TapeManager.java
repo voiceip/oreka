@@ -37,7 +37,6 @@ public class TapeManager {
 	}
 
 	public Optional<OrkTape> getBestMatchingRunningTape(Session hbnSession, TapeMessage tapeMessage) {
-//		Session hbnSession = OrkTrack.hibernateManager.getSession();
 		Query<OrkTape> query = hbnSession.createQuery("from OrkTape where portName=:portName and nativeCallId=:nativeCallId and DATEDIFF(timestamp, NOW()) < :timeOffSet order by id desc", OrkTape.class);
 		query.setParameter("portName", tapeMessage.getCapturePort());
 		query.setParameter("nativeCallId", tapeMessage.getNativeCallId());
