@@ -89,7 +89,6 @@ public:
 	bool m_sipLogFailedCalls;
 	bool m_sipUse200OkMediaAddress;
 	bool m_sipDetectSessionProgress;
-	bool m_sipReportFullAddress;
 	bool m_sipDynamicMediaAddress;
 	IpRanges m_sipIgnoredMediaAddresses;
 	bool m_sipNotifySupport;

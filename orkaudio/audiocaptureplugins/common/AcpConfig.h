@@ -6,6 +6,16 @@
 #include "Object.h"
 #include "serializers/Serializer.h"
 #include "StdString.h"
+#include "Utils.h"
+
+typedef enum{
+	MatchLocalParty,
+	MatchRemoteParty,
+	MatchUcid,
+	MatchUcidTimestamp,
+	MatchXrefci,
+	MatchNone
+} CtiMatchingCriteriaEnum;
 
 class AcpConfig : public Object
 {
@@ -25,10 +35,13 @@ public:
 	bool m_rtpS1S2MappingDeterministicS1IsLocal;
 
 	bool IsMediaGateway(struct in_addr);
-	std::list<unsigned int> m_mediaGateways;
+	IpRanges m_mediaGateways;
 	bool m_ctiDrivenEnable;
 	int m_ctiDrivenMatchingTimeoutSec;
 	std::list<CStdString> m_ctiDrivenMatchingCriteria;
+
+	bool m_sipReportFullAddress;
+	std::list <CtiMatchingCriteriaEnum> m_ctiMatchingCriteriaList;
 };
 
 #endif
