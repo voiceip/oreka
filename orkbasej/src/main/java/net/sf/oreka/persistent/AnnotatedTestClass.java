@@ -37,7 +37,7 @@ public class AnnotatedTestClass {
 		this.firstname = firstname;
 	}
 
-	@Id @GeneratedValue(strategy=GenerationType.AUTO)
+	@Id @GeneratedValue(strategy=GenerationType.IDENTITY)
 	public long getId() {
 		return Id;
 	}

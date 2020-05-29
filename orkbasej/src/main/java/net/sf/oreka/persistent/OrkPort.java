@@ -28,7 +28,7 @@ public class OrkPort implements Serializable {
 	static final long serialVersionUID = 1l;
 	private int id;
 
-	@Id @GeneratedValue(strategy=GenerationType.AUTO)
+	@Id @GeneratedValue(strategy=GenerationType.IDENTITY)
 	public int getId() {
 		return id;
 	}

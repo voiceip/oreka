@@ -18,12 +18,7 @@ package net.sf.oreka.persistent;
 
 import java.io.Serializable;
 
-import javax.persistence.Entity;
-import javax.persistence.GenerationType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * @hibernate.class
@@ -61,7 +56,7 @@ public class OrkLoginString implements Serializable {
 	 * generator-class="native"
 	 * @return Returns the id.
 	 */
-	@Id @GeneratedValue(strategy=GenerationType.AUTO)
+	@Id @GeneratedValue(strategy=GenerationType.IDENTITY)
 	public int getId() {
 		return id;
 	}

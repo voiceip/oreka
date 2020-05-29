@@ -106,7 +106,7 @@ public class OrkSegment implements Serializable {
 	 * class="RecProgram"
 	 * @return Returns the id.
 	 */
-	@Id @GeneratedValue(strategy=GenerationType.AUTO)
+	@Id @GeneratedValue(strategy=GenerationType.IDENTITY)
 	public int getId() {
 		return id;
 	}
@@ -328,8 +328,8 @@ public class OrkSegment implements Serializable {
 	public void setPortName(String recPortName) {
 		this.portName = recPortName;
 	}
-	
-	
-	
-	
+
+
+
+
 }

@@ -25,6 +25,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import lombok.ToString;
 import net.sf.oreka.ServiceClass;
 import net.sf.oreka.util.TomcatServerXMLParser;
 
@@ -33,6 +34,7 @@ import net.sf.oreka.util.TomcatServerXMLParser;
  */
 @Entity
 @Table(name = "orkservice")
+@ToString
 public class OrkService implements Serializable {
 	
 	static final long serialVersionUID = 1l;
@@ -151,7 +153,7 @@ public class OrkService implements Serializable {
 	 * generator-class="native"
 	 * @return Returns the id.
 	 */
-	@Id @GeneratedValue(strategy=GenerationType.AUTO)
+	@Id @GeneratedValue(strategy=GenerationType.IDENTITY)
 	public int getId() {
 		return id;
 	}

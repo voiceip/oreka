@@ -16,38 +16,45 @@ package net.sf.oreka.persistent;
 import java.io.Serializable;
 import java.util.Date;
 
-import javax.persistence.Entity;
-import javax.persistence.GenerationType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-
+import lombok.ToString;
 import net.sf.oreka.Direction;
+import javax.persistence.*;
 
-/**
- * @hibernate.class
- */
 @Entity
-@Table(name = "orktape")
+@Table(name = "orktape", indexes = {
+		@Index(columnList = "timestamp,portName", name = "timestamp_portName_idx"),
+		@Index(columnList = "nativeCallId", name = "nativeCallId")
+})
+@ToString
 public class OrkTape implements Serializable {
 	
-	static final long serialVersionUID = 1l;
+	static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
+
 	private Date timestamp = new Date(0);
 	private long duration;
 	private String filename = "";
+
+	@ManyToOne
 	private OrkService service;
+
 	private String localParty = "";
 	private String localEntryPoint = "";
 	private String remoteParty = "";
 	private Direction direction;
+
+	@ManyToOne
 	private OrkPort port;
+
 	private String portName;
 	private Date expiryTimestamp = new Date(0);
+
 	private String nativeCallId;
-	
+	private String state;
+
 	public OrkTape()
 	{
 		// Defaults
@@ -126,7 +133,7 @@ public class OrkTape implements Serializable {
 	 * generator-class="native"
 	 * @return Returns the id.
 	 */
-	@Id @GeneratedValue(strategy=GenerationType.AUTO)
+
 	public int getId() {
 		return id;
 	}
@@ -159,7 +166,6 @@ public class OrkTape implements Serializable {
 	 * not-null="true"
 	 * @return Returns the port.
 	 */
-	@ManyToOne
 	public OrkPort getPort() {
 		return port;
 	}
@@ -207,7 +213,6 @@ public class OrkTape implements Serializable {
 	 * @hibernate.many-to-one
 	 * @return Returns the service.
 	 */
-	@ManyToOne
 	public OrkService getService() {
 		return service;
 	}
@@ -248,19 +253,17 @@ public class OrkTape implements Serializable {
 	
 	@Transient
 	public String getPlayUrl() {
-		
 		return "javascript:play('" + getUrl() + "')";
 	}
 
 	public String getPortName() {
 		return portName;
 	}
-	
 
 	public void setPortName(String recPortName) {
 		this.portName = recPortName;
 	}
-	
+
 	public String getNativeCallId() {
 		return nativeCallId;
 	}
@@ -268,5 +271,13 @@ public class OrkTape implements Serializable {
  	public void setNativeCallId(String nativeCallId) {
 		this.nativeCallId = nativeCallId;
 	}
-	
+
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
+
 }

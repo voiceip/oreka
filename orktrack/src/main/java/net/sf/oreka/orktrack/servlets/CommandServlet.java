@@ -47,19 +47,19 @@ public class CommandServlet extends HttpServlet {
             AsyncMessage rsp = obj.process();
             logger.debug("Request: {}", ser2.serialize(obj));
             String resp = ser2.serialize(rsp);
-            logger.debug("Reponse: " + resp);
+            logger.debug("Response: " + resp);
             response.getWriter().println(resp);
-        } catch (Exception e) {
-            logger.debug("Request: " + request.getQueryString());
+        } catch (Throwable e) {
+            logger.error("Servlet Process threw Exception",e);
             SimpleResponseMessage rsp = new SimpleResponseMessage();
             rsp.setComment(e.getMessage());
             rsp.setSuccess(false);
             try {
                 String resp = ser2.serialize(rsp);
-                logger.debug("Reponse: " + resp);
+                logger.debug("Request: " + request.getQueryString() + ", Response: " + resp);
                 response.getWriter().println(resp);
             } catch (Exception ae) {
-                logger.error("Error:" + ae.getMessage());
+                logger.error("Request: " + request.getQueryString() + ", Error:" + ae.getMessage());
             }
         }
 
