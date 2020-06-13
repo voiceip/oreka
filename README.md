@@ -71,7 +71,7 @@ Binary releases are available from the [Releases Section](https://github.com/voi
 dpkg -i oreka.deb
 apt-get -f install #install dependencies.
 svc -u /etc/service/orkaudio #to-start
-svc -u /etc/service/orkaudio #to-stop
+svc -d /etc/service/orkaudio #to-stop
 ```
 
 
