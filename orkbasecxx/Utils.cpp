@@ -300,6 +300,14 @@ void StringTokenizeToList(CStdString input, std::list<CStdString>& output)
     output.push_back(input);
 }
 
+CStdString ReplaceRegexBy(CStdString input, CStdString pattern, CStdString replacedBy)
+{
+	CStdString output;
+	std::regex patternRegex(pattern);
+	output = std::regex_replace(input,  patternRegex, replacedBy, std::regex_constants::format_first_only);
+	return output;
+}
+
 void OrkSleepSec(unsigned int sec)
 {
 //    std::this_thread::sleep_for(std::chrono::seconds(sec));

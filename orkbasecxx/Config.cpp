@@ -219,6 +219,8 @@ void Config::Define(Serializer* s)
 	s->BoolValue("DtmfReportingDetailed" ,m_dtmfReportingDetailed);
 	s->CsvValue(DYNAMIC_TAGS, m_dynamicTags);
 	s->BoolValue(HOSTNAME_REPORT_FQDN ,m_hostnameReportFqdn);
+	s->StringValue("PartyReplaceRegex", m_partyReplaceRegex);
+	s->StringValue("PartyReplaceBy", m_partyReplaceBy);
 #ifdef SUPPORT_TLS_CLIENT
 	s->StringValue(TLS_CLIENT_KEYLOG_FILE, m_tlsClientKeylogFile);
 	s->StringValue(TLS_CLIENT_CERTFILE, m_tlsClientCertFile);

@@ -279,6 +279,8 @@ public:
 	CStdString m_audioOutputPathMcf;
 	bool m_discardUnidirectionalCalls;
 	bool m_audioOutputEnable;
+	CStdString m_partyReplaceRegex;
+	CStdString m_partyReplaceBy;
 #ifdef SUPPORT_TLS_SERVER
 	int m_tlsServerPort;
 	CStdString m_tlsServerCertPath;

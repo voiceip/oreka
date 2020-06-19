@@ -57,6 +57,44 @@ void AcpConfig::Validate() {
 		m_rtpS1S2MappingDeterministicS1IsLocal = true;
 		CONFIG.m_discardUnidirectionalCalls = true;
 	}
+	if(m_ctiDrivenEnable)
+	{
+		if(m_ctiDrivenMatchingCriteria.size() > 0)
+		{
+			for(auto it = m_ctiDrivenMatchingCriteria.begin(); it != m_ctiDrivenMatchingCriteria.end(); it++){
+				CtiMatchingCriteriaEnum criteria = MatchNone;
+				if((*it).CompareNoCase("localparty") == 0){
+					criteria = MatchLocalParty;
+				}
+				else if((*it).CompareNoCase("remoteparty") == 0){
+					criteria = MatchRemoteParty;
+				}
+				else if((*it).CompareNoCase("ctiremoteparty") == 0){
+					criteria = MatchCtiRemoteParty;
+				}
+				else if((*it).CompareNoCase("ucid") == 0){
+					criteria = MatchUcid;
+				}
+				else if((*it).CompareNoCase("ucid-timestamp") == 0){
+					criteria = MatchUcidTimestamp;
+				}
+				else if((*it).CompareNoCase("x-refci") == 0){
+					criteria = MatchXrefci;
+				}
+
+				if(criteria != MatchNone){
+					m_ctiMatchingCriteriaList.push_back(criteria);
+				}			
+			}
+			if(m_ctiMatchingCriteriaList.size() == 0){
+				m_ctiMatchingCriteriaList.push_back(MatchUcid);
+			}
+		}
+		else
+		{
+			m_ctiMatchingCriteriaList.push_back(MatchUcid);
+		}
+	}
 }
 #include <iostream>
 bool AcpConfig::IsMediaGateway(struct in_addr addr)

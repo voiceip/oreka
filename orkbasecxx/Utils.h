@@ -69,6 +69,7 @@
 #include "openssl/err.h"
 #endif
 #include <log4cxx/logger.h>
+#include <regex>
 
 //============================================
 
@@ -245,7 +246,7 @@ CStdString DLL_IMPORT_EXPORT_ORKBASE HexToString(const CStdString& hexInput);		/
 CStdString DLL_IMPORT_EXPORT_ORKBASE IntUnixTsToString(int ts);
 void DLL_IMPORT_EXPORT_ORKBASE StringTokenizeToList(CStdString input, std::list<CStdString>& output);
 bool DLL_IMPORT_EXPORT_ORKBASE ChopToken(CStdString &token, CStdString separator, CStdString &s);
-
+CStdString DLL_IMPORT_EXPORT_ORKBASE ReplaceRegexBy(CStdString input, CStdString pattern, CStdString replacedBy);
 void DLL_IMPORT_EXPORT_ORKBASE OrkSleepSec(unsigned int sec);
 void DLL_IMPORT_EXPORT_ORKBASE OrkSleepMs(unsigned int msec);
 void DLL_IMPORT_EXPORT_ORKBASE OrkSleepMicrSec(unsigned int microsec);

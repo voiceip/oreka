@@ -11,6 +11,7 @@
 typedef enum{
 	MatchLocalParty,
 	MatchRemoteParty,
+	MatchCtiRemoteParty,
 	MatchUcid,
 	MatchUcidTimestamp,
 	MatchXrefci,
