@@ -21,6 +21,7 @@ void AcpConfig::Reset() {
 	m_ctiDrivenEnable = false;
 	m_ctiDrivenMatchingTimeoutSec = 30;
 	m_ctiDrivenStopIgnore = true;
+	m_sipUcidFieldName = "User-To-User";
 
 	m_sipReportFullAddress = false;
 	m_sessionStartsOnS2ActivityDb = 0;
@@ -47,6 +48,7 @@ void AcpConfig::Define(Serializer* s) {
 	s->IntValue("RtpS1MinNumPacketsBeforeStart",m_rtpS1MinNumPacketsBeforeStart);
 	s->IntValue("RtpS2MinNumPacketsBeforeStart",m_rtpS2MinNumPacketsBeforeStart);
 	s->DoubleValue("SessionStartsOnS2ActivityDb", m_sessionStartsOnS2ActivityDb);
+	s->StringValue("SipUcidFieldName", m_sipUcidFieldName);
 }
 
 void AcpConfig::Validate() {
