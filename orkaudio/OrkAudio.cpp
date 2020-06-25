@@ -358,8 +358,8 @@ void MainThread()
 		handler.detach();
 	}
 #ifdef SUPPORT_TLS_SERVER
-	HttpsServer httpsServ(CONFIG.m_tlsServerPort);
-	if(httpsServ.Initialize())
+	HttpsServer httpsServ;
+	if(httpsServ.Initialize(CONFIG.m_tlsServerPort))
 	{
 		std::thread handler(&HttpsServer::Run, &httpsServ);
 		handler.detach();

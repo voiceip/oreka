@@ -128,7 +128,7 @@ void OrkOpenSslSingleton::ConfigureServerCtx()
 	if(SSL_CTX_use_PrivateKey_file(m_serverCtx, CONFIG.m_tlsServerKeyPath, SSL_FILETYPE_PEM) <= 0 ) {
 		logMsg.Format("Error with key %s: %s",	CONFIG.m_tlsServerKeyPath, SSLErrorQ());
 		LOG4CXX_ERROR(s_log, logMsg);
-		throw (CStdString("Unable to find key.perm\n"));
+		throw (CStdString("Unable to find key.pem\n"));
 	}
 
 	/* Set to require peer (server) certificate verification */

@@ -40,7 +40,7 @@ log4cxx::LoggerPtr HttpServer::s_log;
 #ifdef SUPPORT_TLS_SERVER
 log4cxx::LoggerPtr HttpsServer::s_log;
 #endif
-
+void HandleSslHttpMessage(log4cxx::LoggerPtr& s_log, apr_socket_t* sock);
 CommandLineServer::CommandLineServer(int port)
 {
 	s_log = log4cxx::Logger::getLogger("interface.commandlineserver");
@@ -194,12 +194,9 @@ void CommandLineServer::RoutineSvc(apr_socket_t* sock)
 
 //==============================================================
 #define HTTP_MAX_SESSIONS 200
-static int s_httpSessions = 0;
-static std::mutex s_httpMutex;
+std::atomic<unsigned int> s_numHttpSessions(0);
+std::mutex s_HttpMutex;
 
-#ifdef SUPPORT_TLS_SERVER
-SSL_CTX* HttpsServer::m_ctx;
-#endif
 HttpServer::HttpServer(int port)
 {
 	s_log = log4cxx::Logger::getLogger("interface.httpserver");
@@ -281,8 +278,7 @@ void HttpServer::RunHttpServer()
 		apr_interval_time_t timeout =  apr_time_from_sec(2);
 		apr_socket_timeout_set(incomingSocket, timeout);
 		try{
-			std::lock_guard<std::mutex> lk(s_httpMutex);
-			if(s_httpSessions > HTTP_MAX_SESSIONS){
+			if(s_numHttpSessions > HTTP_MAX_SESSIONS){
 				LOG4CXX_WARN(s_log, "Closing incoming HTTP request: session limit exceeded.");
 				apr_socket_close(incomingSocket);
 				apr_pool_destroy(request_pool);
@@ -290,7 +286,6 @@ void HttpServer::RunHttpServer()
 			}
 			std::thread handler(HandleHttpMessage, incomingSocket, request_pool);
 			handler.detach();
-			s_httpSessions++;
 		} catch(const std::exception &ex){
 			CStdString logMsg;
 			logMsg.Format("Failed to start HttpServer thread reason:%s",  ex.what());
@@ -303,18 +298,20 @@ void HttpServer::RunHttpServer()
 }
 
 #ifdef SUPPORT_TLS_SERVER
-HttpsServer::HttpsServer(int port)
+HttpsServer::HttpsServer()
 {
 	s_log = log4cxx::Logger::getLogger("interface.tlsserver");
-	m_sslPort = port;
-	OrkAprSingleton* orkAprsingle = OrkAprSingleton::GetInstance();
-	m_mp = orkAprsingle->GetAprMp();
 }
 
-bool HttpsServer::Initialize()
+bool HttpsServer::Initialize(int port, FN_HandleSslHttpMessage msgThread)
 {
 	apr_status_t ret;
 	CStdString logMsg;
+
+	m_sslPort = port;
+	OrkAprSingleton* orkAprsingle = OrkAprSingleton::GetInstance();
+	m_mp = orkAprsingle->GetAprMp();
+	HandleSslHttpMessage = msgThread? msgThread: HandleSslHttpMessage;
 
 	if(m_sslPort == 0)
 	{
@@ -355,8 +352,7 @@ bool HttpsServer::Initialize()
 	LOG4CXX_INFO(s_log, CStdString("Started HttpsServer on port:")+sslTcpPortString);
 
 	//We will need a config param enable to activate ssl connection
-	m_ctx = OrkOpenSslSingleton::GetInstance()->GetServerCtx();
-	if(!m_ctx){
+	if(!OrkOpenSslSingleton::GetInstance()->GetServerCtx()){
 		LOG4CXX_ERROR(s_log, "No context for HTTPS server");
 		return false;
 	}
@@ -369,7 +365,7 @@ bool HttpsServer::Initialize()
 
 void HttpsServer::Run()
 {
-	if(m_ctx){
+	if(OrkOpenSslSingleton::GetInstance()->GetServerCtx()){
 		try{
 		std::thread httpsHandler(&HttpsServer::RunHttpsServer, this);
 		httpsHandler.detach();
@@ -384,29 +380,30 @@ void HttpsServer::Run()
 
 void HttpsServer::RunHttpsServer()
 {
+	SetThreadName("orka:httpssrv");
+	LOG4CXX_TRACE(s_log, "HttpsServer::RunHttpsServer: ENTRY");
 	while(true)
 	{
 		apr_status_t ret;
 		apr_pool_t* request_pool;
 		apr_pool_create(&request_pool, m_mp);
 		apr_socket_t* incomingSocket;
-        ret = apr_socket_accept(&incomingSocket, m_sslSocket,request_pool);
-        if (ret != APR_SUCCESS) {
-            continue;
-        }
-        apr_interval_time_t timeout =  apr_time_from_sec(2);
-        apr_socket_timeout_set(incomingSocket, timeout);	//maybe not neccessary here, since sslread is blocking&timeout=0, we have our own timeout mechanism
+		ret = apr_socket_accept(&incomingSocket, m_sslSocket,request_pool);
+		if (ret != APR_SUCCESS) {
+			continue;
+		}
+		LOG4CXX_TRACE(s_log, "HttpsServer::RunHttpsServer: accept");
+		apr_interval_time_t timeout =  apr_time_from_sec(2);
+		apr_socket_timeout_set(incomingSocket, timeout);	//maybe not neccessary here, since sslread is blocking&timeout=0, we have our own timeout mechanism
 		try{
-			std::lock_guard<std::mutex> lk(s_httpMutex);
-			if(s_httpSessions > HTTP_MAX_SESSIONS){
+			if(s_numHttpSessions > HTTP_MAX_SESSIONS){
 				LOG4CXX_WARN(s_log, "Closing incoming HTTPS request: session limit exceeded.");
 				apr_socket_close(incomingSocket);
 				apr_pool_destroy(request_pool);
 				continue;
 			}
-			std::thread handler(HandleSslHttpMessage, incomingSocket);
+			std::thread handler(HandleSslHttpMessage, s_log, incomingSocket);
 			handler.detach();		
-			s_httpSessions++;
 		} catch(const std::exception &ex){
 			CStdString logMsg;
 			logMsg.Format("Failed to start HttpsServer thread reason:%s",  ex.what());
@@ -421,6 +418,7 @@ void HttpsServer::RunHttpsServer()
 
 void HttpServer::HandleHttpMessage(apr_socket_t* sock, apr_pool_t* pool)
 {
+	HttpCounter threadCounter;
 	OrkAprSubPool subPool(pool); // fix scope of pool to this thread
 	char buf[2048];
 	buf[2047] = '\0';	// security
@@ -542,22 +540,24 @@ void HttpServer::HandleHttpMessage(apr_socket_t* sock, apr_pool_t* pool)
     }
 
     apr_socket_close(sock);
-	std::lock_guard<std::mutex> lk(s_httpMutex);
-	s_httpSessions--;
 }
 
 #ifdef SUPPORT_TLS_SERVER
-void HttpsServer::HandleSslHttpMessage(apr_socket_t* sock)
+void HandleSslHttpMessage(log4cxx::LoggerPtr& s_log, apr_socket_t* sock)
 {
+	HttpCounter threadCounter;
+	SetThreadName("orka:httpsreq");
+
+	apr_interval_time_t timeout =  apr_time_from_sec(2);
 	apr_status_t ret;
 	SSL *ssl;
-    ssl = SSL_new(m_ctx);
+	ssl = SSL_new(OrkOpenSslSingleton::GetInstance()->GetServerCtx());
 	CStdString logMsg;
 	//need to to explicitly set the socket here again to obtain the stage NONBLOCK=0
-    apr_socket_timeout_set(sock, -1);
+	apr_socket_timeout_set(sock, -1);
 
 	apr_os_sock_t nativeSock;
-    ret = apr_os_sock_get(&nativeSock, sock);
+	ret = apr_os_sock_get(&nativeSock, sock);
 	if(ret != APR_SUCCESS){
 		LOG4CXX_ERROR(s_log, "Unable to obtain native socket");
 	}
@@ -579,14 +579,14 @@ void HttpsServer::HandleSslHttpMessage(apr_socket_t* sock)
 	//if having socket blocking,  ssl_read blocking forever, and as the result SslRead blocking forever too
 	//set timeout for socket here will NOT have ssl_read blocking with timeout, it made ssl_read return right away, but our SslRead has its own timeout mechanism
 
-    apr_socket_timeout_set(sock, apr_time_from_sec(2));
+	apr_socket_timeout_set(sock, apr_time_from_sec(2));
 	char buf[2048];
 	buf[2047] = '\0';	// security
 	int lenSent;
-    while(true)
-    {
-        int size;
-        size = OrkSslRead(sock, ssl, buf, 2048);
+	while(true)
+	{
+		int size;
+		size = OrkSslRead(sock, ssl, buf, 2048);
 		if (size > 5)
 		{
 			try
@@ -681,13 +681,11 @@ void HttpsServer::HandleSslHttpMessage(apr_socket_t* sock)
 			int leng = notFound.GetLength();
 			OrkSslWrite(sock, ssl, notFound, leng);
 		}
-        break;
-    }
+		break;
+	}
 	SSL_shutdown(ssl);
 	SSL_free(ssl);
-    apr_socket_close(sock);
-//	std::lock_guard<std::mutex> lk(s_httpMutex);
-	s_httpSessions--;
+	apr_socket_close(sock);
 }
 #endif
 //==============================================
