@@ -90,11 +90,13 @@ void AcpConfig::Validate() {
 			}
 			if(m_ctiMatchingCriteriaList.size() == 0){
 				m_ctiMatchingCriteriaList.push_back(MatchUcid);
+				m_ctiMatchingCriteriaList.push_back(MatchUcidTimestamp);
 			}
 		}
 		else
 		{
 			m_ctiMatchingCriteriaList.push_back(MatchUcid);
+			m_ctiMatchingCriteriaList.push_back(MatchUcidTimestamp);
 		}
 	}
 }
