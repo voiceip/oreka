@@ -381,7 +381,6 @@ void HttpsServer::Run()
 void HttpsServer::RunHttpsServer()
 {
 	SetThreadName("orka:httpssrv");
-	LOG4CXX_TRACE(s_log, "HttpsServer::RunHttpsServer: ENTRY");
 	while(true)
 	{
 		apr_status_t ret;
@@ -392,7 +391,6 @@ void HttpsServer::RunHttpsServer()
 		if (ret != APR_SUCCESS) {
 			continue;
 		}
-		LOG4CXX_TRACE(s_log, "HttpsServer::RunHttpsServer: accept");
 		apr_interval_time_t timeout =  apr_time_from_sec(2);
 		apr_socket_timeout_set(incomingSocket, timeout);	//maybe not neccessary here, since sslread is blocking&timeout=0, we have our own timeout mechanism
 		try{

@@ -87,6 +87,19 @@ private:
 	static log4cxx::LoggerPtr s_log;
 	FN_HandleSslHttpMessage* HandleSslHttpMessage;
 };
+
+#if 1
+class OrekaSsl
+{
+public:
+	OrekaSsl(SSL_CTX* ctx) { ssl = SSL_new(ctx); };
+	~OrekaSsl() { SSL_shutdown(ssl); SSL_free(ssl); };
+
+	SSL* Ssl() { return ssl; };
+private:
+	SSL *ssl;
+};
+#endif
 #endif //#ifndef CENTOS_6
 
 //==========================================================
