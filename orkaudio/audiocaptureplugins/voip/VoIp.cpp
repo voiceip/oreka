@@ -1840,6 +1840,7 @@ void VoIp::Initialize()
 
 void VoIp::ReportPcapStats()
 {
+	MutexSentinel mutexSentinel(m_pcapDeviceMapMutex);
 	for(auto it = m_pcapDeviceMap.begin(); it != m_pcapDeviceMap.end(); it++)
 	{
 		struct pcap_stat stats;
