@@ -89,13 +89,13 @@ private:
 };
 
 #if 1
-class OrekaSsl
+class OrekaSslCtx
 {
 public:
-	OrekaSsl(SSL_CTX* ctx) { ssl = SSL_new(ctx); };
-	~OrekaSsl() { SSL_shutdown(ssl); SSL_free(ssl); };
+	OrekaSslCtx(SSL_CTX* ctx) { ssl = SSL_new(ctx); };
+	~OrekaSslCtx() { SSL_shutdown(ssl); SSL_free(ssl); };
 
-	SSL* Ssl() { return ssl; };
+	SSL* SslCtx() { return ssl; };
 private:
 	SSL *ssl;
 };

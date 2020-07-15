@@ -494,4 +494,7 @@ typedef enum
 
 CStdString RtpPayloadTypeEnumToString(char pt);
 size_t DLL_IMPORT_EXPORT_ORKBASE ciFind(const std::string &Haystack, const std::string &Needle);
+#ifdef SUPPORT_TLS_SERVER
+CStdString DLL_IMPORT_EXPORT_ORKBASE SSLErrorQ();
+#endif
 #endif
