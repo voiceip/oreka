@@ -67,9 +67,8 @@ Binary releases are available from the [Releases Section](https://github.com/voi
 
 ```bash
 #echo "deb https://dl.bintray.com/kingster/deb /" | sudo tee -a /etc/apt/sources.list.d/oreka.list
-#apt update && apt install oreka
-dpkg -i oreka.deb
-apt-get -f install #install dependencies.
+#apt update && apt install orkaudio
+apt install ./orkaudio.deb
 svc -u /etc/service/orkaudio #to-start
 svc -d /etc/service/orkaudio #to-stop
 ```
