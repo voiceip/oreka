@@ -20,11 +20,12 @@
 IlbcToPcmFilter::IlbcToPcmFilter()
 {
 	/* Initialize iLBC decoder states */
-	memset(&dec30, 0, sizeof(dec30));
-        memset(&dec20, 0, sizeof(dec20));
+
+	dec30 = { 0 };
+	dec20 = { 0 };
 
 	initDecode(&dec30, 30, 0);
-        initDecode(&dec20, 20, 0);
+	initDecode(&dec20, 20, 0);
 
 	this->s_ilbclog = Logger::getLogger("iLBC");
 #if 0
@@ -34,8 +35,8 @@ IlbcToPcmFilter::IlbcToPcmFilter()
 
 IlbcToPcmFilter::~IlbcToPcmFilter()
 {
-        memset(&dec30, 0, sizeof(dec30));
-        memset(&dec20, 0, sizeof(dec20));
+	dec30 = { 0 };
+	dec20 = { 0 };
 
 #if 0
 	LOG4CXX_INFO(this->s_ilbclog, "Decommissioned iLBC decoder");

@@ -126,6 +126,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4251</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -159,12 +160,12 @@
     <ClCompile Include="Iax2Parsers.cpp" />
     <ClCompile Include="Iax2Session.cpp" />
     <ClCompile Include="IpFragmentation.cpp" />
-	<ClCompile Include="..\Common\PacketHeaderDefs.cpp" />
+    <ClCompile Include="..\Common\PacketHeaderDefs.cpp" />
     <ClCompile Include="ParsingUtils.cpp" />
     <ClCompile Include="SipHeaders.cpp" />
     <ClCompile Include="SipParsers.cpp" />
-	<ClCompile Include="..\Common\SipTcp.cpp" />
-	<ClCompile Include="..\Common\SafeBuffer.cpp" />
+    <ClCompile Include="..\Common\SipTcp.cpp" />
+    <ClCompile Include="..\Common\SafeBuffer.cpp" />
     <ClCompile Include="SkinnyParsers.cpp" />
     <ClCompile Include="VoIp.cpp" />
     <ClCompile Include="VoIpConfig.cpp" />
@@ -178,7 +179,7 @@
     <ClInclude Include="..\common\Rtp.h" />
     <ClInclude Include="Iax2Parsers.h" />
     <ClInclude Include="Iax2Session.h" />
-	<ClInclude Include="..\Common\PacketHeaderDefs.h" />
+    <ClInclude Include="..\Common\PacketHeaderDefs.h" />
     <ClInclude Include="ParsingUtils.h" />
     <ClInclude Include="SipHeaders.h" />
     <ClInclude Include="SipParsers.h" />
