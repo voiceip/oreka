@@ -195,6 +195,8 @@ int DLL_IMPORT_EXPORT_ORKBASE inet_pton4(const char *src, struct in_addr* dstAdd
 //============================================
 // String related stuff
 #if defined (WIN32) || defined(WIN64)
+#undef strncasecmp
+#undef getpid 
 #define strncasecmp _strnicmp
 #define getpid _getpid
 #endif 
