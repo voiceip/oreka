@@ -155,8 +155,9 @@ OggOpusFile::OggOpusFile()
 
 OggOpusFile::~OggOpusFile()
 {
-    free(m_outBuf);
-    opus_multistream_encoder_destroy(st);
+    //Don't trigger cleanup if Init() was not called.
+    if(m_outBuf) free(m_outBuf);
+    if(st) opus_multistream_encoder_destroy(st);
     ogg_stream_clear(&os);
     if(opt_ctls)free(opt_ctls_ctlval);
 } 
