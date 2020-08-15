@@ -55,6 +55,13 @@
 #include <thread>
 #include "apr_signal.h"
 
+#ifdef linux  
+#include <execinfo.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <unistd.h>
+#endif
+
 static volatile bool serviceStop = false;
 
 void StopHandler()
@@ -394,10 +401,27 @@ void MainThread()
 	OrkLogManager::Instance()->Shutdown();
 }
 
+void handler(int sig) {
+	#ifdef linux
+
+	void *array[10];
+	size_t size;
+
+	// get void*'s for all entries on the stack
+	size = backtrace(array, 10);
+
+	// print out all the frames to stderr
+	fprintf(stderr, "Error: signal %d:\n", sig);
+	backtrace_symbols_fd(array, size, STDERR_FILENO);
+	#endif
+  	exit(1);
+}
 
 
 int main(int argc, char* argv[])
 {
+	signal(SIGSEGV, handler);   // install fatal error handler
+	
 	OrkAprSingleton::Initialize();
 
 	// the "service name" reported on the tape messages uses CONFIG.m_serviceName
