@@ -1,7 +1,11 @@
 sudo: true
-dist: bionic
-os: linux
 language: bash
+jobs:
+  include:
+   - os: linux
+     dist: xenial
+   - os: linux
+     dist: bionic
 services:
 - docker
 branches:
