@@ -8,9 +8,8 @@ branches:
   only: 
     - master
 before_install:
-  - sed -i 's/#INSERT_HERE/COPY . \/oreka/g' .devcontainer/Dockerfile.orkaudio.build
-  - cat .devcontainer/Dockerfile.orkaudio.build
+  - sed -i 's/#INSERT_HERE/COPY . \/oreka-src/g' .devcontainer/Dockerfile.orkaudio.build
+  - echo "[Login]\nUsername = $MEGANAME \nPassword = $MEGAPASS" > .megarc
   - docker build -t oreka -f .devcontainer/Dockerfile.orkaudio.build .
-  # - docker run oreka bash /entrypoint.sh
 script:
   -  docker run -i oreka bash /entrypoint.sh 
