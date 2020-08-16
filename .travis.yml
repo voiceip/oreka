@@ -12,6 +12,7 @@ branches:
   only:
   - master
 before_install:
+- cat /etc/os-release
 - sed -i 's/#INSERT_HERE/COPY . \/oreka-src/g' .devcontainer/Dockerfile.orkaudio.build
 - echo "[Login]" > .megarc
 - echo "Username = $MEGANAME" >> .megarc
