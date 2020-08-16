@@ -24,7 +24,7 @@ chmod +x make-orkaudio-deb.sh
 exit_code=$?
 
 ls -ltrah *.deb
-
+set +e
 mv /oreka-src/.megarc ~/.megarc
 hash=$(git --git-dir /oreka-src/.git rev-parse --short @)
 echo "$hash"
