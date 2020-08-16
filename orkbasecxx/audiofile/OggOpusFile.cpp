@@ -151,6 +151,8 @@ OggOpusFile::OggOpusFile()
     m_bytesOffsetFromLastFullFrame = 0;
     m_extraSamplesFromLastChunk = 0;
     m_extraPcmBufLen = 0;
+    m_outBuf=NULL;
+    st= NULL;
 }
 
 OggOpusFile::~OggOpusFile()
@@ -159,7 +161,9 @@ OggOpusFile::~OggOpusFile()
     if(m_outBuf) free(m_outBuf);
     if(st) opus_multistream_encoder_destroy(st);
     ogg_stream_clear(&os);
-    if(opt_ctls)free(opt_ctls_ctlval);
+    if(opt_ctls) {
+        if(opt_ctls_ctlval) free(opt_ctls_ctlval);
+    }
 } 
 
 void OggOpusFile::Open(CStdString& filename, fileOpenModeEnum mode, bool stereo, int sampleRate)

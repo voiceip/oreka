@@ -1,0 +1,22 @@
+// See https://aka.ms/vscode-remote/devcontainer.json for format details.
+{
+	"name": "oreka",
+	"dockerFile": "Dockerfile.orkaudio.build",
+	"runArgs": [
+		"--cap-add=SYS_PTRACE",
+		"--security-opt", "seccomp=unconfined"
+	],
+	"context" : "..",
+
+	// "appPort": [],
+
+	"settings":  { 
+	 	"terminal.integrated.shell.linux": "/bin/bash"
+	},
+
+	//"postCreateCommand": "make",
+
+	"extensions": [
+		"ms-vscode.cpptools"
+	]
+}
