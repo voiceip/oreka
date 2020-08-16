@@ -65,6 +65,8 @@ docker run -itd --net=host --restart=always --privileged=true -v /var/log/orkaud
 
 Binary releases are available from the [Releases Section](https://github.com/voiceip/oreka/releases). Download and install.
 
+Daily/PR Builds are available at [here](https://mega.nz/folder/lS4xDYYQ#TWvv_93UABurSMZddQ_ZHg)
+
 ~~Ubuntu installers are available via [Bintray](https://bintray.com/kingster/deb/oreka). To add the sources to your system run the following command~~  _Bintray currenty broken due to some issue. I will soon figure out how to publish with multiple versions._
 
 

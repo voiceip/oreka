@@ -3,13 +3,21 @@ dist: bionic
 os: linux
 language: bash
 services:
-  - docker
+- docker
 branches:
-  only: 
-    - master
+  only:
+  - master
 before_install:
-  - sed -i 's/#INSERT_HERE/COPY . \/oreka-src/g' .devcontainer/Dockerfile.orkaudio.build
-  - echo "[Login]\nUsername = $MEGANAME \nPassword = $MEGAPASS" > .megarc
-  - docker build -t oreka -f .devcontainer/Dockerfile.orkaudio.build .
+- sed -i 's/#INSERT_HERE/COPY . \/oreka-src/g' .devcontainer/Dockerfile.orkaudio.build
+- echo "[Login]" > .megarc
+- echo "Username = $MEGANAME" >> .megarc
+- echo "Password = $MEGAPASS" >> .megarc
+- 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then cat .devcontainer/publish.sh >> .devcontainer/build.sh ; fi'
+- cat .devcontainer/build.sh
+- docker build -t oreka -f .devcontainer/Dockerfile.orkaudio.build .
 script:
-  -  docker run -i oreka bash /entrypoint.sh 
+- docker run -i oreka bash /entrypoint.sh
+env:
+  global:
+  - secure: ynBwapd/+okQQMSRUQd0BX04foUwYv1nAzIZQozP6qCjUemlY3OH96PpwuZAXm6KSNOZoxQJFibQrdaGedJ6n0kD3EggE3OuOg6ScecFaiK98f9b7vYVCDkSCIreCvU1Xze+WPmQG7rDvbIHUteeAfRd35lkWyOiKgLnbRDshtShb2xBvEXgG9qAQgttHZis6AlaA+hGU46HZpioB6JiI5Sv9sbnHVUS+ZepKlNLQCpE3PIuF1C56rVPCP55D/DlRTNXLam08I0o1m8fbilSMusftNeSxG4JE30dL74sOPZEWsQqdmTsPuq5iU3XDgC6tl1dWKAYX8O6ZcF+0u/oURH41Ei74TaIfmkzydRUEB2TXU1aOyrYysqYJbm1SvTDnc7hGl5oXzbkuO5Xc1d9fLzou6EwztEzzhlV4EFM4p70MyaO4p2EM5mZvw01VKZ4URA4GmDiEh5/5qMXnJT2fhVtZv0S4L0+LmiKq8DBPIlDpcbhSxRzeReStmdZje3VNMnLar/9Ep+EyhPkFcIAue2M3ewdEF2UX7ebd3S8ITK/DYtiGoKqP0QoXjf7sP9zbgziPAy2WNzC9iN0WJImQ9hyfiZdIoJyMNZxdXO3kUts53FNkYSQoeopVo621qrPsTCsL5exanQIr/ykbz4MBbaGIuOObYmD0olRN3wbwBM=
+  - secure: hLAx1uwP2UnIUfPMjw8vkL+VeKVKWJFiGrU/5Q7XGPt4nqsZaKvex573IGdha4ajaczq9b9/BYnCjZA/V7JxodUQhfGyIdzD4OOVA2Klgq4ktx9UZvlPIeEhximMu7Xe7B3n50Pz9lPcPoprhoFzatA+kYqrlquzO9PsMVQRk2RCHLLEVDriCGQi0gWRVrRTtUQtjGHbfX9YjxN1/jCWmTyxdSADML0X8fZpwQ2IsNCrLYX9XvDT0rBZOHvFZZiWQIyHO3ndtnFQtU5UQ5g/CSfolicGUJ0/wsewSWew9sdIq4HBQxl6wF3SZwfN699pmosymTnjnM1qyXnjn3DgX4ExyVCqLzVAsa7L6aExOeKz8SMPFjxfZG4G5wbI6IApcIhQhsSdJyeqq7o8TvOZJJOoqv9oSIYkWazjx6djitkVunkKKsJ5RzWp0az9r6UMTzVNzpEwuFEecXvOtvTlJGzOobLhnE/O317Hn0L9kl+wemk6BqdPOZQJ07xfP0E3A2ob2zFlS76g7aMtIgKI80o02fwnWaAVfN2i0KWWGRIAxvmjhFbxMbz19eQcI9YcRd0vsTHDB2bwTrJm+gGzfy+NACys8LHV8FZZMvMVxkA0tYM3kPv5t7VXk5S6do8I+aSSF/NVYw3RavINHIJxNrfpgoN6M6TL7IGcY56tMQY=
