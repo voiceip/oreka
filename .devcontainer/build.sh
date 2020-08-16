@@ -16,10 +16,7 @@ make
 make install
 
 #package orkaudio deb
-git clone https://github.com/voiceip/oreka-build.git /oreka-build
 cd /oreka-build/distribution
-chmod +x make-orkaudio-deb.sh
-./make-orkaudio-deb.sh
+bash make-orkaudio-deb.sh
 
 ls -ltrah *.deb
-
