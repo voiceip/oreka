@@ -12,6 +12,8 @@ before_install:
 - echo "[Login]" > .megarc
 - echo "Username = $MEGANAME" >> .megarc
 - echo "Password = $MEGAPASS" >> .megarc
+- 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then cat .devcontainer/publish.sh >> .devcontainer/build.sh ; fi'
+- cat .devcontainer/build.sh
 - docker build -t oreka -f .devcontainer/Dockerfile.orkaudio.build .
 script:
 - docker run -i oreka bash /entrypoint.sh
