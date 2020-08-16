@@ -2,6 +2,9 @@
 
 Based on [OrecX](http://www.orecx.com/open-source/) [Oreka](https://github.com/OrecX/Oreka), this project tries to provide a complete Call Recording (SIPREC) solution.  
 
+[![Build Status](https://travis-ci.com/voiceip/oreka.svg?branch=master)](https://travis-ci.com/voiceip/oreka)
+
+
 ### Components
 - **Orkaudio**:  
     The audio capture and storage daemon with pluggable capture modules currently comes with modules for VoIP and sound device recording.
