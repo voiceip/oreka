@@ -25,6 +25,7 @@ void AcpConfig::Reset() {
 
 	m_sipReportFullAddress = false;
 	m_sessionStartsOnS2ActivityDb = 0;
+	m_sipRemotePartyFrom200OKEnable = false;
 }
 
 void AcpConfig::Define(Serializer* s) {
@@ -49,6 +50,7 @@ void AcpConfig::Define(Serializer* s) {
 	s->IntValue("RtpS2MinNumPacketsBeforeStart",m_rtpS2MinNumPacketsBeforeStart);
 	s->DoubleValue("SessionStartsOnS2ActivityDb", m_sessionStartsOnS2ActivityDb);
 	s->StringValue("SipUcidFieldName", m_sipUcidFieldName);
+	s->BoolValue("SipRemotePartyFrom200OKEnable", m_sipRemotePartyFrom200OKEnable);
 }
 
 void AcpConfig::Validate() {

@@ -1613,7 +1613,9 @@ void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	//with CUCM hunt pilots in the inbound case, Remote-Party-ID of the first INVITE to the endpoint is reported as the hunt pilot extension.
 	//Subsequent INVITEs report Remote-Party-ID as the true remote party. Also, Remote-Party-ID reported by the 200 OK messages is useless because it reports the local extension handling the call.
 	//See pcap with md5sum:bfa80e917bc00df595996b1429780867
-	if((invite->m_sipMethod == SIP_METHOD_INVITE) && (invite->m_sipRemoteParty != ""))
+	//We also have a case when Remote-Party_ID in the 200OK is indeed an remote party. See pcap md5sum:ba6f9b66f9264410b4639219dbde60e5
+	if(((invite->m_sipMethod == SIP_METHOD_INVITE) && (invite->m_sipRemoteParty != ""))
+		|| (DLLCONFIG.m_sipRemotePartyFrom200OKEnable && (invite->m_sipRemoteParty != "")))
 	{
 		if(m_sipRemoteParty.length() == 0)
 		{

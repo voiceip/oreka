@@ -48,6 +48,7 @@ public:
 	bool m_sipReportFullAddress;
 	std::list <CtiMatchingCriteriaEnum> m_ctiMatchingCriteriaList;
 	double m_sessionStartsOnS2ActivityDb;
+	bool m_sipRemotePartyFrom200OKEnable;
 };
 
 #endif
