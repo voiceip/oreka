@@ -24,6 +24,7 @@
 #include "messages/TestMsg.h"
 #include "messages/RecordMsg.h"
 #include "messages/InitMsg.h"
+#include "messages/ReadLoggingPropertiesMsg.h"
 //#include "messages/CrashMessage.cpp"
 #include "Config.h"
 #include "LogManager.h"
@@ -245,6 +246,8 @@ void MainThread()
 	objRef.reset(new StopMsg);
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	objRef.reset(new InitMsg);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
+	objRef.reset(new ReadLoggingPropertiesMsg);
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	//objRef.reset(new CrashMsg);
 	//ObjectFactory::GetSingleton()->RegisterObject(objRef);

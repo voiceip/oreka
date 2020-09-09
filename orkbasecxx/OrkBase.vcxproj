@@ -234,6 +234,7 @@
     <ClCompile Include="messages\InitMsg.cpp" />
     <ClCompile Include="Messages\Message.cpp" />
     <ClCompile Include="messages\PingMsg.cpp" />
+    <ClCompile Include="messages\ReadLoggingPropertiesMsg.cpp" />
     <ClCompile Include="messages\RecordMsg.cpp" />
     <ClCompile Include="Messages\SyncMessage.cpp" />
     <ClCompile Include="messages\TapeMsg.cpp" />
