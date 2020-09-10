@@ -29,6 +29,17 @@ public:
 	ObjectRef Process();
 };
 
+class DLL_IMPORT_EXPORT_ORKBASE ListLoggingPropertiesMsg : public SyncMessage
+{
+public:
+	void Define(Serializer* s);
+	inline void Validate() {};
+
+	CStdString GetClassName();
+	ObjectRef NewInstance();
+	ObjectRef Process();
+};
+
 class DLL_IMPORT_EXPORT_ORKBASE ListLoggingPropertiesResponseMsg : public SimpleResponseMsg
 {
 public:
@@ -43,19 +54,6 @@ public:
 	int	m_count;
 };
 
-#if 0
 
-class DLL_IMPORT_EXPORT_ORKBASE ListLoggingPropertiesMsg : public SyncMessage
-{
-public:
-	void Define(Serializer* s);
-	inline void Validate() {};
-
-	CStdString GetClassName();
-	ObjectRef NewInstance();
-	ObjectRef Process();
-};
-
-#endif
 #endif
 

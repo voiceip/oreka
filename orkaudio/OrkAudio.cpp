@@ -249,6 +249,8 @@ void MainThread()
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	objRef.reset(new ReadLoggingPropertiesMsg);
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
+	objRef.reset(new ListLoggingPropertiesMsg);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	//objRef.reset(new CrashMsg);
 	//ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	//objRef.reset(new TestMsg);

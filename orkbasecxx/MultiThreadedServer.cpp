@@ -482,6 +482,7 @@ void HttpServer::HandleHttpMessage(apr_socket_t* sock, apr_pool_t* pool)
 					{
 						CStdString httpOkBody;
 						CStdString httpOk;
+
 						if(singleLineResp == false){
 							DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(XStr("Core").unicodeForm());
 							XERCES_CPP_NAMESPACE::DOMDocument* myDoc;

@@ -13,6 +13,8 @@
 
 #include "ReadLoggingPropertiesMsg.h"
 #include "LogManager.h"
+#include <log4cxx/logmanager.h>
+
 
 #define READ_LOGGING_PROPERITES_CLASS "readloggingproperties"
 #define READ_LOGGING_PROPERITES_RESPONSE_CLASS "readloggingpropertiesresponse"
@@ -46,7 +48,6 @@ ObjectRef ReadLoggingPropertiesMsg::Process()
 	return ref;
 }
 
-#if 0
 
 //============ listLoggingProperties
 // iterates through the log4cxx hierarch and shows what loggers are
@@ -143,4 +144,5 @@ ObjectRef ListLoggingPropertiesMsg::Process()
 	msg->m_loggerInfo = logMsg;
 	return ref;
 }
-#endif
+
+
