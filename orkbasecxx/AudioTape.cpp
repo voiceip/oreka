@@ -62,6 +62,7 @@ void AudioTapeDescription::Define(Serializer* s)
 	s->StringValue("localIp", m_localIp);
 	s->StringValue("remoteIp", m_remoteIp);
 	s->StringValue("filename", m_filename);
+	s->StringValue("nativeCallId", m_nativeCallId);
 	s->BoolValue("ondemand", m_onDemand);
 }
 
@@ -430,6 +431,7 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 			atd.m_localIp = m_localIp;
 			atd.m_remoteIp = m_remoteIp;
 			atd.m_onDemand = m_onDemand;
+			atd.m_nativeCallId = m_nativeCallId;
 			atd.m_filename = GetFilename();
 			CStdString description = atd.SerializeSingleLine();
 			LOG4CXX_INFO(LOG.tapelistLog, description);
