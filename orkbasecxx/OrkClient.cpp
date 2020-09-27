@@ -91,12 +91,31 @@ bool OrkHttpClient::ExecuteSSLRequest(const std::string& request, std::string& r
 		request_stream << "Connection: keep-alive\r\n\r\n";
 
 		// Send the request.
+		if (m_log->isTraceEnabled())
+		{
+			boost::asio::streambuf::const_buffers_type bufs = request_buf.data();
+			std::string str(boost::asio::buffers_begin(bufs),
+			                boost::asio::buffers_begin(bufs) + request_buf.size());
+			logMsg.Format("send of %d bytes to %s:%d [%s]",
+					request_buf.size(), hostname, tcpPort, str);
+			LOG4CXX_TRACE(m_log,logMsg);
+		}
 		ssl_session->write(request_buf);
 
 		// Read the response
 		boost::asio::streambuf response;
 		if (!ssl_session->read_until(response, "\r\n", timeout))
 			return false; //error logged in read_until
+
+		if (m_log->isTraceEnabled())
+		{
+			boost::asio::streambuf::const_buffers_type bufs = response.data();
+			std::string str(boost::asio::buffers_begin(bufs),
+			                boost::asio::buffers_begin(bufs) + response.size());
+			logMsg.Format("recv of %d bytes from %s:%d [%s]",
+					response.size(), hostname, tcpPort, str);
+			LOG4CXX_TRACE(m_log,logMsg);
+		}
 
 		// Verify the response
 		std::istream response_stream(&response);
@@ -130,7 +149,7 @@ bool OrkHttpClient::ExecuteSSLRequest(const std::string& request, std::string& r
 		// until we have skipped past the response header (blank line). We then
 		// take the first line as a response. This works with OrkTrack, but
 		// technically we should parse "Content-Length" from the response header
-		// and read the stream for that precise bunber of bytes.
+		// and read the stream for that precise number of bytes.
 		while (!error)
 		{
 			bool response_received = false;
@@ -149,6 +168,15 @@ bool OrkHttpClient::ExecuteSSLRequest(const std::string& request, std::string& r
 			//response stream is empty -- refill it from underlying session
 			if (!ssl_session->read(response, error, timeout))
 				return false; //error logged in lower routine
+			if (m_log->isTraceEnabled())
+			{
+				boost::asio::streambuf::const_buffers_type bufs = response.data();
+				std::string str(boost::asio::buffers_begin(bufs),
+				                boost::asio::buffers_begin(bufs) + response.size());
+				logMsg.Format("recv of %d bytes from %s:%d [%s]",
+						response.size(), hostname, tcpPort, str);
+				LOG4CXX_TRACE(m_log,logMsg);
+			}
  			response_stream.seekg(0);
 		}
 		logMsg.Format("%s:%d response:%s",hostname, tcpPort, responseString);
