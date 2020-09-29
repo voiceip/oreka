@@ -34,6 +34,7 @@ class OrkSession {
 		CStdString m_logMsg;
 		bool m_startWhenReceiveS2;
 		bool m_nonLookBackSessionStarted;
+		bool m_ctiDrivenSession;
 
 		RtpPacketInfoRef m_lastRtpPacketSide1;
 		RtpPacketInfoRef m_lastRtpPacketSide2;

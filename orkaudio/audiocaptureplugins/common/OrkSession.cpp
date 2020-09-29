@@ -45,6 +45,7 @@ OrkSession::OrkSession(AcpConfig * config): m_config(config), m_telephoneEventPa
 			m_decoders.push_back(decoder);
 		}
 	}
+	m_ctiDrivenSession = false;
 }
 
 bool OrkSession::ShouldSwapChannels()
