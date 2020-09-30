@@ -349,6 +349,35 @@ CStdString AprGetErrorMsg(apr_status_t ret)
 	errorMsg.Format("%s", errStr);
 	return errorMsg;
 }
+
+CStdString GetRevertedNormalizedPhoneNumber(CStdString input)
+{
+	CStdString output;
+	for(int i = input.length() -1; i >= 0; i--){
+		if(input.at(i) != '-' && input.at(i) != '+' && input.at(i) != '(' && input.at(i) != ')' && input.at(i) != ' '){
+			output += input.at(i);
+		}
+	}
+	return output;
+}
+
+bool CompareNormalizedPhoneNumbers(CStdString input1, CStdString input2)
+{
+	bool ret = false;
+	CStdString normalizedInput1, normalizedInput2;
+	normalizedInput1 = GetRevertedNormalizedPhoneNumber(input1);
+	normalizedInput2 = GetRevertedNormalizedPhoneNumber(input2);
+	int minLen = std::min<size_t>(normalizedInput1.length(), normalizedInput2.length());
+
+	if(minLen < 6){
+		return normalizedInput1.Equals(normalizedInput2);
+	}
+	else{
+		return memcmp(&normalizedInput1[0], &normalizedInput2[0], minLen) == 0;
+	}
+
+	return ret;
+}
 //========================================================
 // file related stuff
 

@@ -255,7 +255,8 @@ void DLL_IMPORT_EXPORT_ORKBASE OrkSleepMicrSec(unsigned int microsec);
 void DLL_IMPORT_EXPORT_ORKBASE OrkSleepNs(unsigned int nsec);
 int DLL_IMPORT_EXPORT_ORKBASE ork_vsnprintf(char *buf, apr_size_t len, const char *format, ...);
 CStdString DLL_IMPORT_EXPORT_ORKBASE AprGetErrorMsg(apr_status_t ret);
-
+CStdString DLL_IMPORT_EXPORT_ORKBASE GetRevertedNormalizedPhoneNumber(CStdString input);
+bool DLL_IMPORT_EXPORT_ORKBASE CompareNormalizedPhoneNumbers(CStdString input1, CStdString input2);
 //========================================================
 // file related stuff
 
