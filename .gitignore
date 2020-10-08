@@ -110,3 +110,4 @@ target/
 .classpath
 **/WEB-INF/classes/*
 
+.project
