@@ -40,7 +40,7 @@ log4cxx::LoggerPtr HttpServer::s_log;
 #ifdef SUPPORT_TLS_SERVER
 log4cxx::LoggerPtr HttpsServer::s_log;
 #endif
-void HandleSslHttpMessage(log4cxx::LoggerPtr& s_log, apr_socket_t* sock);
+void HandleSslHttpMessage(log4cxx::LoggerPtr s_log, apr_socket_t* sock);
 CommandLineServer::CommandLineServer(int port)
 {
 	s_log = log4cxx::Logger::getLogger("interface.commandlineserver");
@@ -311,7 +311,7 @@ bool HttpsServer::Initialize(int port, FN_HandleSslHttpMessage msgThread)
 	m_sslPort = port;
 	OrkAprSingleton* orkAprsingle = OrkAprSingleton::GetInstance();
 	m_mp = orkAprsingle->GetAprMp();
-	HandleSslHttpMessage = msgThread? msgThread: HandleSslHttpMessage;
+	HandleSslHttpMessageThread = msgThread? msgThread: HandleSslHttpMessage;
 
 	if(m_sslPort == 0)
 	{
@@ -400,7 +400,7 @@ void HttpsServer::RunHttpsServer()
 				apr_pool_destroy(request_pool);
 				continue;
 			}
-			std::thread handler(HandleSslHttpMessage, s_log, incomingSocket);
+			std::thread handler(HandleSslHttpMessageThread, s_log, incomingSocket);
 			handler.detach();		
 		} catch(const std::exception &ex){
 			CStdString logMsg;
@@ -542,7 +542,7 @@ void HttpServer::HandleHttpMessage(apr_socket_t* sock, apr_pool_t* pool)
 }
 
 #ifdef SUPPORT_TLS_SERVER
-void HandleSslHttpMessage(log4cxx::LoggerPtr& s_log, apr_socket_t* sock)
+void HandleSslHttpMessage(log4cxx::LoggerPtr s_log, apr_socket_t* sock)
 {
 	HttpCounter threadCounter;
 	SetThreadName("orka:httpsreq");

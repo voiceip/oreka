@@ -85,10 +85,9 @@ private:
 	int m_sslPort;
 	apr_sockaddr_t* m_sslSockAddr;
 	static log4cxx::LoggerPtr s_log;
-	FN_HandleSslHttpMessage* HandleSslHttpMessage;
+	FN_HandleSslHttpMessage* HandleSslHttpMessageThread;
 };
 
-#if 1
 class OrekaSslCtx
 {
 public:
@@ -99,7 +98,6 @@ public:
 private:
 	SSL *ssl;
 };
-#endif
 #endif //#ifndef CENTOS_6
 
 //==========================================================
@@ -121,7 +119,7 @@ private:
 	apr_pool_t* m_mp;
 	int m_port;
 	apr_socket_t* m_socket;
-    apr_sockaddr_t* m_sockAddr;
+	apr_sockaddr_t* m_sockAddr;
 	static log4cxx::LoggerPtr s_log;
 	static void StreamingSvc(apr_socket_t* sock, apr_pool_t* pool);
 };
