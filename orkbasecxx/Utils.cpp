@@ -133,7 +133,7 @@ void OrkOpenSslSingleton::ConfigureServerCtx()
 	}
 
 	/* Set to require peer (server) certificate verification */
-	SSL_CTX_set_verify(m_serverCtx,SSL_VERIFY_PEER,NULL);
+	SSL_CTX_set_verify(m_serverCtx,SSL_VERIFY_NONE,NULL);
 	SSL_CTX_set_verify_depth(m_serverCtx,1);
 	unsigned int currentPid = getpid();
 	CStdString ssl_session_ctx_id;
