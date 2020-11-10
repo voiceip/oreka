@@ -45,6 +45,7 @@ void AcpConfig::Define(Serializer* s) {
 	s->IntValue("CtiDrivenMatchingTimeoutSec",m_ctiDrivenMatchingTimeoutSec);
 	s->CsvValue("CtiDrivenMatchingCriteria", m_ctiDrivenMatchingCriteria);
 	s->BoolValue("CtiDrivenStopIgnore", m_ctiDrivenStopIgnore);
+	s->CsvValue("CtiDrivenMatchingTapeMetadataTagPair", m_ctiDrivenMatchingTapeMetadataTagPair);
 	s->BoolValue("SipReportFullAddress", m_sipReportFullAddress);
 	s->IntValue("RtpS1MinNumPacketsBeforeStart",m_rtpS1MinNumPacketsBeforeStart);
 	s->IntValue("RtpS2MinNumPacketsBeforeStart",m_rtpS2MinNumPacketsBeforeStart);
@@ -84,6 +85,13 @@ void AcpConfig::Validate() {
 				}
 				else if((*it).CompareNoCase("x-refci") == 0){
 					criteria = MatchXrefci;
+				}
+				else if((*it).CompareNoCase("tag") == 0){					
+					if(m_ctiDrivenMatchingTapeMetadataTagPair.size() == 2){
+						criteria = MatchTag;
+						m_ctiDrivenMatchingTapeTag = m_ctiDrivenMatchingTapeMetadataTagPair.front();
+						m_ctiDrivenMatchingMetadataTag = m_ctiDrivenMatchingTapeMetadataTagPair.back();
+					}	
 				}
 
 				if(criteria != MatchNone){

@@ -15,6 +15,7 @@ typedef enum{
 	MatchUcid,
 	MatchUcidTimestamp,
 	MatchXrefci,
+	MatchTag,
 	MatchNone
 } CtiMatchingCriteriaEnum;
 
@@ -43,6 +44,9 @@ public:
 	int m_ctiDrivenMatchingTimeoutSec;
 	std::list<CStdString> m_ctiDrivenMatchingCriteria;
 	bool m_ctiDrivenStopIgnore;
+	std::list<CStdString >m_ctiDrivenMatchingTapeMetadataTagPair;
+	CStdString m_ctiDrivenMatchingTapeTag;
+	CStdString m_ctiDrivenMatchingMetadataTag;
 	CStdString m_sipUcidFieldName;
 
 	bool m_sipReportFullAddress;
