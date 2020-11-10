@@ -31,8 +31,10 @@ matrix:
       before_cache:
       - docker save -o $HOME/docker_images/images.tar $(docker images -a -q)
     - language: java
+      dist: trusty
+      jdk: oraclejdk8
       script:
-        - mvn clean install
+        - mvn clean install -DskipTests=true
 
 deploy:
     provider: releases
