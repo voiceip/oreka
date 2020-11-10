@@ -41,7 +41,10 @@ deploy:
     api_key:
       secure: "M4odEjSv9Hj8BoMCkc10DRJmA+FVrWrbwKt4vHVy04WVUonwZo5/31UsUJgDYMV+SnRazTDDTfhjFuWbWaKkNUgVm42Ddz1sQdiOg5/3DXUHI6hAM3HKpiO5f2MgMGbHtga1l4VqMbDJhQEGl8StsQq64tXwcHCGHykX7F0ZPJx/QPy8VEfFZ330i3J4tl36jS7pE5LsVUzfzfoMp0aruM1lpg9BJXW0CcI7+0wZTxLrgziWnk6r0DSltDvbVkeWDE8Ol+51CfxIlwatEfTj3R5xx1XvRFUumLm/w4hal19Thi5Owag6kTtP6wmcYnd+UA1awpe6NZZlRr3Tdly67Pduh/B5BT7cLGGuOw55KaPk9ZPM5omQptp5hVhxw2xMg7tLyqh30nxXZaH4/maXp9RJmr7o1gRKmv6Fe0mthcaO+AtOCPZy6Rwe285ZdhP0pbnBRA6qHNPUn5zagsDunEtvchU5TfRkdx7Lw01kqtgQaZP2PwraG9JQf3HoUIyM1pwMVlXqao3CFVbbsebobIUrqZqcdAwXmVTt4O+4FMCwJohGSI3Hk8/XPKypXl+yY91UAF82Kc4lVnXp7CvhJpEx+7eP8dW16cHwwwU1QLJ/xJMLXRNgOZO+4XqlicKCaK7yi551nJqwHIPGhu20465E4BD6BrlKVuIv072Y9HU="
     file_glob: true
-    file: $HOME/oreka-build/distribution/*.deb
+    file:
+    - $HOME/oreka-build/distribution/*.deb
+    - orktrack/target/*.war
+    - orkweb/target/*.war
     skip_cleanup: true
     draft: true
     on:
