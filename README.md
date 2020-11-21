@@ -61,21 +61,9 @@ Docker images are available via [docker hub](https://hub.docker.com/r/voiceip/or
 docker run -itd --net=host --restart=always --privileged=true -v /var/log/orkaudio:/var/log/orkaudio voiceip/orkaudio:latest
 ```
 
-#### Debian
+#### Debian/Ubuntu
 
-Binary releases are available from the [Releases Section](https://github.com/voiceip/oreka/releases). Download and install.
-
-~~Ubuntu installers are available via [Bintray](https://bintray.com/kingster/deb/oreka). To add the sources to your system run the following command~~  _Bintray currenty broken due to some issue. I will soon figure out how to publish with multiple versions._
-
-
-```bash
-#echo "deb https://dl.bintray.com/kingster/deb /" | sudo tee -a /etc/apt/sources.list.d/oreka.list
-#apt update && apt install orkaudio
-apt install ./orkaudio.deb
-svc -u /etc/service/orkaudio #to-start
-svc -d /etc/service/orkaudio #to-stop
-```
-
+Binary releases are available from the [Releases Section](https://github.com/voiceip/oreka/releases). Download and refer to the [installation instructions](https://github.com/voiceip/oreka/wiki/Installation).
 
 
 #### More Information
