@@ -40,8 +40,14 @@ public class ContextListener implements ServletContextListener {
 			log.error("OrkWeb ContextInitialized(): Log4jConfigFile context-param missing in web.xml");
 		} else {
 			log4jConfigFile = configFolder + "/" + log4jConfigFile;
-			LogManager.getInstance().configure(log4jConfigFile);
-			log.info("OrkWeb ContextInitialized(): log4jConfigFile is " + log4jConfigFile);
+			try {
+				LogManager.getInstance().configure(log4jConfigFile);
+				log.info("OrkWeb ContextInitialized(): log4jConfigFile is " + log4jConfigFile);
+			} catch (Throwable e){
+				e.printStackTrace();
+				log.error("OrkWeb ContextInitialized(): Error configuring log4j: " + e.getMessage());
+			}
+
 		}
 
 		log.info("========================================");
@@ -58,8 +64,9 @@ public class ContextListener implements ServletContextListener {
 		try {
 			OrkWeb.hibernateManager.configure(hibernateConfigFile);
 		}
-		catch (Exception e) {
-			log.error("OrkWeb ContextInitialized(): Error configuring Hibernate: " + e.getMessage());				
+		catch (Throwable e) {
+			e.printStackTrace();
+			log.error("OrkWeb ContextInitialized(): Error configuring Hibernate: " + e.getMessage());
 		}
 		
 		// Get path to server.xml file
