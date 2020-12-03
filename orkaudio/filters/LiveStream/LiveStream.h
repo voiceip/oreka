@@ -40,6 +40,7 @@ class DLL_IMPORT_EXPORT_ORKBASE LiveStreamFilter : public Filter
     CStdString m_callId;
     srs_rtmp_t rtmp = NULL;
     u_int32_t timestamp = 0;
+    u_int32_t sequenceNumber = 0;
 };
 
 class DLL_IMPORT_EXPORT_ORKBASE LiveStreamServer
