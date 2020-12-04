@@ -2,6 +2,9 @@
 
 Based on [OrecX](http://www.orecx.com/open-source/) [Oreka](https://github.com/OrecX/Oreka), this project tries to provide a complete Call Recording (SIPREC) solution.  
 
+[![Build Status](https://travis-ci.com/voiceip/oreka.svg?branch=master)](https://travis-ci.com/voiceip/oreka)
+
+
 ### Components
 - **Orkaudio**:  
     The audio capture and storage daemon with pluggable capture modules currently comes with modules for VoIP and sound device recording.
@@ -52,28 +55,15 @@ You can natively build if you have all dependencies but I develop on a OSx syste
 
 #### Docker
 
-Docker images are available via docker hub, so just run the below command to pull images directly from hub.docker.com. Note: `--net=host` on docker works on linux systems and is a [limitation of docker](https://docs.docker.com/network/host/), so please keep that in mind.
+Docker images are available via [docker hub](https://hub.docker.com/r/voiceip/orkaudio/tags), so just run the below command to pull images directly from hub.docker.com. Note: `--net=host` on docker works on linux systems and is a [limitation of docker](https://docs.docker.com/network/host/), so please keep that in mind.
 
 ```bash
-docker run -itd --net=host --restart=always --privileged=true -v /var/log/orkaudio:/var/log/orkaudio voiceip/orkaudio
+docker run -itd --net=host --restart=always --privileged=true -v /var/log/orkaudio:/var/log/orkaudio voiceip/orkaudio:latest
 ```
 
-#### Debian
+#### Debian/Ubuntu
 
-Binary releases are available from the [Releases Section](https://github.com/voiceip/oreka/releases). Download and install.
-
-~~Ubuntu installers are available via [Bintray](https://bintray.com/kingster/deb/oreka). To add the sources to your system run the following command~~  _Bintray currenty broken due to some issue. I will soon figure out how to publish with multiple versions._
-
-
-```bash
-#echo "deb https://dl.bintray.com/kingster/deb /" | sudo tee -a /etc/apt/sources.list.d/oreka.list
-#apt update && apt install oreka
-dpkg -i oreka.deb
-apt-get -f install #install dependencies.
-svc -u /etc/service/orkaudio #to-start
-svc -u /etc/service/orkaudio #to-stop
-```
-
+Binary releases are available from the [Releases Section](https://github.com/voiceip/oreka/releases). Download and refer to the [installation instructions](https://github.com/voiceip/oreka/wiki/Installation).
 
 
 #### More Information
