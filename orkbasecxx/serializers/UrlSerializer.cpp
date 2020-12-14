@@ -24,7 +24,8 @@ void UrlSerializer::AddString(const char* key, CStdString& value)
 	CStdString pair;
 	CStdString escapedValue;
 	EscapeUrl(value, escapedValue);
-	pair.Format("%s=%s&", key, (PCSTR)escapedValue);
+	pair.Format("%s=", key);
+	pair = pair + (PCSTR)escapedValue + "&";
 	m_output += pair;
 }
 
