@@ -16,8 +16,8 @@
 #include <log4cxx/logmanager.h>
 
 
-#define READ_LOGGING_PROPERITES_CLASS "readloggingproperties"
-#define READ_LOGGING_PROPERITES_RESPONSE_CLASS "readloggingpropertiesresponse"
+#define READ_LOGGING_PROPERITES_CLASS "reloadloggingconfig"
+#define READ_LOGGING_PROPERITES_RESPONSE_CLASS "reloadloggingconfig"
 
 //===============================
 
@@ -53,8 +53,8 @@ ObjectRef ReadLoggingPropertiesMsg::Process()
 // iterates through the log4cxx hierarch and shows what loggers are
 // configured (and at what level)
 
-#define LIST_LOGGING_PROPERITES_CLASS "listloggingproperties"
-#define LIST_LOGGING_PROPERITES_RESPONSE_CLASS "listloggingpropertiesresponse"
+#define LIST_LOGGING_PROPERITES_CLASS "listloggingconfig"
+#define LIST_LOGGING_PROPERITES_RESPONSE_CLASS "listloggingconfig"
 
 void ListLoggingPropertiesResponseMsg::Define(Serializer* s)
 {
