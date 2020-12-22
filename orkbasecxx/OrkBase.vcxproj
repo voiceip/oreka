@@ -233,6 +233,7 @@
     <ClCompile Include="messages\DeleteTapeMsg.cpp" />
     <ClCompile Include="messages\InitMsg.cpp" />
     <ClCompile Include="Messages\Message.cpp" />
+    <ClCompile Include="messages\OrkaudioVersionMsg.cpp" />
     <ClCompile Include="messages\PingMsg.cpp" />
     <ClCompile Include="messages\ReadLoggingPropertiesMsg.cpp" />
     <ClCompile Include="messages\RecordMsg.cpp" />

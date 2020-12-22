@@ -13,6 +13,7 @@
  
 
 #include "stdio.h"
+#include <iostream>
 
 #include "MultiThreadedServer.h"
 #include "OrkAudio.h"
@@ -23,6 +24,7 @@
 #include "messages/CaptureMsg.h"
 #include "messages/TestMsg.h"
 #include "messages/RecordMsg.h"
+#include "messages/OrkaudioVersionMsg.h"
 #include "messages/InitMsg.h"
 #include "messages/ReadLoggingPropertiesMsg.h"
 //#include "messages/CrashMessage.cpp"
@@ -56,6 +58,14 @@
 #include "apr_signal.h"
 
 static volatile bool serviceStop = false;
+struct orkaudio_version
+{
+	unsigned int magic;
+	int size;
+	const char version[256];
+};
+
+struct orkaudio_version orkaudioVersion  { 0x702a6f27, sizeof(struct orkaudio_version), ""};
 
 void StopHandler()
 {
@@ -215,7 +225,9 @@ void MainThread()
     apr_signal(SIGPIPE, SIG_IGN);
 #endif
 	OrkLogManager::Instance()->Initialize();
-	LOG4CXX_INFO(LOG.rootLog, CStdString("\n\nOrkAudio service starting\n"));
+	RegisterOrkaudioVersion(orkaudioVersion.version);
+	logMsg.Format("\n\nOrkAudio version %s: service starting\n", orkaudioVersion.version);
+	LOG4CXX_INFO(LOG.rootLog, logMsg);
 
 	ConfigManager::Instance()->Initialize();
 
@@ -250,6 +262,8 @@ void MainThread()
 	objRef.reset(new ReadLoggingPropertiesMsg);
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	objRef.reset(new ListLoggingPropertiesMsg);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
+	objRef.reset(new OrkaudioVersionMsg);
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	//objRef.reset(new CrashMsg);
 	//ObjectFactory::GetSingleton()->RegisterObject(objRef);
@@ -447,6 +461,11 @@ int main(int argc, char* argv[])
 		{
 			Daemon::Singleton()->Uninstall();
 		}
+		else if  (argument.CompareNoCase("version") == 0)
+		{
+			std::cout << "orkaudio version: " << orkaudioVersion.version << std::endl;
+		}
+
 		else
 		{
 #ifdef WIN32
