@@ -134,24 +134,90 @@ void ReportDtmfDigit(OrkSession* ss, int channel, CStdString digitValue,  unsign
 	ss->m_dtmfDigitString += digitValue;
 	LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "]" +  " DTMF event [ " + digitValue + " ] new string:" + ss->m_dtmfDigitString);
 
-	CStdString ods = ss->m_config->m_onDemandViaDtmfDigitsString;
-
-	if(ss->m_keepRtp == true && ss->m_config->m_onDemandPauseViaDtmfDigitsString.length() > 0)
+	if (!ss->m_config->m_onDemandViaDtmfDigitsString.empty())
 	{
-		if(ss->m_dtmfDigitString.find(ss->m_config->m_onDemandPauseViaDtmfDigitsString) != std::string::npos)
+
+		bool stringIsOnDemandCommand = (!ss->m_config->m_onDemandViaDtmfDigitsString.empty())
+			&& (ss->m_dtmfDigitString.find(ss->m_config->m_onDemandViaDtmfDigitsString) != std::string::npos);
+		bool stringIsPauseCommand = (!ss->m_config->m_onDemandPauseViaDtmfDigitsString.empty())
+			&& (ss->m_dtmfDigitString.find(ss->m_config->m_onDemandPauseViaDtmfDigitsString) != std::string::npos);
+
+		if (stringIsOnDemandCommand || stringIsPauseCommand)
 		{
-			ss->m_keepRtp = false;
 			ss->m_dtmfDigitString.clear();
-			LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "] Pause OnDemand via DTMF");
+		}
+
+		bool identicalPauseAndCommandStrings = (ss->m_config->m_onDemandPauseViaDtmfDigitsString == ss->m_config->m_onDemandViaDtmfDigitsString);
+
+		int curentState = 00;
+		if (ss->m_onDemand)
+		{
+			curentState = 10;
+		}
+		if (ss->m_keepRtp)
+		{
+			curentState += 01;
+		}
+
+		if (identicalPauseAndCommandStrings && stringIsOnDemandCommand)
+		{
+			// both strings are equal, which is the actual event?
+			if (ss->m_keepRtp == true)
+			{
+				stringIsOnDemandCommand = false; //recording is running, so event is an OnDemandPause
+			}
+			else
+			{
+				stringIsPauseCommand = false; // recording is NOT running, command is OnDemand
+			}
+		}
+
+		switch (curentState)
+		{
+		case 00: // This is initial state when LookBack is set to false
+			if (stringIsOnDemandCommand)
+			{
+				ss->TriggerOnDemandViaDtmf();
+				ss->m_onDemand = true;
+				ss->m_keepRtp = true;
+				LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "] Trigger OnDemand via DTMF (00->11)");
+			}
+			break;
+		case 01:  // This is initial state when LookBack is set to true
+			if (stringIsOnDemandCommand)
+			{
+				ss->TriggerOnDemandViaDtmf();
+				ss->m_onDemand = true;
+				ss->m_keepRtp = true;
+				LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "] Trigger OnDemand via DTMF (10->11)");
+			}
+			else if (stringIsPauseCommand)
+			{
+				// PauseCommand  will set / keep paused mode
+				ss->m_onDemand = false;
+				ss->m_keepRtp = false;
+				LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "] Pause OnDemand via DTMF (10->00)");
+			}
+			break;
+		case 10:
+			if (stringIsOnDemandCommand)
+			{
+				ss->TriggerOnDemandViaDtmf();
+				ss->m_onDemand = true;
+				ss->m_keepRtp = true;
+				LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "] Resume OnDemand via DTMF (10->11)");
+			}
+			break;
+		case 11:
+			if (stringIsPauseCommand)
+			{
+				ss->m_onDemand = true;
+				ss->m_keepRtp = false;
+				LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "] Pause OnDemand via DTMF (11->10)");
+			}
+			break;
 		}
 	}
-
-	if(ss->m_onDemand == false && ods.length() > 0 && ss->m_dtmfDigitString.find(ods) != std::string::npos) {
-		LOG4CXX_INFO(getLog(), "[" + ss->m_trackingId + "] Trigger OnDemand via DTMF");
-		ss->TriggerOnDemandViaDtmf();
-		ss->m_dtmfDigitString.clear();
-	}
-
 
 	int rtpEvent = DtmfDigitToEnum(digitValue);
 	CStdString dtmfEventString, dtmfEventKey;

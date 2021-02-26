@@ -1,5 +1,11 @@
 #include "AcpConfig.h"
 #include "ConfigManager.h"
+#include "log4cxx/logger.h"
+
+LoggerPtr getConfigLogger() {
+	static LoggerPtr s_log = Logger::getLogger("config");
+	return s_log;
+}
 
 AcpConfig::AcpConfig() {
 }
@@ -109,8 +115,19 @@ void AcpConfig::Validate() {
 			m_ctiMatchingCriteriaList.push_back(MatchUcidTimestamp);
 		}
 	}
+
+	m_onDemandViaDtmfDigitsString.Trim();
+	m_onDemandPauseViaDtmfDigitsString.Trim();
+	if (m_onDemandViaDtmfDigitsString.empty() && !m_onDemandPauseViaDtmfDigitsString.empty())
+	{
+		CStdString logMsg("OnDemandViaDtmfDigitsString not set while OnDemandPauseViaDtmfDigitsString is set to '");
+		logMsg += m_onDemandPauseViaDtmfDigitsString;
+		logMsg += "'";
+		LOG4CXX_ERROR(getConfigLogger(), logMsg);
+	}
+
 }
-#include <iostream>
+
 bool AcpConfig::IsMediaGateway(struct in_addr addr)
 {
 	bool rc = false;
