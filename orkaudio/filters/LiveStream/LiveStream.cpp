@@ -2,9 +2,9 @@
  * Oreka -- A media capture and retrieval platform
  *
  */
-#pragma warning(disable : 4786) // disables truncated symbols in browse-info warning
+#pragma warning( disable: 4786 ) // disables truncated symbols in browse-info warning
 
-#define _WINSOCKAPI_ // prevents the inclusion of winsock.h
+#define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
 #include "LiveStream.h"
 #include <log4cxx/logger.h>
@@ -16,16 +16,15 @@
 #include "srs_librtmp.h"
 #include <queue>
 
-#define BUFFER_SAMPLES 8000
+#define BUFFER_SAMPLES  8000
 
 static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("plugin.livestream");
 
-template <class T>
-std::string toString(const T &value)
-{
-	std::ostringstream os;
-	os << value;
-	return os.str();
+template<class T>
+std::string toString(const T &value) {
+    std::ostringstream os;
+    os << value;
+    return os.str();
 }
 
 LiveStreamFilter::LiveStreamFilter()
@@ -40,39 +39,37 @@ LiveStreamFilter::~LiveStreamFilter()
 
 FilterRef LiveStreamFilter::Instanciate()
 {
-	FilterRef Filter(new LiveStreamFilter());
-	return Filter;
+    FilterRef Filter(new LiveStreamFilter());
+    return Filter;
 }
 
-void LiveStreamFilter::AudioChunkIn(AudioChunkRef &inputAudioChunk)
+void LiveStreamFilter::AudioChunkIn(AudioChunkRef& inputAudioChunk)
 {
 	// LOG4CXX_INFO(s_log, "LiveStream AudioChunkIn ");
 	m_outputAudioChunk = inputAudioChunk;
-	// int16_t pcmdata[BUFFER_SAMPLES];
-	int size = 0;
-	CStdString logMsg;
+    // int16_t pcmdata[BUFFER_SAMPLES];
+    int size = 0;
+    CStdString logMsg;
 
 	u_int32_t time_delta = 17;
 
-	// memset(pcmdata, 0, sizeof(pcmdata));
-	// m_outputAudioChunk.reset();
+    // memset(pcmdata, 0, sizeof(pcmdata));
+    // m_outputAudioChunk.reset();
 
-	if (inputAudioChunk.get() == NULL)
-	{
-		return;
-	}
+    if(inputAudioChunk.get() == NULL) {
+        return;
+    }
 
-	if (inputAudioChunk->GetNumSamples() == 0)
-	{
-		return;
-	}
+    if(inputAudioChunk->GetNumSamples() == 0) {
+        return;
+    }
 
 	AudioChunkDetails outputDetails = *inputAudioChunk->GetDetails();
 	char *inputBuffer = (char *)inputAudioChunk->m_pBuffer;
 	size = outputDetails.m_numBytes * 2;
 
-	logMsg.Format("LiveStreamFilter AudioChunkIn Size: %d, Encoding: %s , RTP payload type: %s", size, toString(outputDetails.m_encoding), RtpPayloadTypeEnumToString(outputDetails.m_rtpPayloadType));
-	LOG4CXX_INFO(s_log, logMsg);
+	logMsg.Format("LiveStreamFilter AudioChunkIn Size: %d, Encoding: %s , RTP payload type: %s",size ,toString(outputDetails.m_encoding) , RtpPayloadTypeEnumToString(outputDetails.m_rtpPayloadType));
+    LOG4CXX_INFO(s_log, logMsg);
 
 	// @param sound_format Format of SoundData. The following values are defined:
 	// 0 = Linear PCM, platform endian
@@ -94,9 +91,9 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef &inputAudioChunk)
 	// Speex is supported in Flash Player 10 and higher.
 
 	char sound_format = 9;
-	if (outputDetails.m_rtpPayloadType == pt_PCMU)
+	if (outputDetails.m_rtpPayloadType ==  pt_PCMU)
 		sound_format = 8;
-	else if (outputDetails.m_rtpPayloadType == pt_PCMA)
+	else if (outputDetails.m_rtpPayloadType ==  pt_PCMA)
 		sound_format = 7;
 
 	// @param sound_rate Sampling rate. The following values are defined:
@@ -155,35 +152,36 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef &inputAudioChunk)
 							srs_human_flv_tag_type2string(SRS_RTMP_TYPE_AUDIO), timestamp, size, sound_format, sound_rate, sound_size, sound_type);
 		}
 	}
+
 }
 
-void LiveStreamFilter::AudioChunkOut(AudioChunkRef &chunk)
+void LiveStreamFilter::AudioChunkOut(AudioChunkRef& chunk)
 {
-	chunk = m_outputAudioChunk;
+    chunk = m_outputAudioChunk;
 }
 
 AudioEncodingEnum LiveStreamFilter::GetInputAudioEncoding()
 {
-	return UnknownAudio;
+    return UnknownAudio;
 }
 
 AudioEncodingEnum LiveStreamFilter::GetOutputAudioEncoding()
 {
-	return UnknownAudio;
+    return UnknownAudio;
 }
 
 CStdString LiveStreamFilter::GetName()
 {
-	return "LiveStreamFilter";
+    return "LiveStreamFilter";
 }
 
 bool LiveStreamFilter::SupportsInputRtpPayloadType(int rtpPayloadType)
 {
 	//so that BatchProcessing doesn't pick this filter.
-	return rtpPayloadType == pt_Unknown;
+    return rtpPayloadType == pt_Unknown;
 }
 
-void LiveStreamFilter::CaptureEventIn(CaptureEventRef &event)
+void LiveStreamFilter::CaptureEventIn(CaptureEventRef& event)
 {
 	//Start RTP Stream Open
 	auto key = event->EventTypeToString(event->m_type);
@@ -201,34 +199,29 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef &event)
 		//open rstp stream
 		rtmp = srs_rtmp_create(url.c_str());
 
-		if (srs_rtmp_handshake(rtmp) != 0)
-		{
+		if (srs_rtmp_handshake(rtmp) != 0) {
 			srs_human_trace("simple handshake failed.");
 			return;
 		}
 		srs_human_trace("simple handshake success");
 
-		if (srs_rtmp_connect_app(rtmp) != 0)
-		{
+		if (srs_rtmp_connect_app(rtmp) != 0) {
 			srs_human_trace("connect vhost/app failed.");
 			return;
 		}
 		srs_human_trace("connect vhost/app success");
 
-		if (srs_rtmp_publish_stream(rtmp) != 0)
-		{
+		if (srs_rtmp_publish_stream(rtmp) != 0) {
 			srs_human_trace("publish stream failed.");
 			return;
 		}
 		srs_human_trace("publish stream success");
 	}
 
-	if (event->m_type == CaptureEvent::EventTypeEnum::EtStop)
-	{
+	if(event->m_type == CaptureEvent::EventTypeEnum::EtStop){
 		//close rstp stream
 		status = false;
-		if (rtmp != NULL)
-		{
+		if (rtmp != NULL){
 			srs_human_trace("stream detroying...");
 			srs_rtmp_destroy(rtmp);
 		}
@@ -236,7 +229,6 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef &event)
 
 	if (event->m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event->m_key == "LiveStream" && event->m_value == "end")
 	{
-		//close rstp stream
 		status = false;
 	}
 }
@@ -246,8 +238,7 @@ void LiveStreamFilter::CaptureEventOut(CaptureEventRef &event)
 	//LOG4CXX_INFO(s_log, "LiveStream CaptureEventOut " + toString(event.get()));
 }
 
-void LiveStreamFilter::SetSessionInfo(CStdString &trackingId)
-{
+void LiveStreamFilter::SetSessionInfo(CStdString& trackingId){
 	LOG4CXX_INFO(s_log, "LiveStream SetSessionInfo " + trackingId);
 }
 
