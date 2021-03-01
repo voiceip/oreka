@@ -19,6 +19,7 @@
 #include "AudioCapture.h"
 #include <log4cxx/logger.h>
 #include <map>
+#include <list> 
 
 #define LOG_MESSAGES_PARAM "LogMessages"
 #define LOG_MESSAGES_DEFAULT false

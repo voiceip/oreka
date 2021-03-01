@@ -21,6 +21,7 @@
 #include <list>
 #include "ConfigManager.h"
 #include "VoIpConfig.h"
+#include <set>
 
 #include "MemUtils.h"
 #include <boost/algorithm/string/predicate.hpp>
@@ -4501,6 +4502,113 @@ CStdString VoIpSessions::StartCaptureNativeCallId(CStdString& nativecallid, CStd
 	LOG4CXX_INFO(m_log, logMsg);
 
 	return orkUid;
+}
+
+CStdString VoIpSessions::StartStreamNativeCallId(CStdString& nativecallid)
+{
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
+	bool found = false;
+	CStdString logMsg;
+	VoIpSessionRef session;
+	CStdString orkUid = CStdString("");
+
+	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
+	{
+		session = pair->second;
+
+		if(session->NativeCallIdMatches(nativecallid))
+		{
+			session->m_keepRtp = true;
+			found = true;
+			orkUid = session->GetOrkUid();
+		}
+	}
+
+	if(found)
+	{
+		CaptureEventRef event(new CaptureEvent());
+						event->m_type = CaptureEvent::EtKeyValue;
+						event->m_key = "LiveStream";
+						event->m_value = "start";
+						g_captureEventCallBack(event, session->m_capturePort);
+
+		logMsg.Format("[%s] StartStreamNativeCallId: Started capture, nativecallid:%s", session->m_trackingId, nativecallid);
+	}
+	else
+	{
+		logMsg.Format("StartStreamNativeCallId: No session has native callid:%s", nativecallid);
+	}
+
+	LOG4CXX_INFO(m_log, logMsg);
+
+	return orkUid;
+}
+
+CStdString VoIpSessions::EndStreamNativeCallId(CStdString& nativecallid)
+{
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
+	bool found = false;
+	CStdString logMsg;
+	VoIpSessionRef session;
+	CStdString orkUid = CStdString("");
+
+	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
+	{
+		session = pair->second;
+
+		if(session->NativeCallIdMatches(nativecallid))
+		{
+			session->m_keepRtp = true;
+			found = true;
+			orkUid = session->GetOrkUid();
+		}
+	}
+
+	if(found)
+	{
+		CaptureEventRef event(new CaptureEvent());
+						event->m_type = CaptureEvent::EtKeyValue;
+						event->m_key = "LiveStream";
+						event->m_value = "end";
+						g_captureEventCallBack(event, session->m_capturePort);
+
+		logMsg.Format("[%s] EndStreamNativeCallId: Ended capture, nativecallid:%s", session->m_trackingId, nativecallid);
+	}
+	else
+	{
+		logMsg.Format("EndStreamNativeCallId: No session has native callid:%s", nativecallid);
+	}
+
+	LOG4CXX_INFO(m_log, logMsg);
+
+	return orkUid;
+}
+
+CStdString VoIpSessions::GetStreamNativeCallId()
+{
+	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
+	bool found = false;
+	CStdString logMsg;
+	VoIpSessionRef session;
+	CStdString activeCalls = CStdString("");
+	std::set<std::string> s1;
+
+
+	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
+	{
+		session = pair->second;
+		s1.insert(session->m_callId);
+		
+	}
+
+	LOG4CXX_INFO(m_log, logMsg);
+	for (auto elem : s1)
+{
+    
+	activeCalls = activeCalls+elem+CStdString(",\n");
+}
+
+	return activeCalls;
 }
 
 CStdString VoIpSessions::StartCapture(CStdString& party, CStdString& side)
