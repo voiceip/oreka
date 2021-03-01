@@ -379,13 +379,6 @@ void MainThread()
 		handler.detach();
 	}
 
-    LiveStreamServer liveStreamServer(59160);
-    if(liveStreamServer.Initialize())
-    {
-        std::thread handler(&LiveStreamServer::Run, &liveStreamServer);
-        handler.detach();
-    }
-
 	if(capturePluginOk)
 	{
 		CapturePluginProxy::Singleton()->Run();
