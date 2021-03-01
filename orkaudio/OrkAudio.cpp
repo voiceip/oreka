@@ -54,7 +54,7 @@
 #include "OpusCodec.h"
 #include <thread>
 #include "apr_signal.h"
-#include "filters/LiveStream/LiveStream.h"
+#include "filters/LiveStream/StreamMsg.h"
 
 #ifdef linux  
 #include <execinfo.h>
@@ -255,8 +255,13 @@ void MainThread()
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	objRef.reset(new InitMsg);
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
-	//objRef.reset(new CrashMsg);
-	//ObjectFactory::GetSingleton()->RegisterObject(objRef);
+	objRef.reset(new StreamMsg);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
+	objRef.reset(new EndMsg);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
+	objRef.reset(new GetMsg);
+	ObjectFactory::GetSingleton()->RegisterObject(objRef);
+	
 	//objRef.reset(new TestMsg);
 	//ObjectFactory::GetSingleton()->RegisterObject(objRef);
 

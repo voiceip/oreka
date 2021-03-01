@@ -14,6 +14,7 @@
 #include <log4cxx/logger.h>
 #include "Utils.h"
 #include "srs_librtmp.h"
+#include <queue>
 
 
 class DLL_IMPORT_EXPORT_ORKBASE LiveStreamFilter : public Filter
@@ -38,27 +39,10 @@ class DLL_IMPORT_EXPORT_ORKBASE LiveStreamFilter : public Filter
     AudioChunkRef m_outputAudioChunk;
     bool m_initialized;
     CStdString m_callId;
+    bool status = true;
     srs_rtmp_t rtmp = NULL;
     u_int32_t timestamp = 0;
-    u_int32_t sequenceNumber = 0;
+    std::queue<char*> bufferQueue;
 };
-
-class DLL_IMPORT_EXPORT_ORKBASE LiveStreamServer
-{
-  public: 
-    LiveStreamServer(int port);
-    ~LiveStreamServer(){ apr_pool_destroy(m_mp);};
-    bool Initialize();
-    void Run();
-
-  private:
-    apr_pool_t* m_mp;
-    int m_port;
-    apr_socket_t* m_socket;
-    apr_sockaddr_t* m_sockAddr;
-    static void StreamingSvc(apr_socket_t* sock, apr_pool_t* pool);
-
-};
-
 
 #endif

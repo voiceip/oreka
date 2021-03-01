@@ -233,6 +233,9 @@ public:
 	CStdString StartCapture(CStdString& party, CStdString& side);
 	void StartCaptureOrkuid(CStdString& orkuid, CStdString& side);
 	CStdString StartCaptureNativeCallId(CStdString& nativecallid, CStdString& side);
+	CStdString StartStreamNativeCallId(CStdString& nativecallid);
+	CStdString EndStreamNativeCallId(CStdString& nativecallid);
+	CStdString GetStreamNativeCallId();
 	CStdString PauseCaptureNativeCallId(CStdString& nativecallid);
 	CStdString PauseCapture(CStdString& party);
 	void PauseCaptureOrkuid(CStdString& orkuid);
