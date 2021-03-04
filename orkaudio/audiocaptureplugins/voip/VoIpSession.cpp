@@ -4229,7 +4229,7 @@ void VoIpSessions::ReportOnDemandMarkerByIp(struct in_addr endpointIp)
 
 void VoIpSessions::TaggingSipTransferCalls(VoIpSessionRef& session)
 {
-	if((session.get() == NULL) || (session->m_protocol != VoIpSession::ProtSip) || (m_sipReferList.size() < 1))
+	if((session.get() == NULL) || (session->m_protocol != VoIpSession::ProtSip) || (m_sipReferList.size() < 1) || (session->m_numRtpPackets < 300))
 	{
 		return;
 	}
