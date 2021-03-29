@@ -1,11 +1,13 @@
 sudo: true
 os: linux
 dist: xenial
+language: shell
 addons:
   apt:
     packages:
       - docker-ce
       - tree
+      - rename
 services:
 - docker
 branches:
@@ -18,27 +20,33 @@ cache:
   directories:
   - $HOME/docker_images
 
-matrix:
-  include:
-    - language: shell
-      before_install:
-      - docker load -i $HOME/docker_images/images.tar || true
-      - git clone https://github.com/voiceip/oreka-build.git $HOME/oreka-build
-      - docker build -t oreka -f .devcontainer/Dockerfile.orkaudio.build .
-      script:
-      - docker run  -v "$HOME/oreka-build":/oreka-build -v "$TRAVIS_BUILD_DIR":/oreka-src -i oreka bash /entrypoint.sh
-      - ls -ltrah $HOME/oreka-build/distribution
-      before_cache:
-      - docker save -o $HOME/docker_images/images.tar $(docker images -a -q)
-    - language: java
-      dist: trusty
-      jdk: oraclejdk8
-      script:
-        - mvn clean install -DskipTests=true
+env:
+  - OS_TAG=xenial
+  - OS_TAG=focal
 
+jobs:
+  - language: java
+    dist: trusty
+    jdk: oraclejdk8
+    script:
+      - mvn clean install -DskipTests=true
+
+before_install:
+  - docker load -i $HOME/docker_images/images.tar || true
+  - git clone https://github.com/voiceip/oreka-build.git $HOME/oreka-build
+  - docker build -t oreka-$OS_TAG --build-arg	TAG="$OS_TAG" -f .devcontainer/Dockerfile.orkaudio.build .
+script:
+  - docker run  -v "$HOME/oreka-build":/oreka-build -v "$TRAVIS_BUILD_DIR":/oreka-src -i "oreka-$OS_TAG" bash /entrypoint.sh
+  - ls -ltrah $HOME/oreka-build/distribution
+  - rename "s/(.*)\.deb/$1_$OS_TAG.deb/" $HOME/oreka-build/distribution/*
+  - ls -ltrah $HOME/oreka-build/distribution
+
+before_cache:
+  - docker save -o $HOME/docker_images/images.tar $(docker images -a -q)
+  
 deploy:
     provider: releases
-    api_key:
+    token:
       secure: "M4odEjSv9Hj8BoMCkc10DRJmA+FVrWrbwKt4vHVy04WVUonwZo5/31UsUJgDYMV+SnRazTDDTfhjFuWbWaKkNUgVm42Ddz1sQdiOg5/3DXUHI6hAM3HKpiO5f2MgMGbHtga1l4VqMbDJhQEGl8StsQq64tXwcHCGHykX7F0ZPJx/QPy8VEfFZ330i3J4tl36jS7pE5LsVUzfzfoMp0aruM1lpg9BJXW0CcI7+0wZTxLrgziWnk6r0DSltDvbVkeWDE8Ol+51CfxIlwatEfTj3R5xx1XvRFUumLm/w4hal19Thi5Owag6kTtP6wmcYnd+UA1awpe6NZZlRr3Tdly67Pduh/B5BT7cLGGuOw55KaPk9ZPM5omQptp5hVhxw2xMg7tLyqh30nxXZaH4/maXp9RJmr7o1gRKmv6Fe0mthcaO+AtOCPZy6Rwe285ZdhP0pbnBRA6qHNPUn5zagsDunEtvchU5TfRkdx7Lw01kqtgQaZP2PwraG9JQf3HoUIyM1pwMVlXqao3CFVbbsebobIUrqZqcdAwXmVTt4O+4FMCwJohGSI3Hk8/XPKypXl+yY91UAF82Kc4lVnXp7CvhJpEx+7eP8dW16cHwwwU1QLJ/xJMLXRNgOZO+4XqlicKCaK7yi551nJqwHIPGhu20465E4BD6BrlKVuIv072Y9HU="
     file_glob: true
     file:
