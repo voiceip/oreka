@@ -7,7 +7,6 @@ addons:
     packages:
       - docker-ce
       - tree
-      - rename
 services:
 - docker
 branches:
@@ -22,6 +21,7 @@ cache:
 
 env:
   - OS_TAG=xenial
+  - OS_TAG=bionic
   - OS_TAG=focal
 
 jobs:
@@ -37,8 +37,7 @@ before_install:
   - docker build -t oreka-$OS_TAG --build-arg	TAG="$OS_TAG" -f .devcontainer/Dockerfile.orkaudio.build .
 script:
   - docker run  -v "$HOME/oreka-build":/oreka-build -v "$TRAVIS_BUILD_DIR":/oreka-src -i "oreka-$OS_TAG" bash /entrypoint.sh
-  - ls -ltrah $HOME/oreka-build/distribution
-  - rename "s/(.*)\.deb/$1_$OS_TAG.deb/" $HOME/oreka-build/distribution/*
+  - mv $HOME/oreka-build/distribution/orkaudio.deb $HOME/oreka-build/distribution/orkaudio_$OS_TAG.deb
   - ls -ltrah $HOME/oreka-build/distribution
 
 before_cache:
