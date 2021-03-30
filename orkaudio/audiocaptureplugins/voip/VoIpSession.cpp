@@ -4504,7 +4504,7 @@ CStdString VoIpSessions::StartCaptureNativeCallId(CStdString& nativecallid, CStd
 	return orkUid;
 }
 
-CStdString VoIpSessions::StartStreamNativeCallId(CStdString& nativecallid)
+CStdString VoIpSessions::StartStreamNativeCallId(CStdString &nativecallid)
 {
 	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
 	bool found = false;
@@ -4512,11 +4512,11 @@ CStdString VoIpSessions::StartStreamNativeCallId(CStdString& nativecallid)
 	VoIpSessionRef session;
 	CStdString orkUid = CStdString("");
 
-	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
+	for (pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
 	{
 		session = pair->second;
 
-		if(session->NativeCallIdMatches(nativecallid))
+		if (session->NativeCallIdMatches(nativecallid))
 		{
 			session->m_keepRtp = true;
 			found = true;
@@ -4524,13 +4524,13 @@ CStdString VoIpSessions::StartStreamNativeCallId(CStdString& nativecallid)
 		}
 	}
 
-	if(found)
+	if (found)
 	{
 		CaptureEventRef event(new CaptureEvent());
-						event->m_type = CaptureEvent::EtKeyValue;
-						event->m_key = "LiveStream";
-						event->m_value = "start";
-						g_captureEventCallBack(event, session->m_capturePort);
+		event->m_type = CaptureEvent::EtKeyValue;
+		event->m_key = "LiveStream";
+		event->m_value = "start";
+		g_captureEventCallBack(event, session->m_capturePort);
 
 		logMsg.Format("[%s] StartStreamNativeCallId: Started capture, nativecallid:%s", session->m_trackingId, nativecallid);
 	}
@@ -4544,7 +4544,7 @@ CStdString VoIpSessions::StartStreamNativeCallId(CStdString& nativecallid)
 	return orkUid;
 }
 
-CStdString VoIpSessions::EndStreamNativeCallId(CStdString& nativecallid)
+CStdString VoIpSessions::EndStreamNativeCallId(CStdString &nativecallid)
 {
 	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
 	bool found = false;
@@ -4552,11 +4552,11 @@ CStdString VoIpSessions::EndStreamNativeCallId(CStdString& nativecallid)
 	VoIpSessionRef session;
 	CStdString orkUid = CStdString("");
 
-	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
+	for (pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
 	{
 		session = pair->second;
 
-		if(session->NativeCallIdMatches(nativecallid))
+		if (session->NativeCallIdMatches(nativecallid))
 		{
 			session->m_keepRtp = true;
 			found = true;
@@ -4564,13 +4564,13 @@ CStdString VoIpSessions::EndStreamNativeCallId(CStdString& nativecallid)
 		}
 	}
 
-	if(found)
+	if (found)
 	{
 		CaptureEventRef event(new CaptureEvent());
-						event->m_type = CaptureEvent::EtKeyValue;
-						event->m_key = "LiveStream";
-						event->m_value = "end";
-						g_captureEventCallBack(event, session->m_capturePort);
+		event->m_type = CaptureEvent::EtKeyValue;
+		event->m_key = "LiveStream";
+		event->m_value = "end";
+		g_captureEventCallBack(event, session->m_capturePort);
 
 		logMsg.Format("[%s] EndStreamNativeCallId: Ended capture, nativecallid:%s", session->m_trackingId, nativecallid);
 	}
@@ -4584,31 +4584,20 @@ CStdString VoIpSessions::EndStreamNativeCallId(CStdString& nativecallid)
 	return orkUid;
 }
 
-CStdString VoIpSessions::GetStreamNativeCallId()
+std::set<std::string> VoIpSessions::GetStreamNativeCallId()
 {
 	std::map<unsigned long long, VoIpSessionRef>::iterator pair;
 	bool found = false;
 	CStdString logMsg;
 	VoIpSessionRef session;
-	CStdString activeCalls = CStdString("");
-	std::set<std::string> s1;
+	std::set<std::string> callList;
 
-
-	for(pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
+	for (pair = m_byIpAndPort.begin(); pair != m_byIpAndPort.end() && found == false; pair++)
 	{
 		session = pair->second;
-		s1.insert(session->m_callId);
-		
+		callList.insert(session->m_callId);
 	}
-
-	LOG4CXX_INFO(m_log, logMsg);
-	for (auto elem : s1)
-{
-    
-	activeCalls = activeCalls+elem+CStdString(",\n");
-}
-
-	return activeCalls;
+	return callList;
 }
 
 CStdString VoIpSessions::StartCapture(CStdString& party, CStdString& side)

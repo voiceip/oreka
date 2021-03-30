@@ -20,6 +20,7 @@
 #include "LogManager.h"
 #include "xercesc/dom/DOMNode.hpp"
 #include "messages/SyncMessage.h"
+#include <set>
 
 using namespace XERCES_CPP_NAMESPACE;
 
@@ -45,7 +46,7 @@ typedef void (__CDECL__* ConfigureFunction)(DOMNode*);
 typedef void (__CDECL__* StartCaptureFunction)(CStdString& port, CStdString& orkUid, CStdString& nativecallid, CStdString& side);
 typedef void (__CDECL__* StartStreamFunction)(CStdString& port, CStdString& orkUid, CStdString& nativecallid);
 typedef void (__CDECL__* EndStreamFunction)(CStdString& port, CStdString& orkUid, CStdString& nativecallid);
-typedef CStdString (__CDECL__* GetStreamFunction)();
+typedef std::set<std::string> (__CDECL__* GetStreamFunction)();
 typedef void (__CDECL__* StopCaptureFunction)(CStdString& port, CStdString& orkUid, CStdString& nativecallid, CStdString& qos);
 typedef void (__CDECL__* PauseCaptureFunction)(CStdString& port, CStdString& orkUid, CStdString& nativecallid);
 typedef void (__CDECL__* SetOnHoldFunction)(CStdString& port, CStdString& orkUid);

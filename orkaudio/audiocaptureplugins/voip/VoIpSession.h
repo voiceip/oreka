@@ -235,7 +235,7 @@ public:
 	CStdString StartCaptureNativeCallId(CStdString& nativecallid, CStdString& side);
 	CStdString StartStreamNativeCallId(CStdString& nativecallid);
 	CStdString EndStreamNativeCallId(CStdString& nativecallid);
-	CStdString GetStreamNativeCallId();
+	std::set<std::string> GetStreamNativeCallId();
 	CStdString PauseCaptureNativeCallId(CStdString& nativecallid);
 	CStdString PauseCapture(CStdString& party);
 	void PauseCaptureOrkuid(CStdString& orkuid);

@@ -27,9 +27,6 @@ public:
 	void Run();
 	void Shutdown();
 	void StartCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid, CStdString& side);
-	void StartStream(CStdString& party, CStdString& orkuid, CStdString& nativecallid);
-	void EndStream(CStdString& party, CStdString& orkuid, CStdString& nativecallid);
-	CStdString GetStream();
 	void PauseCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid);
 	void StopCapture(CStdString& party, CStdString& orkUid, CStdString& nativecallid, CStdString& qos);
 	void SetOnHold(CStdString& party, CStdString& orkuid);
@@ -49,9 +46,6 @@ private:
 	InitializeFunction m_initializeFunction;
 	RunFunction m_runFunction;
 	StartCaptureFunction m_startCaptureFunction;
-	StartStreamFunction m_startStreamFunction;
-	EndStreamFunction m_endStreamFunction;
-	GetStreamFunction m_getStreamFunction;
 	StopCaptureFunction m_stopCaptureFunction;
 	PauseCaptureFunction m_pauseCaptureFunction;
 	SetOnHoldFunction m_setOnHoldFunction;

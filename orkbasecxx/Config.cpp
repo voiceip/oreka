@@ -209,6 +209,8 @@ void Config::Define(Serializer* s)
 	s->BoolValue("DtmfReportingDetailed" ,m_dtmfReportingDetailed);
 	s->CsvValue(DYNAMIC_TAGS, m_dynamicTags);
 	s->BoolValue(HOSTNAME_REPORT_FQDN ,m_hostnameReportFqdn);
+	s->StringValue(RTMP_SERVER_ENDPOINT, m_rtmpServerEndpoint);
+	s->StringValue(RTMP_SERVER_PORT, m_rtmpServerPort);
 	//Construct the partyFilterMap
 	if(m_partyFilterCharsReplaceWith.size() != 0)
 	{

@@ -108,4 +108,6 @@
 		<!-- End of Available Configurations for Mitel Communications Platform -->
 
 	</VoIpPlugin>
+	<RTMPServerEndPoint>172.16.176.65</RTMPServerEndPoint>
+	<RTMPServerPort>1935</RTMPServerPort>
 </config>

@@ -17,13 +17,13 @@
 #include "messages/SyncMessage.h"
 #include "AudioCapture.h"
 #include "CapturePluginProxy.h"
-
+using namespace std;
 
 class DLL_IMPORT_EXPORT_ORKBASE StreamMsg : public SyncMessage
 {
 public:
-	void Define(Serializer* s);
-	inline void Validate() {};
+	void Define(Serializer *s);
+	inline void Validate(){};
 
 	void EnsureValidSide();
 	CStdString GetClassName();
@@ -38,8 +38,8 @@ public:
 class DLL_IMPORT_EXPORT_ORKBASE EndMsg : public SyncMessage
 {
 public:
-	void Define(Serializer* s);
-	inline void Validate() {};
+	void Define(Serializer *s);
+	inline void Validate(){};
 
 	void EnsureValidSide();
 	CStdString GetClassName();
@@ -54,8 +54,8 @@ public:
 class DLL_IMPORT_EXPORT_ORKBASE GetMsg : public SyncMessage
 {
 public:
-	void Define(Serializer* s);
-	inline void Validate() {};
+	void Define(Serializer *s);
+	inline void Validate(){};
 
 	void EnsureValidSide();
 	CStdString GetClassName();
@@ -68,4 +68,3 @@ public:
 };
 
 #endif
-

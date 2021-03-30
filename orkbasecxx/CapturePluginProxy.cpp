@@ -29,9 +29,6 @@ CapturePluginProxy::CapturePluginProxy()
 	m_initializeFunction = NULL;
 	m_runFunction = NULL;
 	m_startCaptureFunction = NULL;
-	m_startStreamFunction = NULL;
-	m_endStreamFunction = NULL;
-	m_getStreamFunction = NULL;
 	m_stopCaptureFunction = NULL;
 	m_GetConnectionStatusFunction = NULL;
 	m_ProcessMetadataMsgFunction = NULL;
@@ -151,31 +148,7 @@ bool CapturePluginProxy::Init()
 												ret = apr_dso_sym((apr_dso_handle_sym_t*)&m_ProcessMetadataMsgFunction, m_dsoHandle, "ProcessMetadataMsg");
 												if(ret == APR_SUCCESS)
 												{
-													ret = apr_dso_sym((apr_dso_handle_sym_t *)&m_startStreamFunction, m_dsoHandle, "StartStream");
-													if (ret == APR_SUCCESS)
-													{
-														ret = apr_dso_sym((apr_dso_handle_sym_t *)&m_endStreamFunction, m_dsoHandle, "EndStream");
-														if (ret == APR_SUCCESS)
-														{
-															ret = apr_dso_sym((apr_dso_handle_sym_t *)&m_getStreamFunction, m_dsoHandle, "GetStream");
-														if (ret == APR_SUCCESS)
-														{
-															m_loaded = true;
-														}
-														else
-														{
-															LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find GetStream function in ") + pluginPath);
-														}
-														}
-														else
-														{
-															LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find EndStream function in ") + pluginPath);
-														}
-													}
-													else
-													{
-														LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find StartStream function in ") + pluginPath);
-													}
+													m_loaded = true;
 												}
 												else
 												{
@@ -273,42 +246,6 @@ void CapturePluginProxy::StartCapture(CStdString& party, CStdString& orkuid, CSt
 	else
 	{
 		throw(CStdString("StartCapture: Capture plugin not yet loaded"));
-	}
-}
-
-void CapturePluginProxy::StartStream(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
-{
-	if(m_loaded)
-	{
-		m_startStreamFunction(party, orkuid, nativecallid);
-	}
-	else
-	{
-		throw(CStdString("StartStream: Capture plugin not yet loaded"));
-	}
-}
-
-void CapturePluginProxy::EndStream(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
-{
-	if(m_loaded)
-	{
-		m_endStreamFunction(party, orkuid, nativecallid);
-	}
-	else
-	{
-		throw(CStdString("EndStream: Capture plugin not yet loaded"));
-	}
-}
-
-CStdString CapturePluginProxy::GetStream()
-{
-	if(m_loaded)
-	{
-		return m_getStreamFunction();
-	}
-	else
-	{
-		throw(CStdString("GetStream: Capture plugin not yet loaded"));
 	}
 }
 

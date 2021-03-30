@@ -158,6 +158,8 @@
 #define DYNAMIC_TAGS "DynamicTags"
 #define HOSTNAME_REPORT_FQDN "HostnameReportFqdn"
 #define HOSTNAME_REPORT_FQDN_DEFAULT false
+#define RTMP_SERVER_ENDPOINT "RTMPServerEndPoint"
+#define RTMP_SERVER_PORT "RTMPServerPort"
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -260,6 +262,8 @@ public:
 	bool m_discardUnidirectionalCalls;
 	int m_audioFileBitRate;
 	bool m_audioOutputEnable;
+	CStdString m_rtmpServerEndpoint;
+	CStdString m_rtmpServerPort;
 
 private:
 	log4cxx::LoggerPtr m_log;

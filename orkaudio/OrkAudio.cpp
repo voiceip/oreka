@@ -55,6 +55,7 @@
 #include <thread>
 #include "apr_signal.h"
 #include "filters/LiveStream/StreamMsg.h"
+#include "filters/LiveStream/LiveStreamServerProxy.h"
 
 #ifdef linux  
 #include <execinfo.h>
@@ -271,6 +272,12 @@ void MainThread()
 		capturePluginOk = true;
 	}
 
+	if(! LiveStreamServerProxy::Singleton()->Initialize())
+	{
+		logMsg.Format("Failed to load LiveStreamServerProxy");
+        LOG4CXX_ERROR(LOG.rootLog, logMsg);
+	}
+
 	std::list<apr_dso_handle_t*> pluginDlls;
 	LoadPlugins(pluginDlls);
 
@@ -392,6 +399,7 @@ void MainThread()
 	}
 
 	CapturePluginProxy::Singleton()->Shutdown();
+	LiveStreamServerProxy::Singleton()->Shutdown();
 
 	OrkSleepSec(2);
 	

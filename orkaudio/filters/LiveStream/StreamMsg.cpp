@@ -13,15 +13,15 @@
 
 #include "StreamMsg.h"
 #include "messages/AsyncMessage.h"
-#include "CapturePluginProxy.h"
-
-
+#include "LiveStreamServerProxy.h"
+#include <set>
 
 #define STREAM_CLASS "stream"
 #define END_CLASS "end"
 #define GET_CLASS "get"
+using namespace std;
 
-void StreamMsg::Define(Serializer* s)
+void StreamMsg::Define(Serializer *s)
 {
 	CStdString streamClass(STREAM_CLASS);
 	s->StringValue(OBJECT_TYPE_TAG, streamClass, true);
@@ -32,7 +32,7 @@ void StreamMsg::Define(Serializer* s)
 
 CStdString StreamMsg::GetClassName()
 {
-	return  CStdString(STREAM_CLASS);
+	return CStdString(STREAM_CLASS);
 }
 
 ObjectRef StreamMsg::NewInstance()
@@ -42,11 +42,11 @@ ObjectRef StreamMsg::NewInstance()
 
 ObjectRef StreamMsg::Process()
 {
-	SimpleResponseMsg* msg = new SimpleResponseMsg;
+	SimpleResponseMsg *msg = new SimpleResponseMsg;
 	ObjectRef ref(msg);
 	CStdString logMsg;
-	CapturePluginProxy::Singleton()->StartStream(m_party, m_orkuid, m_nativecallid);
-	logMsg.Format("Starting stream for nativecallid:%s", m_nativecallid);
+	LiveStreamServerProxy::Singleton()->StartStream(m_party, m_orkuid, m_nativecallid);
+	logMsg.Format("Starting stream for nativecallid: %s", m_nativecallid);
 	msg->m_success = true;
 	msg->m_comment = logMsg;
 
@@ -55,7 +55,7 @@ ObjectRef StreamMsg::Process()
 
 //============================
 
-void EndMsg::Define(Serializer* s)
+void EndMsg::Define(Serializer *s)
 {
 	CStdString endClass(END_CLASS);
 	s->StringValue(OBJECT_TYPE_TAG, endClass, true);
@@ -66,7 +66,7 @@ void EndMsg::Define(Serializer* s)
 
 CStdString EndMsg::GetClassName()
 {
-	return  CStdString(END_CLASS);
+	return CStdString(END_CLASS);
 }
 
 ObjectRef EndMsg::NewInstance()
@@ -76,11 +76,11 @@ ObjectRef EndMsg::NewInstance()
 
 ObjectRef EndMsg::Process()
 {
-	SimpleResponseMsg* msg = new SimpleResponseMsg;
+	SimpleResponseMsg *msg = new SimpleResponseMsg;
 	ObjectRef ref(msg);
 	CStdString logMsg;
-	CapturePluginProxy::Singleton()->EndStream(m_party, m_orkuid, m_nativecallid);
-	logMsg.Format("Ending stream for nativecallid:%s",m_nativecallid);
+	LiveStreamServerProxy::Singleton()->EndStream(m_party, m_orkuid, m_nativecallid);
+	logMsg.Format("Ending stream for nativecallid: %s", m_nativecallid);
 	msg->m_success = true;
 	msg->m_comment = logMsg;
 
@@ -89,8 +89,7 @@ ObjectRef EndMsg::Process()
 
 //=========================
 
-
-void GetMsg::Define(Serializer* s)
+void GetMsg::Define(Serializer *s)
 {
 	CStdString getClass(GET_CLASS);
 	s->StringValue(OBJECT_TYPE_TAG, getClass, true);
@@ -101,7 +100,7 @@ void GetMsg::Define(Serializer* s)
 
 CStdString GetMsg::GetClassName()
 {
-	return  CStdString(GET_CLASS);
+	return CStdString(GET_CLASS);
 }
 
 ObjectRef GetMsg::NewInstance()
@@ -111,13 +110,13 @@ ObjectRef GetMsg::NewInstance()
 
 ObjectRef GetMsg::Process()
 {
-	SimpleResponseMsg* msg = new SimpleResponseMsg;
+	SimpleResponseMsg *msg = new SimpleResponseMsg;
 	ObjectRef ref(msg);
 	CStdString logMsg;
-
-	logMsg.Format("Live Calls %s", CStdString("\n")+CapturePluginProxy::Singleton()->GetStream());
+	for (auto callId : LiveStreamServerProxy::Singleton()->GetStream())
+	{
+		msg->m_comment = msg->m_comment + callId + CStdString(",\n");
+	}
 	msg->m_success = true;
-	msg->m_comment = logMsg;
-
 	return ref;
 }

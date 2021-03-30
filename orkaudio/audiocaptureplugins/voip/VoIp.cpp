@@ -118,9 +118,6 @@ public:
 	void Run();
 	void Shutdown();
 	void StartCapture(CStdString& port, CStdString& orkuid, CStdString& nativecallid, CStdString& side);
-	void StartStream(CStdString& port, CStdString& orkuid, CStdString& nativecallid);
-	void EndStream(CStdString& port, CStdString& orkuid, CStdString& nativecallid);
-	CStdString GetStream();
 	void StopCapture(CStdString& port, CStdString& orkuid, CStdString& nativecallid, CStdString& qos);
 	void PauseCapture(CStdString& port, CStdString& orkuid, CStdString& nativecallid);
 	void SetOnHold(CStdString& port, CStdString& orkuid);
@@ -1954,70 +1951,6 @@ void VoIp::StartCapture(CStdString& party, CStdString& orkuid, CStdString& nativ
 	}
 }
 
-void VoIp::StartStream(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
-{
-	CStdString logMsg;
-
-	logMsg.Format("StartStream: party:%s orkuid:%s nativecallid:%s", party, orkuid, nativecallid);
-	LOG4CXX_INFO(s_voipPluginLog, logMsg);
-
-	MutexSentinel mutexSentinel(s_mutex);
-
-	if(orkuid.size())
-	{
-		//VoIpSessionsSingleton::instance()->StartStreamOrkuid(orkuid);
-		LOG4CXX_INFO(s_voipPluginLog, "Undefined");
-	}
-	else if(party.size())
-	{
-		//orkuid = VoIpSessionsSingleton::instance()->StartStream(party);
-		LOG4CXX_INFO(s_voipPluginLog, "Undefined");
-	}
-	else if(nativecallid.size())
-	{
-		LOG4CXX_INFO(s_voipPluginLog, "inside voip");
-		orkuid = VoIpSessionsSingleton::instance()->StartStreamNativeCallId(nativecallid);
-	}
-}
-
-void VoIp::EndStream(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
-{
-	CStdString logMsg;
-
-	logMsg.Format("EndStream: party:%s orkuid:%s nativecallid:%s", party, orkuid, nativecallid);
-	LOG4CXX_INFO(s_voipPluginLog, logMsg);
-
-	MutexSentinel mutexSentinel(s_mutex);
-
-	if(orkuid.size())
-	{
-		//VoIpSessionsSingleton::instance()->StartStreamOrkuid(orkuid);
-		LOG4CXX_INFO(s_voipPluginLog, "Undefined");
-	}
-	else if(party.size())
-	{
-		//orkuid = VoIpSessionsSingleton::instance()->StartStream(party);
-		LOG4CXX_INFO(s_voipPluginLog, "Undefined");
-	}
-	else if(nativecallid.size())
-	{
-		LOG4CXX_INFO(s_voipPluginLog, "inside voip");
-		orkuid = VoIpSessionsSingleton::instance()->EndStreamNativeCallId(nativecallid);
-	}
-}
-
-CStdString VoIp::GetStream()
-{
-	CStdString logMsg;
-
-	logMsg.Format("GetStream: getting live calls");
-	LOG4CXX_INFO(s_voipPluginLog, logMsg);
-
-	MutexSentinel mutexSentinel(s_mutex);
-
-	return VoIpSessionsSingleton::instance()->GetStreamNativeCallId();
-}
-
 void VoIp::PauseCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
 {
 	CStdString logMsg;
@@ -2323,20 +2256,6 @@ void __CDECL__ StartCapture(CStdString& party, CStdString& orkuid, CStdString& n
 	VoIpSingleton::instance()->StartCapture(party, orkuid, nativecallid, side);
 }
 
-void __CDECL__ StartStream(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
-{
-	VoIpSingleton::instance()->StartStream(party, orkuid, nativecallid);
-}
-
-void __CDECL__ EndStream(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
-{
-	VoIpSingleton::instance()->EndStream(party, orkuid, nativecallid);
-}
-
-CStdString __CDECL__ GetStream()
-{
-	return VoIpSingleton::instance()->GetStream();
-}
 void __CDECL__ PauseCapture(CStdString& party, CStdString& orkuid, CStdString& nativecallid)
 {
 	VoIpSingleton::instance()->PauseCapture(party, orkuid, nativecallid);
