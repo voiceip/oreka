@@ -8,8 +8,8 @@ MAINTAINER Kinshuk B (hi@kinsh.uk)
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y build-essential libtool automake git tree rpm libboost-dev `
-	libpcap-dev libsndfile1-dev libapr1-dev libspeex-dev liblog4cxx10-dev libace-dev `
-	libopus-dev libxerces-c3.1 libxerces-c3-dev libssl-dev cmake`
+	libpcap-dev libsndfile1-dev libapr1-dev libspeex-dev liblog4cxx-dev libace-dev `
+	libopus-dev libxerces-c3-dev libssl-dev cmake`
 	&& rm -rf /var/lib/apt/lists/* 
 
 #silk
@@ -71,9 +71,10 @@ RUN --mount=type=bind,source=/,target=/artifacts,from=builder `
    	&& mkdir -p /usr/lib/orkaudio/plugins/ `
    	&& cp /artifacts/opt/oreka/orkaudio/plugins/*.so  /usr/lib/orkaudio/plugins/
 
+RUN mkdir /etc/orkaudio && chmod 777 /etc/orkaudio
 
 ADD  https://raw.githubusercontent.com/voiceip/oreka/master/orkaudio/logging-linux-template.properties /etc/orkaudio/logging.properties
-COPY config.xml /etc/orkaudio/config.xml
+COPY config.xml /etc/orkaudio/config_default.xml
 COPY entrypoint.sh /opt/entrypoint.sh
 
 ENV SHELL /bin/bash
