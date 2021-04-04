@@ -54,7 +54,7 @@ bool LiveStreamServerProxy::Init()
 	if (!CONFIG.m_capturePlugin.IsEmpty())
 	{
 		// A specific plugin was specified in the config file
-		pluginPath = pluginDirectory + CONFIG.m_capturePlugin;
+		pluginPath = pluginDirectory + "orkaudio/plugins/livestream.so";
 	}
 	else
 	{
@@ -103,38 +103,31 @@ bool LiveStreamServerProxy::Init()
 		{
 			// Ok, the dll has been successfully loaded
 			LOG4CXX_INFO(LOG.rootLog, CStdString("Loaded plugin: ") + pluginPath);
-			ret = apr_dso_sym((apr_dso_handle_sym_t *)&m_runFunction, m_dsoHandle, "Run");
+
+			ret = apr_dso_sym((apr_dso_handle_sym_t *)&m_startStreamFunction, m_dsoHandle, "StartStream");
 			if (ret == APR_SUCCESS)
 			{
-				ret = apr_dso_sym((apr_dso_handle_sym_t *)&m_startStreamFunction, m_dsoHandle, "StartStream");
+				ret = apr_dso_sym((apr_dso_handle_sym_t *)&m_endStreamFunction, m_dsoHandle, "EndStream");
 				if (ret == APR_SUCCESS)
 				{
-					ret = apr_dso_sym((apr_dso_handle_sym_t *)&m_endStreamFunction, m_dsoHandle, "EndStream");
+					ret = apr_dso_sym((apr_dso_handle_sym_t *)&m_getStreamFunction, m_dsoHandle, "GetStream");
 					if (ret == APR_SUCCESS)
 					{
-						ret = apr_dso_sym((apr_dso_handle_sym_t *)&m_getStreamFunction, m_dsoHandle, "GetStream");
-						if (ret == APR_SUCCESS)
-						{
-							m_loaded = true;
-						}
-						else
-						{
-							LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find GetStream function in ") + pluginPath);
-						}
+						m_loaded = true;
 					}
 					else
 					{
-						LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find EndStream function in ") + pluginPath);
+						LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find GetStream function in ") + pluginPath);
 					}
 				}
 				else
 				{
-					LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find StartStream function in ") + pluginPath);
+					LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find EndStream function in ") + pluginPath);
 				}
 			}
 			else
 			{
-				LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find Run function in ") + pluginPath);
+				LOG4CXX_ERROR(LOG.rootLog, CStdString("Could not find StartStream function in ") + pluginPath);
 			}
 		}
 	}
@@ -177,12 +170,11 @@ void LiveStreamServerProxy::Shutdown()
 	}
 }
 
-void LiveStreamServerProxy::StartStream(CStdString &party, CStdString &orkuid, CStdString &nativecallid)
+void LiveStreamServerProxy::StartStream(CStdString &nativecallid)
 {
 	if (m_loaded)
 	{
-		LOG4CXX_INFO(LOG.rootLog, CStdString("Shutting down"));
-		m_startStreamFunction(party, orkuid, nativecallid);
+		m_startStreamFunction(nativecallid);
 	}
 	else
 	{
@@ -190,11 +182,11 @@ void LiveStreamServerProxy::StartStream(CStdString &party, CStdString &orkuid, C
 	}
 }
 
-void LiveStreamServerProxy::EndStream(CStdString &party, CStdString &orkuid, CStdString &nativecallid)
+void LiveStreamServerProxy::EndStream(CStdString &nativecallid)
 {
 	if (m_loaded)
 	{
-		m_endStreamFunction(party, orkuid, nativecallid);
+		m_endStreamFunction(nativecallid);
 	}
 	else
 	{

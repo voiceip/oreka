@@ -30,8 +30,6 @@ public:
 	ObjectRef NewInstance();
 	ObjectRef Process();
 
-	CStdString m_party;
-	CStdString m_orkuid;
 	CStdString m_nativecallid;
 };
 
@@ -46,8 +44,6 @@ public:
 	ObjectRef NewInstance();
 	ObjectRef Process();
 
-	CStdString m_party;
-	CStdString m_orkuid;
 	CStdString m_nativecallid;
 };
 
@@ -61,10 +57,6 @@ public:
 	CStdString GetClassName();
 	ObjectRef NewInstance();
 	ObjectRef Process();
-
-	CStdString m_party;
-	CStdString m_orkuid;
-	CStdString m_nativecallid;
 };
 
 #endif

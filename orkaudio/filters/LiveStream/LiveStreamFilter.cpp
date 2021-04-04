@@ -195,7 +195,7 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef &event)
 
 	if (event->m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event->m_key == "LiveStream" && event->m_value == "start")
 	{
-		std::string url = "rtmp://172.16.176.65:1935/live/" + m_callId;
+		std::string url = "rtmp://" + CONFIG.m_rtmpServerEndpoint + ":" + CONFIG.m_rtmpServerPort + "/live/" + m_callId;
 
 		LOG4CXX_INFO(s_log, "LiveStream URL : " + url);
 		//open rstp stream

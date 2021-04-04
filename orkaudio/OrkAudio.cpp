@@ -272,10 +272,10 @@ void MainThread()
 		capturePluginOk = true;
 	}
 
+	bool LiveStreamCapturePluginOk = false;
 	if(! LiveStreamServerProxy::Singleton()->Initialize())
 	{
-		logMsg.Format("Failed to load LiveStreamServerProxy");
-        LOG4CXX_ERROR(LOG.rootLog, logMsg);
+		LiveStreamCapturePluginOk = true;
 	}
 
 	std::list<apr_dso_handle_t*> pluginDlls;
@@ -389,6 +389,11 @@ void MainThread()
 	if(capturePluginOk)
 	{
 		CapturePluginProxy::Singleton()->Run();
+	}
+
+	if(LiveStreamCapturePluginOk)
+	{
+		LiveStreamServerProxy::Singleton()->Run();
 	}
 
 	SocketStreamer::Initialize(CONFIG.m_socketStreamerTargets);

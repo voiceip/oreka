@@ -233,9 +233,6 @@ public:
 	CStdString StartCapture(CStdString& party, CStdString& side);
 	void StartCaptureOrkuid(CStdString& orkuid, CStdString& side);
 	CStdString StartCaptureNativeCallId(CStdString& nativecallid, CStdString& side);
-	CStdString StartStreamNativeCallId(CStdString& nativecallid);
-	CStdString EndStreamNativeCallId(CStdString& nativecallid);
-	std::set<std::string> GetStreamNativeCallId();
 	CStdString PauseCaptureNativeCallId(CStdString& nativecallid);
 	CStdString PauseCapture(CStdString& party);
 	void PauseCaptureOrkuid(CStdString& orkuid);
@@ -252,6 +249,8 @@ public:
 	void TaggingSipTransferCalls(VoIpSessionRef& session);
 	void CopyMetadataToNewSession(VoIpSessionRef& oldSession, VoIpSessionRef& newSession);
 	void ClearLocalPartyMap();
+	std::map<unsigned long long, VoIpSessionRef> getByIpAndPort();
+	LoggerPtr getLogger();
 
 private:
 	void CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort);

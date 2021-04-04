@@ -25,8 +25,6 @@ void StreamMsg::Define(Serializer *s)
 {
 	CStdString streamClass(STREAM_CLASS);
 	s->StringValue(OBJECT_TYPE_TAG, streamClass, true);
-	s->StringValue(PARTY_PARAM, m_party, false);
-	s->StringValue(ORKUID_PARAM, m_orkuid, false);
 	s->StringValue(NATIVE_CALLID_PARAM, m_nativecallid, false);
 }
 
@@ -45,7 +43,7 @@ ObjectRef StreamMsg::Process()
 	SimpleResponseMsg *msg = new SimpleResponseMsg;
 	ObjectRef ref(msg);
 	CStdString logMsg;
-	LiveStreamServerProxy::Singleton()->StartStream(m_party, m_orkuid, m_nativecallid);
+	LiveStreamServerProxy::Singleton()->StartStream(m_nativecallid);
 	logMsg.Format("Starting stream for nativecallid: %s", m_nativecallid);
 	msg->m_success = true;
 	msg->m_comment = logMsg;
@@ -59,8 +57,6 @@ void EndMsg::Define(Serializer *s)
 {
 	CStdString endClass(END_CLASS);
 	s->StringValue(OBJECT_TYPE_TAG, endClass, true);
-	s->StringValue(PARTY_PARAM, m_party, false);
-	s->StringValue(ORKUID_PARAM, m_orkuid, false);
 	s->StringValue(NATIVE_CALLID_PARAM, m_nativecallid, false);
 }
 
@@ -79,7 +75,7 @@ ObjectRef EndMsg::Process()
 	SimpleResponseMsg *msg = new SimpleResponseMsg;
 	ObjectRef ref(msg);
 	CStdString logMsg;
-	LiveStreamServerProxy::Singleton()->EndStream(m_party, m_orkuid, m_nativecallid);
+	LiveStreamServerProxy::Singleton()->EndStream(m_nativecallid);
 	logMsg.Format("Ending stream for nativecallid: %s", m_nativecallid);
 	msg->m_success = true;
 	msg->m_comment = logMsg;
@@ -93,9 +89,6 @@ void GetMsg::Define(Serializer *s)
 {
 	CStdString getClass(GET_CLASS);
 	s->StringValue(OBJECT_TYPE_TAG, getClass, true);
-	s->StringValue(PARTY_PARAM, m_party, false);
-	s->StringValue(ORKUID_PARAM, m_orkuid, false);
-	s->StringValue(NATIVE_CALLID_PARAM, m_nativecallid, false);
 }
 
 CStdString GetMsg::GetClassName()

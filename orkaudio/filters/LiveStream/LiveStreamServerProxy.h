@@ -23,20 +23,20 @@ class DLL_IMPORT_EXPORT_ORKBASE LiveStreamServerProxy
 {
 public:
 	static bool Initialize();
-	static LiveStreamServerProxy* Singleton();
+	static LiveStreamServerProxy *Singleton();
 
 	void Run();
 	void Shutdown();
-	
-	void StartStream(CStdString& party, CStdString& orkuid, CStdString& nativecallid);
-	void EndStream(CStdString& party, CStdString& orkuid, CStdString& nativecallid);
+
+	void StartStream(CStdString &nativecallid);
+	void EndStream(CStdString &nativecallid);
 	std::set<std::string> GetStream();
-	
+
 private:
 	LiveStreamServerProxy();
-	static LiveStreamServerProxy* m_singleton;	
+	static LiveStreamServerProxy *m_singleton;
 	bool Init();
-	
+
 	InitializeFunction m_initializeFunction;
 	RunFunction m_runFunction;
 	StartStreamFunction m_startStreamFunction;
@@ -47,4 +47,3 @@ private:
 };
 
 #endif
-

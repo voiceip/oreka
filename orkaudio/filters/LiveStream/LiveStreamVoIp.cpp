@@ -28,8 +28,7 @@
 #include "AudioCapturePlugin.h"
 #include "AudioCapturePluginCommon.h"
 #include "Utils.h"
-#include "VoIpConfig.h"
-#include "VoIpSession.h"
+#include "LiveStreamSession.h"
 #include <set>
 
 static std::mutex s_mutex;
@@ -37,30 +36,30 @@ static std::mutex s_mutex;
 class LiveStreamVoIp : public OrkSingleton<LiveStreamVoIp>
 {
 public:
-	void StartStream(CStdString &port, CStdString &orkuid, CStdString &nativecallid);
-	void EndStream(CStdString &port, CStdString &orkuid, CStdString &nativecallid);
+	void StartStream(CStdString &nativecallid);
+	void EndStream(CStdString &nativecallid);
 	std::set<std::string> GetStream();
 };
 
 #define LiveStreamVoIpSingleton LiveStreamVoIp
 
-void LiveStreamVoIp::StartStream(CStdString &party, CStdString &orkuid, CStdString &nativecallid)
+void LiveStreamVoIp::StartStream(CStdString &nativecallid)
 {
 	MutexSentinel mutexSentinel(s_mutex);
 
 	if (nativecallid.size())
 	{
-		orkuid = VoIpSessionsSingleton::instance()->StartStreamNativeCallId(nativecallid);
+		LiveStreamSessionsSingleton::instance()->StartStreamNativeCallId(nativecallid);
 	}
 }
 
-void LiveStreamVoIp::EndStream(CStdString &party, CStdString &orkuid, CStdString &nativecallid)
+void LiveStreamVoIp::EndStream(CStdString &nativecallid)
 {
 	MutexSentinel mutexSentinel(s_mutex);
 
 	if (nativecallid.size())
 	{
-		orkuid = VoIpSessionsSingleton::instance()->EndStreamNativeCallId(nativecallid);
+		LiveStreamSessionsSingleton::instance()->EndStreamNativeCallId(nativecallid);
 	}
 }
 
@@ -68,19 +67,19 @@ std::set<std::string> LiveStreamVoIp::GetStream()
 {
 	MutexSentinel mutexSentinel(s_mutex);
 
-	return VoIpSessionsSingleton::instance()->GetStreamNativeCallId();
+	return LiveStreamSessionsSingleton::instance()->GetStreamNativeCallId();
 }
 
 //================================================================================
 
-void __CDECL__ StartStream(CStdString &party, CStdString &orkuid, CStdString &nativecallid)
+void __CDECL__ StartStream(CStdString &nativecallid)
 {
-	LiveStreamVoIpSingleton::instance()->StartStream(party, orkuid, nativecallid);
+	LiveStreamVoIpSingleton::instance()->StartStream(nativecallid);
 }
 
-void __CDECL__ EndStream(CStdString &party, CStdString &orkuid, CStdString &nativecallid)
+void __CDECL__ EndStream(CStdString &nativecallid)
 {
-	LiveStreamVoIpSingleton::instance()->EndStream(party, orkuid, nativecallid);
+	LiveStreamVoIpSingleton::instance()->EndStream(nativecallid);
 }
 
 std::set<std::string> __CDECL__ GetStream()
