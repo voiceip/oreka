@@ -43,8 +43,17 @@ ObjectRef StreamMsg::Process()
 	SimpleResponseMsg *msg = new SimpleResponseMsg;
 	ObjectRef ref(msg);
 	CStdString logMsg;
-	LiveStreamServerProxy::Singleton()->StartStream(m_nativecallid);
-	logMsg.Format("Starting stream for nativecallid: %s", m_nativecallid);
+	try
+	{
+		LiveStreamServerProxy::Singleton()->StartStream(m_nativecallid);
+		logMsg.Format("Starting stream for nativecallid: %s", m_nativecallid);
+	}
+	catch (const std::exception &ex)
+	{
+		CStdString logMsg;
+		logMsg.Format("Failed to start stream for nativecallid:%s", m_nativecallid);
+		LOG4CXX_ERROR(LOG.rootLog, logMsg);
+	}
 	msg->m_success = true;
 	msg->m_comment = logMsg;
 
@@ -75,8 +84,17 @@ ObjectRef EndMsg::Process()
 	SimpleResponseMsg *msg = new SimpleResponseMsg;
 	ObjectRef ref(msg);
 	CStdString logMsg;
-	LiveStreamServerProxy::Singleton()->EndStream(m_nativecallid);
-	logMsg.Format("Ending stream for nativecallid: %s", m_nativecallid);
+	try
+	{
+		LiveStreamServerProxy::Singleton()->EndStream(m_nativecallid);
+		logMsg.Format("Ending stream for nativecallid: %s", m_nativecallid);
+	}
+	catch (const std::exception &ex)
+	{
+		CStdString logMsg;
+		logMsg.Format("Failed to end stream for nativecallid:%s", m_nativecallid);
+		LOG4CXX_ERROR(LOG.rootLog, logMsg);
+	}
 	msg->m_success = true;
 	msg->m_comment = logMsg;
 
@@ -105,11 +123,24 @@ ObjectRef GetMsg::Process()
 {
 	SimpleResponseMsg *msg = new SimpleResponseMsg;
 	ObjectRef ref(msg);
-	CStdString logMsg;
-	for (auto callId : LiveStreamServerProxy::Singleton()->GetStream())
+	CStdString liveCalls;
+	try
 	{
-		msg->m_comment = msg->m_comment + callId + CStdString(",\n");
+		for (auto callId : LiveStreamServerProxy::Singleton()->GetStream())
+		{
+			if (callId.length() > 0)
+				liveCalls = liveCalls + CStdString("\"") + callId + CStdString("\",");
+		}
 	}
+	catch (const std::exception &ex)
+	{
+		CStdString logMsg;
+		logMsg.Format("Failed to get livestream");
+		LOG4CXX_ERROR(LOG.rootLog, logMsg);
+	}
+
+	liveCalls = "{\"liveCalls\": [" + liveCalls.substr(0, liveCalls.length() - 1) + "]}";
+	msg->m_comment = liveCalls;
 	msg->m_success = true;
 	return ref;
 }
