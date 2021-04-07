@@ -368,9 +368,10 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 			{
 				if(s_rtpPacketLog->isDebugEnabled())
 				{
-					RtpPacketInfoRef rtpInfo(new RtpPacketInfo());
-					u_char* payload = (u_char *)rtpHeader + sizeof(RtpHeaderStruct);
+					u_char* payload = rtpHeader->getFirstPayloadByte();
 					u_char* packetEnd = (u_char *)ipHeader + ntohs(ipHeader->ip_len);
+					if (packetEnd <= payload) return false;
+					RtpPacketInfoRef rtpInfo(new RtpPacketInfo());
 					u_int payloadLength = packetEnd - payload;
 					CStdString logMsg;
 
@@ -417,8 +418,9 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 				else
 				{
 					result = true;
-					u_char* payload = (u_char *)rtpHeader + sizeof(RtpHeaderStruct);
+					u_char* payload = (u_char *)rtpHeader->getFirstPayloadByte();
 					u_char* packetEnd = (u_char *)ipHeader + ntohs(ipHeader->ip_len);
+					if (packetEnd <= payload) return false;
 					u_int payloadLength = packetEnd - payload;
 
 					RtpPacketInfoRef rtpInfo(new RtpPacketInfo());
@@ -434,27 +436,9 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 					memcpy(rtpInfo->m_sourceMac, ethernetHeader->sourceMac, sizeof(rtpInfo->m_sourceMac));
 					memcpy(rtpInfo->m_destMac, ethernetHeader->destinationMac, sizeof(rtpInfo->m_destMac));
 
-					//If RTP packet has extension, we need to skip"
-					//2 bytes:Define by profile field
-					//2 bytes: Extension length field
-					//Extension length x 4 bytes
-					if(rtpHeader->x == 1)
-					{
-						unsigned short profileFieldLen = 2;
-						unsigned short ExtLenFieldLen = 2;
-						unsigned short extLenFieldValue = (payload[2] << 8) | payload[3];
-						int rtpExtLen = extLenFieldValue * 4;//4 bytes for each fied
-						int payloadOffset = profileFieldLen + ExtLenFieldLen + rtpExtLen;
-						if (payloadOffset > payloadLength) return false; //corrupted or non-RTP packet
-						rtpInfo->m_payloadSize = payloadLength - payloadOffset;
-						rtpInfo->m_payload = payload + payloadOffset;
-					}
-					else
-					{
-						rtpInfo->m_payloadSize = payloadLength;
-						rtpInfo->m_payload = payload;
-					}
 
+                    rtpInfo->m_payloadSize = payloadLength;
+                    rtpInfo->m_payload = payload;
 
 					if(s_rtpPacketLog->isDebugEnabled())
 					{
