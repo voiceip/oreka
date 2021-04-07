@@ -1,13 +1,14 @@
 # escape=`
+ARG TAG=xenial
 
-FROM ubuntu:xenial
+FROM ubuntu:$TAG
 
 # Configure apt
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y build-essential libtool automake git tree rpm libboost-dev libboost-all-dev`
-	libpcap-dev libsndfile1-dev libapr1-dev libspeex-dev liblog4cxx10-dev libace-dev `
-	libopus-dev libxerces-c3.1 libxerces-c3-dev libssl-dev cmake megatools`
+	libpcap-dev libsndfile1-dev libapr1-dev libspeex-dev liblog4cxx-dev libace-dev `
+	libopus-dev libxerces-c3-dev libssl-dev cmake`
 	&& rm -rf /var/lib/apt/lists/* 
 
 #silk
