@@ -170,11 +170,11 @@ void LiveStreamServerProxy::Shutdown()
 	}
 }
 
-void LiveStreamServerProxy::StartStream(CStdString &nativecallid)
+bool LiveStreamServerProxy::StartStream(CStdString &nativecallid)
 {
 	if (m_loaded)
 	{
-		m_startStreamFunction(nativecallid);
+		return m_startStreamFunction(nativecallid);
 	}
 	else
 	{
@@ -182,11 +182,11 @@ void LiveStreamServerProxy::StartStream(CStdString &nativecallid)
 	}
 }
 
-void LiveStreamServerProxy::EndStream(CStdString &nativecallid)
+bool LiveStreamServerProxy::EndStream(CStdString &nativecallid)
 {
 	if (m_loaded)
 	{
-		m_endStreamFunction(nativecallid);
+		return m_endStreamFunction(nativecallid);
 	}
 	else
 	{

@@ -15,6 +15,7 @@
 #include "messages/AsyncMessage.h"
 #include "LiveStreamServerProxy.h"
 #include <set>
+#include "ConfigManager.h"
 
 #define STREAM_CLASS "stream"
 #define END_CLASS "end"
@@ -43,19 +44,30 @@ ObjectRef StreamMsg::Process()
 	SimpleResponseMsg *msg = new SimpleResponseMsg;
 	ObjectRef ref(msg);
 	CStdString logMsg;
+	CStdString response;
+	CStdString url;
+	CStdString status;
+	msg->m_success = true;
 	try
 	{
-		LiveStreamServerProxy::Singleton()->StartStream(m_nativecallid);
-		logMsg.Format("Starting stream for nativecallid: %s", m_nativecallid);
+		if (LiveStreamServerProxy::Singleton()->StartStream(m_nativecallid))
+		{
+			logMsg.Format("Starting stream for nativecallid: %s", m_nativecallid);
+			LOG4CXX_INFO(LOG.rootLog, logMsg);
+			url = "rtmp://" + CONFIG.m_rtmpServerEndpoint + ":" + CONFIG.m_rtmpServerPort + "/live/" + m_nativecallid;
+			status = "true";
+		}
 	}
 	catch (const std::exception &ex)
 	{
 		CStdString logMsg;
 		logMsg.Format("Failed to start stream for nativecallid:%s", m_nativecallid);
 		LOG4CXX_ERROR(LOG.rootLog, logMsg);
+		msg->m_success = false;
 	}
-	msg->m_success = true;
-	msg->m_comment = logMsg;
+
+	response = "{\"url\": \"" + url + CStdString("\", \"status\":\"" + status + "\"}");
+	msg->m_comment = response;
 
 	return ref;
 }
@@ -84,19 +96,31 @@ ObjectRef EndMsg::Process()
 	SimpleResponseMsg *msg = new SimpleResponseMsg;
 	ObjectRef ref(msg);
 	CStdString logMsg;
+	CStdString response;
+	CStdString url;
+	CStdString status;
+	msg->m_success = true;
+
 	try
 	{
-		LiveStreamServerProxy::Singleton()->EndStream(m_nativecallid);
-		logMsg.Format("Ending stream for nativecallid: %s", m_nativecallid);
+		if (LiveStreamServerProxy::Singleton()->EndStream(m_nativecallid))
+		{
+			logMsg.Format("Ending stream for nativecallid: %s", m_nativecallid);
+			LOG4CXX_INFO(LOG.rootLog, logMsg);
+			url = "rtmp://" + CONFIG.m_rtmpServerEndpoint + ":" + CONFIG.m_rtmpServerPort + "/live/" + m_nativecallid;
+			status = "false";
+		}
 	}
 	catch (const std::exception &ex)
 	{
 		CStdString logMsg;
 		logMsg.Format("Failed to end stream for nativecallid:%s", m_nativecallid);
 		LOG4CXX_ERROR(LOG.rootLog, logMsg);
+		msg->m_success = false;
 	}
-	msg->m_success = true;
-	msg->m_comment = logMsg;
+
+	response = "{\"url\": \"" + url + CStdString("\", \"status\":\"" + status + "\"}");
+	msg->m_comment = response;
 
 	return ref;
 }
@@ -124,6 +148,7 @@ ObjectRef GetMsg::Process()
 	SimpleResponseMsg *msg = new SimpleResponseMsg;
 	ObjectRef ref(msg);
 	CStdString liveCalls;
+	msg->m_success = true;
 	try
 	{
 		for (auto callId : LiveStreamServerProxy::Singleton()->GetStream())
@@ -131,16 +156,17 @@ ObjectRef GetMsg::Process()
 			if (callId.length() > 0)
 				liveCalls = liveCalls + CStdString("\"") + callId + CStdString("\",");
 		}
+		liveCalls = "{\"liveCalls\": [" + liveCalls.substr(0, liveCalls.length() - 1) + "]}";
 	}
 	catch (const std::exception &ex)
 	{
 		CStdString logMsg;
 		logMsg.Format("Failed to get livestream");
 		LOG4CXX_ERROR(LOG.rootLog, logMsg);
+		msg->m_success = false;
 	}
 
-	liveCalls = "{\"liveCalls\": [" + liveCalls.substr(0, liveCalls.length() - 1) + "]}";
 	msg->m_comment = liveCalls;
-	msg->m_success = true;
+
 	return ref;
 }

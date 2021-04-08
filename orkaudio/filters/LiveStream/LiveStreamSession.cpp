@@ -30,13 +30,12 @@ LiveStreamSessions::LiveStreamSessions()
     voIpSessions = VoIpSessionsSingleton::instance();
 }
 
-CStdString LiveStreamSessions::StartStreamNativeCallId(CStdString &nativecallid)
+bool LiveStreamSessions::StartStreamNativeCallId(CStdString &nativecallid)
 {
     std::map<unsigned long long, VoIpSessionRef>::iterator pair;
     bool found = false;
     CStdString logMsg;
     VoIpSessionRef session;
-    CStdString orkUid = CStdString("");
 
     for (pair = voIpSessions->getByIpAndPort().begin(); pair != voIpSessions->getByIpAndPort().end() && found == false; pair++)
     {
@@ -46,7 +45,6 @@ CStdString LiveStreamSessions::StartStreamNativeCallId(CStdString &nativecallid)
         {
             session->m_keepRtp = true;
             found = true;
-            orkUid = session->GetOrkUid();
         }
     }
 
@@ -59,6 +57,7 @@ CStdString LiveStreamSessions::StartStreamNativeCallId(CStdString &nativecallid)
         g_captureEventCallBack(event, session->m_capturePort);
 
         logMsg.Format("[%s] StartStreamNativeCallId: Started capture, nativecallid:%s", session->m_trackingId, nativecallid);
+        return true;
     }
     else
     {
@@ -67,16 +66,15 @@ CStdString LiveStreamSessions::StartStreamNativeCallId(CStdString &nativecallid)
 
     LOG4CXX_INFO(voIpSessions->getLogger(), logMsg);
 
-    return orkUid;
+    return false;
 }
 
-CStdString LiveStreamSessions::EndStreamNativeCallId(CStdString &nativecallid)
+bool LiveStreamSessions::EndStreamNativeCallId(CStdString &nativecallid)
 {
     std::map<unsigned long long, VoIpSessionRef>::iterator pair;
     bool found = false;
     CStdString logMsg;
     VoIpSessionRef session;
-    CStdString orkUid = CStdString("");
 
     for (pair = voIpSessions->getByIpAndPort().begin(); pair != voIpSessions->getByIpAndPort().end() && found == false; pair++)
     {
@@ -86,7 +84,6 @@ CStdString LiveStreamSessions::EndStreamNativeCallId(CStdString &nativecallid)
         {
             session->m_keepRtp = true;
             found = true;
-            orkUid = session->GetOrkUid();
         }
     }
 
@@ -99,6 +96,7 @@ CStdString LiveStreamSessions::EndStreamNativeCallId(CStdString &nativecallid)
         g_captureEventCallBack(event, session->m_capturePort);
 
         logMsg.Format("[%s] EndStreamNativeCallId: Ended capture, nativecallid:%s", session->m_trackingId, nativecallid);
+        return true;
     }
     else
     {
@@ -107,7 +105,7 @@ CStdString LiveStreamSessions::EndStreamNativeCallId(CStdString &nativecallid)
 
     LOG4CXX_INFO(voIpSessions->getLogger(), logMsg);
 
-    return orkUid;
+    return false;
 }
 
 std::set<std::string> LiveStreamSessions::GetStreamNativeCallId()

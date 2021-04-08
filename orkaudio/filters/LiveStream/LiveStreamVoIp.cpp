@@ -36,31 +36,33 @@ static std::mutex s_mutex;
 class LiveStreamVoIp : public OrkSingleton<LiveStreamVoIp>
 {
 public:
-	void StartStream(CStdString &nativecallid);
-	void EndStream(CStdString &nativecallid);
+	bool StartStream(CStdString &nativecallid);
+	bool EndStream(CStdString &nativecallid);
 	std::set<std::string> GetStream();
 };
 
 #define LiveStreamVoIpSingleton LiveStreamVoIp
 
-void LiveStreamVoIp::StartStream(CStdString &nativecallid)
+bool LiveStreamVoIp::StartStream(CStdString &nativecallid)
 {
 	MutexSentinel mutexSentinel(s_mutex);
 
 	if (nativecallid.size())
 	{
-		LiveStreamSessionsSingleton::instance()->StartStreamNativeCallId(nativecallid);
+		return LiveStreamSessionsSingleton::instance()->StartStreamNativeCallId(nativecallid);
 	}
+	return false;
 }
 
-void LiveStreamVoIp::EndStream(CStdString &nativecallid)
+bool LiveStreamVoIp::EndStream(CStdString &nativecallid)
 {
 	MutexSentinel mutexSentinel(s_mutex);
 
 	if (nativecallid.size())
 	{
-		LiveStreamSessionsSingleton::instance()->EndStreamNativeCallId(nativecallid);
+		return LiveStreamSessionsSingleton::instance()->EndStreamNativeCallId(nativecallid);
 	}
+	return false;
 }
 
 std::set<std::string> LiveStreamVoIp::GetStream()
@@ -72,14 +74,14 @@ std::set<std::string> LiveStreamVoIp::GetStream()
 
 //================================================================================
 
-void __CDECL__ StartStream(CStdString &nativecallid)
+bool __CDECL__ StartStream(CStdString &nativecallid)
 {
-	LiveStreamVoIpSingleton::instance()->StartStream(nativecallid);
+	return LiveStreamVoIpSingleton::instance()->StartStream(nativecallid);
 }
 
-void __CDECL__ EndStream(CStdString &nativecallid)
+bool __CDECL__ EndStream(CStdString &nativecallid)
 {
-	LiveStreamVoIpSingleton::instance()->EndStream(nativecallid);
+	return LiveStreamVoIpSingleton::instance()->EndStream(nativecallid);
 }
 
 std::set<std::string> __CDECL__ GetStream()

@@ -28,8 +28,8 @@ public:
 	void Run();
 	void Shutdown();
 
-	void StartStream(CStdString &nativecallid);
-	void EndStream(CStdString &nativecallid);
+	bool StartStream(CStdString &nativecallid);
+	bool EndStream(CStdString &nativecallid);
 	std::set<std::string> GetStream();
 
 private:

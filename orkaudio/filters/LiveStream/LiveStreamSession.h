@@ -26,8 +26,8 @@ class LiveStreamSessions : public OrkSingleton<LiveStreamSessions>
 {
 public:
 	LiveStreamSessions();
-	CStdString StartStreamNativeCallId(CStdString &nativecallid);
-	CStdString EndStreamNativeCallId(CStdString &nativecallid);
+	bool StartStreamNativeCallId(CStdString &nativecallid);
+	bool EndStreamNativeCallId(CStdString &nativecallid);
 	std::set<std::string> GetStreamNativeCallId();
 
 private:
