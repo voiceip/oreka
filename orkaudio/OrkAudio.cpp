@@ -436,7 +436,7 @@ int main(int argc, char* argv[])
 	CStdString argument = argv[1];
 	if (argc>1)
 	{
-		if (argument.CompareNoCase("debug") == 0)
+		if ((argument.CompareNoCase("debug") == 0) || (argument.CompareNoCase("fg") == 0))
 		{
 			MainThread();
 		}
@@ -471,7 +471,9 @@ int main(int argc, char* argv[])
 #ifdef WIN32
 	printf("Argument incorrect. Possibilies are:\ninstall: install NT service\nuninstall: uninstall NT service\ntranscode <file>: convert .mcf file to storage format specified in config.xml\n\n");
 #else
-	printf("Argument incorrect. Possibilies are:\ndebug: run attached to tty\ntranscode <file>: convert .mcf file to storage format specified in config.xml\n\n");
+	printf("Argument incorrect. Possibilies are:\ndebug or fg: run attached to tty\n"
+			"transcode <file>: convert .mcf file to storage format specified in config.xml\n"
+			"version: display orkaudio version\n\n");
 #endif
 		}
 	}
