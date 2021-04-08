@@ -56,6 +56,7 @@
 #include "OpusCodec.h"
 #include <thread>
 #include "apr_signal.h"
+#include <sys/prctl.h>
 
 static volatile bool serviceStop = false;
 struct orkaudio_version
@@ -66,6 +67,25 @@ struct orkaudio_version
 };
 
 struct orkaudio_version orkaudioVersion  { 0x702a6f27, sizeof(struct orkaudio_version), ""};
+
+void MakeDumpable()
+{
+	// if run as not-root with capabilities, dumpable capability
+	// may be turned off. If so, restore it.
+	if (!prctl(PR_GET_DUMPABLE, 0, 0, 0, 0))
+	{
+		if (prctl(PR_SET_DUMPABLE, 1, 0, 0 ,0) != 0)
+		{
+			CStdString logMsg;
+			logMsg.Format("Unable to restore DUMPABLE capability: %d:%s", errno, strerror(errno));
+			LOG4CXX_WARN(LOG.rootLog,logMsg);
+		}
+		else
+		{
+			LOG4CXX_INFO(LOG.rootLog,"DUMPABLE capability is restored");
+		}
+	}
+}
 
 void StopHandler()
 {
@@ -228,6 +248,10 @@ void MainThread()
 	RegisterOrkaudioVersion(orkaudioVersion.version);
 	logMsg.Format("\n\nOrkAudio version %s: service starting\n", orkaudioVersion.version);
 	LOG4CXX_INFO(LOG.rootLog, logMsg);
+
+#ifndef WIN32
+	MakeDumpable();  //allow corefiles to be generated
+#endif
 
 	ConfigManager::Instance()->Initialize();
 
