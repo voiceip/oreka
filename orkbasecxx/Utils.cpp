@@ -9,6 +9,7 @@
 #include <grp.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <sys/capability.h>
 #else
 #include <cctype>  //needed in WIN32 for std::toupper
 #endif
@@ -1304,3 +1305,34 @@ CStdString RtpPayloadTypeEnumToString(char pt)
 	return ptStr;
 
 }
+
+#ifndef WIN32
+void check_pcap_capabilities(log4cxx::LoggerPtr log)
+{
+	bool rc = true;
+
+	cap_t caps;
+	caps=cap_get_pid(getpid());
+
+	cap_flag_value_t cap_val;
+	int ret;
+
+	// Do we actually need to check effective AND permitted?
+	ret=cap_get_flag(caps, CAP_NET_RAW, CAP_EFFECTIVE, &cap_val);
+	if (ret || !cap_val) rc=false;
+	ret=cap_get_flag(caps, CAP_NET_RAW, CAP_PERMITTED, &cap_val);
+	if (ret || !cap_val) rc=false;
+	ret=cap_get_flag(caps, CAP_NET_ADMIN, CAP_EFFECTIVE, &cap_val);
+	if (ret || !cap_val) rc=false;
+	ret=cap_get_flag(caps, CAP_NET_ADMIN, CAP_PERMITTED, &cap_val);
+	if (ret || !cap_val) rc=false;
+
+	if (rc == false)
+	{
+		LOG4CXX_ERROR(log,"Do not have the necessary privileges to capture data. "
+				"Probable fix: use \"setcap\" to add necessary capabilities: "
+				"\"setcap cap_net_raw,cap_net_admin+ep /usr/sbin/orkaudio\""
+		);
+	}
+}
+#endif

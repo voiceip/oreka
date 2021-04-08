@@ -498,4 +498,8 @@ size_t DLL_IMPORT_EXPORT_ORKBASE ciFind(const std::string &Haystack, const std::
 #ifdef SUPPORT_TLS_SERVER
 CStdString DLL_IMPORT_EXPORT_ORKBASE SSLErrorQ();
 #endif
+
+#ifndef WIN32
+void DLL_IMPORT_EXPORT_ORKBASE check_pcap_capabilities(log4cxx::LoggerPtr log);
+#endif
 #endif

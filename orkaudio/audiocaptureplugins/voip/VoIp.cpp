@@ -1385,6 +1385,7 @@ pcap_t* VoIp::OpenPcapDeviceLive(CStdString name)
 	pcap_t* pcapHandle = NULL;
 	int status = 0;
 
+	check_pcap_capabilities(s_packetLog); // verify we have access to the device.
 	pcapHandle = pcap_create((char*)name.c_str(), errorBuf);
 	if(pcapHandle == NULL)
 	{
