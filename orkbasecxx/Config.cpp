@@ -80,6 +80,7 @@ Config::Config()
 	m_audioGainChannel1Db = AUDIO_GAIN_CHANNEL_1_DB_DEFAULT;
 	m_audioGainChannel2Db = AUDIO_GAIN_CHANNEL_2_DB_DEFAULT;
 	m_eventStreamingServerPort = STREAMING_SERVER_PORT_DEFAULT;
+	m_liveStreamingServerPort = LIVE_STREAMING_SERVER_PORT_DEFAULT;
 	m_audioKeepDirectionDefault = AUDIO_KEEP_DIRECTION_DEFAULT_DEFAULT;
 	m_audioKeepDirectionIncomingDefault = AUDIO_KEEP_DIRECTION_INCOMING_DEFAULT_DEFAULT;
 	m_audioKeepDirectionOutgoingDefault = AUDIO_KEEP_DIRECTION_OUTGOING_DEFAULT_DEFAULT;
@@ -193,6 +194,7 @@ void Config::Define(Serializer* s)
 	s->DoubleValue(AUDIO_GAIN_CHANNEL_1_DB_PARAM, m_audioGainChannel1Db);
 	s->DoubleValue(AUDIO_GAIN_CHANNEL_2_DB_PARAM, m_audioGainChannel2Db);
 	s->IntValue(STREAMING_SERVER_PORT_PARAM, m_eventStreamingServerPort);
+	s->IntValue(LIVE_STREAMING_SERVER_PORT_PARAM, m_liveStreamingServerPort);
 	s->StringValue(AUDIO_KEEP_DIRECTION_DEFAULT_PARAM, m_audioKeepDirectionDefault);
 	s->StringValue(AUDIO_KEEP_DIRECTION_INCOMING_DEFAULT_PARAM, m_audioKeepDirectionIncomingDefault);
 	s->StringValue(AUDIO_KEEP_DIRECTION_OUTGOING_DEFAULT_PARAM, m_audioKeepDirectionOutgoingDefault);

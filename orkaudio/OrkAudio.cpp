@@ -54,15 +54,8 @@
 #include "OpusCodec.h"
 #include <thread>
 #include "apr_signal.h"
-#include "filters/LiveStream/StreamMsg.h"
 #include "filters/LiveStream/LiveStreamServerProxy.h"
-
-#ifdef linux  
-#include <execinfo.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <unistd.h>
-#endif
+#include "filters/LiveStream/LiveStreamServer.h"
 
 static volatile bool serviceStop = false;
 
@@ -256,13 +249,8 @@ void MainThread()
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	objRef.reset(new InitMsg);
 	ObjectFactory::GetSingleton()->RegisterObject(objRef);
-	objRef.reset(new StreamMsg);
-	ObjectFactory::GetSingleton()->RegisterObject(objRef);
-	objRef.reset(new EndMsg);
-	ObjectFactory::GetSingleton()->RegisterObject(objRef);
-	objRef.reset(new GetMsg);
-	ObjectFactory::GetSingleton()->RegisterObject(objRef);
-	
+	//objRef.reset(new CrashMsg);
+	//ObjectFactory::GetSingleton()->RegisterObject(objRef);
 	//objRef.reset(new TestMsg);
 	//ObjectFactory::GetSingleton()->RegisterObject(objRef);
 
@@ -395,6 +383,9 @@ void MainThread()
 	{
 		LiveStreamServerProxy::Singleton()->Run();
 	}
+
+	LiveStreamServer* liveStreamServer = new LiveStreamServer(CONFIG.m_liveStreamingServerPort);
+    liveStreamServer->Start();
 
 	SocketStreamer::Initialize(CONFIG.m_socketStreamerTargets);
 

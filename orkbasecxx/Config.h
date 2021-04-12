@@ -108,7 +108,9 @@
 #define HTTP_SERVER_PORT_PARAM "HttpServerPort"
 #define HTTP_SERVER_PORT_DEFAULT 59140
 #define STREAMING_SERVER_PORT_PARAM "EventStreamingServerPort"
+#define LIVE_STREAMING_SERVER_PORT_PARAM "LiveStreamingServerPort
 #define STREAMING_SERVER_PORT_DEFAULT 59150
+#define LIVE_STREAMING_SERVER_PORT_DEFAULT 59160
 #define LOOKBACK_RECORDING_PARAM "LookBackRecording"
 #define LOOKBACK_RECORDING_DEFAULT true
 #define ALLOW_AUTOMATIC_RECORDING_PARAM "AllowAutomaticRecording"
@@ -221,6 +223,7 @@ public:
 	int m_commandLineServerPort;
 	int m_httpServerPort;
 	int m_eventStreamingServerPort;
+    int m_liveStreamingServerPort;
 	//
 	// N.B., the following element is configured by live monitoring when it parses the
 	//       configuration. It sets a read-only copy below, so that Reporting has access
