@@ -325,6 +325,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		case CaptureEvent::EtStop:
 		{
 			m_capturing = false;
+			if(CONFIG.m_holdResumeReportDuration) audioTapeRef->PopulateTag("holdduration", IntToString(audioTapeRef->m_holdDuration));
 			LOG4CXX_INFO(s_log, "[" + audioTapeRef->m_trackingId + "] #" + m_id + " stop");
 			audioTapeRef->AddCaptureEvent(eventRef, true);
 			
@@ -334,6 +335,31 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			m_needSendStop = false;
 			// Notify immediate processing that tape has stopped
 			ImmediateProcessing::GetInstance()->AddAudioTape(m_audioTapeRef);
+			break;
+		}
+		case CaptureEvent::EtHold:
+		{
+			if(audioTapeRef->m_lastHoldTs == 0){
+				audioTapeRef->m_lastHoldTs = time(NULL);
+				if(CONFIG.m_holdResumeReportEvents){
+					audioTapeRef->AddCaptureEvent(eventRef, true);
+					MessageRef msgRef;
+					audioTapeRef->GetMessage(msgRef);
+					Reporting::Instance()->AddMessage(msgRef);
+				}
+			}
+			break;
+		}
+		case CaptureEvent::EtResume:
+		{
+			if(audioTapeRef->m_lastHoldTs > 0) audioTapeRef->m_holdDuration += (time(NULL) - audioTapeRef->m_lastHoldTs);			
+			if(CONFIG.m_holdResumeReportEvents && audioTapeRef->m_lastHoldTs > 0){
+				audioTapeRef->AddCaptureEvent(eventRef, true);
+				MessageRef msgRef;
+				audioTapeRef->GetMessage(msgRef);
+				Reporting::Instance()->AddMessage(msgRef);
+			}
+			audioTapeRef->m_lastHoldTs = 0;
 			break;
 		}
 		case CaptureEvent::EtEndMetadata:

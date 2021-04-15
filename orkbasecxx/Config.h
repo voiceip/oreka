@@ -159,6 +159,10 @@
 #define DYNAMIC_TAGS "DynamicTags"
 #define HOSTNAME_REPORT_FQDN "HostnameReportFqdn"
 #define HOSTNAME_REPORT_FQDN_DEFAULT false
+#define HOLD_RESUME_REPORT_EVENTS "HoldResumeReportEvents"
+#define HOLD_RESUME_REPORT_EVENTS_DEFAULT false
+#define HOLD_RESUME_REPORT_DURATION "HoldResumeReportDuration"
+#define HOLD_RESUME_REPORT_DURATION_DEFAULT false
 #ifdef SUPPORT_TLS_SERVER
 #define TLS_SERVER_CERTIFICATE_PATH_DEFAULT "/etc/orkaudio/certs/server_tls_cert.pem"
 #define TLS_SERVER_CERTIFICATE_PATH_PARAM "TlsServerCertificatePath"
@@ -281,6 +285,8 @@ public:
 	bool m_audioOutputEnable;
 	CStdString m_partyReplaceRegex;
 	CStdString m_partyReplaceBy;
+	bool m_holdResumeReportEvents;
+	bool m_holdResumeReportDuration;
 #ifdef SUPPORT_TLS_SERVER
 	int m_tlsServerPort;
 	CStdString m_tlsServerCertPath;

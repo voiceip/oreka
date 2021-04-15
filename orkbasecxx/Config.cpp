@@ -95,6 +95,8 @@ Config::Config()
 	m_hostnameReportFqdn = HOSTNAME_REPORT_FQDN_DEFAULT;
 	m_discardUnidirectionalCalls = false;
 	m_audioOutputEnable = true;
+	m_holdResumeReportEvents = HOLD_RESUME_REPORT_EVENTS_DEFAULT;
+	m_holdResumeReportDuration = HOLD_RESUME_REPORT_DURATION_DEFAULT;
 #ifdef SUPPORT_TLS_SERVER
 	m_tlsServerPort = TLS_SERVER_PORT_DEFAULT;
 	m_tlsServerCertPath = TLS_SERVER_CERTIFICATE_PATH_DEFAULT;
@@ -221,6 +223,8 @@ void Config::Define(Serializer* s)
 	s->BoolValue(HOSTNAME_REPORT_FQDN ,m_hostnameReportFqdn);
 	s->StringValue("PartyReplaceRegex", m_partyReplaceRegex);
 	s->StringValue("PartyReplaceBy", m_partyReplaceBy);
+	s->BoolValue(HOLD_RESUME_REPORT_EVENTS ,m_holdResumeReportEvents);
+	s->BoolValue(HOLD_RESUME_REPORT_DURATION ,m_holdResumeReportDuration);
 #ifdef SUPPORT_TLS_CLIENT
 	s->StringValue(TLS_CLIENT_KEYLOG_FILE, m_tlsClientKeylogFile);
 	s->StringValue(TLS_CLIENT_CERTFILE, m_tlsClientCertFile);

@@ -1003,6 +1003,12 @@ void VoIpSession::GoOnHold(time_t onHoldTime)
 	}
 	m_onHold = true;
 	m_holdBegin = onHoldTime;
+	if(CONFIG.m_holdResumeReportDuration || CONFIG.m_holdResumeReportEvents){
+		CaptureEventRef event(new CaptureEvent());
+		event->m_type = CaptureEvent::EtHold;
+		event->m_value = m_trackingId;
+		g_captureEventCallBack(event, m_capturePort);
+	}
 }
 
 void VoIpSession::GoOffHold(time_t offHoldTime)
@@ -1019,6 +1025,12 @@ void VoIpSession::GoOffHold(time_t offHoldTime)
 		event->m_key = "holdtime";
 		event->m_value.Format("%d", m_holdDuration);
 		g_captureEventCallBack(event,  m_capturePort);
+	}
+	if(CONFIG.m_holdResumeReportDuration || CONFIG.m_holdResumeReportEvents){
+		CaptureEventRef event(new CaptureEvent());
+		event->m_type = CaptureEvent::EtResume;
+		event->m_value = m_trackingId;
+		g_captureEventCallBack(event, m_capturePort);
 	}
 }
 

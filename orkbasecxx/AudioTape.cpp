@@ -639,7 +639,7 @@ void AudioTape::GetMessage(MessageRef& msgRef)
 			PopulateTapeMessage(pTapeMsg, CaptureEvent::EtReady);
 		}
 	}
-	else if(captureEventRef->m_type == CaptureEvent::EtStop || captureEventRef->m_type == CaptureEvent::EtStart || captureEventRef->m_type == CaptureEvent::EtUpdate)
+	else if(captureEventRef->m_type == CaptureEvent::EtStop || captureEventRef->m_type == CaptureEvent::EtStart || captureEventRef->m_type == CaptureEvent::EtUpdate || captureEventRef->m_type == CaptureEvent::EtHold || captureEventRef->m_type == CaptureEvent::EtResume)
 	{
 		PopulateTapeMessage(pTapeMsg, captureEventRef->m_type);
 
