@@ -1,29 +1,17 @@
 /*
  * Oreka -- A media capture and retrieval platform
- * 
- * Copyright (C) 2005, orecx LLC
  *
- * http://www.orecx.com
- *
- * This program is free software, distributed under the terms of
- * the GNU General Public License.
- * Please refer to http://www.gnu.org/copyleft/gpl.html
+ * LiveStreamFilter Plugin
+ * Author Shushant Sharan
  *
  */
-#pragma warning(disable : 4786) // disables truncated symbols in browse-info warning
-#define _WINSOCKAPI_            // prevents the inclusion of winsock.h
-
-#include "Utils.h"
-#include "AudioCapture.h"
 #include "LiveStreamSession.h"
-#include "AudioCapturePlugin.h"
-#include "AudioCapturePluginCommon.h"
-#include <set>
 
-extern AudioChunkCallBackFunction g_audioChunkCallBack;
 extern CaptureEventCallBackFunction g_captureEventCallBack;
 
-#define CONFERENCE_TRANSFER_TRACKING_TAG_KEY "orig-orkuid"
+static std::mutex s_mutex;
+static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("interface.liveStreamSession");
+static std::set<std::string> streamCallList;
 
 LiveStreamSessions::LiveStreamSessions()
 {
@@ -32,23 +20,11 @@ LiveStreamSessions::LiveStreamSessions()
 
 bool LiveStreamSessions::StartStreamNativeCallId(CStdString &nativecallid)
 {
-    std::map<unsigned long long, VoIpSessionRef>::iterator pair;
-    bool found = false;
+    MutexSentinel mutexSentinel(s_mutex);
     CStdString logMsg;
     VoIpSessionRef session;
 
-    for (pair = voIpSessions->getByIpAndPort().begin(); pair != voIpSessions->getByIpAndPort().end() && found == false; pair++)
-    {
-        session = pair->second;
-
-        if (session->NativeCallIdMatches(nativecallid))
-        {
-            session->m_keepRtp = true;
-            found = true;
-        }
-    }
-
-    if (found)
+    if (SessionFoundForNativeCallId(nativecallid, session))
     {
         CaptureEventRef event(new CaptureEvent());
         event->m_type = CaptureEvent::EtKeyValue;
@@ -64,30 +40,18 @@ bool LiveStreamSessions::StartStreamNativeCallId(CStdString &nativecallid)
         logMsg.Format("StartStreamNativeCallId: No session has native callid:%s", nativecallid);
     }
 
-    LOG4CXX_INFO(voIpSessions->getLogger(), logMsg);
+    LOG4CXX_INFO(s_log, logMsg);
 
     return false;
 }
 
 bool LiveStreamSessions::EndStreamNativeCallId(CStdString &nativecallid)
 {
-    std::map<unsigned long long, VoIpSessionRef>::iterator pair;
-    bool found = false;
+    MutexSentinel mutexSentinel(s_mutex);
     CStdString logMsg;
     VoIpSessionRef session;
 
-    for (pair = voIpSessions->getByIpAndPort().begin(); pair != voIpSessions->getByIpAndPort().end() && found == false; pair++)
-    {
-        session = pair->second;
-
-        if (session->NativeCallIdMatches(nativecallid))
-        {
-            session->m_keepRtp = true;
-            found = true;
-        }
-    }
-
-    if (found)
+    if (SessionFoundForNativeCallId(nativecallid, session))
     {
         CaptureEventRef event(new CaptureEvent());
         event->m_type = CaptureEvent::EtKeyValue;
@@ -103,23 +67,71 @@ bool LiveStreamSessions::EndStreamNativeCallId(CStdString &nativecallid)
         logMsg.Format("EndStreamNativeCallId: No session has native callid:%s", nativecallid);
     }
 
-    LOG4CXX_INFO(voIpSessions->getLogger(), logMsg);
+    LOG4CXX_INFO(s_log, logMsg);
 
     return false;
 }
 
-std::set<std::string> LiveStreamSessions::GetStreamNativeCallId()
+std::set<std::string> LiveStreamSessions::GetLiveCallList()
 {
-    std::map<unsigned long long, VoIpSessionRef>::iterator pair;
-    bool found = false;
-    CStdString logMsg;
+    MutexSentinel mutexSentinel(s_mutex);
     VoIpSessionRef session;
-    std::set<std::string> callList;
-
-    for (pair = voIpSessions->getByIpAndPort().begin(); pair != voIpSessions->getByIpAndPort().end() && found == false; pair++)
+    std::set<std::string> liveCallList;
+    try
     {
-        session = pair->second;
-        callList.insert(session->m_callId);
+        for (auto pair = voIpSessions->getByIpAndPort().begin(); pair != voIpSessions->getByIpAndPort().end(); pair++)
+        {
+            session = pair->second;
+            liveCallList.insert(session->m_callId);
+        }
     }
-    return callList;
+    catch (const std::exception &ex)
+    {
+        CStdString logMsg;
+        logMsg.Format("LiveStreamSession::Failed to get live call list:%s", ex.what());
+        LOG4CXX_ERROR(s_log, logMsg);
+    }
+
+    return liveCallList;
+}
+
+std::set<std::string> LiveStreamSessions::GetStreamCallList()
+{
+    return streamCallList;
+}
+
+void LiveStreamSessions::AddToStreamCallList(CStdString &nativecallid)
+{
+    streamCallList.insert(nativecallid);
+}
+
+void LiveStreamSessions::RemoveFromStreamCallList(CStdString &nativecallid)
+{
+    streamCallList.erase(nativecallid);
+}
+
+bool LiveStreamSessions::SessionFoundForNativeCallId(CStdString &nativecallid, VoIpSessionRef &session)
+{
+    bool found = false;
+    try
+    {
+        for (auto pair = voIpSessions->getByIpAndPort().begin(); pair != voIpSessions->getByIpAndPort().end(); pair++)
+        {
+            session = pair->second;
+
+            if (session->NativeCallIdMatches(nativecallid))
+            {
+                found = true;
+                break;
+            }
+        }
+    }
+    catch (const std::exception &ex)
+    {
+        CStdString logMsg;
+        logMsg.Format("LiveStreamSession::Failure while finding active session for nativeCallId :%s", ex.what());
+        LOG4CXX_ERROR(s_log, logMsg);
+    }
+
+    return found;
 }

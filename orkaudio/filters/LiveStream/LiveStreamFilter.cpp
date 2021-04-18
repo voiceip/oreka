@@ -7,27 +7,8 @@
 #define _WINSOCKAPI_ // prevents the inclusion of winsock.h
 
 #include "LiveStreamFilter.h"
-#include <log4cxx/logger.h>
-#include "AudioCapture.h"
-#include <iostream>
-#include <string>
-#include <cstring>
-#include "Utils.h"
-#include "srs_librtmp.h"
-#include <queue>
-#include "ConfigManager.h"
-
-#define BUFFER_SAMPLES 8000
 
 static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("plugin.livestream");
-
-template <class T>
-std::string toString(const T &value)
-{
-	std::ostringstream os;
-	os << value;
-	return os.str();
-}
 
 LiveStreamFilter::LiveStreamFilter()
 {
@@ -148,11 +129,10 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef &inputAudioChunk)
 				srs_human_trace("send audio raw data failed.");
 				return;
 			}
-
-			srs_human_trace("Accepted Packet: sample_rate=%d, sound_format=%s, m_timestamp=%d, m_arrivalTimestamp=%d,m_sequenceNumber=%d",
-							outputDetails.m_sampleRate, outputDetails.m_rtpPayloadType, outputDetails.m_timestamp, outputDetails.m_arrivalTimestamp, outputDetails.m_sequenceNumber);
-			srs_human_trace("sent packet: type=%s, time=%d, size=%d, codec=%d, rate=%d, sample=%d, channel=%d",
-							srs_human_flv_tag_type2string(SRS_RTMP_TYPE_AUDIO), timestamp, size, sound_format, sound_rate, sound_size, sound_type);
+			CStdString logMsg;
+			logMsg.Format("LiveStreamFilter::sent packet: type=%s, time=%d, size=%d, codec=%d, rate=%d, sample=%d, channel=%d nativecallId=%s",
+						  srs_human_flv_tag_type2string(SRS_RTMP_TYPE_AUDIO), timestamp, size, sound_format, sound_rate, sound_size, sound_type, m_callId);
+			LOG4CXX_DEBUG(s_log, logMsg);
 		}
 	}
 }
@@ -222,12 +202,14 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef &event)
 		srs_human_trace("publish stream success");
 
 		status = true;
+		LiveStreamSessionsSingleton::instance()->AddToStreamCallList(m_callId);
 	}
 
 	if (event->m_type == CaptureEvent::EventTypeEnum::EtStop)
 	{
 		//close rstp stream
 		status = false;
+		LiveStreamSessionsSingleton::instance()->RemoveFromStreamCallList(m_callId);
 		if (rtmp != NULL)
 		{
 			srs_human_trace("stream detroying...");
@@ -237,6 +219,7 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef &event)
 
 	if (event->m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event->m_key == "LiveStream" && event->m_value == "end")
 	{
+		LiveStreamSessionsSingleton::instance()->RemoveFromStreamCallList(m_callId);
 		status = false;
 	}
 }
@@ -257,9 +240,11 @@ extern "C"
 {
 	DLL_EXPORT void __CDECL__ OrkInitialize()
 	{
-		LOG4CXX_INFO(s_log, "LiveStream  filter starting.");
+		LOG4CXX_INFO(s_log, "LiveStream  filter starting");
 		FilterRef filter(new LiveStreamFilter());
 		FilterRegistry::instance()->RegisterFilter(filter);
-		LOG4CXX_INFO(s_log, "LiveStream  filter initialized.");
+		LOG4CXX_INFO(s_log, "LiveStream  filter initialized");
+		LiveStreamServer *liveStreamServer = new LiveStreamServer(CONFIG.m_liveStreamingServerPort);
+		liveStreamServer->Run();
 	}
 }

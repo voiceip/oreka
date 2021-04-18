@@ -54,8 +54,6 @@
 #include "OpusCodec.h"
 #include <thread>
 #include "apr_signal.h"
-#include "filters/LiveStream/LiveStreamServerProxy.h"
-#include "filters/LiveStream/LiveStreamServer.h"
 
 static volatile bool serviceStop = false;
 
@@ -260,12 +258,6 @@ void MainThread()
 		capturePluginOk = true;
 	}
 
-	bool LiveStreamCapturePluginOk = false;
-	if(! LiveStreamServerProxy::Singleton()->Initialize())
-	{
-		LiveStreamCapturePluginOk = true;
-	}
-
 	std::list<apr_dso_handle_t*> pluginDlls;
 	LoadPlugins(pluginDlls);
 
@@ -379,14 +371,6 @@ void MainThread()
 		CapturePluginProxy::Singleton()->Run();
 	}
 
-	if(LiveStreamCapturePluginOk)
-	{
-		LiveStreamServerProxy::Singleton()->Run();
-	}
-
-	LiveStreamServer* liveStreamServer = new LiveStreamServer(CONFIG.m_liveStreamingServerPort);
-    liveStreamServer->Start();
-
 	SocketStreamer::Initialize(CONFIG.m_socketStreamerTargets);
 
 	while(!Daemon::Singleton()->IsStopping())
@@ -395,7 +379,6 @@ void MainThread()
 	}
 
 	CapturePluginProxy::Singleton()->Shutdown();
-	LiveStreamServerProxy::Singleton()->Shutdown();
 
 	OrkSleepSec(2);
 	
@@ -413,27 +396,8 @@ void MainThread()
 
 
 
-void handler(int sig) {
-	#ifdef linux
-
-	void *array[10];
-	size_t size;
-
-	// get void*'s for all entries on the stack
-	size = backtrace(array, 10);
-
-	// print out all the frames to stderr
-	fprintf(stderr, "Error: signal %d:\n", sig);
-	backtrace_symbols_fd(array, size, STDERR_FILENO);
-	#endif
-  	exit(1);
-}
-
-
 int main(int argc, char* argv[])
 {
-	signal(SIGSEGV, handler);   // install fatal error handler
-
 	OrkAprSingleton::Initialize();
 
 	// the "service name" reported on the tape messages uses CONFIG.m_serviceName

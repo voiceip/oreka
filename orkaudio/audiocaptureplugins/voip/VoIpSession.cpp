@@ -4330,11 +4330,6 @@ std::map<unsigned long long, VoIpSessionRef> VoIpSessions::getByIpAndPort()
        return m_byIpAndPort;
 }
 
-LoggerPtr VoIpSessions::getLogger()
-{
-       return m_log;
-}
-
 void VoIpSessions::StopAll()
 {
 	time_t forceExpiryTime = time(NULL) + 2*DLLCONFIG.m_rtpSessionOnHoldTimeOutSec;

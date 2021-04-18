@@ -1,7 +1,7 @@
 /*
  * Oreka -- A media capture and retrieval platform
  *
- * G729 Plugin
+ * LiveStreamFilter Plugin
  * Author Kinshuk Bairagi
  *
  */
@@ -15,6 +15,13 @@
 #include "Utils.h"
 #include "srs_librtmp.h"
 #include <queue>
+#include "LiveStreamSession.h"
+#include "AudioCapture.h"
+#include <iostream>
+#include <string>
+#include <cstring>
+#include "ConfigManager.h"
+#include "LiveStreamServer.h"
 
 class DLL_IMPORT_EXPORT_ORKBASE LiveStreamFilter : public Filter
 {

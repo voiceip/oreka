@@ -1,28 +1,30 @@
-#pragma once
-
+/*
+ * Oreka -- A media capture and retrieval platform
+ *
+ * LiveStreamFilter Plugin
+ * Author Shushant Sharan
+ *
+ */
 #ifndef LIVESTREAMSERVER_H
 #define LIVESTREAMSERVER_H
 
 #include <httplib.h>
+#include "json.h"
+#include "ConfigManager.h"
+#include "LiveStreamSession.h"
+#include "Config.h"
 
 class LiveStreamServer
 {
 
 public:
-	int serverPort;
-	LiveStreamServer(int port)
-	{
-		serverPort = port;
-	}
-
-	~LiveStreamServer()
-	{
-		std::cout << "Shutting Down LiveStream HTTP Service" << std::endl;
-	}
-
+	LiveStreamServer(int port);
+	void Run();
 	void Start();
-
 	void Stop(httplib::Server *svr);
+
+private:
+	int m_port;
 };
 
 #endif

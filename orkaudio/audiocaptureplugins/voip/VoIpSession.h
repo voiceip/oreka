@@ -250,7 +250,6 @@ public:
 	void CopyMetadataToNewSession(VoIpSessionRef& oldSession, VoIpSessionRef& newSession);
 	void ClearLocalPartyMap();
 	std::map<unsigned long long, VoIpSessionRef> getByIpAndPort();
-	LoggerPtr getLogger();
 
 private:
 	void CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort);
@@ -272,7 +271,6 @@ private:
 	bool SkinnyFindMostLikelySessionForRtp(RtpPacketInfoRef& rtpPacket, VoIpEndpointInfoRef&);
 	bool SkinnyFindMostLikelySessionForRtpBehindNat(RtpPacketInfoRef& rtpPacket);
 	void TrySessionCallPickUp(CStdString replacesCallId, bool& result);
-
 	std::map<unsigned long long, VoIpSessionRef> m_byIpAndPort;
 	std::map<CStdString, VoIpSessionRef> m_byCallId;
 	std::map<unsigned long long, VoIpEndpointInfoRef> m_endpoints;

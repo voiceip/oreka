@@ -1,26 +1,19 @@
 /*
  * Oreka -- A media capture and retrieval platform
- * 
- * Copyright (C) 2005, orecx LLC
  *
- * http://www.orecx.com
- *
- * This program is free software, distributed under the terms of
- * the GNU General Public License.
- * Please refer to http://www.gnu.org/copyleft/gpl.html
+ * LiveStreamFilter Plugin
+ * Author Shushant Sharan
  *
  */
 
 #ifndef __LIVESTREAMSESSION_H__
 #define __LIVESTREAMSESSION_H__
 
-#include <log4cxx/logger.h>
-#include "AudioCapturePlugin.h"
-#include "AudioCapturePluginCommon.h"
-#include "Utils.h"
 #include "VoIpSession.h"
-
-using namespace log4cxx;
+#include <set>
+#include "AudioCapturePlugin.h"
+#include "Utils.h"
+#include "AudioCapture.h"
 
 class LiveStreamSessions : public OrkSingleton<LiveStreamSessions>
 {
@@ -28,10 +21,14 @@ public:
 	LiveStreamSessions();
 	bool StartStreamNativeCallId(CStdString &nativecallid);
 	bool EndStreamNativeCallId(CStdString &nativecallid);
-	std::set<std::string> GetStreamNativeCallId();
+	std::set<std::string> GetLiveCallList();
+	std::set<std::string> GetStreamCallList();
+	void AddToStreamCallList(CStdString &nativecallid);
+	void RemoveFromStreamCallList(CStdString &nativecallid);
 
 private:
 	VoIpSessions *voIpSessions;
+	bool SessionFoundForNativeCallId(CStdString &nativecallid, VoIpSessionRef &session);
 };
 
 #define LiveStreamSessionsSingleton LiveStreamSessions
