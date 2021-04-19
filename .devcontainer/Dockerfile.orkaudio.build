@@ -37,6 +37,19 @@ RUN mkdir -p /opt/bcg729 && chmod 777 /opt/bcg729`
 	&& make `
 	&& make install
 
+#httplib
+RUN mkdir -p /opt/httplib && chmod 777 /opt/httplib`
+	&& git clone --depth 1 https://github.com/yhirose/cpp-httplib.git /opt/httplib `
+	&& ln -s /opt/httplib/httplib.h /usr/local/include/httplib.h
+
+#json
+RUN mkdir -p /opt/json && chmod 777 /opt/json`
+	&& git clone --depth 1 https://github.com/nlohmann/json.git /opt/json/ `
+	&& cd /opt/json `
+	&& cmake . -DCMAKE_INSTALL_PREFIX=/usr`
+	&& make `
+	&& make install	
+
 COPY .devcontainer/build.sh  /entrypoint.sh
 
 #INSERT_HERE

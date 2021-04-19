@@ -217,7 +217,7 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef &event)
 		}
 	}
 
-	if (event->m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event->m_key == "LiveStream" && event->m_value == "end")
+	if (event->m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event->m_key == "LiveStream" && event->m_value == "stop")
 	{
 		LiveStreamSessionsSingleton::instance()->RemoveFromStreamCallList(m_callId);
 		status = false;

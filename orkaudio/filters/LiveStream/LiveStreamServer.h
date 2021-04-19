@@ -9,7 +9,7 @@
 #define LIVESTREAMSERVER_H
 
 #include <httplib.h>
-#include "json.h"
+#include <nlohmann/json.hpp>
 #include "ConfigManager.h"
 #include "LiveStreamSession.h"
 #include "Config.h"

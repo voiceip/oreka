@@ -33,7 +33,8 @@ bool LiveStreamSessions::StartStreamNativeCallId(CStdString &nativecallid)
         g_captureEventCallBack(event, session->m_capturePort);
 
         logMsg.Format("[%s] StartStreamNativeCallId: Started capture, nativecallid:%s", session->m_trackingId, nativecallid);
-        return true;
+        
+        return NativeCallIdInStreamCallList(nativecallid);
     }
     else
     {
@@ -45,26 +46,26 @@ bool LiveStreamSessions::StartStreamNativeCallId(CStdString &nativecallid)
     return false;
 }
 
-bool LiveStreamSessions::EndStreamNativeCallId(CStdString &nativecallid)
+bool LiveStreamSessions::StopStreamNativeCallId(CStdString &nativecallid)
 {
     MutexSentinel mutexSentinel(s_mutex);
     CStdString logMsg;
     VoIpSessionRef session;
 
-    if (SessionFoundForNativeCallId(nativecallid, session))
+    if (NativeCallIdInStreamCallList(nativecallid) && SessionFoundForNativeCallId(nativecallid, session))
     {
         CaptureEventRef event(new CaptureEvent());
         event->m_type = CaptureEvent::EtKeyValue;
         event->m_key = "LiveStream";
-        event->m_value = "end";
+        event->m_value = "stop";
         g_captureEventCallBack(event, session->m_capturePort);
 
-        logMsg.Format("[%s] EndStreamNativeCallId: Ended capture, nativecallid:%s", session->m_trackingId, nativecallid);
+        logMsg.Format("[%s] StopStreamNativeCallId: Stoped capture, nativecallid:%s", session->m_trackingId, nativecallid);
         return true;
     }
     else
     {
-        logMsg.Format("EndStreamNativeCallId: No session has native callid:%s", nativecallid);
+        logMsg.Format("StopStreamNativeCallId: No session has native callid:%s", nativecallid);
     }
 
     LOG4CXX_INFO(s_log, logMsg);
@@ -108,6 +109,11 @@ void LiveStreamSessions::AddToStreamCallList(CStdString &nativecallid)
 void LiveStreamSessions::RemoveFromStreamCallList(CStdString &nativecallid)
 {
     streamCallList.erase(nativecallid);
+}
+
+bool LiveStreamSessions::NativeCallIdInStreamCallList(CStdString &nativecallid)
+{
+    return streamCallList.find(nativecallid) != streamCallList.end();
 }
 
 bool LiveStreamSessions::SessionFoundForNativeCallId(CStdString &nativecallid, VoIpSessionRef &session)

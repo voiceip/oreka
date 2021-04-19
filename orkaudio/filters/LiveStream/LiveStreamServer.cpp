@@ -124,9 +124,15 @@ void LiveStreamServer::Start()
 				{
 					url = "rtmp://" + CONFIG.m_rtmpServerEndpoint + ":" + CONFIG.m_rtmpServerPort + "/live/" + m_nativecallid;
 					res.status = 200;
+					response = {
+						{"url", url}};
 				}
-				response = {
-					{"url", url}};
+				else
+				{
+					response = {
+						{"message", "Not Found!"}};
+					res.status = 500;
+				}
 			}
 			catch (const std::exception &e)
 			{
@@ -157,13 +163,19 @@ void LiveStreamServer::Start()
 
 			try
 			{
-				if (m_nativecallid.size() > 0 && LiveStreamSessionsSingleton::instance()->EndStreamNativeCallId(m_nativecallid))
+				if (m_nativecallid.size() > 0 && LiveStreamSessionsSingleton::instance()->StopStreamNativeCallId(m_nativecallid))
 				{
 					url = "rtmp://" + CONFIG.m_rtmpServerEndpoint + ":" + CONFIG.m_rtmpServerPort + "/live/" + m_nativecallid;
 					res.status = 200;
+					response = {
+						{"url", url}};
 				}
-				response = {
-					{"url", url}};
+				else
+				{
+					response = {
+						{"message", "Not Found!"}};
+					res.status = 500;
+				}
 			}
 			catch (const std::exception &e)
 			{
