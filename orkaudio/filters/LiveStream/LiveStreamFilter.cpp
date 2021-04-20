@@ -1,6 +1,9 @@
 /*
  * Oreka -- A media capture and retrieval platform
  *
+ * LiveStreamFilter Plugin
+ * Author Kinshuk Bairagi
+ *
  */
 #pragma warning(disable : 4786) // disables truncated symbols in browse-info warning
 
