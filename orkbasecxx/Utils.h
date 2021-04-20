@@ -188,6 +188,24 @@ private:
 	SSL_CTX* m_serverCtx;
 	log4cxx::LoggerPtr s_log;
 };
+
+class DLL_IMPORT_EXPORT_ORKBASE OrkSslStructure
+{
+public:
+	OrkSslStructure(SSL_CTX* ctx) { ssl = SSL_new(ctx); };
+	OrkSslStructure() { ssl = NULL; };
+	~OrkSslStructure() { 
+		if (ssl) {SSL_shutdown(ssl); SSL_free(ssl);};
+	};
+
+	void SetSsl(SSL_CTX* ctx) { ssl=SSL_new(ctx);};
+	void SetSsl() { ssl=SSL_new(OrkOpenSslSingleton::GetInstance()->GetServerCtx());};
+	SSL* GetSsl(SSL_CTX* ctx) { if (ssl == NULL) ssl=SSL_new(ctx); return ssl;};
+	SSL* GetSsl() { return ssl; };
+private:
+	SSL *ssl;
+};
+
 #endif
 
 DLL_IMPORT_EXPORT_ORKBASE const char* inet_ntopV4(int inet, void *srcAddr, char *dst, size_t size);  //AF_INET
