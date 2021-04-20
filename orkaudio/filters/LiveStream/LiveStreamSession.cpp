@@ -33,7 +33,7 @@ bool LiveStreamSessions::StartStreamNativeCallId(CStdString &nativecallid)
         g_captureEventCallBack(event, session->m_capturePort);
 
         logMsg.Format("[%s] StartStreamNativeCallId: Started capture, nativecallid:%s", session->m_trackingId, nativecallid);
-        
+
         return NativeCallIdInStreamCallList(nativecallid);
     }
     else
