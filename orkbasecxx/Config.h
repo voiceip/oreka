@@ -170,6 +170,7 @@
 #define TLS_SERVER_CERTIFICATE_KEY_PARAM "TlsServerKeyPath"
 #define TLS_SERVER_PORT_PARAM "TlsServerPort"
 #define TLS_SERVER_PORT_DEFAULT 0
+#define HTTP_TLS_SERVER_PORT_PARAM "HttpTlsServerPort"
 #endif
 #ifdef SUPPORT_TLS_CLIENT
 #define TLS_CLIENT_KEYLOG_FILE	"TlsClientKeyLogFile"
@@ -288,7 +289,8 @@ public:
 	bool m_holdResumeReportEvents;
 	bool m_holdResumeReportDuration;
 #ifdef SUPPORT_TLS_SERVER
-	int m_tlsServerPort;
+	int m_httpTlsServerPort;
+	int m_tlsServerPort; //deprecated, for backward compatibility
 	CStdString m_tlsServerCertPath;
 	CStdString m_tlsServerKeyPath;
 #endif

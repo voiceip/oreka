@@ -402,7 +402,13 @@ void MainThread()
 	}
 #ifdef SUPPORT_TLS_SERVER
 	HttpsServer httpsServ;
-	if(httpsServ.Initialize(CONFIG.m_tlsServerPort))
+	// TlsServePort is deprecated in favor of HttpTlsServerPort
+	// Either is accepted, but WARN if both are defined
+	if (CONFIG.m_httpTlsServerPort != 0 && CONFIG.m_tlsServerPort != 0)
+	{
+		LOG4CXX_WARN(LOG.rootLog,"TlsServerPort and HttpServerPort are both defined! TlsServerPort is ignored.");
+	}
+	if(httpsServ.Initialize(CONFIG.m_httpTlsServerPort ? CONFIG.m_httpTlsServerPort : CONFIG.m_tlsServerPort))
 	{
 		std::thread handler(&HttpsServer::Run, &httpsServ);
 		handler.detach();

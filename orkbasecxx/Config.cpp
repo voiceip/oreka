@@ -259,6 +259,7 @@ void Config::Define(Serializer* s)
 	s->BoolValue("AudioOutputEnable", m_audioOutputEnable);
 #ifdef SUPPORT_TLS_SERVER
 	s->IntValue(TLS_SERVER_PORT_PARAM, m_tlsServerPort);
+	s->IntValue(HTTP_TLS_SERVER_PORT_PARAM, m_httpTlsServerPort);
 	s->StringValue(TLS_SERVER_CERTIFICATE_PATH_PARAM, m_tlsServerCertPath);
 	s->StringValue(TLS_SERVER_CERTIFICATE_KEY_PARAM, m_tlsServerKeyPath);
 #endif
