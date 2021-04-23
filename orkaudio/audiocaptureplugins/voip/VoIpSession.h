@@ -271,6 +271,7 @@ private:
 	bool SkinnyFindMostLikelySessionForRtp(RtpPacketInfoRef& rtpPacket, VoIpEndpointInfoRef&);
 	bool SkinnyFindMostLikelySessionForRtpBehindNat(RtpPacketInfoRef& rtpPacket);
 	void TrySessionCallPickUp(CStdString replacesCallId, bool& result);
+
 	std::map<unsigned long long, VoIpSessionRef> m_byIpAndPort;
 	std::map<CStdString, VoIpSessionRef> m_byCallId;
 	std::map<unsigned long long, VoIpEndpointInfoRef> m_endpoints;
