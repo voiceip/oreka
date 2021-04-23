@@ -223,7 +223,7 @@ public:
 	int m_commandLineServerPort;
 	int m_httpServerPort;
 	int m_eventStreamingServerPort;
-    int m_liveStreamingServerPort;
+	int m_liveStreamingServerPort;
 	//
 	// N.B., the following element is configured by live monitoring when it parses the
 	//       configuration. It sets a read-only copy below, so that Reporting has access

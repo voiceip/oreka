@@ -15,14 +15,14 @@
 #include "Config.h"
 
 class LiveStreamServer {
-	public:
-		LiveStreamServer(int port);
-		void Run();
-		void Start();
-		void Stop(httplib::Server *svr);
+    public:
+        LiveStreamServer(int port);
+        void Run();
+        void Start();
+        void Stop(httplib::Server * svr);
 
-	private:
-		int m_port;
+    private:
+        int m_port;
 };
 
 #endif
