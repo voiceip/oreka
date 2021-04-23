@@ -47,8 +47,7 @@ RUN mkdir -p /opt/json && chmod 777 /opt/json`
 	&& git clone --depth 1 https://github.com/nlohmann/json.git /opt/json/ `
 	&& cd /opt/json `
 	&& cmake . -DCMAKE_INSTALL_PREFIX=/usr`
-	&& make `
-	&& make install	
+	&& make && make install	
 
 COPY .devcontainer/build.sh  /entrypoint.sh
 
