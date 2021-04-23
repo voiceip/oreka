@@ -19,10 +19,11 @@ class LiveStreamServer {
         LiveStreamServer(int port);
         void Run();
         void Start();
-        void Stop(httplib::Server * svr);
+        void Stop();
 
     private:
         int m_port;
+		httplib::Server svr;
 };
 
 #endif
