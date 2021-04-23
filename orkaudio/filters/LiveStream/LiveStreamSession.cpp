@@ -66,12 +66,13 @@ bool LiveStreamSessions::StopStreamNativeCallId(CStdString & nativecallid) {
 
 std::set < std::string > LiveStreamSessions::GetLiveCallList() {
     MutexSentinel mutexSentinel(s_mutex);
-    VoIpSessionRef session;
     std::set < std::string > liveCallList;
     try {
-        for (auto pair = voIpSessions->getByIpAndPort().begin(); pair != voIpSessions->getByIpAndPort().end(); pair++) {
-            session = pair->second;
-            liveCallList.insert(session->m_callId);
+        auto sessions = voIpSessions->getByIpAndPort();
+        if (!sessions.empty()){
+            for (auto & p: sessions) {
+                liveCallList.insert(p.second->m_callId);
+            }  
         }
     } catch (const std::exception & ex) {
         CStdString logMsg;
@@ -101,13 +102,15 @@ bool LiveStreamSessions::NativeCallIdInStreamCallList(CStdString & nativecallid)
 bool LiveStreamSessions::SessionFoundForNativeCallId(CStdString & nativecallid, VoIpSessionRef & session) {
     bool found = false;
     try {
-        for (auto pair = voIpSessions->getByIpAndPort().begin(); pair != voIpSessions->getByIpAndPort().end(); pair++) {
-            session = pair->second;
-
-            if (session->NativeCallIdMatches(nativecallid)) {
-                found = true;
-                break;
-            }
+        auto sessions = voIpSessions->getByIpAndPort();
+        if (!sessions.empty()){
+            for (auto & p: sessions) {
+                session = p.second;
+                if (session->NativeCallIdMatches(nativecallid)) {
+                    found = true;
+                    break;
+                }
+            }  
         }
     } catch (const std::exception & ex) {
         CStdString logMsg;
