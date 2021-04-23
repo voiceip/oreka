@@ -4325,8 +4325,7 @@ void VoIpSessions::ClearLocalPartyMap()
        m_localPartyMap.clear();
 }
 
-std::map<unsigned long long, VoIpSessionRef> VoIpSessions::getByIpAndPort()
-{
+const std::map<unsigned long long, VoIpSessionRef> & VoIpSessions::getByIpAndPort() const {
        return m_byIpAndPort;
 }
 

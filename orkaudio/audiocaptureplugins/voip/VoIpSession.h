@@ -249,7 +249,7 @@ public:
 	void TaggingSipTransferCalls(VoIpSessionRef& session);
 	void CopyMetadataToNewSession(VoIpSessionRef& oldSession, VoIpSessionRef& newSession);
 	void ClearLocalPartyMap();
-	std::map<unsigned long long, VoIpSessionRef> getByIpAndPort();
+	const std::map<unsigned long long, VoIpSessionRef> & getByIpAndPort() const;
 
 private:
 	void CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort);

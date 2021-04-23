@@ -69,11 +69,9 @@ std::set < std::string > LiveStreamSessions::GetLiveCallList() {
     std::set < std::string > liveCallList;
     try {
         auto sessions = voIpSessions->getByIpAndPort();
-        if (!sessions.empty()){
-            for (auto & p: sessions) {
-                liveCallList.insert(p.second->m_callId);
-            }  
-        }
+        for (auto & p: sessions) {
+            liveCallList.insert(p.second->m_callId);
+        }  
     } catch (const std::exception & ex) {
         CStdString logMsg;
         logMsg.Format("LiveStreamSession::Failed to get live call list:%s", ex.what());
@@ -103,15 +101,13 @@ bool LiveStreamSessions::SessionFoundForNativeCallId(CStdString & nativecallid, 
     bool found = false;
     try {
         auto sessions = voIpSessions->getByIpAndPort();
-        if (!sessions.empty()){
-            for (auto & p: sessions) {
-                session = p.second;
-                if (session->NativeCallIdMatches(nativecallid)) {
-                    found = true;
-                    break;
-                }
-            }  
-        }
+        for (auto & p: sessions) {
+            session = p.second;
+            if (session->NativeCallIdMatches(nativecallid)) {
+                found = true;
+                break;
+            }
+        }  
     } catch (const std::exception & ex) {
         CStdString logMsg;
         logMsg.Format("LiveStreamSession::Failure while finding active session for nativeCallId :%s", ex.what());
