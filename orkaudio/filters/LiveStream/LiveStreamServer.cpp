@@ -6,12 +6,13 @@
  *
  */
 #include "LiveStreamServer.h"
+#include "LiveStreamConfig.h"
 
 using json = nlohmann::json;
 using namespace std;
 using namespace httplib;
 
-static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("interface.liveStreamServer");
+static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("plugin.livestream");
 
 LiveStreamServer::LiveStreamServer(int port) {
     m_port = port;
@@ -78,7 +79,7 @@ void LiveStreamServer::Start() {
             m_nativecallid = requestBody["nativeCallId"].get<std::string>();
             try {
                 if (m_nativecallid.size() > 0 && LiveStreamSessionsSingleton::instance() -> StartStreamNativeCallId(m_nativecallid)) {
-                    url = "rtmp://" + CONFIG.m_rtmpServerEndpoint + ":" + CONFIG.m_rtmpServerPort + "/live/" + m_nativecallid;
+                    url = "rtmp://"  + LIVESTREAMCONFIG.m_rtmpServerEndpoint + ":" + LIVESTREAMCONFIG.m_rtmpServerPort + "/live/" + m_nativecallid;
                     res.status = 200;
                     response = {{"url", url }};
                 } else {
@@ -105,12 +106,10 @@ void LiveStreamServer::Start() {
         CStdString m_nativecallid;
         try {
             m_nativecallid = requestBody["nativeCallId"].get<std::string>();
-
             try {
-                if (m_nativecallid.size() > 0 && LiveStreamSessionsSingleton::instance() -> StopStreamNativeCallId(m_nativecallid)) {
-                    url = "rtmp://" + CONFIG.m_rtmpServerEndpoint + ":" + CONFIG.m_rtmpServerPort + "/live/" + m_nativecallid;
+                if (m_nativecallid.size() > 0 && LiveStreamSessionsSingleton::instance()->StopStreamNativeCallId(m_nativecallid)) {
                     res.status = 200;
-                    response = {{"url", url }};
+                    response = {{"callId", m_nativecallid }, {"status","stopped"}};
                 } else {
                     response = {{"message", "Not Found!"}};
                     res.status = 500;

@@ -10,6 +10,7 @@
 #define _WINSOCKAPI_ // prevents the inclusion of winsock.h
 
 #include "LiveStreamFilter.h"
+#include "LiveStreamConfig.h"
 
 static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("plugin.livestream");
 
@@ -159,7 +160,7 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef & event) {
     }
 
     if (event -> m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event -> m_key == "LiveStream" && event -> m_value == "start") {
-        std::string url = "rtmp://" + CONFIG.m_rtmpServerEndpoint + ":" + CONFIG.m_rtmpServerPort + "/live/" + m_callId;
+        std::string url = "rtmp://" + LIVESTREAMCONFIG.m_rtmpServerEndpoint + ":" + LIVESTREAMCONFIG.m_rtmpServerPort + "/live/" + m_callId;
 
         LOG4CXX_INFO(s_log, "LiveStream URL : " + url);
         //open rstp stream
@@ -211,18 +212,25 @@ void LiveStreamFilter::SetSessionInfo(CStdString & trackingId) {
     LOG4CXX_INFO(s_log, "LiveStream SetSessionInfo " + trackingId);
 }
 
-
+ 
 // =================================================================
 
 extern "C"
 {
-	DLL_EXPORT void __CDECL__ OrkInitialize()
-	{
-		LOG4CXX_INFO(s_log, "LiveStream  filter starting");
-		FilterRef filter(new LiveStreamFilter());
-		FilterRegistry::instance()->RegisterFilter(filter);
-		LOG4CXX_INFO(s_log, "LiveStream  filter initialized");
-		LiveStreamServer *liveStreamServer = new LiveStreamServer(CONFIG.m_liveStreamingServerPort);
-		liveStreamServer->Run();
-	}
+    DLL_EXPORT void __CDECL__ OrkInitialize()
+    {
+        LOG4CXX_INFO(s_log, "LiveStream  Filter starting");
+        
+        //LiveStreamConfig
+        ConfigManager::Instance()->AddConfigureFunction(LiveStreamConfig::Configure);
+        
+        FilterRef filter(new LiveStreamFilter());
+        FilterRegistry::instance()->RegisterFilter(filter);
+        
+        LOG4CXX_INFO(s_log, "LiveStream  filter initialized");
+
+        LiveStreamServer *liveStreamServer = new LiveStreamServer(LIVESTREAMCONFIG.m_liveStreamingServerPort);
+        liveStreamServer->Run();
+    }
+
 }

@@ -23,7 +23,7 @@ class LiveStreamServer {
 
     private:
         int m_port;
-		httplib::Server svr;
+        httplib::Server svr;
 };
 
 #endif

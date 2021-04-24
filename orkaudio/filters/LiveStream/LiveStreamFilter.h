@@ -24,31 +24,31 @@
 #include "LiveStreamServer.h"
 
 class DLL_IMPORT_EXPORT_ORKBASE LiveStreamFilter : public Filter {
-  public:
-    LiveStreamFilter();
-    ~LiveStreamFilter();
+    public:
+        LiveStreamFilter();
+        ~LiveStreamFilter();
 
-    FilterRef __CDECL__ Instanciate();
-    void __CDECL__ AudioChunkIn(AudioChunkRef &chunk);
-    void __CDECL__ AudioChunkOut(AudioChunkRef &chunk);
-    AudioEncodingEnum __CDECL__ GetInputAudioEncoding();
-    AudioEncodingEnum __CDECL__ GetOutputAudioEncoding();
-    CStdString __CDECL__ GetName();
-    bool __CDECL__ SupportsInputRtpPayloadType(int rtpm_payloadType);
-    void __CDECL__ CaptureEventIn(CaptureEventRef &event);
-    void __CDECL__ CaptureEventOut(CaptureEventRef &event);
-    void __CDECL__ SetSessionInfo(CStdString &trackingId);
+        FilterRef __CDECL__ Instanciate();
+        void __CDECL__ AudioChunkIn(AudioChunkRef &chunk);
+        void __CDECL__ AudioChunkOut(AudioChunkRef &chunk);
+        AudioEncodingEnum __CDECL__ GetInputAudioEncoding();
+        AudioEncodingEnum __CDECL__ GetOutputAudioEncoding();
+        CStdString __CDECL__ GetName();
+        bool __CDECL__ SupportsInputRtpPayloadType(int rtpm_payloadType);
+        void __CDECL__ CaptureEventIn(CaptureEventRef &event);
+        void __CDECL__ CaptureEventOut(CaptureEventRef &event);
+        void __CDECL__ SetSessionInfo(CStdString &trackingId);
 
-  private:
-    AudioChunkRef m_outputAudioChunk;
-    bool m_initialized;
-    CStdString m_callId;
-    bool status = false;
-    bool isFirstPacket = true;
-    unsigned char headChannel;
-    srs_rtmp_t rtmp = NULL;
-    u_int32_t timestamp = 0;
-    std::queue<char *> bufferQueue;
+    private:
+        AudioChunkRef m_outputAudioChunk;
+        bool m_initialized;
+        CStdString m_callId;
+        bool status = false;
+        bool isFirstPacket = true;
+        unsigned char headChannel;
+        srs_rtmp_t rtmp = NULL;
+        u_int32_t timestamp = 0;
+        std::queue<char *> bufferQueue;
 };
 
 #endif

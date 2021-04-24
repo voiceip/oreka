@@ -107,9 +107,7 @@
 #define HTTP_SERVER_PORT_PARAM "HttpServerPort"
 #define HTTP_SERVER_PORT_DEFAULT 59140
 #define STREAMING_SERVER_PORT_PARAM "EventStreamingServerPort"
-#define LIVE_STREAMING_SERVER_PORT_PARAM "LiveStreamingServerPort"
 #define STREAMING_SERVER_PORT_DEFAULT 59150
-#define LIVE_STREAMING_SERVER_PORT_DEFAULT 59160
 #define LOOKBACK_RECORDING_PARAM "LookBackRecording"
 #define LOOKBACK_RECORDING_DEFAULT true
 #define ALLOW_AUTOMATIC_RECORDING_PARAM "AllowAutomaticRecording"
@@ -159,8 +157,6 @@
 #define DYNAMIC_TAGS "DynamicTags"
 #define HOSTNAME_REPORT_FQDN "HostnameReportFqdn"
 #define HOSTNAME_REPORT_FQDN_DEFAULT false
-#define RTMP_SERVER_ENDPOINT "RTMPServerEndPoint"
-#define RTMP_SERVER_PORT "RTMPServerPort"
 
 class DLL_IMPORT_EXPORT_ORKBASE Config : public Object
 {
@@ -222,7 +218,6 @@ public:
 	int m_commandLineServerPort;
 	int m_httpServerPort;
 	int m_eventStreamingServerPort;
-	int m_liveStreamingServerPort;
 	//
 	// N.B., the following element is configured by live monitoring when it parses the
 	//       configuration. It sets a read-only copy below, so that Reporting has access
@@ -264,8 +259,6 @@ public:
 	bool m_discardUnidirectionalCalls;
 	int m_audioFileBitRate;
 	bool m_audioOutputEnable;
-	CStdString m_rtmpServerEndpoint;
-	CStdString m_rtmpServerPort;
 
 private:
 	log4cxx::LoggerPtr m_log;
