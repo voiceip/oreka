@@ -100,17 +100,23 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
     if (isFirstPacket) {
         headChannel = outputDetails.m_channel;
         isFirstPacket = false;
+		//For 1 second, there will be 1000ms / 20ms = 50 frames
+		maxBufferSize = LIVESTREAMCONFIG.m_liveStreamingQueueFlushThresholdSeconds * 50;
     }
 
     if (outputDetails.m_channel == headChannel && status) {
-        bufferQueue.push(inputBuffer);
+		if (bufferQueue.size() >= maxBufferSize)
+		{	
+			bufferQueue.clear();
+		}
+		bufferQueue.push_back(inputBuffer);
     }
 
     if (rtmp != NULL && status) {
-        if (outputDetails.m_channel != headChannel && bufferQueue.size() > 0) {
+        if (outputDetails.m_channel != headChannel && !bufferQueue.empty()) {
             char * outputBuffer = (char * ) malloc(size);
             char * tempBuffer = bufferQueue.front();
-            bufferQueue.pop();
+            bufferQueue.pop_front();
 
             for (int i = 0; i < 160; ++i) {
                 outputBuffer[i * 2] = tempBuffer[i];
@@ -126,6 +132,8 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
             logMsg.Format("LiveStreamFilter::sent packet: type=%s, time=%d, size=%d, codec=%d, rate=%d, sample=%d, channel=%d nativecallId=%s",
                 srs_human_flv_tag_type2string(SRS_RTMP_TYPE_AUDIO), timestamp, size, sound_format, sound_rate, sound_size, sound_type, m_callId);
             LOG4CXX_DEBUG(s_log, logMsg);
+			
+			free(outputBuffer);
         }
     }
 }

@@ -14,7 +14,7 @@
 #include <log4cxx/logger.h>
 #include "Utils.h"
 #include "srs_librtmp.h"
-#include <queue>
+#include <deque>
 #include "LiveStreamSession.h"
 #include "AudioCapture.h"
 #include <iostream>
@@ -48,7 +48,8 @@ class DLL_IMPORT_EXPORT_ORKBASE LiveStreamFilter : public Filter {
         unsigned char headChannel;
         srs_rtmp_t rtmp = NULL;
         u_int32_t timestamp = 0;
-        std::queue<char *> bufferQueue;
+        std::deque<char *> bufferQueue;
+        unsigned int maxBufferSize;
 };
 
 #endif

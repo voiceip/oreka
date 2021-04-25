@@ -110,4 +110,6 @@
 	</VoIpPlugin>
 	<RTMPServerEndPoint>172.16.176.65</RTMPServerEndPoint>
 	<RTMPServerPort>1935</RTMPServerPort>
+	<LiveStreamingServerPort>59160</LiveStreamingServerPort>
+	<LiveStreamingQueueFlushThresholdSeconds>30</LiveStreamingQueueFlushThresholdSeconds>
 </config>
