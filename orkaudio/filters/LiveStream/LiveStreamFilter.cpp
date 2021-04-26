@@ -133,7 +133,7 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
                 srs_human_flv_tag_type2string(SRS_RTMP_TYPE_AUDIO), timestamp, size, sound_format, sound_rate, sound_size, sound_type, m_callId);
             LOG4CXX_DEBUG(s_log, logMsg);
 
-            free(outputBuffer)
+            free(outputBuffer);
         }
     }
 }

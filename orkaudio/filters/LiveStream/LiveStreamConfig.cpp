@@ -20,10 +20,10 @@ void LiveStreamConfig::Reset() {
 
 void LiveStreamConfig::Define(Serializer* s) {
     s->StringValue(RTMP_SERVER_ENDPOINT, m_rtmpServerEndpoint);
-	s->StringValue(RTMP_SERVER_PORT, m_rtmpServerPort);
-	s->IntValue(LIVE_STREAMING_SERVER_PORT_PARAM, m_liveStreamingServerPort);
-	s->IntValue(LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS, m_liveStreamingQueueFlushThresholdSeconds);
-	LOG4CXX_INFO(s_log, "LiveStreamConfig Endpoint " + m_rtmpServerEndpoint + ":"+ m_rtmpServerPort);
+    s->StringValue(RTMP_SERVER_PORT, m_rtmpServerPort);
+    s->IntValue(LIVE_STREAMING_SERVER_PORT_PARAM, m_liveStreamingServerPort);
+    s->IntValue(LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS, m_liveStreamingQueueFlushThresholdSeconds);
+    LOG4CXX_INFO(s_log, "LiveStreamConfig Endpoint " + m_rtmpServerEndpoint + ":" + m_rtmpServerPort);
 }
 
 void LiveStreamConfig::Validate() {
