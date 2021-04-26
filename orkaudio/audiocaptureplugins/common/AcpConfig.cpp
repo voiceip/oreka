@@ -28,6 +28,8 @@ void AcpConfig::Reset() {
 	m_ctiDrivenMatchingTimeoutSec = 30;
 	m_ctiDrivenStopIgnore = true;
 	m_sipUcidFieldName = "User-To-User";
+	m_ctiDrivenEarlyStartReconsider = false;
+	m_ctiDrivenEarlyStartReconsiderTimeout = 2;
 
 	m_sipReportFullAddress = false;
 	m_sessionStartsOnS2ActivityDb = 0;
@@ -52,6 +54,8 @@ void AcpConfig::Define(Serializer* s) {
 	s->CsvValue("CtiDrivenMatchingCriteria", m_ctiDrivenMatchingCriteria);
 	s->BoolValue("CtiDrivenStopIgnore", m_ctiDrivenStopIgnore);
 	s->CsvValue("CtiDrivenMatchingTapeMetadataTagPair", m_ctiDrivenMatchingTapeMetadataTagPair);
+	s->BoolValue("CtiDrivenEarlyStartReconsider", m_ctiDrivenEarlyStartReconsider);
+	s->IntValue("CtiDrivenEarlyStartReconsiderTimeout",m_ctiDrivenEarlyStartReconsiderTimeout);
 	s->BoolValue("SipReportFullAddress", m_sipReportFullAddress);
 	s->IntValue("RtpS1MinNumPacketsBeforeStart",m_rtpS1MinNumPacketsBeforeStart);
 	s->IntValue("RtpS2MinNumPacketsBeforeStart",m_rtpS2MinNumPacketsBeforeStart);

@@ -48,6 +48,8 @@ public:
 	CStdString m_ctiDrivenMatchingTapeTag;
 	CStdString m_ctiDrivenMatchingMetadataTag;
 	CStdString m_sipUcidFieldName;
+	bool m_ctiDrivenEarlyStartReconsider;
+	int m_ctiDrivenEarlyStartReconsiderTimeout;
 
 	bool m_sipReportFullAddress;
 	std::list <CtiMatchingCriteriaEnum> m_ctiMatchingCriteriaList;
