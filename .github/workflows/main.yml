@@ -53,7 +53,6 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
           build-args: |
             TAG=${{ matrix.os-version }}
-          os-version: ${{ matrix.os-version }}
       - name: Compile
         run: |
           docker run  -v $(pwd)/oreka-build:/oreka-build -v $(pwd):/oreka-src -i -i localhost:5000/${{ github.repository_owner }}/oreka-${{ matrix.os-version }}:latest bash /entrypoint.sh
