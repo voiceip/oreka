@@ -10,7 +10,7 @@
 extern CaptureEventCallBackFunction g_captureEventCallBack;
 
 static std::mutex s_mutex;
-static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("interface.liveStreamSession");
+static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("plugin.livestream");
 static std::set<std::string> streamCallList;
 
 LiveStreamSessions::LiveStreamSessions() {
