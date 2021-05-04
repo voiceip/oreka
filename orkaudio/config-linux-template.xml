@@ -23,7 +23,7 @@
 	<TrackerHostname>localhost</TrackerHostname>
 	<TrackerTcpPort>8080</TrackerTcpPort>
 
-	<CapturePortFilters>LiveStreamFilter</CapturePortFilters>
+	<CapturePortFilters>LiveMonitoring</CapturePortFilters>
 	<TapeProcessors>BatchProcessing, Reporting</TapeProcessors>
 	
 	<BatchProcessingEnhancePriority>true</BatchProcessingEnhancePriority>	    
@@ -64,7 +64,7 @@
         
 		<!-- Use this if you want to force capture from a given list of devices. -->
 		<!-- All available devices are listed in orkaudio.log when the service is starting -->
-		<Devices>enp0s3</Devices>
+		<!--<Devices>eth0, eth1, eth2</Devices>-->
 		
 		<!--<PcapFilter>net 217.14.0.0/16 or host 10.0.0.1</PcapFilter>-->
         		
@@ -108,8 +108,14 @@
 		<!-- End of Available Configurations for Mitel Communications Platform -->
 
 	</VoIpPlugin>
-	<RTMPServerEndPoint>172.16.176.65</RTMPServerEndPoint>
+
+	<!-- LiveStreamFilter Configuration -->
+	<!-- To Enable this plugin add `LiveStreamFilter` in CapturePortFilters  -->
+	<!-- RTMP Endpoint to which the streams would be published. Refer to Wiki to see example nginx config -->
+	<RTMPServerEndPoint>127.0.0.1</RTMPServerEndPoint>
 	<RTMPServerPort>1935</RTMPServerPort>
-	<LiveStreamingServerPort>59160</LiveStreamingServerPort>
-	<LiveStreamingQueueFlushThresholdSeconds>30</LiveStreamingQueueFlushThresholdSeconds>
+	<!-- <LiveStreamingServerPort>59160</LiveStreamingServerPort> -->
+	<!-- <LiveStreamingQueueFlushThresholdSeconds>30</LiveStreamingQueueFlushThresholdSeconds> -->
+	<!-- End of LiveStreamFilter Configuration -->
+
 </config>
