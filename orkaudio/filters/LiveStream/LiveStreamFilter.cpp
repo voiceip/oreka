@@ -38,12 +38,12 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
         return;
     }
 
-    if (inputAudioChunk -> GetNumSamples() == 0) {
+    if (inputAudioChunk->GetNumSamples() == 0) {
         return;
     }
 
-    AudioChunkDetails outputDetails = * inputAudioChunk -> GetDetails();
-    char * inputBuffer = (char * ) inputAudioChunk -> m_pBuffer;
+    AudioChunkDetails outputDetails = * inputAudioChunk->GetDetails();
+    char * inputBuffer = (char * ) inputAudioChunk->m_pBuffer;
     int size = outputDetails.m_numBytes * 2;
 
     //logMsg.Format("LiveStreamFilter AudioChunkIn Size: %d, Encoding: %s , RTP payload type: %s",size ,toString(outputDetails.m_encoding) , RtpPayloadTypeEnumToString(outputDetails.m_rtpPayloadType));
@@ -161,13 +161,13 @@ bool LiveStreamFilter::SupportsInputRtpPayloadType(int rtpPayloadType) {
 
 void LiveStreamFilter::CaptureEventIn(CaptureEventRef & event) {
     //Start RTP Stream Open
-    auto key = event -> EventTypeToString(event -> m_type);
-    LOG4CXX_INFO(s_log, "LiveStream CaptureEventIn " + key + " : " + event -> m_value);
-    if (event -> m_type == CaptureEvent::EventTypeEnum::EtCallId) {
-        m_callId = event -> m_value;
+    auto key = event->EventTypeToString(event->m_type);
+    LOG4CXX_INFO(s_log, "LiveStream CaptureEventIn " + key + " : " + event->m_value);
+    if (event->m_type == CaptureEvent::EventTypeEnum::EtCallId) {
+        m_callId = event->m_value;
     }
 
-    if (event -> m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event -> m_key == "LiveStream" && event -> m_value == "start") {
+    if (event->m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event->m_key == "LiveStream" && event->m_value == "start") {
         std::string url = "rtmp://" + LIVESTREAMCONFIG.m_rtmpServerEndpoint + ":" + LIVESTREAMCONFIG.m_rtmpServerPort + "/live/" + m_callId;
 
         LOG4CXX_INFO(s_log, "LiveStream URL : " + url);
@@ -193,21 +193,21 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef & event) {
         LOG4CXX_DEBUG(s_log, "LiveStream:: RTMP publish stream success");
 
         status = true;
-        LiveStreamSessionsSingleton::instance() -> AddToStreamCallList(m_callId);
+        LiveStreamSessionsSingleton::instance()->AddToStreamCallList(m_callId);
     }
 
-    if (event -> m_type == CaptureEvent::EventTypeEnum::EtStop) {
+    if (event->m_type == CaptureEvent::EventTypeEnum::EtStop) {
         //close rtmp stream
         status = false;
-        LiveStreamSessionsSingleton::instance() -> RemoveFromStreamCallList(m_callId);
+        LiveStreamSessionsSingleton::instance()->RemoveFromStreamCallList(m_callId);
         if (rtmp != NULL) {
             LOG4CXX_DEBUG(s_log, "LiveStream:: RTMP stream destroying");
             srs_rtmp_destroy(rtmp);
         }
     }
 
-    if (event -> m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event -> m_key == "LiveStream" && event -> m_value == "stop") {
-        LiveStreamSessionsSingleton::instance() -> RemoveFromStreamCallList(m_callId);
+    if (event->m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event->m_key == "LiveStream" && event->m_value == "stop") {
+        LiveStreamSessionsSingleton::instance()->RemoveFromStreamCallList(m_callId);
         status = false;
     }
 }
