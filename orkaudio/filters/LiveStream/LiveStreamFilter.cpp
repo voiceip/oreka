@@ -166,11 +166,13 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef & event) {
     //Start RTP Stream Open
     CStdString logMsg;
     auto key = event->EventTypeToString(event->m_type);
-    LOG4CXX_INFO(s_log, "LiveStream CaptureEventIn " + key + " : " + event->m_value);
 
     if (event->m_type == CaptureEvent::EventTypeEnum::EtStart) {
         m_orkRefId = event->m_value;
     }
+
+    logMsg.Format("LiveStream:: CaptureEventIn[%s] Key: %s Value: %s", m_orkRefId, key, event->m_value);
+    LOG4CXX_INFO(s_log, logMsg);
 
     if (event->m_type == CaptureEvent::EventTypeEnum::EtCallId) {
         m_callId = event->m_value;
