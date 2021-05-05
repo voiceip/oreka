@@ -112,9 +112,8 @@
 	<!-- LiveStreamFilter Configuration -->
 	<!-- To Enable this plugin add `LiveStreamFilter` in CapturePortFilters  -->
 	<!-- RTMP Endpoint to which the streams would be published. Refer to Wiki to see example nginx config -->
-	<RTMPServerEndPoint>127.0.0.1</RTMPServerEndPoint>
-	<RTMPServerPort>1935</RTMPServerPort>
-	<ShouldStreamAllCalls>true</ShouldStreamAllCalls>
+	<RTMPServerEndPoint>127.0.0.1:1935/live</RTMPServerEndPoint>
+	<LiveStreamAllCalls>true</LiveStreamAllCalls>
 	<!-- <LiveStreamingServerPort>59160</LiveStreamingServerPort> -->
 	<!-- <LiveStreamingQueueFlushThresholdSeconds>30</LiveStreamingQueueFlushThresholdSeconds> -->
 	<!-- End of LiveStreamFilter Configuration -->

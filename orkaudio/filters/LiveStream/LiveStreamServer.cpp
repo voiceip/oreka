@@ -79,7 +79,7 @@ void LiveStreamServer::Start() {
             m_nativecallid = requestBody["nativeCallId"].get<std::string>();
             try {
                 if (m_nativecallid.size() > 0 && LiveStreamSessionsSingleton::instance() -> StartStreamNativeCallId(m_nativecallid)) {
-                    url = "rtmp://"  + LIVESTREAMCONFIG.m_rtmpServerEndpoint + ":" + LIVESTREAMCONFIG.m_rtmpServerPort + "/live/" + m_nativecallid;
+                    url = "rtmp://"  + LIVESTREAMCONFIG.m_rtmpServerEndpoint + "/" + m_nativecallid;
                     res.status = 200;
                     response = {{"url", url }};
                 } else {

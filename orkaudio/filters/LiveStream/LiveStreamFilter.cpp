@@ -182,40 +182,40 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef & event) {
     ) {
 
         if (m_callId.empty()) {
-            logMsg.Format("LiveStream:: Start[%s] Failed for Empty Call ID", m_orkRefId)
+            logMsg.Format("LiveStream:: Start[%s] Failed for Empty Call ID", m_orkRefId);
             LOG4CXX_ERROR(s_log, logMsg);
             return;
         }
-        std::string url = "rtmp://" + LIVESTREAMCONFIG.m_rtmpServerEndpoint + ":" + LIVESTREAMCONFIG.m_rtmpServerPort + "/live/" + m_callId;
+        std::string url = "rtmp://" + LIVESTREAMCONFIG.m_rtmpServerEndpoint + "/" + m_callId;
 
         logMsg.Format("LiveStream:: Start[%s] Streaming URL %s", m_orkRefId, url.c_str());
         LOG4CXX_INFO(s_log, logMsg);
         //open rstp stream
         rtmp = srs_rtmp_create(url.c_str());
         if (srs_rtmp_handshake(rtmp) != 0) {
-            logMsg.Format("LiveStream:: Start[%s] RTMP simple handshake failed.", m_orkRefId)
+            logMsg.Format("LiveStream:: Start[%s] RTMP simple handshake failed.", m_orkRefId);
             LOG4CXX_ERROR(s_log, logMsg);
             return;
         }
-        logMsg.Format("LiveStream:: Start[%s] RTMP simple handshake success", m_orkRefId)
+        logMsg.Format("LiveStream:: Start[%s] RTMP simple handshake success", m_orkRefId);
         LOG4CXX_DEBUG(s_log, logMsg);
 
         if (srs_rtmp_connect_app(rtmp) != 0) {
-            logMsg.Format("LiveStream:: Start[%s] RTMP connect vhost/app failed", m_orkRefId)
+            logMsg.Format("LiveStream:: Start[%s] RTMP connect vhost/app failed", m_orkRefId);
             LOG4CXX_ERROR(s_log, logMsg);
             return;
         }
 
-        logMsg.Format("LiveStream:: Start[%s] RTMP connect vhost/app success", m_orkRefId)
+        logMsg.Format("LiveStream:: Start[%s] RTMP connect vhost/app success", m_orkRefId);
         LOG4CXX_DEBUG(s_log, logMsg);
 
         if (srs_rtmp_publish_stream(rtmp) != 0) {
-            logMsg.Format("LiveStream:: Start[%s] RTMP publish stream failed", m_orkRefId)
+            logMsg.Format("LiveStream:: Start[%s] RTMP publish stream failed", m_orkRefId);
             LOG4CXX_ERROR(s_log, logMsg);
             return;
         }
 
-        logMsg.Format("LiveStream:: Start[%s] RTMP publish stream success", m_orkRefId)
+        logMsg.Format("LiveStream:: Start[%s] RTMP publish stream success", m_orkRefId);
         LOG4CXX_DEBUG(s_log, logMsg);
 
         status = true;
@@ -227,7 +227,7 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef & event) {
         status = false;
         LiveStreamSessionsSingleton::instance()->RemoveFromStreamCallList(m_callId);
         if (rtmp != NULL) {
-            logMsg.Format("LiveStream:: Stop[%s] RTMP stream destroying", m_orkRefId)
+            logMsg.Format("LiveStream:: Stop[%s] RTMP stream destroying", m_orkRefId);
             LOG4CXX_DEBUG(s_log, logMsg);
             srs_rtmp_destroy(rtmp);
         }
