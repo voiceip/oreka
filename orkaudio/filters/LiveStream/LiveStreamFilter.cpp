@@ -127,14 +127,15 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
             }
 
             if (srs_audio_write_raw_frame(rtmp, sound_format, sound_rate, sound_size, sound_type, outputBuffer, size, timestamp) != 0) {
-                srs_human_trace("send audio raw data failed.");
+                logMsg.Format("LiveStreamFilter::Send [%s] send audio raw data failed.", m_orkRefId);
+                LOG4CXX_ERROR(s_log, logMsg);
                 return;
             }
 
             CStdString logMsg;
-            logMsg.Format("LiveStreamFilter::sent packet: type=%s, time=%d, size=%d, codec=%d, rate=%d, sample=%d, channel=%d nativecallId=%s",
-                srs_human_flv_tag_type2string(SRS_RTMP_TYPE_AUDIO), timestamp, size, sound_format, sound_rate, sound_size, sound_type, m_callId);
-            LOG4CXX_DEBUG(s_log, logMsg);
+            logMsg.Format("LiveStreamFilter::Send [%s] packet: type=%s, time=%d, size=%d, codec=%d, rate=%d, sample=%d, channel=%d nativecallId=%s",
+                m_orkRefId, srs_human_flv_tag_type2string(SRS_RTMP_TYPE_AUDIO), timestamp, size, sound_format, sound_rate, sound_size, sound_type, m_callId);
+            LOG4CXX_TRACE(s_log, logMsg);
 
             free(outputBuffer);
         }
@@ -171,8 +172,8 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef & event) {
         m_orkRefId = event->m_value;
     }
 
-    logMsg.Format("LiveStream:: CaptureEventIn[%s] Key: %s Value: %s", m_orkRefId, key, event->m_value);
-    LOG4CXX_INFO(s_log, logMsg);
+    logMsg.Format("LiveStream:: CaptureEventIn[%s] Key: %s, Value: %s", m_orkRefId, key, event->m_value);
+    LOG4CXX_DEBUG(s_log, logMsg);
 
     if (event->m_type == CaptureEvent::EventTypeEnum::EtCallId) {
         m_callId = event->m_value;
@@ -230,7 +231,7 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef & event) {
         LiveStreamSessionsSingleton::instance()->RemoveFromStreamCallList(m_callId);
         if (rtmp != NULL) {
             logMsg.Format("LiveStream:: Stop[%s] RTMP stream destroying", m_orkRefId);
-            LOG4CXX_DEBUG(s_log, logMsg);
+            LOG4CXX_INFO(s_log, logMsg);
             srs_rtmp_destroy(rtmp);
         }
     }
