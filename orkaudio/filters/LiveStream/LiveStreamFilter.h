@@ -50,6 +50,7 @@ class DLL_IMPORT_EXPORT_ORKBASE LiveStreamFilter : public Filter {
         u_int32_t timestamp = 0;
         std::deque<char *> bufferQueue;
         unsigned int maxBufferSize;
+        bool shouldStreamAllCalls;
 };
 
 #endif

@@ -18,6 +18,7 @@ LiveStreamFilter::LiveStreamFilter() {
     LOG4CXX_INFO(s_log, "LiveStream New Instance Created");
     //For 1 second, there will be 1000ms / 20ms = 50 frames
     maxBufferSize = LIVESTREAMCONFIG.m_liveStreamingQueueFlushThresholdSeconds * 50;
+    shouldStreamAllCalls = LIVESTREAMCONFIG.m_shouldStreamAllCalls;
 }
 
 LiveStreamFilter::~LiveStreamFilter() {
@@ -99,6 +100,8 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
     //For 1 second, there will be 1000ms / 20ms = 50 frames
     //Audio RTP packet timestamp incremental value = 8kHz / 50 = 8000Hz / 50 = 160
 
+    status = shouldStreamAllCalls ? true : status;
+
     if (isFirstPacket) {
         headChannel = outputDetails.m_channel;
         isFirstPacket = false;
@@ -167,7 +170,11 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef & event) {
         m_callId = event->m_value;
     }
 
-    if (event->m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event->m_key == "LiveStream" && event->m_value == "start") {
+    if ((event->m_type == CaptureEvent::EventTypeEnum::EtCallId && shouldStreamAllCalls) || (event->m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event->m_key == "LiveStream" && event->m_value == "start" && !shouldStreamAllCalls)) {
+        if (m_callId.empty()) {
+            LOG4CXX_ERROR(s_log, "LiveStream:: Empty call id.");
+            return;
+        }
         std::string url = "rtmp://" + LIVESTREAMCONFIG.m_rtmpServerEndpoint + ":" + LIVESTREAMCONFIG.m_rtmpServerPort + "/live/" + m_callId;
 
         LOG4CXX_INFO(s_log, "LiveStream URL : " + url);
@@ -206,7 +213,7 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef & event) {
         }
     }
 
-    if (event->m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event->m_key == "LiveStream" && event->m_value == "stop") {
+    if (event->m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event->m_key == "LiveStream" && event->m_value == "stop" && !shouldStreamAllCalls) {
         LiveStreamSessionsSingleton::instance()->RemoveFromStreamCallList(m_callId);
         status = false;
     }

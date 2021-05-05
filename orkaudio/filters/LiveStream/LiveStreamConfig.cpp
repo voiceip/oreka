@@ -7,15 +7,17 @@ static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("plugin.livestream"
 LiveStreamConfig g_LiveStreamConfigObjectRef;
 
 LiveStreamConfig::LiveStreamConfig() {
-	m_liveStreamingServerPort = LIVE_STREAMING_SERVER_PORT_DEFAULT;
-	m_liveStreamingQueueFlushThresholdSeconds = DEFAULT_LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS;
+    m_liveStreamingServerPort = LIVE_STREAMING_SERVER_PORT_DEFAULT;
+    m_liveStreamingQueueFlushThresholdSeconds = DEFAULT_LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS;
+    m_shouldStreamAllCalls = false;
 }
 
 void LiveStreamConfig::Reset() {
-	m_rtmpServerEndpoint = "";
-	m_rtmpServerPort = "";
-	m_liveStreamingServerPort = LIVE_STREAMING_SERVER_PORT_DEFAULT;
-	m_liveStreamingQueueFlushThresholdSeconds = DEFAULT_LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS;
+    m_rtmpServerEndpoint = "";
+    m_rtmpServerPort = "";
+    m_shouldStreamAllCalls = false;
+    m_liveStreamingServerPort = LIVE_STREAMING_SERVER_PORT_DEFAULT;
+    m_liveStreamingQueueFlushThresholdSeconds = DEFAULT_LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS;
 }
 
 void LiveStreamConfig::Define(Serializer* s) {
@@ -23,6 +25,7 @@ void LiveStreamConfig::Define(Serializer* s) {
     s->StringValue(RTMP_SERVER_PORT, m_rtmpServerPort);
     s->IntValue(LIVE_STREAMING_SERVER_PORT_PARAM, m_liveStreamingServerPort);
     s->IntValue(LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS, m_liveStreamingQueueFlushThresholdSeconds);
+    s->BoolValue(SHOULD_STREAM_ALL_CALLS, m_shouldStreamAllCalls);
     LOG4CXX_INFO(s_log, "LiveStreamConfig Endpoint " + m_rtmpServerEndpoint + ":" + m_rtmpServerPort);
 }
 

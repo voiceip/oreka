@@ -12,6 +12,7 @@
 #define LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS "LiveStreamingQueueFlushThresholdSeconds"
 #define LIVE_STREAMING_SERVER_PORT_DEFAULT 59160
 #define DEFAULT_LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS 30
+#define SHOULD_STREAM_ALL_CALLS "ShouldStreamAllCalls"
 
 class LiveStreamConfig : public Object {
     public:
@@ -29,6 +30,7 @@ class LiveStreamConfig : public Object {
         CStdString m_rtmpServerPort;
         int m_liveStreamingServerPort;
         int m_liveStreamingQueueFlushThresholdSeconds;
+        bool m_shouldStreamAllCalls;
  
 };
 // typedef oreka::shared_ptr<LiveStreamConfig> LiveStreamConfigObjectRef;
