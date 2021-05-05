@@ -114,7 +114,7 @@
 	<!-- RTMP Endpoint to which the streams would be published. Refer to Wiki to see example nginx config -->
 	<RTMPServerEndPoint>127.0.0.1</RTMPServerEndPoint>
 	<RTMPServerPort>1935</RTMPServerPort>
-    <ShouldStreamAllCalls>true</ShouldStreamAllCalls>
+	<ShouldStreamAllCalls>true</ShouldStreamAllCalls>
 	<!-- <LiveStreamingServerPort>59160</LiveStreamingServerPort> -->
 	<!-- <LiveStreamingQueueFlushThresholdSeconds>30</LiveStreamingQueueFlushThresholdSeconds> -->
 	<!-- End of LiveStreamFilter Configuration -->
