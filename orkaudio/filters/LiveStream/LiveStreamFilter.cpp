@@ -164,40 +164,59 @@ bool LiveStreamFilter::SupportsInputRtpPayloadType(int rtpPayloadType) {
 
 void LiveStreamFilter::CaptureEventIn(CaptureEventRef & event) {
     //Start RTP Stream Open
+    CStdString logMsg;
     auto key = event->EventTypeToString(event->m_type);
     LOG4CXX_INFO(s_log, "LiveStream CaptureEventIn " + key + " : " + event->m_value);
+
+    if (event->m_type == CaptureEvent::EventTypeEnum::EtStart) {
+        m_orkRefId = event->m_value;
+    }
+
     if (event->m_type == CaptureEvent::EventTypeEnum::EtCallId) {
         m_callId = event->m_value;
     }
 
-    if ((event->m_type == CaptureEvent::EventTypeEnum::EtCallId && shouldStreamAllCalls) || (event->m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event->m_key == "LiveStream" && event->m_value == "start" && !shouldStreamAllCalls)) {
+    if (
+        (event->m_type == CaptureEvent::EventTypeEnum::EtCallId && shouldStreamAllCalls) ||
+        (event->m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event->m_key == "LiveStream" && event->m_value == "start" && !shouldStreamAllCalls)
+    ) {
+
         if (m_callId.empty()) {
-            LOG4CXX_ERROR(s_log, "LiveStream:: Empty call id.");
+            logMsg.Format("LiveStream:: Start[%s] Failed for Empty Call ID", m_orkRefId)
+            LOG4CXX_ERROR(s_log, logMsg);
             return;
         }
         std::string url = "rtmp://" + LIVESTREAMCONFIG.m_rtmpServerEndpoint + ":" + LIVESTREAMCONFIG.m_rtmpServerPort + "/live/" + m_callId;
 
-        LOG4CXX_INFO(s_log, "LiveStream URL : " + url);
+        logMsg.Format("LiveStream:: Start[%s] Streaming URL %s", m_orkRefId, url.c_str());
+        LOG4CXX_INFO(s_log, logMsg);
         //open rstp stream
         rtmp = srs_rtmp_create(url.c_str());
         if (srs_rtmp_handshake(rtmp) != 0) {
-            LOG4CXX_ERROR(s_log, "LiveStream:: RTMP simple handshake failed.");
+            logMsg.Format("LiveStream:: Start[%s] RTMP simple handshake failed.", m_orkRefId)
+            LOG4CXX_ERROR(s_log, logMsg);
             return;
         }
-        LOG4CXX_DEBUG(s_log, "LiveStream:: RTMP simple handshake success");
+        logMsg.Format("LiveStream:: Start[%s] RTMP simple handshake success", m_orkRefId)
+        LOG4CXX_DEBUG(s_log, logMsg);
 
         if (srs_rtmp_connect_app(rtmp) != 0) {
-            LOG4CXX_ERROR(s_log, "LiveStream:: RTMP connect vhost/app failed");
+            logMsg.Format("LiveStream:: Start[%s] RTMP connect vhost/app failed", m_orkRefId)
+            LOG4CXX_ERROR(s_log, logMsg);
             return;
         }
-        LOG4CXX_DEBUG(s_log, "LiveStream:: RTMP connect vhost/app success");
+
+        logMsg.Format("LiveStream:: Start[%s] RTMP connect vhost/app success", m_orkRefId)
+        LOG4CXX_DEBUG(s_log, logMsg);
 
         if (srs_rtmp_publish_stream(rtmp) != 0) {
-            LOG4CXX_ERROR(s_log, "LiveStream:: RTMP publish stream failed");
+            logMsg.Format("LiveStream:: Start[%s] RTMP publish stream failed", m_orkRefId)
+            LOG4CXX_ERROR(s_log, logMsg);
             return;
         }
 
-        LOG4CXX_DEBUG(s_log, "LiveStream:: RTMP publish stream success");
+        logMsg.Format("LiveStream:: Start[%s] RTMP publish stream success", m_orkRefId)
+        LOG4CXX_DEBUG(s_log, logMsg);
 
         status = true;
         LiveStreamSessionsSingleton::instance()->AddToStreamCallList(m_callId);
@@ -208,12 +227,13 @@ void LiveStreamFilter::CaptureEventIn(CaptureEventRef & event) {
         status = false;
         LiveStreamSessionsSingleton::instance()->RemoveFromStreamCallList(m_callId);
         if (rtmp != NULL) {
-            LOG4CXX_DEBUG(s_log, "LiveStream:: RTMP stream destroying");
+            logMsg.Format("LiveStream:: Stop[%s] RTMP stream destroying", m_orkRefId)
+            LOG4CXX_DEBUG(s_log, logMsg);
             srs_rtmp_destroy(rtmp);
         }
     }
 
-    if (event->m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event->m_key == "LiveStream" && event->m_value == "stop" && !shouldStreamAllCalls) {
+    if (event->m_type == CaptureEvent::EventTypeEnum::EtKeyValue && event->m_key == "LiveStream" && event->m_value == "stop") {
         LiveStreamSessionsSingleton::instance()->RemoveFromStreamCallList(m_callId);
         status = false;
     }

@@ -43,6 +43,7 @@ class DLL_IMPORT_EXPORT_ORKBASE LiveStreamFilter : public Filter {
         AudioChunkRef m_outputAudioChunk;
         bool m_initialized;
         CStdString m_callId;
+        CStdString m_orkRefId;
         bool status = false;
         bool isFirstPacket = true;
         unsigned char headChannel;
