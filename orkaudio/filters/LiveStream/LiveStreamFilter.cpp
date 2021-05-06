@@ -15,14 +15,14 @@
 static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("plugin.livestream");
 
 LiveStreamFilter::LiveStreamFilter() {
-    LOG4CXX_INFO(s_log, "LiveStream New Instance Created");
+    // LOG4CXX_DEBUG(s_log, "LiveStream New Instance Created");
     //For 1 second, there will be 1000ms / 20ms = 50 frames
     maxBufferSize = LIVESTREAMCONFIG.m_liveStreamingQueueFlushThresholdSeconds * 50;
     shouldStreamAllCalls = LIVESTREAMCONFIG.m_shouldStreamAllCalls;
 }
 
 LiveStreamFilter::~LiveStreamFilter() {
-    LOG4CXX_INFO(s_log, "LiveStream Instance Destroying");
+    // LOG4CXX_DEBUG(s_log, "LiveStream Instance Destroying");
 }
 
 FilterRef LiveStreamFilter::Instanciate() {
@@ -100,8 +100,6 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
     //For 1 second, there will be 1000ms / 20ms = 50 frames
     //Audio RTP packet timestamp incremental value = 8kHz / 50 = 8000Hz / 50 = 160
 
-    status = shouldStreamAllCalls ? true : status;
-
     if (isFirstPacket) {
         headChannel = outputDetails.m_channel;
         isFirstPacket = false;
@@ -121,12 +119,21 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
             char * tempBuffer = bufferQueue.front();
             bufferQueue.pop_front();
 
-            for (int i = 0; i < 160; ++i) {
+            if(!outputBuffer) {
+                logMsg.Format("LiveStreamFilter::Send [%s] Memory allocation failed.", m_orkRefId);
+                LOG4CXX_ERROR(s_log, logMsg);
+                return;
+            }
+
+            for (int i = 0; i < outputDetails.m_numBytes; ++i) {
                 outputBuffer[i * 2] = tempBuffer[i];
                 outputBuffer[i * 2 + 1] = inputBuffer[i];
             }
 
             if (srs_audio_write_raw_frame(rtmp, sound_format, sound_rate, sound_size, sound_type, outputBuffer, size, timestamp) != 0) {
+                //outputBuffer has been freed internally
+                //rtmp server write failure, needs reopen, stream can't continue for this call.
+                status = false;
                 logMsg.Format("LiveStreamFilter::Send [%s] send audio raw data failed.", m_orkRefId);
                 LOG4CXX_ERROR(s_log, logMsg);
                 return;
