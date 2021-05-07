@@ -4369,7 +4369,9 @@ void VoIpSessions::Hoover(time_t now)
 			}
 			else
 			{
-				if(session->m_numRtpPackets)
+				// if either m_numRtpPackets or m_numIgnoredRtpPackets is non-zero, then
+				// RTP *has* been received, and we should use m_rtpSessionWithSignallingTimeoutSec
+				if(session->m_numRtpPackets || session->m_numIgnoredRtpPackets)
 				{
 					timeoutSeconds = DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec;
 				}
@@ -4410,7 +4412,9 @@ void VoIpSessions::Hoover(time_t now)
 		}
 		else
 		{
-			if(session->m_numRtpPackets)
+			// if either m_numRtpPackets or m_numIgnoredRtpPackets is non-zero, then
+			// RTP *has* been received, and we should use m_rtpSessionWithSignallingTimeoutSec
+			if(session->m_numRtpPackets || session->m_numIgnoredRtpPackets)
 			{
 				if((now - session->m_lastUpdated) > DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec)
 				{
