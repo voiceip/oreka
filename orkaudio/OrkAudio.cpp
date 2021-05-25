@@ -15,6 +15,9 @@
 #include <iostream>
 #include "stdio.h"
 
+#define BOOST_STACKTRACE_USE_ADDR2LINE
+#include <boost/stacktrace.hpp>
+
 #include "MultiThreadedServer.h"
 #include "OrkAudio.h"
 #include "Utils.h"
@@ -60,6 +63,8 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <cstdlib>       // std::abort
+#include <iostream>      // std::cerr
 #endif
 
 static volatile bool serviceStop = false;
@@ -401,27 +406,20 @@ void MainThread()
 	OrkLogManager::Instance()->Shutdown();
 }
 
-void handler(int sig) {
-	#ifdef linux
-
-	void *array[10];
-	size_t size;
-
-	// get void*'s for all entries on the stack
-	size = backtrace(array, 10);
-
+void sig_handler(int sig) {
 	// print out all the frames to stderr
 	fprintf(stderr, "Error: signal %d:\n", sig);
-	backtrace_symbols_fd(array, size, STDERR_FILENO);
-	#endif
+	try {
+    	std::cerr << boost::stacktrace::stacktrace();
+    } catch (...) {}
   	exit(1);
 }
 
-
 int main(int argc, char* argv[])
 {
-	signal(SIGSEGV, handler);   // install fatal error handler
-	
+	signal(SIGSEGV, sig_handler);   // install fatal error handler
+	signal(SIGABRT, sig_handler);   // install abort error handler
+
 	OrkAprSingleton::Initialize();
 
 	// the "service name" reported on the tape messages uses CONFIG.m_serviceName
