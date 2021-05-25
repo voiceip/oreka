@@ -2,9 +2,26 @@ AC_INIT(configure.in)
 
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE(orkaudio, 1.0)
- 
+
+AC_ARG_ENABLE( [tsan],
+	AS_HELP_STRING([--enable-tsan], [enable thread sanitizer])
+)
+AC_ARG_ENABLE( [tsan],
+	AS_HELP_STRING([--enable-asan], [enable address sanitizer])
+)
+
 AC_LANG_CPLUSPLUS
 AC_PROG_CXX
+
+AS_IF([test "x$enable_tsan" = "xyes"], [
+	CXXFLAGS+=" -fsanitize=thread "
+	LDFLAGS+=" -fsanitize=thread "
+])
+
+AS_IF([test "x$enable_asan" = "xyes"], [
+	CXXFLAGS+=" -fsanitize=address "
+	LDFLAGS+=" -fsanitize=address "
+])
 
 speex_lib=speex
 
