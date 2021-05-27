@@ -47,6 +47,7 @@ void LiveStreamServer::Start() {
                 res.status = 200;
             }
         } catch (const std::exception & e) {
+            LOG4CXX_ERROR(s_log, CStdString("LiveStreamServer::GetLiveCalls Exception - ") + e.what());
             std::string response_msg = "System Error: " + string(e.what());
             response = {{"message", response_msg }};
             res.status = 500;
@@ -63,6 +64,7 @@ void LiveStreamServer::Start() {
             }
             res.status = 200;
         } catch (const std::exception & e) {
+            LOG4CXX_ERROR(s_log, CStdString("LiveStreamServer::GetStreamCalls Exception - ") + e.what());
             std::string response_msg = "System Error: " + string(e.what());
             response = {{"message", response_msg }};
             res.status = 500;
@@ -125,13 +127,6 @@ void LiveStreamServer::Start() {
         }
 
         res.set_content(response.dump(), "application/json");
-    });
-
-    svr.set_error_handler([](const Request & req, Response & res) {
-        auto fmt = "<p>Error Status: <span style='color:red;'>%d</span></p>";
-        char buf[BUFSIZ];
-        snprintf(buf, sizeof(buf), fmt, res.status);
-        res.set_content(buf, "text/html");
     });
 
     svr.set_exception_handler([](const Request & req, Response & res, std::exception &e) {
