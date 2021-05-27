@@ -22,7 +22,7 @@ void LiveStreamConfig::Reset() {
 void LiveStreamConfig::Define(Serializer* s) {
     s->StringValue(RTMP_SERVER_ENDPOINT, m_rtmpServerEndpoint);
     s->IntValue(LIVE_STREAMING_SERVER_PORT_PARAM, m_liveStreamingServerPort);
-    s->IntValue(LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS, m_liveStreamingQueueFlushThresholdSeconds);
+    s->DoubleValue(LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS, m_liveStreamingQueueFlushThresholdSeconds);
     s->BoolValue(LIVE_STREAM_ALL_CALLS, m_shouldStreamAllCalls);
     LOG4CXX_INFO(s_log, "LiveStreamConfig Endpoint " + m_rtmpServerEndpoint);
 }

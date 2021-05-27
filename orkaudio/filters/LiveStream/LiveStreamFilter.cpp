@@ -32,8 +32,6 @@ FilterRef LiveStreamFilter::Instanciate() {
 
 void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
     m_outputAudioChunk = inputAudioChunk;
-    // int16_t pcmdata[BUFFER_SAMPLES];
-    CStdString logMsg;
 
     if (inputAudioChunk.get() == NULL) {
         return;
@@ -43,10 +41,43 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
         return;
     }
 
-    AudioChunkDetails outputDetails = * inputAudioChunk->GetDetails();
+    AudioChunkDetails inputDetails = * inputAudioChunk->GetDetails();
     char * inputBuffer = (char * ) inputAudioChunk->m_pBuffer;
-    int size = outputDetails.m_numBytes * 2;
+    
+    if (isFirstPacket) {
+        headChannel = inputDetails.m_channel;
+        isFirstPacket = false;
+    }
 
+    if (inputDetails.m_channel == headChannel && status) {
+        if (bufferQueue.size() >= maxBufferSize) {
+            while (!bufferQueue.empty()) {
+                char * silentChannelBuffer = (char *)malloc(inputDetails.m_numBytes);
+                if (!silentChannelBuffer) {   
+                    CStdString logMsg;
+                    logMsg.Format("LiveStreamFilter::Send [%s] Memory allocation failed.", m_orkRefId);
+                    LOG4CXX_ERROR(s_log, logMsg);
+                    return;
+                }
+                std::fill_n(silentChannelBuffer, inputDetails.m_numBytes, 0);
+                DownmixAndPushToRTMP(inputDetails, silentChannelBuffer, bufferQueue.front());
+                bufferQueue.pop_front();
+                free(silentChannelBuffer);
+            }
+        }
+        bufferQueue.push_back(inputBuffer);
+    }
+   
+    if (rtmp != NULL && status) {
+        if (inputDetails.m_channel != headChannel && !bufferQueue.empty()) {
+            DownmixAndPushToRTMP(inputDetails, inputBuffer, bufferQueue.front());
+            bufferQueue.pop_front();
+        }
+    }
+}
+void LiveStreamFilter::DownmixAndPushToRTMP(AudioChunkDetails& firstChannelDetails, char * firstChannelBuffer, char * secondChannelBuffer) {
+    CStdString logMsg;
+    int size = firstChannelDetails.m_numBytes * 2;
     //logMsg.Format("LiveStreamFilter AudioChunkIn Size: %d, Encoding: %s , RTP payload type: %s",size ,toString(outputDetails.m_encoding) , RtpPayloadTypeEnumToString(outputDetails.m_rtpPayloadType));
     //LOG4CXX_INFO(s_log, logMsg);
 
@@ -70,9 +101,9 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
     // Speex is supported in Flash Player 10 and higher.
 
     char sound_format = 9;
-    if (outputDetails.m_rtpPayloadType == pt_PCMU)
+    if (firstChannelDetails.m_rtpPayloadType == pt_PCMU)
         sound_format = 8;
-    else if (outputDetails.m_rtpPayloadType == pt_PCMA)
+    else if (firstChannelDetails.m_rtpPayloadType == pt_PCMA)
         sound_format = 7;
 
     // @param sound_rate Sampling rate. The following values are defined:
@@ -99,54 +130,34 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
     //160 byte payload of G.711 has a packetization interval of 20 ms
     //For 1 second, there will be 1000ms / 20ms = 50 frames
     //Audio RTP packet timestamp incremental value = 8kHz / 50 = 8000Hz / 50 = 160
-
-    if (isFirstPacket) {
-        headChannel = outputDetails.m_channel;
-        isFirstPacket = false;
+    char *outputBuffer = (char *)malloc(size);
+    if (!outputBuffer) {
+        logMsg.Format("LiveStreamFilter::Send [%s] Memory allocation failed.", m_orkRefId);
+        LOG4CXX_ERROR(s_log, logMsg);
+        return;
     }
 
-    if (outputDetails.m_channel == headChannel && status) {
-        if (bufferQueue.size() >= maxBufferSize)
-        {
-            bufferQueue.clear();
-        }
-        bufferQueue.push_back(inputBuffer);
+    for (int i = 0; i < firstChannelDetails.m_numBytes; ++i)
+    {
+        outputBuffer[i * 2] = firstChannelBuffer[i];
+        outputBuffer[i * 2 + 1] = secondChannelBuffer[i];
     }
 
-    if (rtmp != NULL && status) {
-        if (outputDetails.m_channel != headChannel && !bufferQueue.empty()) {
-            char * outputBuffer = (char * ) malloc(size);
-            char * tempBuffer = bufferQueue.front();
-            bufferQueue.pop_front();
-
-            if(!outputBuffer) {
-                logMsg.Format("LiveStreamFilter::Send [%s] Memory allocation failed.", m_orkRefId);
-                LOG4CXX_ERROR(s_log, logMsg);
-                return;
-            }
-
-            for (int i = 0; i < outputDetails.m_numBytes; ++i) {
-                outputBuffer[i * 2] = tempBuffer[i];
-                outputBuffer[i * 2 + 1] = inputBuffer[i];
-            }
-
-            if (srs_audio_write_raw_frame(rtmp, sound_format, sound_rate, sound_size, sound_type, outputBuffer, size, timestamp) != 0) {
-                //outputBuffer has been freed internally
-                //rtmp server write failure, needs reopen, stream can't continue for this call.
-                status = false;
-                logMsg.Format("LiveStreamFilter::Send [%s] send audio raw data failed.", m_orkRefId);
-                LOG4CXX_ERROR(s_log, logMsg);
-                return;
-            }
-
-            CStdString logMsg;
-            logMsg.Format("LiveStreamFilter::Send [%s] packet: type=%s, time=%d, size=%d, codec=%d, rate=%d, sample=%d, channel=%d nativecallId=%s",
-                m_orkRefId, srs_human_flv_tag_type2string(SRS_RTMP_TYPE_AUDIO), timestamp, size, sound_format, sound_rate, sound_size, sound_type, m_callId);
-            LOG4CXX_TRACE(s_log, logMsg);
-
-            free(outputBuffer);
-        }
+    if (srs_audio_write_raw_frame(rtmp, sound_format, sound_rate, sound_size, sound_type, outputBuffer, size, timestamp) != 0)
+    {
+        //outputBuffer has been freed internally
+        //rtmp server write failure, needs reopen, stream can't continue for this call.
+        status = false;
+        logMsg.Format("LiveStreamFilter::Send [%s] send audio raw data failed.", m_orkRefId);
+        LOG4CXX_ERROR(s_log, logMsg);
+        return;
     }
+
+    logMsg.Format("LiveStreamFilter::Send [%s] packet: type=%s, time=%d, size=%d, codec=%d, rate=%d, sample=%d, channel=%d nativecallId=%s",
+                  m_orkRefId, srs_human_flv_tag_type2string(SRS_RTMP_TYPE_AUDIO), timestamp, size, sound_format, sound_rate, sound_size, sound_type, m_callId);
+    LOG4CXX_TRACE(s_log, logMsg);
+
+    free(outputBuffer);
 }
 
 void LiveStreamFilter::AudioChunkOut(AudioChunkRef & chunk) {

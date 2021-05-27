@@ -10,7 +10,7 @@
 #define LIVE_STREAMING_SERVER_PORT_PARAM "LiveStreamingServerPort"
 #define LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS "LiveStreamingQueueFlushThresholdSeconds"
 #define LIVE_STREAMING_SERVER_PORT_DEFAULT 59160
-#define DEFAULT_LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS 30
+#define DEFAULT_LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS 0.5
 #define LIVE_STREAM_ALL_CALLS "LiveStreamAllCalls"
 
 class LiveStreamConfig : public Object {
@@ -27,7 +27,7 @@ class LiveStreamConfig : public Object {
 
         CStdString m_rtmpServerEndpoint;
         int m_liveStreamingServerPort;
-        int m_liveStreamingQueueFlushThresholdSeconds;
+        double m_liveStreamingQueueFlushThresholdSeconds;
         bool m_shouldStreamAllCalls;
  
 };
