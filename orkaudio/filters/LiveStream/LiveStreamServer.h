@@ -7,6 +7,7 @@
  */
 #ifndef LIVESTREAMSERVER_H
 #define LIVESTREAMSERVER_H
+#define CPPHTTPLIB_USE_POLL
 
 #include <httplib.h>
 #include <nlohmann/json.hpp>
