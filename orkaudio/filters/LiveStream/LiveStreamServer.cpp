@@ -127,6 +127,22 @@ void LiveStreamServer::Start() {
         res.set_content(response.dump(), "application/json");
     });
 
+    svr.set_error_handler([](const auto& req, auto& res) {
+        auto fmt = "<p>Error Status: <span style='color:red;'>%d</span></p>";
+        char buf[BUFSIZ];
+        snprintf(buf, sizeof(buf), fmt, res.status);
+        res.set_content(buf, "text/html");
+    });
+
+    svr.set_exception_handler([](const auto& req, auto& res, std::exception &e) {
+        LOG4CXX_ERROR(s_log, CStdString("LiveStreamServer::ExceptionHandler Error 500 - ") + e.what());
+        res.status = 500;
+        auto fmt = "<h1>Error 500</h1><p>%s</p>";
+        char buf[BUFSIZ];
+        snprintf(buf, sizeof(buf), fmt, e.what());
+        res.set_content(buf, "text/html");
+    });
+
     svr.listen("0.0.0.0", m_port);
 
     Stop();
