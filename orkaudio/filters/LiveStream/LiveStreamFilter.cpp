@@ -75,9 +75,9 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
         }
     }
 }
-void LiveStreamFilter::DownmixAndPushToRTMP(AudioChunkDetails& firstChannelDetails, char * firstChannelBuffer, char * secondChannelBuffer) {
+void LiveStreamFilter::DownmixAndPushToRTMP(AudioChunkDetails& channelDetails, char * firstChannelBuffer, char * secondChannelBuffer) {
     CStdString logMsg;
-    int size = firstChannelDetails.m_numBytes * 2;
+    int size = channelDetails.m_numBytes * 2;
     //logMsg.Format("LiveStreamFilter AudioChunkIn Size: %d, Encoding: %s , RTP payload type: %s",size ,toString(outputDetails.m_encoding) , RtpPayloadTypeEnumToString(outputDetails.m_rtpPayloadType));
     //LOG4CXX_INFO(s_log, logMsg);
 
@@ -101,9 +101,9 @@ void LiveStreamFilter::DownmixAndPushToRTMP(AudioChunkDetails& firstChannelDetai
     // Speex is supported in Flash Player 10 and higher.
 
     char sound_format = 9;
-    if (firstChannelDetails.m_rtpPayloadType == pt_PCMU)
+    if (channelDetails.m_rtpPayloadType == pt_PCMU)
         sound_format = 8;
-    else if (firstChannelDetails.m_rtpPayloadType == pt_PCMA)
+    else if (channelDetails.m_rtpPayloadType == pt_PCMA)
         sound_format = 7;
 
     // @param sound_rate Sampling rate. The following values are defined:
@@ -137,7 +137,7 @@ void LiveStreamFilter::DownmixAndPushToRTMP(AudioChunkDetails& firstChannelDetai
         return;
     }
 
-    for (int i = 0; i < firstChannelDetails.m_numBytes; ++i)
+    for (int i = 0; i < channelDetails.m_numBytes; ++i)
     {
         outputBuffer[i * 2] = firstChannelBuffer[i];
         outputBuffer[i * 2 + 1] = secondChannelBuffer[i];
