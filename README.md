@@ -20,7 +20,7 @@ Based on [OrecX](http://www.orecx.com/open-source/) [Oreka](https://github.com/O
 - Support for G729 Codec  
 - SIP-CallID Tracking   
 - Upgrade to latest version of libraries.
-- Realtime Streaming of Live Calls.
+- [Realtime Streaming](https://github.com/voiceip/oreka/wiki/Live-Streaming) of Live Calls.
 
 **OrkTrack**
 

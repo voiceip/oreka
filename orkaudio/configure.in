@@ -20,7 +20,7 @@ if [grep "release 5" /etc/redhat-release]; then
 fi
 
 AC_LANG_CPLUSPLUS
-AC_PROG_CXX([g++])
+AC_PROG_CXX
 AM_PROG_LIBTOOL
 
 # Check if gcc supports cpp11
