@@ -50,7 +50,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="0"
-				AdditionalIncludeDirectories="../..;../../../OrkBaseCxx;C:\devExt\boost\boost_1_32_0;C:\devExt\portaudio_v18\pa_common;C:\devExt\ACE_wrappers;C:\devext\xerces\src;../Common;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;"
+				AdditionalIncludeDirectories="../..;../../../OrkBaseCxx;C:\devExtVC12\boost\boost_1_55_0;C:\devExt\portaudio_v18\pa_common;C:\devExt\ACE_wrappers;C:\devext\xerces\src;../Common;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SOUNDDEVICE_EXPORTS"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -144,7 +144,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../..;../../../OrkBaseCxx;C:\devExt\boost\boost_1_32_0;C:\devExt\portaudio_v18\pa_common;C:\devExt\ACE_wrappers;C:\devext\xerces\src;../Common;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;"
+				AdditionalIncludeDirectories="../..;../../../OrkBaseCxx;C:\devExtVC12\boost\boost_1_55_0;C:\devExt\portaudio_v18\pa_common;C:\devExt\ACE_wrappers;C:\devext\xerces\src;../Common;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;SOUNDDEVICE_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

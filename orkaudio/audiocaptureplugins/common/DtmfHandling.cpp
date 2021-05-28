@@ -186,7 +186,7 @@ void ReportDtmfDigit(OrkSession* ss, int channel, CStdString digitValue,  unsign
 
 	CStdString dtmfDigitEventValue = digitValue;
 	if(CONFIG.m_dtmfReportingDetailed == true) {
-		dtmfDigitEventValue.Format("%s_%d_%d",digitValue,digitVolume,digitDuration);
+		dtmfDigitEventValue.Format("%s_%d_%d_%d",digitValue,digitVolume,digitDuration,channel);
 	}
 
 	event.reset(new CaptureEvent());
@@ -224,7 +224,7 @@ void HandleRtpEvent(OrkSession* ss,  int channel, RtpEventPayloadFormat *payload
 		LOG4CXX_DEBUG(getLog(), logMsg);
 	}
 
-	if(ss->m_currentRtpEventTs != rtpEventInfo->m_startTimestamp)
+	if(ss->m_currentRtpEventTs != rtpEventInfo->m_startTimestamp && rtpEventInfo->m_end == 1)
 	{
 		ss->m_currentRtpEventTs = rtpEventInfo->m_startTimestamp;
 		ReportDtmfDigit(ss, channel, DtmfDigitToString(rtpEventInfo->m_event), rtpEventInfo->m_duration, rtpEventInfo->m_volume, rtpEventInfo->m_startTimestamp, seqNum);

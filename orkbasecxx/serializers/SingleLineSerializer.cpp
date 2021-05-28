@@ -20,7 +20,9 @@ void SingleLineSerializer::AddString(const char* key, CStdString& value)
 	CStdString pair;
 	CStdString escapedValue;
 	EscapeSingleLine(value, escapedValue);
-	pair.Format("%s=%s ", key, (PCSTR)escapedValue);
+	pair.reserve(8000);
+	pair.Format("%s=", key);
+	pair += escapedValue + " ";
 	m_output += pair;
 }
 

@@ -1261,7 +1261,7 @@ typedef std::wstring::pointer		SW_PTRTYPE;
 
 inline void	ssasn(std::string& sDst, const std::string& sSrc)
 {
-	if ( sDst.c_str() != sSrc.c_str() )
+	if ( sDst.c_str() != const_cast<const char*> (sSrc.c_str()) )
 	{
 		sDst.erase();
 		sDst.assign(SSREF(sSrc));
@@ -1365,7 +1365,7 @@ inline void ssasn(std::string& sDst, const int nNull)
 }	
 inline void	ssasn(std::wstring& sDst, const std::wstring& sSrc)
 {
-	if ( sDst.c_str() != sSrc.c_str() )
+	if ( sDst.c_str() != const_cast<const wchar_t*>(sSrc.c_str()) )
 	{
 		sDst.erase();
 		sDst.assign(SSREF(sSrc));
@@ -3306,6 +3306,7 @@ public:
 					   reinterpret_cast<PMYSTR>(&szTemp), 0, &argList) == 0 ||
 			 szTemp == 0 )
 		{
+			va_end(argList);
 			throw std::runtime_error("out of memory");
 		}
 		*this = szTemp;
@@ -3325,6 +3326,7 @@ public:
 					   reinterpret_cast<PMYSTR>(&szTemp), 0, &argList) == 0 ||
 			szTemp == 0)
 		{
+			va_end(argList);
 			throw std::runtime_error("out of memory");
 		}
 		*this = szTemp;

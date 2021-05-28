@@ -49,7 +49,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\DevExt\speex\speex-1.2beta3-win32\include&quot;;.;.\filters\gsm;.\filters\gsm\gsm610;.\filters\ilbc;.\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0;C:\devExt\ACE_wrappers;C:\devext\xerces\src;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;.\filters\g722codec"
+				AdditionalIncludeDirectories="&quot;C:\DevExt\speex\speex-1.2beta3-win32\include&quot;;.;.\filters\gsm;.\filters\gsm\gsm610;.\filters\ilbc;.\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExtVC12\boost\boost_1_55_0;C:\devExt\ACE_wrappers;C:\devext\xerces\src;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;.\filters\g722codec"
 				PreprocessorDefinitions="BUILD_ORKBASE;WIN32;_DEBUG;_WINDOWS;_USRDLL;inline=__inline"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -150,7 +150,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				InlineFunctionExpansion="0"
-				AdditionalIncludeDirectories=".;.\filters\gsm;.\filters\gsm\gsm610;.\filters\ilbc;.\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0;C:\devExt\ACE_wrappers;C:\devext\xerces\src;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;.\filters\g722codec;&quot;C:\DevExt\speex\speex-1.2beta3-win32\include&quot;;C:\sfTrunk\orkbasecxx\filters\g726codecs\g72x;C:\sfTrunk\orkbasecxx\filters\g726codecs"
+				AdditionalIncludeDirectories=".;.\filters\gsm;.\filters\gsm\gsm610;.\filters\ilbc;.\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExtVC12\boost\boost_1_55_0;C:\devExt\ACE_wrappers;C:\devext\xerces\src;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;.\filters\g722codec;&quot;C:\DevExt\speex\speex-1.2beta3-win32\include&quot;;C:\sfTrunk\orkbasecxx\filters\g726codecs\g72x;C:\sfTrunk\orkbasecxx\filters\g726codecs"
 				PreprocessorDefinitions="BUILD_ORKBASE;WIN32;NDEBUG;_WINDOWS;_USRDLL;inline=__inline"
 				StringPooling="true"
 				RuntimeLibrary="2"

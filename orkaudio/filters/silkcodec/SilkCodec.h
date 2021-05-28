@@ -27,6 +27,11 @@ extern "C"
 #include "SKP_Silk_SigProc_FIX.h"
 }
 
+#ifdef WIN32
+#undef DLL_IMPORT_EXPORT_ORKBASE 
+#define DLL_IMPORT_EXPORT_ORKBASE
+#endif
+
 class DLL_IMPORT_EXPORT_ORKBASE SilkCodecDecoder : public Filter
 {
 public:

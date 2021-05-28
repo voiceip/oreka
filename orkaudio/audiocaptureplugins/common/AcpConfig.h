@@ -11,6 +11,7 @@
 typedef enum{
 	MatchLocalParty,
 	MatchRemoteParty,
+	MatchCtiRemoteParty,
 	MatchUcid,
 	MatchUcidTimestamp,
 	MatchXrefci,
@@ -33,15 +34,21 @@ public:
 
 	bool m_rtpS1S2MappingDeterministic;
 	bool m_rtpS1S2MappingDeterministicS1IsLocal;
+	int m_rtpS1MinNumPacketsBeforeStart;
+	int m_rtpS2MinNumPacketsBeforeStart;
 
 	bool IsMediaGateway(struct in_addr);
 	IpRanges m_mediaGateways;
 	bool m_ctiDrivenEnable;
 	int m_ctiDrivenMatchingTimeoutSec;
 	std::list<CStdString> m_ctiDrivenMatchingCriteria;
+	bool m_ctiDrivenStopIgnore;
+	CStdString m_sipUcidFieldName;
 
 	bool m_sipReportFullAddress;
 	std::list <CtiMatchingCriteriaEnum> m_ctiMatchingCriteriaList;
+	double m_sessionStartsOnS2ActivityDb;
+	bool m_sipRemotePartyFrom200OKEnable;
 };
 
 #endif

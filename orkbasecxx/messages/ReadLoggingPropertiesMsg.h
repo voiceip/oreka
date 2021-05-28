@@ -18,19 +18,6 @@
 #include "messages/AsyncMessage.h"
 
 
-class DLL_IMPORT_EXPORT_ORKBASE ReadLoggingPropertiesResponseMsg : public AsyncMessage
-{
-public:
-	void Define(Serializer* s);
-	inline void Validate() {};
-
-	CStdString GetClassName();
-	ObjectRef NewInstance();
-	inline ObjectRef Process() {return ObjectRef();};
-
-	bool m_success;
-};
-
 class DLL_IMPORT_EXPORT_ORKBASE ReadLoggingPropertiesMsg : public SyncMessage
 {
 public:
@@ -41,6 +28,32 @@ public:
 	ObjectRef NewInstance();
 	ObjectRef Process();
 };
+
+class DLL_IMPORT_EXPORT_ORKBASE ListLoggingPropertiesMsg : public SyncMessage
+{
+public:
+	void Define(Serializer* s);
+	inline void Validate() {};
+
+	CStdString GetClassName();
+	ObjectRef NewInstance();
+	ObjectRef Process();
+};
+
+class DLL_IMPORT_EXPORT_ORKBASE ListLoggingPropertiesResponseMsg : public SimpleResponseMsg
+{
+public:
+	void Define(Serializer* s);
+	inline void Validate() {};
+
+	CStdString GetClassName();
+	ObjectRef NewInstance();
+	inline ObjectRef Process() {return ObjectRef();};
+
+	CStdString m_loggerInfo;
+	int	m_count;
+};
+
 
 #endif
 

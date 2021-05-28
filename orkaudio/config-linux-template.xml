@@ -11,7 +11,7 @@
 	<CapturePlugin>libvoip.so</CapturePlugin>
 	<!--<CapturePlugin>libh323voip.so</CapturePlugin>-->
 	<!--<CapturePlugin>liborksipua.so</CapturePlugin>-->
-    
+
 	<CapturePluginPath>/usr/lib</CapturePluginPath>	
 	
 	<!-- Audio file storage format: choose from: native, gsm, ulaw, alaw, pcmwav -->
@@ -19,15 +19,33 @@
 	
 	<!-- If you want to keep native audio files as well as compressed, change this to "no" -->
 	<DeleteNativeFile>yes</DeleteNativeFile>
-	
+
+	<!-- For a TLS connection to orktrack, the remote target should be      -->
+	<!-- prefixed with "https://"                                           -->
+	<!-- For example, https://localhost                                     -->
 	<TrackerHostname>localhost</TrackerHostname>
 	<TrackerTcpPort>8080</TrackerTcpPort>
+	<!-- The default TlsClientCACertFile points to the self-signed          -->
+	<!-- certificate distributed with orkweb. If this has been changed,     -->
+	<!-- orkweb.pem must be updated.                                        -->
+	<TlsClientCACertFile>/etc/orkaudio/certs/orkweb.pem</TlsClientCACertFile>
+
+	<!-- By default TLS connections will go to remote port 8443. To change  -->
+	<!-- this behaviour, uncomment TrackerTlsPort and set it to the desired -->
+	<!-- port, or specify the port as part of the TrackerHostname           -->
+	<!-- For example: https://remotehost:443                                -->
+	<!-- <TrackerTlsPort>8443</TrackerTlsPort> -->
+
+	<!-- By default, orkaudio will accept an expired CA certificate. To     -->
+	<!-- change this behaviour, uncomment out the next line and set the     -->
+	<!-- TlsClientCACertCheckIgnoreExpiry value to false                    -->
+	<!-- <TlsClientCACertCheckIgnoreExpiry>true</TlsClientCACertCheckIgnoreExpiry> -->
 
 	<CapturePortFilters>LiveMonitoring</CapturePortFilters>
 	<TapeProcessors>BatchProcessing, Reporting</TapeProcessors>
 	
 	<BatchProcessingEnhancePriority>true</BatchProcessingEnhancePriority>	    
-    
+
 	<AudioFileOwner>tomcat</AudioFileOwner>
 	<AudioFileGroup>tomcat</AudioFileGroup>
 	<AudioFilePermissions>644</AudioFilePermissions>
@@ -40,10 +58,21 @@
 	<!-- into whereby any data read shall be discarded, and a record -->
 	<!-- maintained of the amount of data which has been read. -->
 	<!-- <SocketStreamerTargets></SocketStreamerTargets> -->
-    
-        <SipUAPlugin>
-                <SipRecExtractFields>groupid,serviceproviderid</SipRecExtractFields>
-        </SipUAPlugin>
+
+	<SipUAPlugin>
+		<!-- Select the SipMode operation from one of the following options:      -->
+		<!--    SiprecBroadWorks, SiprecAcme, CiscoBib, SiprecMetaswitch,         -->
+		<!--    SiprecOpenSips, Truphone, SiprecSonus, SiprecSangoma,             -->
+		<!--    SiprecAudioCodes, SipGeneric, Softphone                           -->
+		<!-- <SipMode>SipGeneric</SipMode> -->
+		<!-- Uncomment the following for SIPREC configurations                    -->
+		<!-- <SupportFeatures>resource-priority,siprec</SupportFeatures> -->
+		<!-- extract any arbitrary SIPREC XML field as a tag -->
+		<SipRecExtractFields>groupid,serviceproviderid</SipRecExtractFields>
+		<!-- extract any arbitrary SIP field as a tag -->
+		<!--<SipExtractFields>X-Unique-ID</SipExtractFields> -->
+		<SdpOfferAnswerMode>true</SdpOfferAnswerMode>
+	</SipUAPlugin>
 	
 	<VoIpPlugin>
 		<PcapSocketBufferSize>67108864</PcapSocketBufferSize>
@@ -61,21 +90,21 @@
 		<!-- Set the option below to "true" to enable IAX2 support -->
 		<!-- the default is that IAX2 support is disabled -->
 		<!--<Iax2Support>false</Iax2Support> -->
-        
+
 		<!-- Use this if you want to force capture from a given list of devices. -->
 		<!-- All available devices are listed in orkaudio.log when the service is starting -->
 		<!--<Devices>eth1, eth2</Devices>-->
 		
 		<!--<PcapFilter>net 217.14.0.0/16 or host 10.0.0.1</PcapFilter>-->
-        		
+
 		<!--<SipOverTcpSupport>yes</SipOverTcpSupport>-->
 		<!--<SipReportFullAddress>yes</SipReportFullAddress>-->
 		<!--<SipUse200OkMediaAddress>yes</SipUse200OkMediaAddress>-->
-        
+
 		<!-- Those two parameters are only needed for call direction detection (one or the other) -->
 		<!--<SipDomains>company.com, 65.34.25.87</SipDomains>-->
 		<!--<SipDirectionReferenceIpAddresses>65.34.98.56, 65.34.98.57</SipDirectionReferenceIpAddresses>-->
-                
+
 		<!-- Sangoma wanpipe RTP tap for TDM boards -->
 		<!--<SangomaRxTcpPortStart>9000</SangomaRxTcpPortStart>-->
 		<!--<SangomaTxTcpPortStart>11000</SangomaTxTcpPortStart>-->

@@ -47,6 +47,7 @@ public:
 	virtual bool IsValid() {return true;};
 
 	CStdString m_hostname;
+	time_t Age() { return (time(NULL) - m_creationTime);};
 protected:
 	time_t m_creationTime;
 	bool m_sent;

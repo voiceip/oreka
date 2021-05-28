@@ -69,6 +69,7 @@
 #include "openssl/err.h"
 #endif
 #include <log4cxx/logger.h>
+#include <regex>
 
 //============================================
 
@@ -172,7 +173,7 @@ private:
 #define AprLp locPool.GetAprPool()
 
 
-#ifndef CENTOS_6
+#ifdef SUPPORT_TLS_SERVER
 //==========================================================
 class DLL_IMPORT_EXPORT_ORKBASE OrkOpenSslSingleton : public OrkSingleton<OrkOpenSslSingleton>
 {
@@ -180,15 +181,12 @@ public:
 	OrkOpenSslSingleton();
 	~OrkOpenSslSingleton();
 	SSL_CTX* GetServerCtx();
-	SSL_CTX* GetClientCtx();
 private:
 	void SslInitialize();
 	void CreateCTXServer();
-	void CreateCTXClient();
 	void ConfigureServerCtx();
-	void ConfigureClientCtx();
 	SSL_CTX* m_serverCtx;
-	SSL_CTX* m_clientCtx;	
+	log4cxx::LoggerPtr s_log;
 };
 #endif
 
@@ -197,6 +195,8 @@ int DLL_IMPORT_EXPORT_ORKBASE inet_pton4(const char *src, struct in_addr* dstAdd
 //============================================
 // String related stuff
 #if defined (WIN32) || defined(WIN64)
+#undef strncasecmp
+#undef getpid 
 #define strncasecmp _strnicmp
 #define getpid _getpid
 #endif 
@@ -248,14 +248,15 @@ CStdString DLL_IMPORT_EXPORT_ORKBASE HexToString(const CStdString& hexInput);		/
 CStdString DLL_IMPORT_EXPORT_ORKBASE IntUnixTsToString(int ts);
 void DLL_IMPORT_EXPORT_ORKBASE StringTokenizeToList(CStdString input, std::list<CStdString>& output);
 bool DLL_IMPORT_EXPORT_ORKBASE ChopToken(CStdString &token, CStdString separator, CStdString &s);
-
+CStdString DLL_IMPORT_EXPORT_ORKBASE ReplaceRegexBy(CStdString input, CStdString pattern, CStdString replacedBy);
 void DLL_IMPORT_EXPORT_ORKBASE OrkSleepSec(unsigned int sec);
 void DLL_IMPORT_EXPORT_ORKBASE OrkSleepMs(unsigned int msec);
 void DLL_IMPORT_EXPORT_ORKBASE OrkSleepMicrSec(unsigned int microsec);
 void DLL_IMPORT_EXPORT_ORKBASE OrkSleepNs(unsigned int nsec);
 int DLL_IMPORT_EXPORT_ORKBASE ork_vsnprintf(char *buf, apr_size_t len, const char *format, ...);
 CStdString DLL_IMPORT_EXPORT_ORKBASE AprGetErrorMsg(apr_status_t ret);
-
+CStdString DLL_IMPORT_EXPORT_ORKBASE GetRevertedNormalizedPhoneNumber(CStdString input);
+bool DLL_IMPORT_EXPORT_ORKBASE CompareNormalizedPhoneNumbers(CStdString input1, CStdString input2);
 //========================================================
 // file related stuff
 
@@ -340,7 +341,7 @@ void DLL_IMPORT_EXPORT_ORKBASE GetHostFqdn(CStdString& fqdn, int size);
 class AlphaCounter
 {
 public:
-	inline AlphaCounter(int start = 0)
+	inline AlphaCounter(int start = 0, const std::string& prefix="")
 	{
 		if(start)
 		{
@@ -381,9 +382,9 @@ public:
 		return string;
 	}
 
-	inline void Reset()
+	inline void Reset(int value = 0)
 	{
-		m_counter = 0;
+		m_counter = value;
 	}
 private:
 	unsigned int m_counter;
@@ -493,4 +494,8 @@ typedef enum
 } RtpPayloadType;
 
 CStdString RtpPayloadTypeEnumToString(char pt);
+size_t DLL_IMPORT_EXPORT_ORKBASE ciFind(const std::string &Haystack, const std::string &Needle);
+#ifdef SUPPORT_TLS_SERVER
+CStdString DLL_IMPORT_EXPORT_ORKBASE SSLErrorQ();
+#endif
 #endif

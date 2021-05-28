@@ -180,8 +180,6 @@ private:
 	//struct in_addr m_localMac;
 	//struct in_addr m_remoteMac;
 	LoggerPtr m_log;
-	bool m_started;
-	bool m_stopped;
 	CStdString m_orkUid;
 
 	bool m_hasDuplicateRtp;
