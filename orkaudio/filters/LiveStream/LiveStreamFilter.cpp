@@ -17,11 +17,15 @@ static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("plugin.livestream"
 LiveStreamFilter::LiveStreamFilter() {
     // LOG4CXX_DEBUG(s_log, "LiveStream New Instance Created");
     //For 1 second, there will be 1000ms / 20ms = 50 frames
-    maxBufferSize = LIVESTREAMCONFIG.m_liveStreamingQueueFlushThresholdSeconds * 50;
+    maxBufferSize = LIVESTREAMCONFIG.m_queueFlushThresholdMillis/20;
     shouldStreamAllCalls = LIVESTREAMCONFIG.m_shouldStreamAllCalls;
 }
 
 LiveStreamFilter::~LiveStreamFilter() {
+    if (silentChannelBuffer != NULL){
+        free(silentChannelBuffer);
+    }
+    
     // LOG4CXX_DEBUG(s_log, "LiveStream Instance Destroying");
 }
 
@@ -49,33 +53,40 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
         isFirstPacket = false;
     }
 
-    if (inputDetails.m_channel == headChannel && status) {
-        if (bufferQueue.size() >= maxBufferSize) {
-            while (!bufferQueue.empty()) {
-                char * silentChannelBuffer = (char *)malloc(inputDetails.m_numBytes);
-                if (!silentChannelBuffer) {   
-                    CStdString logMsg;
-                    logMsg.Format("LiveStreamFilter::Send [%s] Memory allocation failed.", m_orkRefId);
-                    LOG4CXX_ERROR(s_log, logMsg);
-                    return;
-                }
-                std::fill_n(silentChannelBuffer, inputDetails.m_numBytes, 0);
-                DownmixAndPushToRTMP(inputDetails, silentChannelBuffer, bufferQueue.front());
-                bufferQueue.pop_front();
-                free(silentChannelBuffer);
-            }
+    if (silentChannelBuffer == NULL){
+        silentChannelBuffer = (char *)malloc(inputDetails.m_numBytes);
+        if (!silentChannelBuffer) {   
+            CStdString logMsg;
+            logMsg.Format("LiveStreamFilter::AudioChunkIn [%s] SilentChannelBuffer Memory allocation failed.", m_orkRefId);
+            LOG4CXX_ERROR(s_log, logMsg);
+            return;
         }
-        bufferQueue.push_back(inputBuffer);
+        std::fill_n(silentChannelBuffer, inputDetails.m_numBytes, 0);
     }
-   
-    if (rtmp != NULL && status) {
-        if (inputDetails.m_channel != headChannel && !bufferQueue.empty()) {
-            DownmixAndPushToRTMP(inputDetails, inputBuffer, bufferQueue.front());
+
+    if (status) {
+        if (inputDetails.m_channel == headChannel) {
+            if (bufferQueue.size() >= maxBufferSize) {
+                while (!bufferQueue.empty()) {
+                    PushToRTMP(inputDetails, silentChannelBuffer, bufferQueue.front());
+                    bufferQueue.pop_front();
+                }
+            }
+            bufferQueue.push_back(inputBuffer);
+        } else if (inputDetails.m_channel != headChannel && !bufferQueue.empty()) {
+            PushToRTMP(inputDetails, inputBuffer, bufferQueue.front());
             bufferQueue.pop_front();
         }
     }
+    
 }
-void LiveStreamFilter::DownmixAndPushToRTMP(AudioChunkDetails& channelDetails, char * firstChannelBuffer, char * secondChannelBuffer) {
+
+void LiveStreamFilter::PushToRTMP(AudioChunkDetails& channelDetails, char * firstChannelBuffer, char * secondChannelBuffer) {
+
+    if (rtmp == NULL) {
+        return;
+    }
+
     CStdString logMsg;
     int size = channelDetails.m_numBytes * 2;
     //logMsg.Format("LiveStreamFilter AudioChunkIn Size: %d, Encoding: %s , RTP payload type: %s",size ,toString(outputDetails.m_encoding) , RtpPayloadTypeEnumToString(outputDetails.m_rtpPayloadType));
@@ -285,7 +296,7 @@ extern "C"
         
         LOG4CXX_INFO(s_log, "LiveStream  filter initialized");
 
-        LiveStreamServer *liveStreamServer = new LiveStreamServer(LIVESTREAMCONFIG.m_liveStreamingServerPort);
+        LiveStreamServer *liveStreamServer = new LiveStreamServer(LIVESTREAMCONFIG.m_serverPort);
         liveStreamServer->Run();
     }
 

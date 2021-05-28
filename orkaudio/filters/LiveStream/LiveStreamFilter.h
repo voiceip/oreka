@@ -52,7 +52,8 @@ class DLL_IMPORT_EXPORT_ORKBASE LiveStreamFilter : public Filter {
         std::deque<char *> bufferQueue;
         double maxBufferSize;
         bool shouldStreamAllCalls;
-        void DownmixAndPushToRTMP(AudioChunkDetails& channelDetails, char* firstChannelBuffer, char* secondChannelBuffer);
+        char * silentChannelBuffer;
+        void PushToRTMP(AudioChunkDetails& channelDetails, char* firstChannelBuffer, char* secondChannelBuffer);
 };
 
 #endif

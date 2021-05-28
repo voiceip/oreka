@@ -8,9 +8,9 @@
 
 #define RTMP_SERVER_ENDPOINT "RTMPServerEndPoint"
 #define LIVE_STREAMING_SERVER_PORT_PARAM "LiveStreamingServerPort"
-#define LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS "LiveStreamingQueueFlushThresholdSeconds"
+#define LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD "LiveStreamingQueueFlushThreshold"
 #define LIVE_STREAMING_SERVER_PORT_DEFAULT 59160
-#define DEFAULT_LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD_SECONDS 0.5
+#define DEFAULT_LIVE_STREAMING_QUEUE_FLUSH_THRESHOLD 500
 #define LIVE_STREAM_ALL_CALLS "LiveStreamAllCalls"
 
 class LiveStreamConfig : public Object {
@@ -26,10 +26,9 @@ class LiveStreamConfig : public Object {
         static void Configure(DOMNode* node);
 
         CStdString m_rtmpServerEndpoint;
-        int m_liveStreamingServerPort;
-        double m_liveStreamingQueueFlushThresholdSeconds;
+        int m_serverPort;
+        int m_queueFlushThresholdMillis;
         bool m_shouldStreamAllCalls;
- 
 };
 
 extern LiveStreamConfig g_LiveStreamConfigObjectRef;
