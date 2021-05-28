@@ -42,7 +42,7 @@ RUN mkdir -p /opt/bcg729 && chmod 777 /opt/bcg729`
 	&& cmake . -DCMAKE_INSTALL_PREFIX=/usr`
 	&& make `
 	&& make install
-	
+
 #backward-cpp
 RUN mkdir -p /opt/backward-cpp && chmod 777 /opt/backward-cpp`
 	&& git clone --depth 1 https://github.com/bombela/backward-cpp.git /opt/backward-cpp `

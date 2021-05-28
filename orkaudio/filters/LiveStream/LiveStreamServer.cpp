@@ -20,7 +20,7 @@ LiveStreamServer::LiveStreamServer(int port) {
 
 void LiveStreamServer::Run() {
     try {
-        std::thread liveStreamHandler( & LiveStreamServer::Start, this);
+        std::thread liveStreamHandler(&LiveStreamServer::Start, this);
         liveStreamHandler.detach();
         LOG4CXX_INFO(s_log, CStdString("Started LiveStreamServer on port:") + IntToString(m_port));
     } catch (const std::exception & ex) {

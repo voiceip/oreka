@@ -23,7 +23,7 @@
 	<TrackerHostname>localhost</TrackerHostname>
 	<TrackerTcpPort>8080</TrackerTcpPort>
 
-	<CapturePortFilters>LiveMonitoring</CapturePortFilters>
+	<!-- <CapturePortFilters>LiveMonitoring</CapturePortFilters> -->
 	<TapeProcessors>BatchProcessing, Reporting</TapeProcessors>
 	
 	<BatchProcessingEnhancePriority>true</BatchProcessingEnhancePriority>	    
@@ -64,7 +64,7 @@
         
 		<!-- Use this if you want to force capture from a given list of devices. -->
 		<!-- All available devices are listed in orkaudio.log when the service is starting -->
-		<!--<Devices>eth0, eth1, eth2</Devices>-->
+		<!--<Devices>eth1, eth2</Devices>-->
 		
 		<!--<PcapFilter>net 217.14.0.0/16 or host 10.0.0.1</PcapFilter>-->
         		
@@ -111,7 +111,7 @@
 
 	<!-- LiveStreamFilter Configuration -->
 	<!-- To Enable this plugin add `LiveStreamFilter` in CapturePortFilters  -->
-	<CapturePortFilters>LiveStreamFilter</CapturePortFilters>
+	<!-- <CapturePortFilters>LiveStreamFilter</CapturePortFilters> -->
 	<RTMPServerEndPoint>127.0.0.1:1935/live</RTMPServerEndPoint>
 	<LiveStreamAllCalls>true</LiveStreamAllCalls>
 	<!-- <LiveStreamingServerPort>59160</LiveStreamingServerPort> -->

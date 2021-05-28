@@ -64,9 +64,9 @@ bool LiveStreamSessions::StopStreamNativeCallId(CStdString & nativecallid) {
     return false;
 }
 
-std::set < std::string > LiveStreamSessions::GetLiveCallList() {
+std::set<std::string> LiveStreamSessions::GetLiveCallList() {
     MutexSentinel mutexSentinel(s_mutex);
-    std::set < std::string > liveCallList;
+    std::set<std::string> liveCallList;
     try {
         auto sessions = voIpSessions->getByIpAndPort();
         for (auto & p: sessions) {
@@ -81,7 +81,7 @@ std::set < std::string > LiveStreamSessions::GetLiveCallList() {
     return liveCallList;
 }
 
-std::set < std::string > LiveStreamSessions::GetStreamCallList() {
+std::set<std::string> LiveStreamSessions::GetStreamCallList() {
     return streamCallList;
 }
 
@@ -113,6 +113,5 @@ bool LiveStreamSessions::SessionFoundForNativeCallId(CStdString & nativecallid, 
         logMsg.Format("LiveStreamSession::Failure while finding active session for nativeCallId :%s", ex.what());
         LOG4CXX_ERROR(s_log, logMsg);
     }
-
     return found;
 }
