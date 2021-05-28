@@ -19,6 +19,10 @@ if [grep "release 5" /etc/redhat-release]; then
     CXXFLAGS+="-DCENTOS_5"
 fi
 
+AC_LANG_CPLUSPLUS
+AC_PROG_CXX([g++])
+AM_PROG_LIBTOOL
+
 # Check if gcc supports cpp11
 if [echo "main(){}" | $CXX -std=c++11 -xc++ -S -  &>/dev/null] ; then
 	CXXFLAGS+=" -g -O2 -fno-inline-functions -std=c++11 -DSUPPORTS_CPP11 -fPIC"
@@ -27,9 +31,13 @@ else
 	CXXFLAGS+=" -g -O2 -fno-inline-functions"
 fi
 
-AC_LANG_CPLUSPLUS
-AC_PROG_CXX
-AM_PROG_LIBTOOL
+AC_SEARCH_LIBS([dwarf_begin],[dw],[][
+	LDFLAGS+=" -ldw"
+], AC_MSG_ERROR([libdw is not installed.]))
+
+AC_SEARCH_LIBS([unw_backtrace],[unwind],[][
+	LDFLAGS+=" -lunwind"
+], AC_MSG_ERROR([libunwind is not installed.]))
 
 AC_PREFIX_DEFAULT(/usr)
 

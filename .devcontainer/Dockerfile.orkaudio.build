@@ -13,7 +13,7 @@ RUN . /etc/os-release && apt-key adv --keyserver keyserver.ubuntu.com --recv-key
 
 RUN apt-get update && apt-get install -y build-essential libtool automake git tree rpm libboost1.70-dev`
 	libpcap-dev libsndfile1-dev libapr1-dev libspeex-dev liblog4cxx-dev libace-dev `
-	libopus-dev libxerces-c3-dev libssl-dev cmake`
+	libopus-dev libxerces-c3-dev libssl-dev cmake libdw-dev liblzma-dev libunwind-dev`
 	&& rm -rf /var/lib/apt/lists/* 
 
 #silk
@@ -42,6 +42,11 @@ RUN mkdir -p /opt/bcg729 && chmod 777 /opt/bcg729`
 	&& make `
 	&& make install
 
+#backward-cpp
+RUN mkdir -p /opt/backward-cpp && chmod 777 /opt/backward-cpp`
+	&& git clone --depth 1 https://github.com/bombela/backward-cpp.git /opt/backward-cpp `
+	&& ln -s /opt/backward-cpp/backward.hpp /usr/local/include/backward.hpp
+	
 COPY .devcontainer/build.sh  /entrypoint.sh
 
 #INSERT_HERE
