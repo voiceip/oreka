@@ -15,8 +15,9 @@
 #include <iostream>
 #include "stdio.h"
 
-#define BOOST_STACKTRACE_USE_ADDR2LINE
-#include <boost/stacktrace.hpp>
+#define BACKWARD_HAS_DW 1
+#define BACKWARD_HAS_LIBUNWIND 1
+#include "backward.hpp"
 
 #include "MultiThreadedServer.h"
 #include "OrkAudio.h"
@@ -406,19 +407,10 @@ void MainThread()
 	OrkLogManager::Instance()->Shutdown();
 }
 
-void sig_handler(int sig) {
-	// print out all the frames to stderr
-	fprintf(stderr, "Error: signal %d:\n", sig);
-	try {
-    	std::cerr << boost::stacktrace::stacktrace();
-    } catch (...) {}
-  	exit(1);
-}
-
 int main(int argc, char* argv[])
 {
-	signal(SIGSEGV, sig_handler);   // install fatal error handler
-	signal(SIGABRT, sig_handler);   // install abort error handler
+
+	backward::SignalHandling sh; //install fatal error backtrace handler.
 
 	OrkAprSingleton::Initialize();
 
