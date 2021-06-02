@@ -137,6 +137,7 @@ public:
 
 	std::list<CStdString> m_dnisNumbers;
 	std::list<CStdString> m_sipExtractFields;
+	std::list<CStdString> m_sipExtractKeyValues;
 
 	bool m_sangomaEnable;	// not a config parm, derived from the two following
 	int m_sangomaTcpPortDelta;	// not a config parm, derived from the two following
