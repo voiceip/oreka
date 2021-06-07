@@ -71,8 +71,12 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
             if (auto elem = bufferQueue.put(inputBuffer)){
                 PushToRTMP(inputDetails, silentChannelBuffer, *elem);
             }
-        } else if (inputDetails.m_channel != headChannel && !bufferQueue.empty()) {
-            PushToRTMP(inputDetails, inputBuffer, *(bufferQueue.get()));
+        } else {
+            if (auto elem = bufferQueue.get()){
+                PushToRTMP(inputDetails, inputBuffer, *elem);
+            } else {
+                PushToRTMP(inputDetails, inputBuffer, silentChannelBuffer);
+            }
         }
     }
     
