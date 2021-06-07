@@ -45,7 +45,7 @@ void CapturePort::LoadFilters()
 		if(filter.get())
 		{
 			m_filters.push_back(filter);
-			LOG4CXX_DEBUG(s_log, CStdString("Adding filter:") + filterName);
+			LOG4CXX_INFO(s_log, CStdString("Adding filter:") + filterName);
 		}
 		else
 		{

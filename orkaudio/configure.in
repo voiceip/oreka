@@ -20,7 +20,7 @@ if [grep "release 5" /etc/redhat-release]; then
 fi
 
 AC_LANG_CPLUSPLUS
-AC_PROG_CXX([g++])
+AC_PROG_CXX
 AM_PROG_LIBTOOL
 
 # Check if gcc supports cpp11
@@ -43,7 +43,7 @@ AC_PREFIX_DEFAULT(/usr)
 
 AC_SUBST(speex_lib,$speex_lib)
 	
-AC_OUTPUT(Makefile audiocaptureplugins/Makefile audiocaptureplugins/generator/Makefile audiocaptureplugins/voip/Makefile filters/Makefile filters/rtpmixer/Makefile filters/silkcodec/Makefile filters/g729codec/Makefile)
+AC_OUTPUT(Makefile audiocaptureplugins/Makefile audiocaptureplugins/generator/Makefile audiocaptureplugins/voip/Makefile filters/Makefile filters/rtpmixer/Makefile filters/silkcodec/Makefile filters/g729codec/Makefile filters/LiveStream/Makefile)
 
 echo ""
 echo "========= Configuration ==========="
