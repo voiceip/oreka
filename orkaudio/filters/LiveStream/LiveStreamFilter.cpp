@@ -12,12 +12,14 @@
 #include "LiveStreamFilter.h"
 #include "LiveStreamConfig.h"
 
+#define G711_PACKET_INTERVAL 20
+
 static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("plugin.livestream");
 
-LiveStreamFilter::LiveStreamFilter() {
+LiveStreamFilter::LiveStreamFilter() : bufferQueue(LIVESTREAMCONFIG.m_queueFlushThresholdMillis/G711_PACKET_INTERVAL) {
     // LOG4CXX_DEBUG(s_log, "LiveStream New Instance Created");
     //For 1 second, there will be 1000ms / 20ms = 50 frames
-    maxBufferSize = LIVESTREAMCONFIG.m_queueFlushThresholdMillis/20;
+    // auto bufferSize = LIVESTREAMCONFIG.m_queueFlushThresholdMillis/20;
     shouldStreamAllCalls = LIVESTREAMCONFIG.m_shouldStreamAllCalls;
 }
 
@@ -66,16 +68,11 @@ void LiveStreamFilter::AudioChunkIn(AudioChunkRef & inputAudioChunk) {
 
     if (status) {
         if (inputDetails.m_channel == headChannel) {
-            if (bufferQueue.size() >= maxBufferSize) {
-                while (!bufferQueue.empty()) {
-                    PushToRTMP(inputDetails, silentChannelBuffer, bufferQueue.front());
-                    bufferQueue.pop_front();
-                }
+            if (auto elem = bufferQueue.put(inputBuffer)){
+                PushToRTMP(inputDetails, silentChannelBuffer, *elem);
             }
-            bufferQueue.push_back(inputBuffer);
         } else if (inputDetails.m_channel != headChannel && !bufferQueue.empty()) {
-            PushToRTMP(inputDetails, inputBuffer, bufferQueue.front());
-            bufferQueue.pop_front();
+            PushToRTMP(inputDetails, inputBuffer, *(bufferQueue.get()));
         }
     }
     
