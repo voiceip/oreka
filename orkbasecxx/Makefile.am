@@ -4,7 +4,7 @@ AUTOMAKE_OPTIONS = foreign 1.4
 
 
 lib_LTLIBRARIES = liborkbase.la
-liborkbase_la_LDFLAGS =  -lapr-1 -lpthread
+liborkbase_la_LDFLAGS =  -lapr-1 -lpthread -lstatsd 
 liborkbase_la_SOURCES = Filter.cpp g711.c \
 			OrkBase.cpp Object.cpp ObjectFactory.cpp \
 			OrkClient.cpp AudioCapture.cpp Utils.cpp  \
@@ -35,6 +35,6 @@ liborkbase_la_LIBADD = $(top_builddir)/serializers/libserializers.la \
 	$(top_builddir)/filters/g726codecs/libg721codec.la \
 	$(top_builddir)/filters/g726codecs/g72x/libg72x.la \
 	$(top_builddir)/filters/opuscodec/libopuscodec.la
-	-lm -llibstatsd
+	-lm
 
 AM_CXXFLAGS = -D_REENTRANT

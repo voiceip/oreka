@@ -490,7 +490,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 
 void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd)
 {
-	METRICS.timer("DetectUsefulUdpPacket");
+	Metering::Timer timed("VoIP.DetectUsefulUdpPacket");
 	UdpHeaderStruct* udpHeader = (UdpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
 	if(ntohs(udpHeader->source) >= DLLCONFIG.m_udpMinPort && ntohs(udpHeader->dest) >= DLLCONFIG.m_udpMinPort)
 	{
@@ -604,7 +604,7 @@ void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 
 void DetectUsefulTcpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd)
 {
-	METRICS.timer("DetectUsefulTcpPacket");
+	Metering::Timer timed("VoIP.DetectUsefulTcpPacket");
 	bool detectedUsefulPacket = false;
 	TcpHeaderStruct* tcpHeader = (TcpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
 	if(ntohs(tcpHeader->source) == DLLCONFIG.m_skinnyTcpPort || ntohs(tcpHeader->dest) == DLLCONFIG.m_skinnyTcpPort)
@@ -693,7 +693,7 @@ bool TryIpPacketV4(IpHeaderStruct* ipHeader)
 }
 
 void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader) {
-	METRICS.timer("ProcessTransportLayer");
+	Metering::Timer timed("VoIP.ProcessTransportLayer");
 	size_t ipHeaderLength = ipHeader->headerLen();
 	u_char* ipPacketEnd    = reinterpret_cast<unsigned char*>(ipHeader) + ipHeader->packetLen();
 
@@ -913,7 +913,7 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 
 	if((now - s_lastHooveringTime) > 5)
 	{
-		METRICS.timer("hoover");
+		Metering::Timer timed("VoIP.HandlePacket.hoover");
 		MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
 		s_lastHooveringTime = now;
 		VoIpSessionsSingleton::instance()->Hoover(now);

@@ -25,6 +25,7 @@
 #include "EventStreaming.h"
 #include "messages/InitMsg.h"
 #include "OrkTrack.h"
+#include "Metrics.h"
 #include <vector>
 
 static std::mutex s_mutex;

@@ -15,6 +15,7 @@
 #define _WINSOCKAPI_		// prevents the inclusion of winsock.h
 
 #include "Utils.h"
+#include "Metrics.h"
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/sax/ErrorHandler.hpp>
 #include <xercesc/sax/SAXParseException.hpp>
@@ -56,6 +57,7 @@ public:
 
 void ConfigManager::Initialize()
 {
+	Metering::Timer timed("ConfigManager.Initialize");
 	OrkAprSubPool locPool;
 
 	bool failed = false;

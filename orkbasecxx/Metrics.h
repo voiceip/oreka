@@ -16,30 +16,32 @@
 #include <chrono>
 #include <string.h>
 
-class DLL_IMPORT_EXPORT_ORKBASE Timer {
-    const std::string metricName;
-    const std::chrono::steady_clock::time_point start;
+namespace Metering {
 
-    public:
-    Timer(std::string name);
+    class DLL_IMPORT_EXPORT_ORKBASE Timer {
+        const std::string metricName;
+        const std::chrono::steady_clock::time_point start;
 
-    ~Timer();
-};
+        public:
+        Timer(std::string name);
+        ~Timer();
+    };
+
+}
 
 class DLL_IMPORT_EXPORT_ORKBASE Metrics {
 public:
     static Metrics* Instance();
-    statsd Statsd();
-    Timer* timer(std::string name);
-    Metrics(std::string hostname, int port);
+    // statsd Statsd();
+    Metering::Timer* timer(std::string name);
+    Metrics(const std::string hostname, int16_t port);
 
 private:
-    statsd m_StatsdClient;
+    // statsd m_StatsdClient;
     static Metrics metricsInstance;
 };
-
 #define METRICS (*Metrics::Instance())
-#define STATSD_METRICS (Metrics::Instance()->Statsd())
+// #define STATSD_METRICS (Metrics::Instance()->Statsd())
 
 
 #endif
