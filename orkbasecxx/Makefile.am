@@ -17,7 +17,7 @@ liborkbase_la_SOURCES = Filter.cpp g711.c \
 			Reporting.cpp TapeFileNaming.cpp \
 			PartyFilter.cpp EventStreaming.cpp \
 			OrkTrack.cpp SocketStreamer.cpp	\
-			SizedBuffer.cpp DirectionSelector.cpp 
+			SizedBuffer.cpp DirectionSelector.cpp  Metrics.cpp 
 			
 #INCLUDES = -I/projects/ext/xmlrpc++/xmlrpc++0.7/src
 INCLUDES = -I/opt/opus/include/opus -I/usr/include/apr-1 -I/usr/include/apr-1.0
@@ -35,6 +35,6 @@ liborkbase_la_LIBADD = $(top_builddir)/serializers/libserializers.la \
 	$(top_builddir)/filters/g726codecs/libg721codec.la \
 	$(top_builddir)/filters/g726codecs/g72x/libg72x.la \
 	$(top_builddir)/filters/opuscodec/libopuscodec.la
-	-lm
+	-lm -llibstatsd
 
 AM_CXXFLAGS = -D_REENTRANT
