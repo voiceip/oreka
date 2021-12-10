@@ -75,6 +75,10 @@ jobs:
     name: Build Orkweb & Orktrack
     steps:
       - uses: actions/checkout@v2
+      - name: Update CA Certificates
+        run: |
+          sudo apt-get install -y ca-certificates
+          sudo update-ca-certificates
       - name: Set up JDK 9
         uses: actions/setup-java@v2
         with:
