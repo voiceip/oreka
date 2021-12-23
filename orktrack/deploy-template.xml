@@ -61,7 +61,7 @@
      <javac srcdir="${orkbasejHome}/java"
             destdir="${orkbasejHome}/bin"
             fork="java$$javac.exe"
-            source="1.5">
+            source="1.8">
          <classpath id="base.path">
            	<fileset dir="${javadependencies}">
              		<include name="**/*.jar"/>
@@ -75,7 +75,7 @@
         <javac srcdir="${workspaceHome}/${application}/src"
                 destdir="${contextHome}/WEB-INF/classes"
                 fork="java$$javac.exe"
-                source="1.5">
+                source="1.8">
         	<classpath>
            		<path refid="base.path"/>
            		<pathelement location="${orkbasejHome}/bin"/>

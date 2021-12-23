@@ -1,6 +1,6 @@
 /*
  * Oreka -- A media capture and retrieval platform
- * 
+ *
  * Copyright (C) 2005, orecx LLC
  *
  * http://www.orecx.com
@@ -11,9 +11,14 @@
  *
  */
  
-
+#include <cstdlib>
+#include <iostream>
 #include "stdio.h"
 #include <iostream>
+
+#define BACKWARD_HAS_DW 1
+#define BACKWARD_HAS_LIBUNWIND 1
+#include "backward.hpp"
 
 #include "MultiThreadedServer.h"
 #include "OrkAudio.h"
@@ -57,6 +62,15 @@
 #include <thread>
 #include "apr_signal.h"
 #include <sys/prctl.h>
+
+#ifdef linux  
+#include <execinfo.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <cstdlib>       // std::abort
+#include <iostream>      // std::cerr
+#endif
 
 static volatile bool serviceStop = false;
 struct orkaudio_version
@@ -225,7 +239,7 @@ void Transcode(CStdString &file)
 	CStdString portName("SinglePort");
 	AudioTapeRef tape(new AudioTape(portName, file));
 	bp->AddAudioTape(tape);
-	
+
 	// Make sure it stops after processing
 	tape.reset();
 	bp->AddAudioTape(tape);
@@ -450,13 +464,15 @@ void MainThread()
 	OrkLogManager::Instance()->Shutdown();
 }
 
-
 int main(int argc, char* argv[])
 {
+
+	backward::SignalHandling sh; //install fatal error backtrace handler.
+
 	OrkAprSingleton::Initialize();
 
 	// the "service name" reported on the tape messages uses CONFIG.m_serviceName
-	// which also defaults to orkaudio-[hostname] but can be different depending on the 
+	// which also defaults to orkaudio-[hostname] but can be different depending on the
 	// value set in config.xml
 	char hostname[ORKMAXHOSTLEN];
 	OrkGetHostname(hostname, sizeof(hostname));
@@ -511,8 +527,7 @@ int main(int argc, char* argv[])
 	{
 		// No arguments, launch the daemon
 		printf("Starting orkaudio daemon ... (type 'orkaudio debug' if you prefer running attached to tty)\n");
-		Daemon::Singleton()->Start();		
+		Daemon::Singleton()->Start();
 	}
 	return 0;
 }
-

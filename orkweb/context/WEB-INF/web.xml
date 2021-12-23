@@ -9,11 +9,11 @@
     <display-name>orkweb</display-name>
    	<context-param>
 		  <param-name>ConfigDirectory</param-name>
-		  <param-value>c:/oreka/</param-value>
+		  <param-value>/etc/oreka/</param-value>
 	  </context-param>
 	  <context-param>
 		  <param-name>Log4jConfigFile</param-name>
-		  <param-value>logging.properties</param-value>
+		  <param-value>logging.xml</param-value>
     </context-param>
 	  <context-param>
 		  <param-name>HibernateConfigFile</param-name>
@@ -21,8 +21,9 @@
     </context-param>
 	<context-param>
 		<param-name>TomcatHome</param-name>
-		<param-value>C:/Program Files/Apache Software Foundation/Tomcat 7.0</param-value>
-	</context-param>      
+        <param-value>/var/lib/tomcat8</param-value>
+<!--        <param-value>/Users/kinshuk.bairagi/tomcat8</param-value>-->
+	</context-param>
     <context-param>
     	<param-name>Debug</param-name>
     	<param-value>false</param-value>
@@ -43,8 +44,17 @@
         <servlet-class>org.apache.tapestry.ApplicationServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
+    <servlet>
+        <servlet-name>tapeStream</servlet-name>
+        <servlet-class>net.sf.oreka.orkweb.TapeStream</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>orkweb</servlet-name>
         <url-pattern>/app</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>tapeStream</servlet-name>
+        <url-pattern>/stream/*</url-pattern>
+    </servlet-mapping>
+
 </web-app>

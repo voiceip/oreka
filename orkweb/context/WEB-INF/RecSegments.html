@@ -67,34 +67,12 @@
 				  	</tr>
 				  	<tr>
 				  		<td colspan="2">
-				  			
-				  			<script language="JavaScript">
-								function play (audioFilename)
-								{
-								    document.all.player.autoStart = true;
-								    document.all.player.fileName = audioFilename;
-								}
-							</script>
-				  			
-							<OBJECT ID="player"
-							    CLASSID="CLSID:22d6f312-b0f6-11d0-94ab-0080c74c7e95"
-							    CODEBASE="http://activex.microsoft.com/activex/controls/mplayer/en/nsmp2inf.
-							    cab#Version=5,1,52,701"
-							    STANDBY="Loading Microsoft Windows Media Player components..."
-							    TYPE="application/x-oleobject"
-							    WIDTH=280 HEIGHT=50 >
-							    <PARAM NAME="fileName" VALUE="">
-							    <PARAM NAME="animationatStart" VALUE="false">
-							    <PARAM NAME="transparentatStart" VALUE="true">
-							    <PARAM NAME="showControls" VALUE="true">
-							    <PARAM NAME="ShowStatusBar" VALUE="true">
-							    <PARAM NAME="ShowDisplay" VALUE="false">
-							    <PARAM NAME="ShowPositionControls" VALUE="true">
-							    <PARAM NAME="ShowTracker" VALUE="true">
-							    <PARAM NAME="CurrentPosition" VALUE="0">
-							    <PARAM NAME="autoStart" VALUE="true">
-							</OBJECT>		
-						</td>		  	
+
+							<audio id="player" controls>
+								Your browser does not support the audio element.
+							</audio>
+
+						</td>
 				  	</tr>
 				</table>
 			</form>
@@ -130,7 +108,7 @@
 											    </td>
 											    <td>
 											    	<span jwcid="@If" condition="ognl:item.recSegment.tape != null">
-											      		<a jwcid="@Any" href="ognl:item.recSegment.tape.playUrl"><img jwcid="@Image" image="asset:play" alt="Play"/></a>
+											      		<a jwcid="@Any" class="play-button" href="#" data-path="ognl:item.recSegment.tape.filename"><img jwcid="@Image" image="asset:play" alt="Play"/></a>
 											      	</span>											    
 											    </td>
 											</tr>
@@ -169,5 +147,27 @@
 		<td width="15" valign="top" class="brdr6results"><img src="images/common/bdr2_results.gif" width="8" height="8"></td>		
 	</tr>
 </table>
+<script
+		src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+		integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8="
+		crossorigin="anonymous"></script>
+
+<script type="text/javascript">
+
+function playStream(url) {
+   var player = document.getElementById('player');
+   player.src = url;
+   player.play();
+}
+
+$(document).ready(function() {
+    $("a.play-button").on("click", function(event){
+		event.preventDefault();
+        playStream( "/orkweb/stream/" + $(this).data('path'));
+        return false;
+    });
+});
+
+</script>
 </body>
 </html>

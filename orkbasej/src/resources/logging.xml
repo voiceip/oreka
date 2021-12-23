@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+
+    <Properties>
+        <Property name="orkwebLogFile">/var/log/orkweb/orkweb.log</Property>
+        <Property name="accessLogFile">/var/log/orkweb/access.log</Property>
+        <Property name="licenseLogFile">/var/log/orkweb/orklicense.log</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="STDOUT" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
+        </Console>
+
+        <RollingRandomAccessFile name="orkweb" fileName="${orkwebLogFile}" filePattern="${orkwebLogFile}.%i.gz" immediateFlush="true" >
+            <PatternLayout>
+                <Pattern>%d %p %c{1} [%t] %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="20" />
+        </RollingRandomAccessFile>
+
+        <RollingRandomAccessFile name="access" fileName="${accessLogFile}" filePattern="${accessLogFile}.%i.gz" immediateFlush="true" >
+            <PatternLayout>
+                <Pattern>%d %p %c{1} [%t] %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="25 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="20" />
+        </RollingRandomAccessFile>
+
+        <RollingRandomAccessFile name="license" fileName="${licenseLogFile}" filePattern="${licenseLogFile}.%i.gz" immediateFlush="true" >
+            <PatternLayout>
+                <Pattern>%d %p %c{1} [%t] %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="3" />
+        </RollingRandomAccessFile>
+
+
+    </Appenders>
+
+
+    <Loggers>
+
+        <Logger name="ACCESS" level="DEBUG" additivity="false">
+            <AppenderRef ref="access" />
+        </Logger>
+
+        <Logger name="file" level="DEBUG" additivity="false">
+            <AppenderRef ref="orkweb" />
+        </Logger>
+
+        <Logger name="net.sf.oreka.orkweb.LicenseManager" level="INFO" additivity="false">
+            <AppenderRef ref="license" />
+        </Logger>
+
+        <Logger name="net.sf.oreka" level="DEBUG"/>
+
+        <Logger name="org.apache" level="INFO"/>
+        <Logger name="hivemind" level="ERROR"/>
+        <Logger name="org.apache.catalina" level="ERROR"/>
+        <Logger name="org.apache.hivemind" level="INFO"/>
+        <Logger name="org.apache.tapestry" level="INFO"/>
+        <Logger name="org.hibernate" level="ERROR"/>
+        <Logger name="org.hibernate.SQL" level="OFF"/>
+        <Logger name="org.logicalcobwebs.proxool" level="ERROR"/>
+        <Logger name="tapestry" level="ERROR"/>
+        <Logger name="uk.ltd.getahead" level="WARN"/>
+
+        <Root level="DEBUG">
+            <AppenderRef ref="orkweb"/>
+        </Root>
+
+    </Loggers>
+
+
+
+</Configuration>

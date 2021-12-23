@@ -1,0 +1,34 @@
+version: '3'
+services:
+  orkaudio:
+    build:
+      context: ./
+      dockerfile: Dockerfile.orkaudio
+    command: cat /etc/orkaudio/config.xml && orkaudio debug
+    volumes:
+    - /private/var/log/orkaudio:/var/log/orkaudio
+    - ./config.xml:/etc/orkaudio/config.xml
+    network_mode: "host"
+
+  softphone:
+    image: andrius/pjsua
+    networks:
+      - docker_net
+    depends_on:
+      - orkaudio
+      - tcpdump
+    environment:
+      - SIP_SERVER_HOST=172.16.176.94
+      - SIP_TRANSPORT=udp
+    command: dial username 1234
+    tty: true
+    stdin_open: true
+    container_name: softphone-app
+
+  tcpdump:
+    image: nicolaka/netshoot
+    network_mode: "host"
+    command: tcpdump -v -A -i eth0 port 5060
+
+networks:
+  docker_net:

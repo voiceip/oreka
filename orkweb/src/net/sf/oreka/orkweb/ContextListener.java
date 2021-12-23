@@ -19,13 +19,13 @@ import javax.servlet.ServletContextListener;
 
 import net.sf.oreka.util.TomcatServerXMLParser;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 public class ContextListener implements ServletContextListener {
-	
-	Logger log = null;
+
+	Logger log = org.apache.logging.log4j.LogManager.getRootLogger();
 	public static boolean debugSwitch = false; // Enables application debugging (e.g. no login phase)
-	
+
 	public void contextInitialized(ServletContextEvent servletContextEvent) {
 		
 		ServletContext context = servletContextEvent.getServletContext();
@@ -35,14 +35,19 @@ public class ContextListener implements ServletContextListener {
 			configFolder = "c:/oreka/";
 		}
 
-		String log4jConfigFile = context.getInitParameter("Log4jConfigFile");	
+		String log4jConfigFile = context.getInitParameter("Log4jConfigFile");
 		if (log4jConfigFile == null) {
 			log.error("OrkWeb ContextInitialized(): Log4jConfigFile context-param missing in web.xml");
 		} else {
 			log4jConfigFile = configFolder + "/" + log4jConfigFile;
-			LogManager.getInstance().configure(log4jConfigFile);
-			log = LogManager.getInstance().getRootLogger();
-			log.info("OrkWeb ContextInitialized(): log4jConfigFile is " + log4jConfigFile);
+			try {
+				LogManager.getInstance().configure(log4jConfigFile);
+				log.info("OrkWeb ContextInitialized(): log4jConfigFile is " + log4jConfigFile);
+			} catch (Throwable e){
+				e.printStackTrace();
+				log.error("OrkWeb ContextInitialized(): Error configuring log4j: " + e.getMessage());
+			}
+
 		}
 
 		log.info("========================================");
@@ -59,8 +64,9 @@ public class ContextListener implements ServletContextListener {
 		try {
 			OrkWeb.hibernateManager.configure(hibernateConfigFile);
 		}
-		catch (Exception e) {
-			log.error("OrkWeb ContextInitialized(): Error configuring Hibernate: " + e.getMessage());				
+		catch (Throwable e) {
+			e.printStackTrace();
+			log.error("OrkWeb ContextInitialized(): Error configuring Hibernate: " + e.getMessage());
 		}
 		
 		// Get path to server.xml file

@@ -1,6 +1,6 @@
 /*
  * Oreka -- A media capture and retrieval platform
- * 
+ *
  * Copyright (C) 2005, orecx LLC
  *
  * http://www.orecx.com
@@ -111,8 +111,8 @@ void DomSerializer::GetList(const char* key, std::list<ObjectRef>& value, Object
 			catch (CStdString& e)
 			{
 				// For now, do not interrupt the deserialization process.
-				// in the future, we might let this exception go through if the node has been 
-				// recognized to bear the proper tag name 
+				// in the future, we might let this exception go through if the node has been
+				// recognized to bear the proper tag name
 				;
 			}
 			node = node->getNextSibling();
@@ -221,16 +221,21 @@ CStdString DomSerializer::DomNodeToString(DOMNode* node)
 	CStdString output;
 
     DOMImplementation *impl          = DOMImplementationRegistry::getDOMImplementation(XStr("LS").unicodeForm());
-    DOMWriter         *theSerializer = ((DOMImplementationLS*)impl)->createDOMWriter();
+    DOMLSSerializer   *theSerializer = ((DOMImplementationLS*)impl)->createLSSerializer();
+		DOMConfiguration	* dc 					 = theSerializer->getDomConfig();
     // set user specified output encoding
-    //theSerializer->setEncoding(gOutputEncoding);
-	theSerializer->setFeature(XStr("format-pretty-print").unicodeForm(), true); 
+    //dc->setEncoding(gOutputEncoding);
+		dc->setParameter(XStr("format-pretty-print").unicodeForm(), true);
 
     XMLFormatTarget *myFormTarget;
-	myFormTarget = new MemBufFormatTarget ();
-    theSerializer->writeNode(myFormTarget, *node);
+		myFormTarget = new MemBufFormatTarget ();
 
-	output = (char *)((MemBufFormatTarget*)myFormTarget)->getRawBuffer();
+		DOMLSOutput *outputStream = ((DOMImplementationLS*)impl)->createLSOutput();
+		outputStream->setByteStream(myFormTarget);
+
+    theSerializer->write(node, outputStream);
+
+		output = (char *)((MemBufFormatTarget*)myFormTarget)->getRawBuffer();
 
 	// Clean up
     delete theSerializer;

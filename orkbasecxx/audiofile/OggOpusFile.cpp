@@ -151,14 +151,19 @@ OggOpusFile::OggOpusFile()
     m_bytesOffsetFromLastFullFrame = 0;
     m_extraSamplesFromLastChunk = 0;
     m_extraPcmBufLen = 0;
+    m_outBuf=NULL;
+    st= NULL;
 }
 
 OggOpusFile::~OggOpusFile()
 {
-    free(m_outBuf);
-    opus_multistream_encoder_destroy(st);
+    //Don't trigger cleanup if Init() was not called.
+    if(m_outBuf) free(m_outBuf);
+    if(st) opus_multistream_encoder_destroy(st);
     ogg_stream_clear(&os);
-    if(opt_ctls)free(opt_ctls_ctlval);
+    if(opt_ctls) {
+        if(opt_ctls_ctlval) free(opt_ctls_ctlval);
+    }
 } 
 
 void OggOpusFile::Open(CStdString& filename, fileOpenModeEnum mode, bool stereo, int sampleRate)
@@ -210,7 +215,7 @@ void OggOpusFile::Init()
     frame_size=frame_size/(48000/coding_rate);  
     /*OggOpus headers*/ /*FIXME: broke forcemono*/
     header.channels=chan;
-    header.channel_mapping= 0;//header.channels>8?255:chan>2;  //=0 for  wav
+    header.channel_mapping=255;//header.channels>8?255:chan>2;  //=0 for wav //255 for separate channels.
     header.input_sample_rate=rate;
     header.gain=inopt.gain;   //=0 here
 
@@ -236,7 +241,7 @@ void OggOpusFile::Init()
     // bitrate=((64000*header.nb_streams+32000*header.nb_coupled)*
     //             (IMIN(48,IMAX(8,((rate<44100?rate:48000)+1000)/1000))+16)+32)>>6;
         bitrate=6000;
-
+        bitrate = CONFIG.m_audioFileBitRate;
     }
 
     if(bitrate>(1024000*chan)||bitrate<500){
