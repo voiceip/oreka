@@ -57,6 +57,11 @@ jobs:
         run: |
           docker run  -v $(pwd)/oreka-build:/oreka-build -v $(pwd):/oreka-src -i -i localhost:5000/${{ github.repository_owner }}/oreka-${{ matrix.os-version }}:latest bash /entrypoint.sh
           mv ./oreka-build/distribution/orkaudio.deb ./oreka-build/distribution/orkaudio_${{ matrix.os-version }}.deb
+      - name: Upload deb binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: orkaudio_deb
+          path: ./oreka-build/distribution/
       - name: "Create release"
         uses: ncipollo/release-action@v1
         if: startsWith(github.ref, 'refs/tags/v')
