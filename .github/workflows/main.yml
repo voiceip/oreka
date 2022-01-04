@@ -59,6 +59,11 @@ jobs:
         run: |
           docker run  -v $(pwd)/oreka-build:/oreka-build -v $(pwd):/oreka-src -i -i localhost:5000/${{ github.repository_owner }}/oreka-${{ matrix.os-version }}:latest bash /entrypoint.sh
           mv ./oreka-build/distribution/orkaudio.deb ./oreka-build/distribution/orkaudio_${{ matrix.os-version }}.deb
+      - name: Upload deb binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: orkaudio_${{ matrix.os-version }}.deb
+          path: ./oreka-build/distribution/orkaudio_${{ matrix.os-version }}.deb
       - name: "Create release"
         uses: ncipollo/release-action@v1
         if: startsWith(github.ref, 'refs/tags/v')
@@ -77,10 +82,10 @@ jobs:
     name: Build Orkweb & Orktrack
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 9
+      - name: Set up JDK 8
         uses: actions/setup-java@v2
         with:
-          java-version: '9'
+          java-version: '8'
           distribution: 'adopt'
       - name: Cache Maven packages
         uses: actions/cache@v2
