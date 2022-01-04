@@ -60,8 +60,8 @@ jobs:
       - name: Upload deb binary
         uses: actions/upload-artifact@v2
         with:
-          name: orkaudio_deb
-          path: ./oreka-build/distribution/
+          name: orkaudio_${{ matrix.os-version }}.deb
+          path: ./oreka-build/distribution/orkaudio_${{ matrix.os-version }}.deb
       - name: "Create release"
         uses: ncipollo/release-action@v1
         if: startsWith(github.ref, 'refs/tags/v')
