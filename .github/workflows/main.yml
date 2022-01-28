@@ -1,7 +1,6 @@
 name: Oreka Build
 
 on:
-  release:
   push:
     branches:
       - master
