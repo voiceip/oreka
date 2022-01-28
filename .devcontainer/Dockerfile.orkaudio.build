@@ -12,7 +12,7 @@ RUN . /etc/os-release && apt-key adv --keyserver keyserver.ubuntu.com --recv-key
 	&& echo "deb [trusted=yes] http://ppa.launchpad.net/mhier/libboost-latest/ubuntu $UBUNTU_CODENAME main" >> /etc/apt/sources.list
 
 RUN apt-get update && apt-get install -y build-essential libtool automake git tree rpm libboost1.70-dev`
-	libpcap-dev libsndfile1-dev libapr1-dev libspeex-dev liblog4cxx-dev libace-dev `
+	libpcap-dev libsndfile1-dev libapr1-dev libspeex-dev liblog4cxx-dev libace-dev libcap-dev `
 	libopus-dev libxerces-c3-dev libssl-dev cmake libdw-dev liblzma-dev libunwind-dev`
 	&& rm -rf /var/lib/apt/lists/* 
 
