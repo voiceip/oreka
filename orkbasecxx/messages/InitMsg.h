@@ -44,14 +44,14 @@ public:
 	CStdString m_type;
 	int m_tcpPort;
 	CStdString m_protocol;
-	CStdString m_fileServePort;
+	int m_fileServePort;
 	CStdString m_contextPath;
 	CStdString m_servePath;
 	CStdString m_absolutePath;
 	CStdString m_streamingPort;
 	CStdString m_username;
 	CStdString m_password;
-	CStdString m_sshPort;
+	int m_sshPort;
 };
 typedef oreka::shared_ptr<InitMsg> InitMsgRef;
 

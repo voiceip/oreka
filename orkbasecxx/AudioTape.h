@@ -144,6 +144,8 @@ public:
 	CStdString m_externalFileName;		//name of imported file, its not conventional orkaudio name, its convetional orkaudio identifier + orginal name
 	bool m_fromProcessMcf;
 	TapeResponseRef m_tapeResponse;
+	int m_lastHoldTs{0};
+	int m_holdDuration{0};
 
 	/*
 	 * This function has been made public in order to allow the TapeFileNaming

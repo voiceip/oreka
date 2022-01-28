@@ -111,3 +111,6 @@ target/
 **/WEB-INF/classes/*
 
 .project
+
+.vagrant/
+Vagrantfile

@@ -18,12 +18,13 @@
 #include "messages/SyncMessage.h"
 #include "messages/AsyncMessage.h"
 
+
 /** Abstract base class for all clients. */
 class DLL_IMPORT_EXPORT_ORKBASE OrkClient
 {
 public:
 	OrkClient();
-	virtual bool Execute(SyncMessage& request, AsyncMessage& response, const CStdString& hostname, const int tcpPort, const CStdString& serviceName, int timeout = 5) = 0;
+	virtual bool Execute(SyncMessage& request, AsyncMessage& response, const CStdString& hostname, const int tcpPort, const CStdString& serviceName, int timeout = 5, bool useHttps = false) = 0;
 protected:
 	void LogError(CStdString& errorString);
 
@@ -35,19 +36,28 @@ protected:
 class DLL_IMPORT_EXPORT_ORKBASE OrkHttpClient : public OrkClient
 {
 public:
-	virtual bool Execute(SyncMessage& request, AsyncMessage& response, const CStdString& hostname, const int tcpPort, const CStdString& serviceName, int timeout = 5) = 0;
 	bool ExecuteUrl(const CStdString& request, CStdString& response, const CStdString& hostname, const int tcpPort, int timeout = 5);
-#ifndef CENTOS_6
-	bool ExecuteHttpsUrl(const CStdString& request, CStdString& response, const CStdString& hostname, const int tcpPort, int timeout = 5);
-#endif
+#ifdef SUPPORT_TLS_CLIENT
+	bool ExecuteSslUrl(const std::string& request, std::string& responseString, const std::string& hostname, const int tcpPort, int timeout = 5);
 protected:
+
+private:
+	class SSL_Session;
+
+	oreka::shared_ptr<SSL_Session> ssl_session;  //opaque pointer to underlying SSL session (see SslUtils.h)
+
+	bool ExecuteSSLRequest(const std::string& request, std::string& responseString, const std::string& hostname, const int tcpPort, int timeout);
+	bool SSL_SessionEstablished();
+	void SSL_CloseSession();
+	bool SSL_OpenSession(const std::string& hostname, const int tcpPort, int timeout);
+#endif
 };
 
 /** Client that uses a HTTP URL request and receives the response back in the SingleLine format. */
 class DLL_IMPORT_EXPORT_ORKBASE OrkHttpSingleLineClient : public OrkHttpClient
 {
 public:
-	bool Execute(SyncMessage& request, AsyncMessage& response, const CStdString& hostname, const int tcpPort, const CStdString& serviceName, int timeout = 5);
+	bool Execute(SyncMessage& request, AsyncMessage& response, const CStdString& hostname, const int tcpPort, const CStdString& serviceName, int timeout = 5, bool useHttps = false);
 };
 
 #endif

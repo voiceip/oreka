@@ -423,6 +423,10 @@ CStdString CaptureEvent::EventTypeToString(int eventTypeEnum)
 		return ET_START;
 	case	EtStop:
 		return ET_STOP;
+	case	EtHold:
+		return ET_HOLD;
+	case	EtResume:
+		return ET_RESUME;
 	case	EtDirection:
 		return ET_DIRECTION;
 	case	EtRemoteParty:
@@ -469,6 +473,14 @@ int CaptureEvent::EventTypeToEnum(CStdString& eventTypeString)
 	else if (eventTypeString.CompareNoCase(ET_STOP) == 0)
 	{
 		eventTypeEnum = EtStop;
+	}
+	else if (eventTypeString.CompareNoCase(ET_HOLD) == 0)
+	{
+		eventTypeEnum = EtHold;
+	}
+		else if (eventTypeString.CompareNoCase(ET_RESUME) == 0)
+	{
+		eventTypeEnum = EtResume;
 	}
 	else if (eventTypeString.CompareNoCase(ET_DIRECTION) == 0)
 	{

@@ -51,8 +51,6 @@ VoIpSession::VoIpSession(CStdString& trackingId) : OrkSession(&DLLCONFIG),
 	m_numRtpPackets = 0;
 	m_numIgnoredRtpPackets = 0;
 	m_metadataProcessed = false;
-	m_started = false;
-	m_stopped = false;
 	m_onHold = false;
 	if(CONFIG.m_lookBackRecording == false)
 	{
@@ -1005,6 +1003,12 @@ void VoIpSession::GoOnHold(time_t onHoldTime)
 	}
 	m_onHold = true;
 	m_holdBegin = onHoldTime;
+	if(CONFIG.m_holdResumeReportDuration || CONFIG.m_holdResumeReportEvents){
+		CaptureEventRef event(new CaptureEvent());
+		event->m_type = CaptureEvent::EtHold;
+		event->m_value = m_trackingId;
+		g_captureEventCallBack(event, m_capturePort);
+	}
 }
 
 void VoIpSession::GoOffHold(time_t offHoldTime)
@@ -1021,6 +1025,12 @@ void VoIpSession::GoOffHold(time_t offHoldTime)
 		event->m_key = "holdtime";
 		event->m_value.Format("%d", m_holdDuration);
 		g_captureEventCallBack(event,  m_capturePort);
+	}
+	if(CONFIG.m_holdResumeReportDuration || CONFIG.m_holdResumeReportEvents){
+		CaptureEventRef event(new CaptureEvent());
+		event->m_type = CaptureEvent::EtResume;
+		event->m_value = m_trackingId;
+		g_captureEventCallBack(event, m_capturePort);
 	}
 }
 
@@ -1615,7 +1625,9 @@ void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	//with CUCM hunt pilots in the inbound case, Remote-Party-ID of the first INVITE to the endpoint is reported as the hunt pilot extension.
 	//Subsequent INVITEs report Remote-Party-ID as the true remote party. Also, Remote-Party-ID reported by the 200 OK messages is useless because it reports the local extension handling the call.
 	//See pcap with md5sum:bfa80e917bc00df595996b1429780867
-	if((invite->m_sipMethod == SIP_METHOD_INVITE) && (invite->m_sipRemoteParty != ""))
+	//We also have a case when Remote-Party_ID in the 200OK is indeed an remote party. See pcap md5sum:ba6f9b66f9264410b4639219dbde60e5
+	if(((invite->m_sipMethod == SIP_METHOD_INVITE) && (invite->m_sipRemoteParty != ""))
+		|| (DLLCONFIG.m_sipRemotePartyFrom200OKEnable && (invite->m_sipRemoteParty != "")))
 	{
 		if(m_sipRemoteParty.length() == 0)
 		{
@@ -4229,7 +4241,7 @@ void VoIpSessions::ReportOnDemandMarkerByIp(struct in_addr endpointIp)
 
 void VoIpSessions::TaggingSipTransferCalls(VoIpSessionRef& session)
 {
-	if((session.get() == NULL) || (session->m_protocol != VoIpSession::ProtSip) || (m_sipReferList.size() < 1))
+	if((session.get() == NULL) || (session->m_protocol != VoIpSession::ProtSip) || (m_sipReferList.size() < 1) || (session->m_numRtpPackets < 300))
 	{
 		return;
 	}
@@ -4357,7 +4369,9 @@ void VoIpSessions::Hoover(time_t now)
 			}
 			else
 			{
-				if(session->m_numRtpPackets)
+				// if either m_numRtpPackets or m_numIgnoredRtpPackets is non-zero, then
+				// RTP *has* been received, and we should use m_rtpSessionWithSignallingTimeoutSec
+				if(session->m_numRtpPackets || session->m_numIgnoredRtpPackets)
 				{
 					timeoutSeconds = DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec;
 				}
@@ -4398,7 +4412,9 @@ void VoIpSessions::Hoover(time_t now)
 		}
 		else
 		{
-			if(session->m_numRtpPackets)
+			// if either m_numRtpPackets or m_numIgnoredRtpPackets is non-zero, then
+			// RTP *has* been received, and we should use m_rtpSessionWithSignallingTimeoutSec
+			if(session->m_numRtpPackets || session->m_numIgnoredRtpPackets)
 			{
 				if((now - session->m_lastUpdated) > DLLCONFIG.m_rtpSessionWithSignallingTimeoutSec)
 				{

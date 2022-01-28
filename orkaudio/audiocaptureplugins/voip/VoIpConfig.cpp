@@ -189,6 +189,7 @@ void VoIpConfig::Define(Serializer* s)
 	PopulateIntMapFromCsv(s, "RtpPayloadTypeBlockList", m_rtpPayloadTypeBlockList);
 
 	s->CsvValue("SipExtractFields", m_sipExtractFields);
+	s->CsvValue("SipExtractKeyValues", m_sipExtractKeyValues);
 	s->BoolValue("SipNotifySupport", m_sipNotifySupport);
 	s->BoolValue("SipOverTcpSupport", m_sipOverTcpSupport);
 	s->BoolValue("SipLogFailedCalls", m_sipLogFailedCalls);

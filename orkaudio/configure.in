@@ -3,34 +3,47 @@ AC_INIT([orkaudio], [1.0])
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE([subdir-objects])
 
-speex_lib=orkspeex
+speex_lib=speex
 
-if [cat /etc/issue | grep Ubuntu]; then
-	speex_lib=speex
-	CXXFLAGS+="-std=c++11"
-fi
-
-if [ grep -i opensuse /etc/os-release ]; then
-	speex_lib=speex
-	CXXFLAGS+="-std=c++11"
-fi
-
-if [grep "release 5" /etc/redhat-release]; then
-    CXXFLAGS+="-DCENTOS_5"
-fi
+AC_ARG_ENABLE( [tsan],
+	AS_HELP_STRING([--enable-tsan], [enable thread sanitizer])
+)
+AC_ARG_ENABLE( [tsan],
+	AS_HELP_STRING([--enable-asan], [enable address sanitizer])
+)
 
 AC_LANG_CPLUSPLUS
 AC_PROG_CXX([g++])
 AM_PROG_LIBTOOL
 
+AS_IF([test "x$enable_tsan" = "xyes"], [
+	CXXFLAGS+=" -fsanitize=thread "
+	LDFLAGS+=" -fsanitize=thread "
+])
+
+AS_IF([test "x$enable_asan" = "xyes"], [
+	CXXFLAGS+=" -fsanitize=address "
+	LDFLAGS+=" -fsanitize=address "
+])
+
 # Check if gcc supports cpp11
-if [echo "main(){}" | $CXX -std=c++11 -xc++ -S -  &>/dev/null] ; then
-	CXXFLAGS+=" -g -O2 -fno-inline-functions -std=c++11 -DSUPPORTS_CPP11 -fPIC"
+if [echo "int main(){}" | $CXX -std=c++11 -xc++ -S -  &>/dev/null] ; then
+	CXXFLAGS+=" -std=c++11 -DSUPPORTS_CPP11 -fPIC"
 	LDFLAGS+=" -ldl"
 else
-	CXXFLAGS+=" -g -O2 -fno-inline-functions"
+	AC_MSG_FAILURE("Compiler must support C++ 11")
 fi
 
+# don't support TLS under Centos 6
+if [! grep "release 6" /etc/redhat-release]; then
+    CXXFLAGS+=" -DSUPPORT_TLS_SERVER -DSUPPORT_TLS_CLIENT"
+fi
+
+if [ egrep -i "release [67]" /etc/redhat-release ]; then
+	speex_lib=orkspeex
+fi
+
+AM_PROG_LIBTOOL
 AC_SEARCH_LIBS([dwarf_begin],[dw],[][
 	LDFLAGS+=" -ldw"
 ], AC_MSG_ERROR([libdw is not installed.]))

@@ -39,6 +39,7 @@ Config::Config()
 	m_vadHoldOnSec = VAD_HOLD_ON_SEC_DEFAULT;
 	m_trackerHostname.push_back(TRACKER_HOSTNAME_DEFAULT);
 	m_trackerTcpPort = TRACKER_TCP_PORT_DEFAULT;
+	m_trackerTlsPort = TRACKER_TLS_PORT_DEFAULT;
 	m_trackerServicename = TRACKER_SERVICENAME_DEFAULT;
 	m_audioOutputPath = AUDIO_OUTPUT_PATH_DEFAULT;
 	m_audioOutputPathSecondary = AUDIO_OUTPUT_SECONDARY_PATH_DEFAULT;
@@ -95,6 +96,17 @@ Config::Config()
 	m_discardUnidirectionalCalls = false;
 	m_audioFileBitRate = 6000;
 	m_audioOutputEnable = true;
+	m_holdResumeReportEvents = HOLD_RESUME_REPORT_EVENTS_DEFAULT;
+	m_holdResumeReportDuration = HOLD_RESUME_REPORT_DURATION_DEFAULT;
+#ifdef SUPPORT_TLS_SERVER
+	m_tlsServerPort = TLS_SERVER_PORT_DEFAULT;
+	m_tlsServerCertPath = TLS_SERVER_CERTIFICATE_PATH_DEFAULT;
+	m_tlsServerKeyPath = TLS_SERVER_KEY_PATH_DEFAULT;
+#endif
+#ifdef SUPPORT_TLS_CLIENT
+	m_tlsClientCertCheckDisable = TLS_CLIENT_CERTCHECK_DISABLE_DEFAULT;
+	m_tlsClientCertCheckIgnoreExpiry = TLS_CLIENT_CERTCHECK_IGNORE_EXPIRY_DEFAULT;
+#endif
 }
 
 void Config::Define(Serializer* s)
@@ -125,6 +137,7 @@ void Config::Define(Serializer* s)
 	//s->StringValue(TRACKER_HOSTNAME_PARAM, m_trackerHostname);
 	s->CsvValue(TRACKER_HOSTNAME_PARAM, m_trackerHostname);
 	s->IntValue(TRACKER_TCP_PORT_PARAM, m_trackerTcpPort);
+	s->IntValue(TRACKER_TLS_PORT_PARAM, m_trackerTlsPort);
 	s->StringValue(TRACKER_SERVICENAME_PARAM, m_trackerServicename);
 	s->StringValue(SERVICE_NAME_PARAM, m_serviceName);
 	s->IntValue(REPORTING_RETRY_DELAY_PARAM, m_reportingRetryDelay);
@@ -209,6 +222,16 @@ void Config::Define(Serializer* s)
 	s->BoolValue("DtmfReportingDetailed" ,m_dtmfReportingDetailed);
 	s->CsvValue(DYNAMIC_TAGS, m_dynamicTags);
 	s->BoolValue(HOSTNAME_REPORT_FQDN ,m_hostnameReportFqdn);
+	s->StringValue("PartyReplaceRegex", m_partyReplaceRegex);
+	s->StringValue("PartyReplaceBy", m_partyReplaceBy);
+	s->BoolValue(HOLD_RESUME_REPORT_EVENTS ,m_holdResumeReportEvents);
+	s->BoolValue(HOLD_RESUME_REPORT_DURATION ,m_holdResumeReportDuration);
+#ifdef SUPPORT_TLS_CLIENT
+	s->StringValue(TLS_CLIENT_KEYLOG_FILE, m_tlsClientKeylogFile);
+	s->StringValue(TLS_CLIENT_CERTFILE, m_tlsClientCertFile);
+	s->BoolValue(TLS_CLIENT_CERTCHECK_DISABLE, m_tlsClientCertCheckDisable);
+	s->BoolValue(TLS_CLIENT_CERTCHECK_IGNORE_EXPIRY, m_tlsClientCertCheckIgnoreExpiry);
+#endif
 	//Construct the partyFilterMap
 	if(m_partyFilterCharsReplaceWith.size() != 0)
 	{
@@ -236,6 +259,12 @@ void Config::Define(Serializer* s)
 	s->BoolValue("DiscardUnidirectionalCalls", m_discardUnidirectionalCalls);
 	s->IntValue("AudioFileBitRate", m_audioFileBitRate);
 	s->BoolValue("AudioOutputEnable", m_audioOutputEnable);
+#ifdef SUPPORT_TLS_SERVER
+	s->IntValue(TLS_SERVER_PORT_PARAM, m_tlsServerPort);
+	s->IntValue(HTTP_TLS_SERVER_PORT_PARAM, m_httpTlsServerPort);
+	s->StringValue(TLS_SERVER_CERTIFICATE_PATH_PARAM, m_tlsServerCertPath);
+	s->StringValue(TLS_SERVER_CERTIFICATE_KEY_PARAM, m_tlsServerKeyPath);
+#endif
 }
 
 void Config::Validate()

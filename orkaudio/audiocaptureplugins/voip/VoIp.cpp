@@ -143,8 +143,7 @@ private:
 	bool SetPcapSocketBufferSize(pcap_t* pcapHandle);
 	char* ApplyPcapFilter(pcap_t* pcapHandle);
 
-	std::list<PcapHandleDataRef> m_pcapHandles;
-	std::map<pcap_t*, CStdString> m_pcapDeviceMap;
+	std::map<pcap_t*, PcapHandleDataRef> m_pcapDeviceMap;
 	std::mutex m_pcapDeviceMapMutex;
 	int64_t m_lastModLocalPartyMapTs;
 };
@@ -369,9 +368,10 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 			{
 				if(s_rtpPacketLog->isDebugEnabled())
 				{
-					RtpPacketInfoRef rtpInfo(new RtpPacketInfo());
-					u_char* payload = (u_char *)rtpHeader + sizeof(RtpHeaderStruct);
+					u_char* payload = rtpHeader->getFirstPayloadByte();
 					u_char* packetEnd = (u_char *)ipHeader + ntohs(ipHeader->ip_len);
+					if (packetEnd <= payload) return false;
+					RtpPacketInfoRef rtpInfo(new RtpPacketInfo());
 					u_int payloadLength = packetEnd - payload;
 					CStdString logMsg;
 
@@ -418,8 +418,9 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 				else
 				{
 					result = true;
-					u_char* payload = (u_char *)rtpHeader + sizeof(RtpHeaderStruct);
+					u_char* payload = (u_char *)rtpHeader->getFirstPayloadByte();
 					u_char* packetEnd = (u_char *)ipHeader + ntohs(ipHeader->ip_len);
+					if (packetEnd <= payload) return false;
 					u_int payloadLength = packetEnd - payload;
 
 					RtpPacketInfoRef rtpInfo(new RtpPacketInfo());
@@ -435,26 +436,9 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 					memcpy(rtpInfo->m_sourceMac, ethernetHeader->sourceMac, sizeof(rtpInfo->m_sourceMac));
 					memcpy(rtpInfo->m_destMac, ethernetHeader->destinationMac, sizeof(rtpInfo->m_destMac));
 
-					//If RTP packet has extension, we need to skip"
-					//2 bytes:Define by profile field
-					//2 bytes: Extension length field
-					//Extension length x 4 bytes
-					if(rtpHeader->x == 1)
-					{
-						unsigned short profileFieldLen = 2;
-						unsigned short ExtLenFieldLen = 2;
-						unsigned short extLenFieldValue = (payload[2] << 8) | payload[3];
-						int rtpExtLen = extLenFieldValue * 4;//4 bytes for each fied
-						int payloadOffset = profileFieldLen + ExtLenFieldLen + rtpExtLen;
-						rtpInfo->m_payloadSize = payloadLength - payloadOffset;
-						rtpInfo->m_payload = payload + payloadOffset;
-					}
-					else
-					{
-						rtpInfo->m_payloadSize = payloadLength;
-						rtpInfo->m_payload = payload;
-					}
 
+                    rtpInfo->m_payloadSize = payloadLength;
+                    rtpInfo->m_payload = payload;
 
 					if(s_rtpPacketLog->isDebugEnabled())
 					{
@@ -958,15 +942,13 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 			{
 				oldHandle = pcapHandle;
 				VoIpSingleton::instance()->RemovePcapDeviceFromMap(pcapHandle);
-				pcap_close(pcapHandle); // XXX this can cause a crash if later other code is added to close all handles in the m_pcapHandles list
-
+				pcap_close(pcapHandle);
 				while(1)
 				{
 					OrkSleepSec(60);
 
 					log.Format("Attempting to re-open device:%s - old handle:%x was closed", deviceName, oldHandle);
 					LOG4CXX_INFO(s_packetLog, log);
-
 					pcapHandle = VoIpSingleton::instance()->OpenDevice(deviceName);
 					if(pcapHandle != NULL)
 					{
@@ -990,7 +972,7 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 			{
 				log.Format("Running in live capture mode but unable to determine which device handle:%x belongs to. Will not restart capture", pcapHandle);
 				LOG4CXX_INFO(s_packetLog, log);
-				pcap_close(pcapHandle); // XXX this can cause a crash if later other code is added to close all handles in the m_pcapHandles list
+				pcap_close(pcapHandle);
 			}
 		}
 	}
@@ -1251,8 +1233,8 @@ void VoIp::OpenPcapFile(CStdString& filename)
 	{
 		logMsg.Format("Successfully opened file. pcap handle:%x", pcapHandle);
 		LOG4CXX_INFO(s_packetLog, logMsg);
-		PcapHandleDataRef pcapHandleData(new PcapHandleData(pcapHandle, "file"));
-		m_pcapHandles.push_back(pcapHandleData);
+		CStdString pcapName = "file";
+		AddPcapDeviceToMap(pcapName, pcapHandle);
 	}
 }
 
@@ -1367,8 +1349,8 @@ bool VoIp::ActivatePcapHandle(pcap_t* pcapHandle)
 void VoIp::AddPcapDeviceToMap(CStdString& deviceName, pcap_t* pcapHandle)
 {
 	MutexSentinel mutexSentinel(m_pcapDeviceMapMutex);
-
-	m_pcapDeviceMap.insert(std::make_pair(pcapHandle, deviceName));
+	PcapHandleDataRef pcapHandleData(new PcapHandleData(pcapHandle, deviceName));
+	m_pcapDeviceMap.insert(std::make_pair(pcapHandle, pcapHandleData));
 }
 
 void VoIp::RemovePcapDeviceFromMap(pcap_t* pcapHandle)
@@ -1381,13 +1363,12 @@ void VoIp::RemovePcapDeviceFromMap(pcap_t* pcapHandle)
 CStdString VoIp::GetPcapDeviceName(pcap_t* pcapHandle)
 {
 	MutexSentinel mutexSentinel(m_pcapDeviceMapMutex);
-	std::map<pcap_t*, CStdString>::iterator pair;
 	CStdString deviceName;
 
-	pair = m_pcapDeviceMap.find(pcapHandle);
+	auto pair = m_pcapDeviceMap.find(pcapHandle);
 	if(pair != m_pcapDeviceMap.end())
 	{
-		deviceName = pair->second;
+		deviceName = pair->second->ifName;
 	}
 
 	return deviceName;
@@ -1404,6 +1385,7 @@ pcap_t* VoIp::OpenPcapDeviceLive(CStdString name)
 	pcap_t* pcapHandle = NULL;
 	int status = 0;
 
+	check_pcap_capabilities(s_packetLog); // verify we have access to the device.
 	pcapHandle = pcap_create((char*)name.c_str(), errorBuf);
 	if(pcapHandle == NULL)
 	{
@@ -1563,13 +1545,11 @@ void VoIp::OpenDevices()
 						LOG4CXX_INFO(s_packetLog, logMsg);
 						SetPcapSocketBufferSize(pcapHandle);
 #endif
-						PcapHandleDataRef pcapHandleData(new PcapHandleData(pcapHandle, device->name));
-						m_pcapHandles.push_back(pcapHandleData);
 						AddPcapDeviceToMap(deviceName, pcapHandle);
 					}
 				}
 			}
-			if(m_pcapHandles.size() == 0 && DLLCONFIG.m_orekaEncapsulationMode == false)
+			if(m_pcapDeviceMap.size() == 0 && DLLCONFIG.m_orekaEncapsulationMode == false)
 			{
 				// only use the default handle if we aren't configured for encapsulated UDP traffic
 				if(DLLCONFIG.m_devices.size() > 0)
@@ -1613,8 +1593,6 @@ void VoIp::OpenDevices()
 						SetPcapSocketBufferSize(pcapHandle);
 #endif
 
-						PcapHandleDataRef pcapHandleData(new PcapHandleData(pcapHandle, defaultDevice->name));
-						m_pcapHandles.push_back(pcapHandleData);
 						deviceName = defaultDevice->name;
 						AddPcapDeviceToMap(deviceName, pcapHandle);
 					}
@@ -1802,7 +1780,7 @@ void VoIp::LoadSkinnyGlobalNumbers()
 
 void VoIp::Initialize()
 {
-	m_pcapHandles.clear();
+	m_pcapDeviceMap.clear();
 
 	s_packetLog = Logger::getLogger("packet");
 	s_packetStatsLog = Logger::getLogger("packet.pcapstats");
@@ -1847,12 +1825,13 @@ void VoIp::Initialize()
 
 void VoIp::ReportPcapStats()
 {
-	for(std::list<PcapHandleDataRef>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
+	MutexSentinel mutexSentinel(m_pcapDeviceMapMutex);
+	for(auto it = m_pcapDeviceMap.begin(); it != m_pcapDeviceMap.end(); it++)
 	{
 		struct pcap_stat stats;
-		if(*it)
+		if((it->second).get())
 		{
-			PcapHandleDataRef pcapHandleData = *it;
+			PcapHandleDataRef pcapHandleData = it->second;
 			pcap_stats(pcapHandleData->m_pcapHandle, &stats);
 			CStdString logMsg;
 
@@ -1880,7 +1859,7 @@ void VoIp::ReportPcapStats()
 void VoIp::Run()
 {
 	CStdString logMsg;
-	s_replayThreadCounter = m_pcapHandles.size();
+	s_replayThreadCounter = m_pcapDeviceMap.size();
 
 	if(DLLCONFIG.m_orekaEncapsulationMode == true)
 	{
@@ -1902,10 +1881,10 @@ void VoIp::Run()
 #endif
 	}
 
-	for(std::list<PcapHandleDataRef>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++)
+	for(auto it = m_pcapDeviceMap.begin(); it != m_pcapDeviceMap.end(); it++)
 	{
 		try{
-			std::thread handler(SingleDeviceCaptureThreadHandler, (*it)->m_pcapHandle);
+			std::thread handler(SingleDeviceCaptureThreadHandler, it->first);
 			handler.detach();
 		} catch(const std::exception &ex){
 			logMsg.Format("Failed to start SingleDeviceCaptureThreadHandler thread reason:%s",  ex.what());
@@ -1919,10 +1898,9 @@ void VoIp::Shutdown()
 {
 	LOG4CXX_INFO(s_packetLog, "Shutting down VoIp.dll");
 #ifdef WIN32
-	for (std::list<PcapHandleDataRef>::iterator it = m_pcapHandles.begin(); it != m_pcapHandles.end(); it++) {
-		if (*it) {
-			PcapHandleDataRef pcapHandleData = *it;
-			pcap_breakloop(pcapHandleData->m_pcapHandle);
+	for (auto it = m_pcapDeviceMap.begin(); it != m_pcapDeviceMap.end(); it++) {
+		if (it->first) {
+			pcap_breakloop(it->first);
 		}
 	}
 #endif
