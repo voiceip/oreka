@@ -673,13 +673,61 @@ bool TryIpPacketV4(IpHeaderStruct* ipHeader)
 	return true;
 }
 
+/* Ethernet frame types */
+#define ETHER_TYPE_IPV4      0x0800 /**< IPv4 Protocol. */
+#define ETHER_TYPE_IPV6      0x86DD /**< IPv6 Protocol. */
+#define ETHER_TYPE_ARP       0x0806 /**< Arp Protocol. */
+#define ETHER_TYPE_IEEE8021Q 0x8100 /**< IEEE 802.1Q VLAN tagging. */
+
+/* VXLAN Ports */
+#define IANA_VXLAN_UDP_PORT     4789
+#define IANA_VXLAN_GPE_UDP_PORT 4790
+
+void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader);
+
+void ProcessVXLANPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd)
+{
+	
+	//extract inner frame
+	u_char* udpPayload = (u_char *)ipHeader + ipHeaderLength + sizeof(UdpHeaderStruct);
+	VXLanHeaderStruct* vxlanHeader = (VXLanHeaderStruct*)(udpPayload);
+
+	//Now there would be the ethernet frame
+	u_char* framePayload = (u_char *)udpPayload + sizeof(VXLanHeaderStruct);
+	EthernetHeaderStruct* innnerEthernetHeader = (EthernetHeaderStruct *)framePayload;
+	IpHeaderStruct* innerIPHeader = NULL;
+
+	if(ntohs(innnerEthernetHeader->type) == ETHER_TYPE_IEEE8021Q)
+	{
+		innerIPHeader = (IpHeaderStruct*)((char*)innnerEthernetHeader + sizeof(EthernetHeaderStruct) + 4);
+	}
+	else if(ntohs(innnerEthernetHeader->type) == ETHER_TYPE_IPV4 || ntohs(innnerEthernetHeader->type) == ETHER_TYPE_ARP)
+	{
+		innerIPHeader = (IpHeaderStruct*)((char*)innnerEthernetHeader + sizeof(EthernetHeaderStruct));
+	}
+	else {
+		//Maybe corrupted pcap
+		return;
+	}
+
+	ProcessTransportLayer(innnerEthernetHeader,innerIPHeader);
+}
+
 void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader) {
 	size_t ipHeaderLength = ipHeader->headerLen();
 	u_char* ipPacketEnd    = reinterpret_cast<unsigned char*>(ipHeader) + ipHeader->packetLen();
 
 	if(ipHeader->ip_p == IPPROTO_UDP)
 	{
-		DetectUsefulUdpPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd);
+		UdpHeaderStruct* udpHeader = (UdpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
+		if(ntohs(udpHeader->dest) == IANA_VXLAN_UDP_PORT)
+		{
+			ProcessVXLANPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd);
+		}
+		else 
+		{
+			DetectUsefulUdpPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd);
+		}
 	}
 	else if(ipHeader->ip_p == IPPROTO_TCP)
 	{
@@ -735,10 +783,6 @@ void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 	}
 }
 
-#define ETHER_TYPE_IPV4 0x0800
-#define ETHER_TYPE_ARP 0x0806
-#define ETHER_TYPE_IEEE8021Q 0x8100
-#define ETHER_TYPE_IPV6 0x86DD
 void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data)
 {
 	time_t now = time(NULL);
