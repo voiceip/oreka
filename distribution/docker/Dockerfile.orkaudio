@@ -1,7 +1,7 @@
 # escape=`
 # syntax=docker/dockerfile:experimental
 
-FROM ubuntu:xenial as builder
+FROM ubuntu:focal as builder
 MAINTAINER Kinshuk B (hi@kinsh.uk)
 
 # Configure apt
