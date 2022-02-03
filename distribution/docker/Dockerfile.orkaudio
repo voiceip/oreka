@@ -62,7 +62,7 @@ RUN cd /opt/oreka/orkaudio `
 	&& make `
 	&& make install
 
-FROM ubuntu:xenial
+FROM ubuntu:focal
 MAINTAINER Kinshuk B (hi@kinsh.uk)
 
 ENV DEBIAN_FRONTEND=noninteractive
