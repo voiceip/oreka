@@ -13,7 +13,7 @@ on:
 jobs:
   oreka_docker_job:
     runs-on: ubuntu-latest
-    name: Build Orkaudio Docker
+    name: Build Image
     services:
       registry:
         image: registry:2
@@ -41,7 +41,7 @@ jobs:
           #load: true
           push: true
           tags: localhost:5000/${{ github.repository_owner }}/orkaudio:latest
-          context: .
+          context: ./distribution/docker/
           file: ./distribution/docker/Dockerfile.orkaudio
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
