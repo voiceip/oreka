@@ -36,7 +36,6 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
-            type=sha
       - name: Cache Docker layers
         uses: actions/cache@v2
         with:
