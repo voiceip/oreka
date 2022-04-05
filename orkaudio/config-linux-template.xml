@@ -14,8 +14,11 @@
 
 	<CapturePluginPath>/usr/lib</CapturePluginPath>	
 	
-	<!-- Audio file storage format: choose from: native, gsm, ulaw, alaw, pcmwav -->
+	<!-- Audio file storage format: choose from: native, gsm, ulaw, alaw, pcmwav, opus -->
 	<StorageAudioFormat>gsm</StorageAudioFormat>
+	<!-- <StereoRecording>true</StereoRecording>     -->
+        <!-- <TapeNumChannels>2</TapeNumChannels>        -->
+        <!-- <AudioFileBitRate>8000</AudioFileBitRate>   -->
 	
 	<!-- If you want to keep native audio files as well as compressed, change this to "no" -->
 	<DeleteNativeFile>yes</DeleteNativeFile>
@@ -44,7 +47,10 @@
 	<CapturePortFilters>LiveMonitoring</CapturePortFilters>
 	<TapeProcessors>BatchProcessing, Reporting</TapeProcessors>
 	
-	<BatchProcessingEnhancePriority>true</BatchProcessingEnhancePriority>	    
+	<!-- <ImmediateProcessingQueueSize>50000</ImmediateProcessingQueueSize> -->
+        <!-- <BatchProcessingQueueSize>2000</BatchProcessingQueueSize>         -->
+	<BatchProcessingEnhancePriority>true</BatchProcessingEnhancePriority>
+	<!-- <NumBatchThreads>6</NumBatchThreads>                               -->
 
 	<AudioFileOwner>tomcat</AudioFileOwner>
 	<AudioFileGroup>tomcat</AudioFileGroup>
@@ -76,6 +82,7 @@
 	
 	<VoIpPlugin>
 		<PcapSocketBufferSize>67108864</PcapSocketBufferSize>
+		<IpFragmentsReassemble>true</IpFragmentsReassemble>
 
 		<!--queuemetrics integration, uncomment the following line-->
 		<!--<SipExtractFields>X-Unique-ID</SipExtractFields>-->
