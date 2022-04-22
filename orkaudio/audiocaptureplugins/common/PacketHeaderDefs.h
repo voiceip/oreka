@@ -112,8 +112,27 @@ typedef struct
 #define RTP_PT_PCMU 0
 #define RTP_PT_PCMA 8
 
+#define RTP_RFC5285_ONE_BYTE_SIGNATURE        0xBEDE
+#define RTP_RFC5285_TWO_BYTE_TEST_MASK        0xFFF0
+#define RTP_RFC5285_TWO_BYTE_SIGNATURE        0x1000
+
+#pragma pack(push,1)	// avoid padded bytes at the end and inside the structs
+
+struct RtpExtendedHeaderInfo {
+	unsigned short int headerId;
+	unsigned short int length;
+
+	inline bool isOneByteRtpExension() const
+	{
+		return ntohs(headerId) == RTP_RFC5285_ONE_BYTE_SIGNATURE;
+	}
+	inline bool isTwoBytesRtpExension() const
+	{
+		return (ntohs(headerId) & RTP_RFC5285_TWO_BYTE_TEST_MASK) == RTP_RFC5285_TWO_BYTE_SIGNATURE;
+	}
+};
 // Structure of RTP header, only valid for little endian
-typedef struct 
+struct RtpHeaderStruct
 {
 	unsigned short cc:4;		// CSRC count
 	unsigned short x:1;			// header extension flag
@@ -125,7 +144,50 @@ typedef struct
 	unsigned int ts;			// timestamp
 	unsigned int ssrc;			// synchronization source
 	//unsigned int csrc[1];		// optional CSRC list
-} RtpHeaderStruct;
+
+
+	// Return the size of the header without the extension data
+	inline int getPureHeaderSize() const
+	{
+		return sizeof(RtpHeaderStruct) + cc * 4; 
+	}
+
+	// Compute the distance to the first payload byte 
+	inline int getPayloadOffset() const
+	{
+
+		int currentSize = getPureHeaderSize();
+		int extensionSize = 0;
+		const unsigned char* pCurrentByte = reinterpret_cast<const unsigned char*> (this);
+		if (x)
+		{
+			//  the packet has an extension,
+			RtpExtendedHeaderInfo* hi(getExtendedHeaderInfoPtr());
+
+			// +1 for the first extension record which contains the byte type and the number of records
+			extensionSize = 4 * (ntohs(hi->length ) + 1);   
+		}
+		return currentSize + extensionSize;
+	}
+
+	// Return a pointer to the first byte in the extension data
+	inline RtpExtendedHeaderInfo* getExtendedHeaderInfoPtr() const
+	{
+		if (x == 0) return nullptr;
+		const unsigned char* pFirstByte = (const unsigned char*)this;
+		pFirstByte += getPureHeaderSize();
+		return (RtpExtendedHeaderInfo*) (pFirstByte);
+	}
+
+	// Return a pointer to the first byte in the payload
+	inline unsigned char* getFirstPayloadByte()
+	{
+		return  reinterpret_cast<unsigned char*>(this) + getPayloadOffset();
+	}
+
+} ;
+
+#pragma pack(pop)
 
 // Structure of common header for RTCP
 typedef struct {
@@ -145,6 +207,41 @@ typedef struct {
 	unsigned short protocolType;
 	unsigned int seq;
 } GreHeaderStruct;
+
+typedef struct {
+	/** Reserved bits */
+	uint16_t reserved9:1;
+	/** Don't learn flag */
+	uint16_t dontLearnFlag:1;
+	/** Reserved bits */
+	uint16_t reserved11_12:2;
+	/** Policy applied flag */
+	uint16_t policyAppliedFlag:1;
+	/** Reserved bits */
+	uint16_t reserved14_16:3;
+	/** GBP flag */
+	uint16_t gbpFlag:1;
+	/** Reserved bits */
+	uint16_t reserved2_4:3;
+	/** VNI present flag */
+	uint16_t vniPresentFlag:1;
+	/** Reserved bits */
+	uint16_t reserved6_8:3;
+
+	/** Group Policy ID */
+	uint16_t groupPolicyID;
+
+	/** VXLAN Network ID (VNI) */
+	uint32_t vni:24;
+	/** Reserved bits */
+	uint32_t pad:8;
+
+	inline uint32_t getVNI() const 
+	{
+		return (ntohl(vni) >> 8); 
+	}
+
+} VXLanHeaderStruct;
 
 typedef struct {
 	unsigned char data [8];

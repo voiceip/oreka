@@ -2,11 +2,14 @@
 #include "time.h"
 #include <fstream>
 #include "AudioCapture.h"
+#include "Config.h"
+#include "ConfigManager.h"
 #ifndef WIN32
 #include <pwd.h>
 #include <grp.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <sys/capability.h>
 #else
 #include <cctype>  //needed in WIN32 for std::toupper
 #endif
@@ -59,14 +62,38 @@ apr_pool_t* OrkAprSingleton::GetAprMp()
 }
 
 //========================================================
-#ifndef CENTOS_6
+#ifdef SUPPORT_TLS_SERVER
+
+CStdString SSLErrorQ()
+{
+	CStdString ErrorQ;
+	int rc;
+	int n = 0;
+
+	while (rc = ERR_get_error())
+	{
+		char buf[256];
+		if (++n) ErrorQ += CStdString("\n");
+		ErrorQ +=CStdString("        ");
+		ERR_error_string_n(rc, buf, sizeof(buf)-1);
+		ErrorQ.AppendFormat("%s", buf);
+	}
+	return ErrorQ;
+}
 OrkOpenSslSingleton::OrkOpenSslSingleton()
 {
+	s_log = log4cxx::Logger::getLogger("interface.ssl");
+
 	SslInitialize();
-	CreateCTXClient();
-//	ConfigureClientCtx();	//using default cert for now
-	CreateCTXServer();
-	ConfigureServerCtx();
+	try
+	{
+		CreateCTXServer();
+		ConfigureServerCtx();
+	}
+	catch (CStdString& e)
+	{
+		m_serverCtx = NULL;
+	}
 }
 
 void OrkOpenSslSingleton::SslInitialize()
@@ -75,70 +102,45 @@ void OrkOpenSslSingleton::SslInitialize()
     SSL_library_init();
     OpenSSL_add_all_algorithms();
 }
-void OrkOpenSslSingleton::CreateCTXClient()
-{
-	const SSL_METHOD *method;
-    method = SSLv23_client_method();
-    m_clientCtx = SSL_CTX_new(method);
-    if (!m_clientCtx) {
-		throw (CStdString("Unable to create SSL client context\n"));
-    }
-}
+
 void OrkOpenSslSingleton::CreateCTXServer()
 {
 	const SSL_METHOD *method;
-    method = SSLv23_server_method();
-    m_serverCtx = SSL_CTX_new(method);
-    if (!m_serverCtx) {
+	method = SSLv23_server_method();
+	m_serverCtx = SSL_CTX_new(method);
+	if (!m_serverCtx) {
+		LOG4CXX_ERROR(s_log,"Unable to create SSL server context");
 		throw (CStdString("Unable to create SSL server context\n"));
-    }
+	}
 }
 
-//Suggest to change to have proper method to locate cert/key
-void OrkOpenSslSingleton::ConfigureClientCtx()
-{
-    SSL_CTX_set_ecdh_auto(m_clientCtx, 1);
-    /* Set the key and cert */
-    if(SSL_CTX_use_certificate_file(m_clientCtx, "/etc/orkaudio/clientcert.pem", SSL_FILETYPE_PEM) <= 0) {
-		throw (CStdString("Unable to find clientcert.pem\n"));
-    }
-    if(SSL_CTX_use_PrivateKey_file(m_clientCtx, "/etc/orkaudio/clientkey.pem", SSL_FILETYPE_PEM) <= 0 ) {
-		throw (CStdString("Unable to find clientkey.perm\n"));
-    }
-   
-      /* Check if the client certificate and private-key
-matches */
-    if (!SSL_CTX_check_private_key(m_clientCtx)) {
-        throw (CStdString("Private key does not match the certificate public key\n"));
 
-    }
-}
-//Suggest to change to have proper method to locate cert/key
 void OrkOpenSslSingleton::ConfigureServerCtx()
 {
+	CStdString logMsg;
 	SSL_CTX_set_ecdh_auto(m_serverCtx, 1);
-    /* Set the key and cert */
-    if(SSL_CTX_use_certificate_file(m_serverCtx, "/etc/orkaudio/cert.pem", SSL_FILETYPE_PEM) <= 0) {
+	/* Set the key and cert */
+	if(SSL_CTX_use_certificate_chain_file(m_serverCtx, CONFIG.m_tlsServerCertPath) <= 0) {
+		logMsg.Format("Error with certificate %s: %s",	CONFIG.m_tlsServerCertPath, SSLErrorQ());
+		LOG4CXX_ERROR(s_log, logMsg);
 		throw (CStdString("Unable to find cert.pem\n"));
-    }
+	}
 
-    if(SSL_CTX_use_PrivateKey_file(m_serverCtx, "/etc/orkaudio/key.pem", SSL_FILETYPE_PEM) <= 0 ) {
-		throw (CStdString("Unable to find key.perm\n"));
-    }
-    
-    /* Set to require peer (server) certificate verification */
-    SSL_CTX_set_verify(m_serverCtx,SSL_VERIFY_PEER,NULL);
-    SSL_CTX_set_verify_depth(m_serverCtx,1);
+	if(SSL_CTX_use_PrivateKey_file(m_serverCtx, CONFIG.m_tlsServerKeyPath, SSL_FILETYPE_PEM) <= 0 ) {
+		logMsg.Format("Error with key %s: %s",	CONFIG.m_tlsServerKeyPath, SSLErrorQ());
+		LOG4CXX_ERROR(s_log, logMsg);
+		throw (CStdString("Unable to find key.pem\n"));
+	}
+
+	/* Set to require peer (server) certificate verification */
+	SSL_CTX_set_verify(m_serverCtx,SSL_VERIFY_NONE,NULL);
+	SSL_CTX_set_verify_depth(m_serverCtx,1);
 	unsigned int currentPid = getpid();
 	CStdString ssl_session_ctx_id;
 	ssl_session_ctx_id.Format("orkaudio-%d", currentPid);
 	SSL_CTX_set_session_id_context(m_serverCtx, (unsigned char *)&ssl_session_ctx_id, ssl_session_ctx_id.length());
 }
 
-SSL_CTX* OrkOpenSslSingleton::GetClientCtx()
-{
-	return m_clientCtx;
-}
 SSL_CTX* OrkOpenSslSingleton::GetServerCtx()
 {
 	return m_serverCtx;
@@ -299,6 +301,14 @@ void StringTokenizeToList(CStdString input, std::list<CStdString>& output)
     output.push_back(input);
 }
 
+CStdString ReplaceRegexBy(CStdString input, CStdString pattern, CStdString replacedBy)
+{
+	CStdString output;
+	std::regex patternRegex(pattern);
+	output = std::regex_replace(input,  patternRegex, replacedBy, std::regex_constants::format_first_only);
+	return output;
+}
+
 void OrkSleepSec(unsigned int sec)
 {
 //    std::this_thread::sleep_for(std::chrono::seconds(sec));
@@ -339,6 +349,35 @@ CStdString AprGetErrorMsg(apr_status_t ret)
 	apr_strerror(ret, errStr, 256);
 	errorMsg.Format("%s", errStr);
 	return errorMsg;
+}
+
+CStdString GetRevertedNormalizedPhoneNumber(CStdString input)
+{
+	CStdString output;
+	for(int i = input.length() -1; i >= 0; i--){
+		if(input.at(i) != '-' && input.at(i) != '+' && input.at(i) != '(' && input.at(i) != ')' && input.at(i) != ' '){
+			output += input.at(i);
+		}
+	}
+	return output;
+}
+
+bool CompareNormalizedPhoneNumbers(CStdString input1, CStdString input2)
+{
+	bool ret = false;
+	CStdString normalizedInput1, normalizedInput2;
+	normalizedInput1 = GetRevertedNormalizedPhoneNumber(input1);
+	normalizedInput2 = GetRevertedNormalizedPhoneNumber(input2);
+	int minLen = std::min<size_t>(normalizedInput1.length(), normalizedInput2.length());
+
+	if(minLen < 6){
+		return normalizedInput1.Equals(normalizedInput2);
+	}
+	else{
+		return memcmp(&normalizedInput1[0], &normalizedInput2[0], minLen) == 0;
+	}
+
+	return ret;
 }
 //========================================================
 // file related stuff
@@ -866,7 +905,7 @@ int OrkSsl_Connect(SSL* ssl, int timeoutMs, CStdString &errstr)
 	while((r = SSL_connect(ssl)) <=0)
 	{
 		int er = SSL_get_error(ssl, r);
-		if(r == SSL_ERROR_WANT_READ || r== SSL_ERROR_WANT_WRITE)
+		if(er == SSL_ERROR_WANT_READ || er== SSL_ERROR_WANT_WRITE)
 		{
 			OrkSleepMs(100);
 		}
@@ -900,7 +939,7 @@ int OrkSsl_Accept(SSL* ssl, int timeoutMs, CStdString &errstr)
 	while((r = SSL_accept(ssl)) <=0)
 	{
 		int er = SSL_get_error(ssl, r);
-		if(r == SSL_ERROR_WANT_READ || r== SSL_ERROR_WANT_WRITE)
+		if(er == SSL_ERROR_WANT_READ || er== SSL_ERROR_WANT_WRITE)
 		{
 			OrkSleepMs(100);
 		}
@@ -1064,7 +1103,7 @@ bool IpRanges::Empty()
 // ciFind: case insensitive find helper function
 // we're using this for codecs, which are ASCII, so we don't
 // need to worry about unicode and/or locales
-static size_t ciFind(const std::string &Haystack, const std::string &Needle)
+size_t ciFind(const std::string &Haystack, const std::string &Needle)
 {
 	auto it = std::search(
 			Haystack.begin(), Haystack.end(),
@@ -1266,3 +1305,34 @@ CStdString RtpPayloadTypeEnumToString(char pt)
 	return ptStr;
 
 }
+
+#ifndef WIN32
+void check_pcap_capabilities(log4cxx::LoggerPtr log)
+{
+	bool rc = true;
+
+	cap_t caps;
+	caps=cap_get_pid(getpid());
+
+	cap_flag_value_t cap_val;
+	int ret;
+
+	// Do we actually need to check effective AND permitted?
+	ret=cap_get_flag(caps, CAP_NET_RAW, CAP_EFFECTIVE, &cap_val);
+	if (ret || !cap_val) rc=false;
+	ret=cap_get_flag(caps, CAP_NET_RAW, CAP_PERMITTED, &cap_val);
+	if (ret || !cap_val) rc=false;
+	ret=cap_get_flag(caps, CAP_NET_ADMIN, CAP_EFFECTIVE, &cap_val);
+	if (ret || !cap_val) rc=false;
+	ret=cap_get_flag(caps, CAP_NET_ADMIN, CAP_PERMITTED, &cap_val);
+	if (ret || !cap_val) rc=false;
+
+	if (rc == false)
+	{
+		LOG4CXX_ERROR(log,"Do not have the necessary privileges to capture data. "
+				"Probable fix: use \"setcap\" to add necessary capabilities: "
+				"\"setcap cap_net_raw,cap_net_admin+ep /usr/sbin/orkaudio\""
+		);
+	}
+}
+#endif

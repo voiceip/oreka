@@ -1,12 +1,11 @@
 name: Oreka Build
 
 on:
-  create:
-    tags:
-  release:
   push:
     branches:
       - master
+    tags:        
+      - v**
   pull_request:
     branches:
       - master

@@ -1,7 +1,7 @@
 # escape=`
 # syntax=docker/dockerfile:experimental
 
-FROM ubuntu:xenial as builder
+FROM ubuntu:focal as builder
 MAINTAINER Kinshuk B (hi@kinsh.uk)
 
 # Configure apt
@@ -13,7 +13,7 @@ RUN . /etc/os-release && apt-key adv --keyserver keyserver.ubuntu.com --recv-key
 	&& echo "deb [trusted=yes] http://ppa.launchpad.net/mhier/libboost-latest/ubuntu $UBUNTU_CODENAME main" >> /etc/apt/sources.list
 
 RUN apt-get update && apt-get install -y build-essential libtool automake git tree rpm libboost1.70-dev`
-	libpcap-dev libsndfile1-dev libapr1-dev libspeex-dev liblog4cxx-dev libace-dev `
+	libpcap-dev libsndfile1-dev libapr1-dev libspeex-dev liblog4cxx-dev libace-dev libcap-dev `
 	libopus-dev libxerces-c3-dev libssl-dev cmake libdw-dev liblzma-dev libunwind-dev`
 	&& rm -rf /var/lib/apt/lists/* 
 
@@ -80,12 +80,12 @@ RUN cd /opt/oreka/orkaudio `
 	&& make `
 	&& make install
 
-FROM ubuntu:xenial
+FROM ubuntu:focal
 MAINTAINER Kinshuk B (hi@kinsh.uk)
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y libpcap0.8 libsndfile1 libapr1 libspeex1 liblog4cxx10v5 libace-6.3.3 `
-	libopus0 libxerces-c3.1 libssl1.0.0 libdw1 libunwind8 && rm -rf /var/lib/apt/lists/* 
+RUN apt-get update && apt-get install -y libcap2 libsndfile1 libapr1 libspeex1 liblog4cxx10v5 libace-6.4.5 `
+	libopus0 libxerces-c3.2 libssl1.1 libdw1 libunwind8 && rm -rf /var/lib/apt/lists/* 
 
 # Mount the image from "builder" stage at `/artifacts` during this run
 RUN --mount=type=bind,source=/,target=/artifacts,from=builder `

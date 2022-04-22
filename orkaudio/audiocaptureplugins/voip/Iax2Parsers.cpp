@@ -13,6 +13,8 @@
 #include "Iax2Parsers.h"
 #include "VoIpConfig.h"
 
+#define MAX_IES_LENGTH 1024
+
 static LoggerPtr s_iax2parsersLog = Logger::getLogger("iax2parsers");
 
 static int iax2_codec_to_rtp_payloadtype(int codec)
@@ -129,7 +131,7 @@ static int parse_iax2_ies(struct iax2_ies *ies, unsigned char *data, int datalen
 		pass++;
 	}
 
-	*data = '\0';
+        *data = '\0';
 	if(datalen) {
 		/* IE contents likely to be invalid because we should have totally
 		 * consumed the entire amount of data */
@@ -274,6 +276,11 @@ bool TryIax2New(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 
 	ies_len = ((u_char*)ipHeader+ntohs(ipHeader->ip_len))-(udpPayload+sizeof(*fh));
 
+        /* sanity check for IAX2 packet length */
+        if (ies_len<=0 || ies_len>MAX_IES_LENGTH)
+                return false;
+
+
 #if 0  /* Debug headaches caused by udpHeader->len */
 	/* Beware that udpHeader->len is not the length of the udpPayload
 	 * but rather this includes the length of the UDP header as well.
@@ -300,7 +307,11 @@ bool TryIax2New(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 	if(get_uncompressed_subclass(fh->c_sub) != IAX2_COMMAND_NEW)
 		return false; /* Subclass must be NEW */
 
-	if(parse_iax2_ies(&ies, fh->ie_data, ies_len))
+	/*staging buffer to parse_iax2_ies function*/
+	unsigned char stage_buffer[MAX_IES_LENGTH];
+	memcpy((void*)stage_buffer, (void*)fh->ie_data, ies_len);
+
+	if(parse_iax2_ies(&ies, stage_buffer, ies_len))
 		return false; /* Invalid "full" frame received */
 
 	if(!ies.callee)
@@ -362,10 +373,20 @@ bool TryIax2Accept(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeade
                 return false; /* Subclass must be ACCEPT */
 
         ies_len = ((u_char*)ipHeader+ntohs(ipHeader->ip_len))-(udpPayload+sizeof(*fh));
+        
+        /* sanity check for IAX2 packet length*/
+        if (ies_len<=0||ies_len>MAX_IES_LENGTH)
+                return false;
 
 	/* In this case, this just serves to test the integrity of the
 	 * Information Elements */
-        if(parse_iax2_ies(&ies, fh->ie_data, ies_len))
+        
+	/*staging buffer to parse_iax2_ies function*/
+	unsigned char stage_buffer[MAX_IES_LENGTH];
+	memcpy((void*)stage_buffer, (void*)fh->ie_data,ies_len); 
+	
+    	
+	if(parse_iax2_ies(&ies, stage_buffer, ies_len))
                 return false; /* Invalid "full" frame received */
 
 	if(!ies.format)
@@ -413,9 +434,18 @@ bool TryIax2Authreq(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHead
 
 	ies_len = ((u_char*)ipHeader+ntohs(ipHeader->ip_len))-(udpPayload+sizeof(*fh));
 
+        /* sanity check for IAX2 packet length*/
+        if (ies_len<=0||ies_len>MAX_IES_LENGTH)
+                return false;
+
+
+	/*staging buffer to parse_iax2_ies function */
+	unsigned char stage_buffer[MAX_IES_LENGTH];
+	memcpy ((void*)stage_buffer, (void*)fh->ie_data, ies_len);
+
         /* In this case, this just serves to test the integrity of the
          * Information Elements */
-        if(parse_iax2_ies(&ies, fh->ie_data, ies_len))
+        if(parse_iax2_ies(&ies, stage_buffer, ies_len))
                 return false; /* Invalid "full" frame received */
 
 
@@ -480,9 +510,18 @@ bool TryIax2Hangup(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeade
 
         ies_len = ((u_char*)ipHeader+ntohs(ipHeader->ip_len))-(udpPayload+sizeof(*fh));
 
-        /* In this case, this just serves to test the integrity of the
+        /* sanity check for IAX2 length*/
+        if (ies_len<=0||ies_len>MAX_IES_LENGTH)
+                return false;
+
+	/*staging buffer to parse_iax2_ies function*/
+	unsigned char stage_buffer[MAX_IES_LENGTH];
+	memcpy((void*)stage_buffer, (void*)fh->ie_data, ies_len);
+        
+	/* In this case, this just serves to test the integrity of the
          * Information Elements */
-        if(parse_iax2_ies(&ies, fh->ie_data, ies_len))
+	
+        if(parse_iax2_ies(&ies,stage_buffer, ies_len))
                 return false; /* Invalid "full" frame received */
 
 	/* We have a HANGUP */
@@ -567,10 +606,19 @@ bool TryIax2Reject(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeade
                 return false; /* Subclass must be REJECT */
 
 	ies_len = ((u_char*)ipHeader+ntohs(ipHeader->ip_len))-(udpPayload+sizeof(*fh));
+        
+        /* sanity check for IAX2 packet length */
+        if (ies_len<=0 || ies_len>MAX_IES_LENGTH)
+                return false;
+
+
+	/*staging buffer to parse_iax2_es function */
+	unsigned char stage_buffer[MAX_IES_LENGTH];
+	memcpy((void*)stage_buffer, (void*)fh->ie_data, ies_len);
 
         /* In this case, this just serves to test the integrity of the
          * Information Elements */
-        if(parse_iax2_ies(&ies, fh->ie_data, ies_len))
+	if(parse_iax2_ies(&ies, stage_buffer, ies_len))
                 return false; /* Invalid "full" frame received */
 
         /* We have a REJECT */

@@ -46,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="0"
-				AdditionalIncludeDirectories=".;..\OrkBaseCxx;..\OrkBaseCxx\filters\gsm;..\OrkBaseCxx\filters\ilbc;..\OrkBaseCxx\filters\ilbc\ilbc;..\OrkBaseCxx\filters\gsm\gsm610;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0\;C:\devExt\ACE_wrappers;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;C:\devext\xerces\src;..\OrkBaseCxx\filters\g722codec;C:\sfTrunk\orkbasecxx\filters\speex;&quot;C:\DevExt\speex\speex-1.2beta3-win32\include&quot;;C:\sfTrunk\orkbasecxx\filters\g726codecs;C:\sfTrunk\orkbasecxx\filters\g726codecs\g72x"
+				AdditionalIncludeDirectories=".;..\OrkBaseCxx;..\OrkBaseCxx\filters\gsm;..\OrkBaseCxx\filters\ilbc;..\OrkBaseCxx\filters\ilbc\ilbc;..\OrkBaseCxx\filters\gsm\gsm610;C:\devExt\libsndfile\include;C:\devExtVC12\boost\boost_1_55_0\;C:\devExt\ACE_wrappers;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;C:\devext\xerces\src;..\OrkBaseCxx\filters\g722codec;C:\sfTrunk\orkbasecxx\filters\speex;&quot;C:\DevExt\speex\speex-1.2beta3-win32\include&quot;;C:\sfTrunk\orkbasecxx\filters\g726codecs;C:\sfTrunk\orkbasecxx\filters\g726codecs\g72x"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -140,7 +140,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\sfTrunk\orkbasecxx\filters\speex;.;&quot;C:\DevExt\speex\speex-1.2beta3-win32\include&quot;;..\OrkBaseCxx;..\OrkBaseCxx\filters\gsm;..\OrkBaseCxx\filters\gsm\gsm610;..\OrkBaseCxx\filters\ilbc;..\OrkBaseCxx\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExt\boost\boost_1_32_0\;C:\devExt\ACE_wrappers;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;C:\devext\libsndfile\include;C:\devext\xerces\src;..\OrkBaseCxx\filters\g722codec"
+				AdditionalIncludeDirectories="C:\sfTrunk\orkbasecxx\filters\speex;.;&quot;C:\DevExt\speex\speex-1.2beta3-win32\include&quot;;..\OrkBaseCxx;..\OrkBaseCxx\filters\gsm;..\OrkBaseCxx\filters\gsm\gsm610;..\OrkBaseCxx\filters\ilbc;..\OrkBaseCxx\filters\ilbc\ilbc;C:\devExt\libsndfile\include;C:\devExtVC12\boost\boost_1_55_0\;C:\devExt\ACE_wrappers;&quot;C:\devext\Log4cxx\log4cxx-0.10.0\src\main\include&quot;;C:\devext\libsndfile\include;C:\devext\xerces\src;..\OrkBaseCxx\filters\g722codec"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

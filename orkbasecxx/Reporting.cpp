@@ -193,7 +193,7 @@ bool Reporting::AddMessage(MessageRef messageRef)
 		MessageRef reportingMsgRef = reportable->Clone();
 
 		ret = reportingThread->m_messageQueue.push(reportingMsgRef);
-		FLOG_INFO(LOG.reporting,"[%s] %s: %s",reportingThread->m_tracker.ToString(),ret?"enqueued":"queue full, rejected",msgAsSingleLineString);
+		FLOG_INFO(LOG.reporting,"[%s] queuesize:%d %s: %s",reportingThread->m_tracker.ToString(),reportingThread->m_messageQueue.numElements(),ret?"enqueued":"queue full, rejected",msgAsSingleLineString);
 	}
 
 	EventStreamingSingleton::instance()->AddMessage(reportable->Clone());
@@ -280,7 +280,7 @@ void ReportingThread::Run()
 
 	CStdString logMsg;
 
-	FLOG_INFO(LOG.reporting,"[%s] reporting thread started", m_tracker.ToString());
+	FLOG_INFO(LOG.reporting,"[%s] %sreporting thread started.", m_tracker.ToString(), (m_tracker.m_https? "HTTPS ":""));
 
 	bool stop = false;
 	bool reportError = true;
@@ -300,6 +300,7 @@ void ReportingThread::Run()
 	}
 	initMsgRef->m_name = CONFIG.m_serviceName;	
 	initMsgRef->m_type = "A";
+	initMsgRef->m_contextPath = "/audio";
 	initMsgRef->m_tcpPort = CONFIG.m_httpServerPort;
 	initMsgRef->m_streamingPort = CONFIG.m_liveStreamingServerPortStr;
 	initMsgRef->m_absolutePath = CONFIG.m_audioOutputPath;
@@ -313,7 +314,8 @@ void ReportingThread::Run()
 							  m_tracker.m_hostname, 
 							  m_tracker.m_port,
 							  m_tracker.m_servicename, 
-							  CONFIG.m_clientTimeout);
+							  CONFIG.m_clientTimeout,
+							  m_tracker.m_https);
 
 		if (!response.m_success) {
 			if (time(NULL) - reportErrorLastTime > 60) {
@@ -355,9 +357,9 @@ void ReportingThread::Run()
 
 				if( CONFIG.m_enableReporting)
 				{
-					FLOG_INFO(LOG.reporting,"[%s] sending: %s", m_tracker.ToString(), msgAsSingleLineString);
+					FLOG_INFO(LOG.reporting,"[%s] timedeltasecs:%d sending: %s", m_tracker.ToString(), (int)(msgRef->Age()), msgAsSingleLineString);
 
-					OrkHttpSingleLineClient c;
+					//OrkHttpSingleLineClient c;
 
 					MessageRef tr = reportable->CreateResponse();
 
@@ -365,7 +367,7 @@ void ReportingThread::Run()
 
 					while (!success && !IsSkip())
 					{
-						if (c.Execute((SyncMessage&)(*msgRef.get()), (AsyncMessage&)(*tr.get()), m_tracker.m_hostname, m_tracker.m_port, m_tracker.m_servicename, CONFIG.m_clientTimeout))
+						if (c.Execute((SyncMessage&)(*msgRef.get()), (AsyncMessage&)(*tr.get()), m_tracker.m_hostname, m_tracker.m_port, m_tracker.m_servicename, CONFIG.m_clientTimeout, m_tracker.m_https))
 						{
 							success = true;
 							reportError = true; // reenable error reporting

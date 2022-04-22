@@ -18,8 +18,9 @@
 #include <log4cxx/logger.h>
 #include "AudioCapture.h"
 #include "Utils.h"
+#include "dll.h"
 
-static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("codec.sik");
+static log4cxx::LoggerPtr s_log = log4cxx::Logger::getLogger("codec.silk");
 
 SilkCodecDecoder::SilkCodecDecoder()
 {

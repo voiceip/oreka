@@ -177,6 +177,8 @@ public:
 #define ET_UNKNOWN "unknown"
 #define ET_START "start"
 #define ET_STOP "stop"
+#define ET_HOLD "hold"
+#define ET_RESUME "resume"
 #define ET_DIRECTION "direction"
 #define ET_REMOTEPARTY "remoteparty"
 #define ET_LOCALPARTY "localparty"
@@ -215,7 +217,9 @@ public:
 		EtCallId = 16,
                 EtLocalSide = 17,
                 EtAudioKeepDirection = 18,
-		EtInvalid = 19
+		EtHold = 19,
+		EtResume = 20,
+		EtInvalid = 21
 	} EventTypeEnum;
 	static CStdString EventTypeToString(int eventTypeEnum);
 	static int EventTypeToEnum(CStdString&);

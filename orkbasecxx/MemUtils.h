@@ -16,6 +16,7 @@
 
 #include "StdString.h"
 #include "OrkBase.h"
+#include <boost/utility/string_ref.hpp>
 
 void DLL_IMPORT_EXPORT_ORKBASE	MemToHex(unsigned char* input, size_t len, CStdString&output);
 DLL_IMPORT_EXPORT_ORKBASE char* MemFindAfter(char* toFind, char* start, char* stop);
@@ -28,6 +29,10 @@ void DLL_IMPORT_EXPORT_ORKBASE  MemMacToHumanReadable(unsigned char* macAddress,
 DLL_IMPORT_EXPORT_ORKBASE char* MemGrabAlphaNumSpace(char* in, char* limit, CStdString& out);
 DLL_IMPORT_EXPORT_ORKBASE char* MemGrabDigits(char* in, char* limit, CStdString& out);
 DLL_IMPORT_EXPORT_ORKBASE char* memFindAfterBinary(const char * const memToFind, size_t size, const char* const  memStart, const char * const memEnd);
+
+typedef  boost::string_ref OrkStringView;
+
+
 
 #endif
 

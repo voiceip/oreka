@@ -11,14 +11,14 @@
  *
  */
 
-#ifndef __READLOGGINGPROPERITESMSG_H__
-#define __READLOGGINGPROPERITESMSG_H__
+#ifndef __ORKAUDIOVERSIONMSG_H__
+#define __ORKAUDIOVERSIONMSG_H__
 
 #include "messages/SyncMessage.h"
 #include "messages/AsyncMessage.h"
 
 
-class DLL_IMPORT_EXPORT_ORKBASE ReadLoggingPropertiesMsg : public SyncMessage
+class DLL_IMPORT_EXPORT_ORKBASE OrkaudioVersionMsg : public SyncMessage
 {
 public:
 	void Define(Serializer* s);
@@ -29,18 +29,7 @@ public:
 	ObjectRef Process();
 };
 
-class DLL_IMPORT_EXPORT_ORKBASE ListLoggingPropertiesMsg : public SyncMessage
-{
-public:
-	void Define(Serializer* s);
-	inline void Validate() {};
-
-	CStdString GetClassName();
-	ObjectRef NewInstance();
-	ObjectRef Process();
-};
-
-class DLL_IMPORT_EXPORT_ORKBASE ListLoggingPropertiesResponseMsg : public SimpleResponseMsg
+class DLL_IMPORT_EXPORT_ORKBASE OrkaudioVersionResponseMsg : public SimpleResponseMsg
 {
 public:
 	void Define(Serializer* s);
@@ -50,10 +39,9 @@ public:
 	ObjectRef NewInstance();
 	inline ObjectRef Process() {return ObjectRef();};
 
-	CStdString m_loggerInfo;
-	int	m_count;
+	CStdString m_version;
 };
 
-
+void DLL_IMPORT_EXPORT_ORKBASE RegisterOrkaudioVersion(const char *ver);
 #endif
 
