@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y gnupg ca-certificates && rm -rf /var/lib/apt/lists/* 
 
-RUN apt-get update && apt-get install -y build-essential libtool automake git tree rpm libboost1.71-dev`
+RUN apt-get update && apt-get install -y build-essential libtool automake git tree rpm libboost-all-dev`
 	libpcap-dev libsndfile1-dev libapr1-dev libspeex-dev liblog4cxx-dev libace-dev libcap-dev `
 	libopus-dev libxerces-c3-dev libssl-dev cmake libdw-dev liblzma-dev libunwind-dev`
 	&& rm -rf /var/lib/apt/lists/* 
