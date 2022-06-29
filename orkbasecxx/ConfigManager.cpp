@@ -110,7 +110,7 @@ void ConfigManager::Initialize()
 		//		doc->release();
 		//		...
 		//		delete parser;
-		XercesDOMParser *m_parser = new XercesDOMParser;
+		m_parser = new XercesDOMParser;
 		XmlErrorHandler errhandler;
 		m_parser->setErrorHandler(&errhandler);
 		m_parser->parse(cfgFilename);
@@ -155,7 +155,6 @@ void ConfigManager::Initialize()
 		{
 			LOG4CXX_WARN(LOG.configLog, CStdString("Could not find config file:") + CONFIG_FILE_NAME);
 		}
-		delete m_parser;
 	}
 	catch (const CStdString& e)
 	{
