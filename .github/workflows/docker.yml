@@ -50,7 +50,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
+          # platforms: linux/amd64,linux/arm64
           context: ./distribution/docker/
           file: ./distribution/docker/Dockerfile.orkaudio
           cache-from: type=local,src=/tmp/.buildx-cache
