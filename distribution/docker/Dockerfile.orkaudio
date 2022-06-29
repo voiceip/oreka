@@ -7,10 +7,10 @@ MAINTAINER Kinshuk B (hi@kinsh.uk)
 # Configure apt
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y gnupg && rm -rf /var/lib/apt/lists/* 
+RUN apt-get update && apt-get install -y gnupg ca-certificates && rm -rf /var/lib/apt/lists/* 
 
 RUN . /etc/os-release && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 31F54F3E108EAD31 `
-	&& echo "deb [trusted=yes] http://ppa.launchpad.net/mhier/libboost-latest/ubuntu $UBUNTU_CODENAME main" >> /etc/apt/sources.list
+	&& echo "deb [trusted=yes] https://ppa.launchpadcontent.net/mhier/libboost-latest/ubuntu $UBUNTU_CODENAME main" >> /etc/apt/sources.list
 
 RUN apt-get update && apt-get install -y build-essential libtool automake git tree rpm libboost1.70-dev`
 	libpcap-dev libsndfile1-dev libapr1-dev libspeex-dev liblog4cxx-dev libace-dev libcap-dev `
@@ -66,7 +66,7 @@ FROM ubuntu:focal
 MAINTAINER Kinshuk B (hi@kinsh.uk)
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y libcap2 libsndfile1 libapr1 libspeex1 liblog4cxx10v5 libace-6.4.5 `
+RUN apt-get update && apt-get install -y libcap2 libpcap0.8 libsndfile1 libapr1 libspeex1 liblog4cxx10v5 libace-6.4.5 `
 	libopus0 libxerces-c3.2 libssl1.1 libdw1 libunwind8 && rm -rf /var/lib/apt/lists/* 
 
 # Mount the image from "builder" stage at `/artifacts` during this run
