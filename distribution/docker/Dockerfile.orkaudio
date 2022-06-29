@@ -39,7 +39,7 @@ RUN mkdir -p /opt/opus && chmod 777 /opt/opus`
 RUN mkdir -p /opt/bcg729 && chmod 777 /opt/bcg729`
 	&& git clone --depth 1 https://github.com/BelledonneCommunications/bcg729.git /opt/bcg729 `
 	&& cd /opt/bcg729 `
-	&& cmake . -DCMAKE_INSTALL_PREFIX=/usr`
+	&& cmake . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib`
 	&& make `
 	&& make install
 
@@ -77,7 +77,7 @@ RUN --mount=type=bind,source=/,target=/artifacts,from=builder `
    	&& cp /artifacts/opt/oreka/orkaudio/audiocaptureplugins/generator/.libs/libgenerator.so* /usr/lib/`
    	&& cp /artifacts/opt/oreka/orkaudio/audiocaptureplugins/generator/.libs/libgenerator.la /usr/lib/`
    	&& cp /artifacts/usr/lib/liborkbase.*  /usr/lib/ `
-   	&& cp /artifacts/usr/lib/x86_64-linux-gnu/libbcg729.*  /usr/lib/ `
+   	&& cp /artifacts/usr/lib/libbcg729.*  /usr/lib/ `
    	&& mkdir -p /usr/lib/orkaudio/plugins/ `
    	&& cp /artifacts/opt/oreka/orkaudio/plugins/*.so  /usr/lib/orkaudio/plugins/
 
