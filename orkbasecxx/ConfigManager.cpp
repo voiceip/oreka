@@ -150,7 +150,6 @@ void ConfigManager::Initialize()
 				LOG4CXX_ERROR(LOG.configLog, CStdString("Could not parse config file:") + CONFIG_FILE_NAME);
 				failed = true;
 			}
-			// doc->release(); //throws Segmentation fault
 		}
 		else
 		{
