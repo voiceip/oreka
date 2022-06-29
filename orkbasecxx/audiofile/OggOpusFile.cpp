@@ -413,6 +413,7 @@ void OggOpusFile::WriteHeader()
             bytes_written+=ret;
             pages_out++;
     }    
+    free(inopt.comments);
 }
 
 /*Write an Ogg page to a file pointer*/
