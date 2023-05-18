@@ -4337,6 +4337,10 @@ void VoIpSessions::ClearLocalPartyMap()
        m_localPartyMap.clear();
 }
 
+const std::map<unsigned long long, VoIpSessionRef> & VoIpSessions::getByIpAndPort() const {
+       return m_byIpAndPort;
+}
+
 void VoIpSessions::StopAll()
 {
 	time_t forceExpiryTime = time(NULL) + 2*DLLCONFIG.m_rtpSessionOnHoldTimeOutSec;
