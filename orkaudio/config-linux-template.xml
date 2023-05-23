@@ -44,7 +44,7 @@
 	<!-- TlsClientCACertCheckIgnoreExpiry value to false                    -->
 	<!-- <TlsClientCACertCheckIgnoreExpiry>true</TlsClientCACertCheckIgnoreExpiry> -->
 
-	<CapturePortFilters>LiveMonitoring</CapturePortFilters>
+	<!-- <CapturePortFilters>LiveMonitoring</CapturePortFilters> -->
 	<TapeProcessors>BatchProcessing, Reporting</TapeProcessors>
 	
 	<!-- <ImmediateProcessingQueueSize>50000</ImmediateProcessingQueueSize> -->
@@ -144,4 +144,14 @@
 		<!-- End of Available Configurations for Mitel Communications Platform -->
 
 	</VoIpPlugin>
+
+	<!-- LiveStreamFilter Configuration -->
+	<!-- To Enable this plugin add `LiveStreamFilter` in CapturePortFilters  -->
+	<!-- <CapturePortFilters>LiveStreamFilter</CapturePortFilters> -->
+	<RTMPServerEndPoint>127.0.0.1:1935/live</RTMPServerEndPoint>
+	<LiveStreamAllCalls>true</LiveStreamAllCalls>
+	<!-- <LiveStreamingServerPort>59160</LiveStreamingServerPort> -->
+	<!-- <LiveStreamingQueueFlushThreshold>500</LiveStreamingQueueFlushThreshold> -->
+	<!-- End of LiveStreamFilter Configuration -->
+
 </config>

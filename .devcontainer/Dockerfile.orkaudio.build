@@ -46,7 +46,25 @@ RUN mkdir -p /opt/bcg729 && chmod 777 /opt/bcg729`
 RUN mkdir -p /opt/backward-cpp && chmod 777 /opt/backward-cpp`
 	&& git clone --depth 1 https://github.com/bombela/backward-cpp.git /opt/backward-cpp `
 	&& ln -s /opt/backward-cpp/backward.hpp /usr/local/include/backward.hpp
-	
+
+#httplib
+RUN mkdir -p /opt/httplib && chmod 777 /opt/httplib`
+	&& git clone --depth 1 --branch v0.12.3 https://github.com/yhirose/cpp-httplib.git /opt/httplib `
+	&& ln -s /opt/httplib/httplib.h /usr/local/include/httplib.h
+
+#json
+RUN mkdir -p /opt/json && chmod 777 /opt/json`
+	&& git clone --depth 1 https://github.com/nlohmann/json.git /opt/json/ `
+	&& cd /opt/json `
+	&& cmake . -DCMAKE_INSTALL_PREFIX=/usr`
+	&& make && make install	
+
+#srs-librtmp
+RUN git clone --depth 1 --branch 3.0release https://github.com/ossrs/srs.git /opt/srs `
+	&& cd /opt/srs/trunk && CXXFLAGS="-fPIC" ./configure --with-librtmp --without-ssl  --export-librtmp-project=/opt/srs-librtmp `
+	&& cd /opt/srs-librtmp && sed -i '/Building the srs-librtmp example/,+1d' Makefile`
+	&& make && ln -s /opt/srs-librtmp/objs/lib/srs_librtmp.a /opt/srs-librtmp/objs/lib/libsrs_librtmp.a 
+
 COPY .devcontainer/build.sh  /entrypoint.sh
 
 #INSERT_HERE
