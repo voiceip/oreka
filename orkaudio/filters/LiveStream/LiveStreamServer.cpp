@@ -129,7 +129,7 @@ void LiveStreamServer::Start() {
         res.set_content(response.dump(), "application/json");
     });
 
-    svr.set_exception_handler([](const auto& req, auto& res, std::exception_ptr &ep) {
+    svr.set_exception_handler([](const Request& req, Response& res, std::exception_ptr &ep) {
         auto fmt = "<h1>Error 500</h1><p>%s</p>";
         char buf[BUFSIZ];
         try {
