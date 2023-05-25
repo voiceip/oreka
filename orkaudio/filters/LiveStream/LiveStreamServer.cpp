@@ -129,12 +129,18 @@ void LiveStreamServer::Start() {
         res.set_content(response.dump(), "application/json");
     });
 
-    svr.set_exception_handler([](const Request & req, Response & res, std::exception &e) {
-        LOG4CXX_ERROR(s_log, CStdString("LiveStreamServer::ExceptionHandler Error 500 - ") + e.what());
-        res.status = 500;
+    svr.set_exception_handler([](const Request& req, Response& res, std::exception_ptr ep) {
         auto fmt = "<h1>Error 500</h1><p>%s</p>";
         char buf[BUFSIZ];
-        snprintf(buf, sizeof(buf), fmt, e.what());
+        try {
+            std::rethrow_exception(ep);
+        } catch (std::exception &e) {
+            snprintf(buf, sizeof(buf), fmt, e.what());
+        } catch (...) { // See the following NOTE
+            snprintf(buf, sizeof(buf), fmt, "Unknown Exception");
+        }
+        LOG4CXX_ERROR(s_log, CStdString("LiveStreamServer::ExceptionHandler Error 500 - ") + buf);
+        res.status = 500;
         res.set_content(buf, "text/html");
     });
 

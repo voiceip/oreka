@@ -49,7 +49,7 @@ RUN mkdir -p /opt/backward-cpp && chmod 777 /opt/backward-cpp`
 
 #httplib
 RUN mkdir -p /opt/httplib && chmod 777 /opt/httplib`
-	&& git clone --depth 1 https://github.com/yhirose/cpp-httplib.git /opt/httplib `
+	&& git clone --depth 1 --branch v0.12.3 https://github.com/yhirose/cpp-httplib.git /opt/httplib `
 	&& ln -s /opt/httplib/httplib.h /usr/local/include/httplib.h
 
 #json
