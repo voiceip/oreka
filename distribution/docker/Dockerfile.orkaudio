@@ -34,7 +34,7 @@ RUN mkdir -p /opt/opus && chmod 777 /opt/opus`
 
 #g729
 RUN mkdir -p /opt/bcg729 && chmod 777 /opt/bcg729`
-	&& git clone --depth 1 https://github.com/BelledonneCommunications/bcg729.git /opt/bcg729 `
+	&& git clone --depth 1 --branch "1.1.1" https://github.com/BelledonneCommunications/bcg729.git /opt/bcg729 `
 	&& cd /opt/bcg729 `
 	&& cmake . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib`
 	&& make `
