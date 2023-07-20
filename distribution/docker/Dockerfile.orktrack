@@ -1,0 +1,43 @@
+# escape=`
+
+FROM maven:3-jdk-8 as intermediate
+MAINTAINER Kinshuk B (hi@kinsh.uk)
+
+# Configure apt
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update `
+    && apt-get -y install --no-install-recommends apt-utils 2>&1
+
+# speed up Maven JVM a bit
+ENV MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+
+RUN mkdir -p /opt/oreka && chmod 777 /opt/oreka`
+	&& git clone --depth 1 https://github.com/voiceip/oreka.git /opt/oreka `
+	&& cd /opt/oreka/orkbasej `
+	&& mvn clean install -DskipTests=true
+
+
+RUN cd /opt/oreka/orktrack `
+	&& mvn clean install -DskipTests=true`
+	&& cp /opt/oreka/orktrack/target/orktrack-0.0.1-SNAPSHOT.war /tmp/orktrack.war
+
+
+FROM tomcat:9-jdk8
+MAINTAINER Kinshuk B (hi@kinsh.uk)
+
+RUN apt-get update && apt-get install -y wget
+
+ENV DOCKERIZE_VERSION v0.6.1
+RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz `
+    && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz `
+    && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+
+COPY --from=intermediate /tmp/orktrack.war /usr/local/tomcat/webapps/orktrack.war
+ADD https://raw.githubusercontent.com/voiceip/oreka/master/distribution/orkweb-linux-installer/database.hbm.xml /etc/oreka/database.hbm.xml
+
+RUN ln -s /usr/local/tomcat /var/lib/tomcat8
+
+EXPOSE 8080
+ENV SHELL /bin/bash
+
+CMD ["catalina.sh", "run"]
